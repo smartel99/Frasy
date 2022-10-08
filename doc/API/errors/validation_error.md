@@ -27,11 +27,35 @@ end)
 ```
 
 ## SequenceNotFound Exception
-Triggered when a [`Sequence`](sequence.md#function-sequencename-string-sequence-functionsequencecontextclass-sequencecontext---requirementspecifierrequirementmdclass-requirementspecifier) that does not exist gets queried in a [`Requires`](requirement.md#class-requirementspecifier) expression.
+Triggered when a [`Sequence`](requirement.md#function-sequencename-string---requirementspecifier) that does not exist gets queried in a [`Requires`](requirement.md#function-requiresrequirement-functionargs---returntype--args---returntype) expression.
 
 ### Example
 ```lua
 Sequence("MySequence", function(context) 
+    Requires(Sequence("Foo"):ToPass) -- Error! No sequence called Foo!
+end)
+```
 
-end):Requires(Sequence("Foo"):ToPass()) -- Error! No sequence called Foo!
+## TestNotFound Exception
+Triggered when a [`Test`](requirement.md#function-testname-string---requirementspecifier) that does not exist gets queried in a [`Requires`](requirement.md#function-requiresrequirement-functionargs---returntype--args---returntype) expression.
+
+### Example
+```lua
+Sequence("MySequence", function(context) 
+    Test("MyTest", function(c)
+        Requires(Test("OtherTest"):ToPass) -- Error! No test called OtherTest in MySequence!
+    end)
+end)
+```
+
+## BadRequiresScope Exception
+Triggered when a call to [`Requires`](requirement.md#function-requiresrequirement-functionargs---returntype--args---returntype) occurs outside of scope of a `Test` or `Sequence`.
+
+### Example
+```lua
+Sequence("MySequence", function(context)
+    -- The tests...
+end)
+
+Requires(Sequence("MySequence"):ToBeFirst) -- Error! Not in a valid scope!
 ```

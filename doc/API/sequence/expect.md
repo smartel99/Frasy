@@ -27,39 +27,52 @@ function Test.Expect(self, value, name)
             return self.result
         end,
         -- Inverses the logic applied to the condition.
-        Not = function(self) self.inverse = true; return self end,
+        Not = function(self) end,
         -- Expects the value to be true or true-like. A function may be provided to determine the truthfullness of the value.
-        ToBeTrue = function(self, func) self.condition = function(v) return v == true end end,
+        ToBeTrue = function(self, func) end,
         -- Expects the value to be false or false-like.
-        ToBeFalse = function(self) self.condition = function(v) return v == false end end,
+        ToBeFalse = function(self) end,
         -- Expects the value to be within a range of acceptable values.
-        ToBeNear = function(self, expected, variation)
-            self.checkFunc = function(v, exp, var)
-
-            end
-        end,
+        ToBeNear = function(self, expected, variation) end,
         -- Expects the value to be equal to something, optionally using `pred` to verify the match.
-        ToBeEqual = function(self, match, pred) 
-            if type(pred) == "function" then
-                self.checkFunc = pred
-            else
-                self.checkFunc = function(val, expected) return val == expected end
-            end
-            self.checkFuncArgs = match
-        end,
+        ToBeEqual = function(self, match, pred) end,
         ToBeAnyOf,
-        -- Expects the value to be 
         ToBeType,
     }
-    return 
 end
 ```
 
-## Example 1
+## class `ExpectResult`
+
+
+## `function ExportAs(self: ExpectResult, name: string)`
+Makes the value, and results given to an `Expect` clause available to other tests and sequences.
+
+**Parameters:**
+- `name: string`: The name under which the value should be made available.
+
+**Returns:** None
+
+**Example:**
+The following code:
 ```lua
-Sequence("Seq", function(map, context)
-    Test("Test", function()
-        Expect(1).ToBeEqual(2)
-    )
+Sequence("Foo", function(sequenceContext)
+    Requires(Sequence():ToBeFirst)
+    Test("FooTest", function(testContext)
+        local voltage = 1.4
+        Expect(voltage):ToBeNear(3.3, 0.1):ExportAs("Voltage")
+    end)
 end)
+
+Sequence("Bar", function(sequenceContext)
+    Test("BarTest", function(testContext)
+        local results = Requires(Sequence("Foo"):Test("FooTest"):Value, "Voltage")
+        print(string.format("Foo.FooTest.Voltage: %0.3f - %s", results.value, results.passed and "PASS" or "FAIL")
+    end)
+end)
+```
+
+Gives the following output:
+```
+Foo.FooTest.Voltage: 1.400 - FAIL
 ```

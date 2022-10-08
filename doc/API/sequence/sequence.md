@@ -27,7 +27,7 @@ Frasy will order the sequences based on the rules and requirements given to each
 
 # Functions
 
-## `function Sequence(name: string, sequence: function(`[`SequenceContext`](#class-sequencecontext)`)) -> `[`RequirementSpecifier`](requirement.md#class-requirementspecifier)
+## `function Sequence(name: string, sequence: function(`[`SequenceContext`](#class-sequencecontext)`)) -> `[`SequenceRequirements`](#class-sequencerequirements)
 Creates a sequence of test called `name`, described by the function `sequence`.
 
 **Parameters:**
@@ -51,19 +51,8 @@ end)
 - Multiple sequences under the same name will result in a [`SequenceAlreadyDefined`](validation_error.md#sequencealreadydefined-exception) exception.
 
 
-## `function Sequence([name: string]) -> `[`SequenceStatus`](#class-sequencestatus)
-Used to get the current status of a `Sequence` in [`Requires`](requirement.md#function-requirementspecifierrequiresself-clause-any-----requirementspecifierclass-requirementspecifier) expressions.
-When used without a name, gets the status of the currently active sequence.
 
-**Parameters:**
-- `name: string` (optional): The name of the `Sequence` to get.
 
-**Returns:** The [`SequenceStatus`](#class-sequencestatus) for the requested sequence, if it is found.
-
-**Exceptions:**
-- Requesting a `Sequence` that does not exist will result in a [`SequenceNotFound`](validation_error.md#sequencenotfound-exception) exception.
-
-# Types
 ## class `SequenceStatus`
 
 ```lua

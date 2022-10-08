@@ -7,12 +7,12 @@ Execution order:
 
 ```lua
 Sequence("S1", function(sCtx)
-    Requires(Sequence("S2"):Test("T2"):ToPass())
+    Requires(Sequence("S2"):Test("T2"):ToPass)
     Test("T1", function(tCtx) Expect(true):ToBeFalse() end)
 end)
 
 Sequence("S2", function(sCtx)
-    Requires(Sequence():ToBeFirst())
+    Requires(Sequence():ToBeFirst)
 
     Test("T1", function(tCtx)
         Requires(Test("T2"):ToFail())
