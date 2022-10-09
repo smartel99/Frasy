@@ -27,9 +27,9 @@ When opening Frasy for the first time, the user will be prompted to select the f
 Sequences and tests can be enabled and disabled through the test explorer, which is also used to display the progression of the sequence. The user then only has to click on the "Run" button.
 
 ## Documentation
-The API reference documentation can be found [here](api.md).
+The API reference documentation can be found [here](doc/api/).
 
-A thorough description of Frasy's architecture can be found [here](architecture.md)
+A thorough description of Frasy's architecture can be found [here](doc/architecture/)
 
 ## Thanks
 Thank you to the following persons for their help in making this project possible!
