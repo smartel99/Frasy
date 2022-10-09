@@ -1,7 +1,7 @@
 # Requirements
-Requirements allows the specifications of conditions and ordering constraints for the owner (either a [`Sequence`](sequence.md) or a [`Test`](test.md)) to be executed.
+Requirements allows the specifications of conditional and ordering constraints for the owner (either a [`Sequence`](sequence.md) or a [`Test`](test.md)) to be executed.
 
-Requirements can be defined only inside `Test`s and `Sequence`s. Defining a requirement outside these scopes will trigger a [`BadRequiresScope`](validation_error.md#badrequiresscope-exception) exception.
+Requirements can be defined only inside the scope of a `Test` or `Sequence`. Defining a requirement outside these scopes will trigger a [`BadRequiresScope`](validation_error.md#badrequiresscope-exception) exception.
 
 There are two types of requirements:
 - Ordering

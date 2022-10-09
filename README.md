@@ -27,7 +27,7 @@ When opening Frasy for the first time, the user will be prompted to select the f
 Sequences and tests can be enabled and disabled through the test explorer, which is also used to display the progression of the sequence. The user then only has to click on the "Run" button.
 
 ## Documentation
-The API reference documentation can be found [here](doc/api/).
+The API reference documentation can be found [here](doc/API/).
 
 A thorough description of Frasy's architecture can be found [here](doc/architecture/)
 
@@ -36,4 +36,4 @@ Thank you to the following persons for their help in making this project possibl
 
 - [DoubleNom](https://gitlab.com/DoubleNom) for the help designing the entire architecture and for his helpful criticism :)
 - [nickclark2016](https://github.com/nickclark2016) for designing the test description procedure!
-
+- An anonymous sergal for the help coming up with sentences that makes sense!
