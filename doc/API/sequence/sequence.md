@@ -1,5 +1,5 @@
 # Sequence
-The `Sequence` function allows the packaging of [Test](test.md) into an element that can be toggled (executed or not).
+The `Sequence` function allows the packaging of [Test](doc/API/sequence/test.md) into an element that can be toggled (executed or not).
 It is, put simply, nothing more than a suite of tests.
 
 Multiple `Sequence`s can be active at the same time. In those cases, Frasy will order them based on the `Requires` clauses of those sequences.
@@ -27,18 +27,19 @@ Frasy will order the sequences based on the rules and requirements given to each
 
 # Functions
 
-## `function Sequence(name: string, sequence: function(`[`SequenceContext`](#class-sequencecontext)`)) -> `[`SequenceRequirements`](#class-sequencerequirements)
+## `function Sequence(name: string, sequence: function(`[`SequenceContext`](#class-sequencecontext)`))`
 Creates a sequence of test called `name`, described by the function `sequence`.
 
 **Parameters:**
 - `name: string`: Name assigned to the sequence. **Must be unique!**
 - `sequence: function(`[`Map`](mapping.md#class-map)`, `[`SequenceContext`](#class-sequencecontext)`)`: Function that describes the tests that are done by the sequence.
 
-**Returns:** [`RequirementSpecifier`](requirement.md#class-requirementspecifier)
+**Returns:** None
 
 **Example:**
 ```lua
 Sequence("MySequence", function(sequenceContext)
+    Requires(Sequence():ToBeFirst)
     Test("MyTest", function(testContext)
         local resistance = TestBench.GetResistance(testContext.Map.TP1)
         Expect(resistance).ToBeNear(1000, 0.10)
@@ -50,28 +51,20 @@ end)
 - Defining a `Sequence` nested into another sequence will result in a [`NestedSequence`](validation_error.md#nestedsequence-exception) exception.
 - Multiple sequences under the same name will result in a [`SequenceAlreadyDefined`](validation_error.md#sequencealreadydefined-exception) exception.
 
-
-
-
-## class `SequenceStatus`
-
-```lua
-{
-    context = {},                     -- Execution context of the sequence (execution info, signal mapping)
-    enabled = true,  -- Is the sequence enabled?
-    
-    requires = nil   -- List of the sequence's requirements.
-}
-```
+---
 
 ## class `SequenceContext`
-[`Map`](mapping.md#class-map)
-
 ```lua
 {
     name = "SequenceName",            -- Name of the sequence
     sequenceFunc = function(ctx) end, -- Function used to populate the sequence's tests
     tests = {},                       -- List of all the status of all tests contained in the sequence.
-
+    map = {},                         -- Pin mapping for the UUT's signals.
+    uut = "",                         -- Name of the UUT on which the sequence is being run.
+    startTime = 0,                    -- Time at which the sequence started executing.
+    endTime = 0,                      -- Time at which the sequence ended.
+    hasPassed = true,                 -- True if all tests passed.
+    hasBeenSkipped = false,           -- True if sequence has been skipped.
+    requirements = {},                -- List of all the requirements.
 }
 ```

@@ -59,3 +59,64 @@ end)
 
 Requires(Sequence("MySequence"):ToBeFirst) -- Error! Not in a valid scope!
 ```
+
+## ValueNotFound Exception
+Triggered when [`RequirementSpecifier.Value`](doc/API/sequence/requirement.md#function-requirementspecifiervalueself-requirementspecifier-name-string---t) is asked to find a value that does not exist in the owner's scope.
+
+### Example
+```lua
+Sequence("MySequence", function(sequenceContext)
+    Test("Test1", function(testContext)
+        local value = GetAValue()
+        Expect(value):ToBeNear(1.0, 0.1)
+    end)
+
+    Test("Test2", function(testContext)
+        local value = Requires(Test("Test1"):Value, "value") -- Error! Test1.value does not exist!
+    end)
+end)
+```
+
+### Solution
+Export the desired value:
+```lua
+Sequence("MySequence", function(sequenceContext)
+    Test("Test1", function(testContext)
+        local value = GetAValue()
+        Expect(value):ToBeNear(1.0, 0.1):ExportAs("value")
+    end)
+
+    Test("Test2", function(testContext)
+        local value = Requires(Test("Test1"):Value, "value") -- All good! value is exported.
+    end)
+end)
+```
+
+## InvalidRequirement Exception
+Triggered when the scope given to an ordering requirement is not valid.
+This can be due to:
+- The scope given to an ordering requirement is the owner's scope
+- The requirements of scope given to an ordering requirement conflicts with the one being attempted to be defined (example: both trying to be first)
+- The `Sequence` not existing
+- The `Test` not existing
+- A user-defined `RequirementSpecifier` was provided
+
+### Example
+```lua
+Sequence("MySequence", function(sequenceContext)
+    Test("Foo", function(testContext)
+        Requires(Test():ToBeFirst) -- Error, two tests are trying to be first!
+    end)
+
+    Test("Bar", function(testContext)
+        Requires(Test():ToBeBefore, Test("MyTest")) -- Error, MyTest needs to be before Bar!
+    end)
+
+    Test("MyTest", function(testContext)
+        Requires(Test():ToBeFirst) -- Error, two tests are trying to be first!
+        Requires(Test():ToBeBefore, Test("Bar")) -- Error, Bar needs to be before MyTest!
+        Requires(Test():ToBeBefore, Test()) -- Error, recursive requirement!
+        Requires(Test():ToBeBefore, Test("OtherTest")) -- Error, OtherTest does not exist!
+    end)
+end)
+```
