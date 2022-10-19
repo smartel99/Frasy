@@ -1,4 +1,8 @@
 # Frasy - Generic Automated Hardware Testing Software
+
+![logo](doc/assets/img/frasy_logo_light.svg#gh-dark-mode-only)
+![logo](doc/assets/img/frasy_logo.svg#gh-light-mode-only)
+
 Frasy is a tool allowing technicians to test any Printed Circuit Board Assemblies (PCBA) in a highly scalable manner, ranging from small (less than 1000 units per year) to very large (> 10 million units per year) production lines.
 
 Using a descriptive approach, very little programming knowledge are required in order to write test sequences. The technician only has to specify the criteria for a PCBA to be valid, and Frasy handles the rest!
