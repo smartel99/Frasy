@@ -15,26 +15,26 @@ local panel = {
     mapping = {
         TP1 = {
             connectedTo = {
-                UUT0 = {daughterboardId = 0, signalId = HAL.Point.DBA_MUX1_A0},
-                UUT1 = {daughterboardId = 1, signalId = HAL.Point.DBA_MUX1_A0}
+                UUT0 = {daughterboardId = "dobo1", signalId = HAL.Point.DBA_MUX1_A0},
+                UUT1 = {daughterboardId = "dobo2", signalId = HAL.Point.DBA_MUX1_A0}
             }
         },
         TP2 = {
             connectedTo = {
-                UUT0 = {daughterboardId = 0, signalId = HAL.Point.DBA_MUX1_A1},
-                UUT1 = {daughterboardId = 1, signalId = HAL.Point.DBA_MUX1_A1}
+                UUT0 = {daughterboardId = "dobo1", signalId = HAL.Point.DBA_MUX1_A1},
+                UUT1 = {daughterboardId = "dobo2", signalId = HAL.Point.DBA_MUX1_A1}
             }
         },
         TP3 = {
             connectedTo = {
-                UUT0 = {daughterboardId = 0, signalId = HAL.Point.DBA_MUX1_A2},
-                UUT1 = {daughterboardId = 1, signalId = HAL.Point.DBA_MUX1_A2}
+                UUT0 = {daughterboardId = "dobo1", signalId = HAL.Point.DBA_MUX1_A2},
+                UUT1 = {daughterboardId = "dobo2", signalId = HAL.Point.DBA_MUX1_A2}
             }
         },
         TP6 = {
             connectedTo = {
-                UUT0 = {daughterboardId = 0, signalId = HAL.Point.DBA_MUX1_A3},
-                UUT1 = {daughterboardId = 1, signalId = HAL.Point.DBA_MUX1_A3}
+                UUT0 = {daughterboardId = "dobo1", signalId = HAL.Point.DBA_MUX1_A3},
+                UUT1 = {daughterboardId = "dobo2", signalId = HAL.Point.DBA_MUX1_A3}
             }
         },
         R1 = {

@@ -1,1 +1,9 @@
 .vscode
+.idea
+.vs
+/bin
+/bin-int
+cmake-build*
+
+# Build files
+.lib
