@@ -1,0 +1,4 @@
+{
+    "mapping": "path/to/mapping.lua",
+    "controlRoomScript": "path/to/control_room.lua"
+}

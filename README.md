@@ -41,3 +41,12 @@ Thank you to the following persons for their help in making this project possibl
 - [DoubleNom](https://gitlab.com/DoubleNom) for the help designing the entire architecture and for his helpful criticism :)
 - [nickclark2016](https://github.com/nickclark2016) for designing the test description procedure!
 - An anonymous sergal for the help coming up with sentences that makes sense!
+
+## Getting Started
+To generate the project files, use one of the scripts found [here](scripts/Windows/).
+Alternatively, invoke Premake directly. 
+
+**Note**: C++20 is required to build Frasy!
+
+By default, Frasy builds the demonstration mode. The sources for this demo mode can be found [here](Frasy/src/demo_mode).
+To provide your own source code, use the `--src_loc` flag when generating the project files.

@@ -18,7 +18,7 @@
 
 #include "frasy_interpreter.h"
 #include "utils/internal_config.h"
-#include "utils/log_window_sink.h"
+#include "utils/logging/log_window_sink.h"
 
 #include <Brigerad/Core/Log.h>
 #include <Brigerad/Debug/Instrumentor.h>
@@ -103,6 +103,13 @@ void LogWindow::RenderSeparateLoggers(LogWindowOptions&                     opti
         try
         {
             LogWindowMultiSink& multiSink = *dynamic_cast<LogWindowMultiSink*>(sink.get());
+
+            static LogWindow::LoggerName defaultLogger = {};
+            const LogWindow::LoggerName* activeLogger  = &defaultLogger;
+
+            static LogWindow::LoggerEntries defaultEntries = {};
+            const LogWindow::LoggerEntries* activeEntries  = &defaultEntries;
+
             for (auto&& [logger, entries] : multiSink.GetLoggers())
             {
                 // TODO: Indicate new entries from inactive tabs to the user through the unsaved
@@ -111,10 +118,14 @@ void LogWindow::RenderSeparateLoggers(LogWindowOptions&                     opti
                   ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder;
                 if (ImGui::BeginTabItem(logger.data(), nullptr, flags))
                 {
-                    RenderLoggerEntries(options, logger, entries);
+                    // Tab is active, render it. We do not directly render the entries here to
+                    // be able to sync table properties between tabs.
+                    activeLogger  = &logger;
+                    activeEntries = &entries;
                     ImGui::EndTabItem();
                 }
             }
+            RenderLoggerEntries(options, *activeLogger, *activeEntries);
         }
         catch (std::bad_cast& e)
         {
@@ -129,19 +140,21 @@ void LogWindow::RenderLoggerEntries(LogWindowOptions&               options,
                                     const LogWindow::LoggerName&    loggerName,
                                     const LogWindow::LoggerEntries& loggerEntries)
 {
-    std::string            label      = fmt::format("{}-entries", loggerName);
     static ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-                                        ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
-                                        ImGuiTableFlags_BordersV;
+                                        ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |
+                                        ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY |
+                                        ImGuiTableFlags_SortMulti | ImGuiTableFlags_SortTristate;
 
-    if (ImGui::BeginTable(label.c_str(), 4, tableFlags))
+    float maxY = ImGui::GetContentRegionMax().y;
+    if (ImGui::BeginTable("entries", 5, tableFlags, ImVec2 {0.0f, maxY}))
     {
         auto flagFromOption = [](bool enabled)
         { return enabled ? ImGuiTableColumnFlags_None : ImGuiTableColumnFlags_DefaultHide; };
+        ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_NoHide);
         ImGui::TableSetupColumn(
           "Timestamp", ImGuiTableColumnFlags_DefaultSort | flagFromOption(options.ShowTimeStamp));
         ImGui::TableSetupColumn("Source", flagFromOption(options.ShowLogSource));
-        ImGui::TableSetupColumn("Entry", ImGuiTableColumnFlags_NoHide);
+        ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoHide);
         ImGui::TableSetupColumn("Location", flagFromOption(options.ShowSourceLocation));
         ImGui::TableHeadersRow();
         for (size_t i = 0; i < loggerEntries.size(); i++)
@@ -181,25 +194,20 @@ void LogWindow::RenderEntry(LogWindowOptions& options, const LogEntry& entry)
     // Use the pointer location as a unique ID.
     ImGui::PushID(static_cast<int>(reinterpret_cast<size_t>(entry.Entry.c_str())));
 
+    ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, s_colors[entry.Level]);
     bool isCritical = entry.Level == spdlog::level::critical;
 
-    if (!isCritical) { ImGui::PushStyleColor(ImGuiCol_Text, s_colors[entry.Level]); }
-    else
-    {
-        // Critical is special: use red background with white foreground.
-        ImGui::PushStyleColor(ImGuiCol_Header, s_colors[spdlog::level::critical]);
-        ImGui::PushStyleColor(ImGuiCol_HeaderActive, s_colors[spdlog::level::critical]);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, s_colors[spdlog::level::critical]);
-    }
+    if (isCritical) { ImGui::PushStyleColor(ImGuiCol_Text, 0xFFFFFFFF); }
 
-    renderColumn(0, entry.Timestamp, options.ShowTimeStamp);
-    renderColumn(1, entry.LoggerName, options.ShowLogSource);
     bool dummy;
-    renderColumn(2, entry.Entry, dummy);
+    renderColumn(0, to_short_c_str(entry.Level), dummy);
+    renderColumn(1, entry.Timestamp, options.ShowTimeStamp);
+    renderColumn(2, entry.LoggerName, options.ShowLogSource);
+    renderColumn(3, entry.Entry, dummy);
     renderColumn(
-      3, entry.FormatSourceLocation(options.SourceLocationRenderStyle), options.ShowSourceLocation);
+      4, entry.FormatSourceLocation(options.SourceLocationRenderStyle), options.ShowSourceLocation);
 
-    ImGui::PopStyleColor(isCritical ? 3 : 1);
+    ImGui::PopStyleColor(isCritical ? 1 : 0);
     ImGui::PopID();
     ImGui::EndGroup();
 }

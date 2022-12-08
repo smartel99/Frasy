@@ -52,11 +52,11 @@ void MyMainApplicationLayer::OnImGuiRender()
               buttonUv0,
               buttonUv1))
         {
-            Brigerad::Log::GetLogger(loggerName)
-              ->log(spdlog::source_loc(__FILE__, __LINE__, FUNCSIG),
-                    level,
-                    "This is a message for {}!",
-                    loggerName);
+            BR_LOG(loggerName, level, "This is a message for {}!", loggerName);
+        }
+        if (ImGui::IsItemActive())
+        {
+            BR_LOG(loggerName, level, "This is a message for {}!", loggerName);
         }
     };
 

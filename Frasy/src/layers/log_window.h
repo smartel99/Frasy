@@ -21,8 +21,8 @@
 #include "Brigerad.h"
 #include "Brigerad/Renderer/Texture.h"
 
-#include "utils/log_window_options.h"
-#include "utils/log_window_sink.h"
+#include "utils/logging/log_window_options.h"
+#include "utils/logging/log_window_sink.h"
 
 #include <imgui/imgui.h>
 #include <spdlog/common.h>
@@ -71,12 +71,12 @@ protected:
     std::shared_ptr<LogWindowSink> m_sink;
 
     static constexpr std::array s_colors = {
-      ImVec4(1.0f, 1.0f, 1.0f, 1.0f),                                   //!< Trace
-      ImVec4(1.0f, 1.0f, 1.0f, 1.0f),                                   //!< Debug
-      ImVec4(0.0f / 255.0f, 161.0f / 255.0f, 8.0f / 255.0f, 1.0),       //!< Info
-      ImVec4(236.0f / 255.0f, 252.0f / 255.0f, 92.0f / 255.0f, 1.0),    //!< Warning
-      ImVec4(220.0f / 255.0f, 48.0f / 255.0f, 48.0f / 255.0f, 1.0),     //!< Error
-      ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0),       //!< Critical
+      static_cast<uint32_t>(0x20FFFFFF),    //!< Trace
+      static_cast<uint32_t>(0x20FAE500),    //!< Debug
+      static_cast<uint32_t>(0x2008A100),    //!< Info
+      static_cast<uint32_t>(0x205CFDEC),    //!< Warning
+      static_cast<uint32_t>(0x203030DC),    //!< Error
+      static_cast<uint32_t>(0xFF0000FF),    //!< Critical
     };
     static_assert(s_colors.size() == spdlog::level::n_levels - 1);
 

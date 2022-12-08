@@ -4,6 +4,12 @@
 /bin
 /bin-int
 cmake-build*
+*.cmake
+CMakeLists.txt
+Brigerad/vendor/glm/doc
 
 # Build files
 .lib
+Debug-*
+Dist-*
+Release-*
