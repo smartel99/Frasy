@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    dispatcher.cpp
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-09-21
  * @brief
  *
  * @copyright
@@ -14,25 +14,24 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
+#include "dispatcher.h"
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#include <Brigerad/Core/Log.h>
 
-#include "../../layers/main_application_layer.h"
 
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+namespace Frasy::Commands
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
+CommandDispatcher::CommandDispatcher(const CommandEvent& event, CommandManager& manager) noexcept
+: m_event(event), m_manager(manager)
+{
+}
 
-    void OnAttach() override;
-    void OnDetach() override;
-
-protected:
-    void RenderControlRoom() override;
-
-private:
-};
-
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+void CommandDispatcher::Dispatch() const noexcept
+{
+    BR_APP_DEBUG("Dispatching command!");
+    for (auto&& [t, handler] : m_manager.m_handlers)
+    {
+        if (handler.DestinedTo(m_event)) { handler.Handle(m_event); }
+    }
+}
+}    // namespace Frasy::Commands

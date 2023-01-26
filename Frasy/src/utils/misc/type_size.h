@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    array_size.h
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-12-08
  * @brief
  *
  * @copyright
@@ -15,24 +15,20 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#ifndef FRASY_UTILS_MISC_ARRAY_SIZE_H
+#define FRASY_UTILS_MISC_ARRAY_SIZE_H
 
-#include "../../layers/main_application_layer.h"
+#include <array>
 
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+namespace Frasy
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
+template<typename>
+struct ArraySize;
 
-    void OnAttach() override;
-    void OnDetach() override;
-
-protected:
-    void RenderControlRoom() override;
-
-private:
+template<typename T, size_t N>
+struct ArraySize<std::array<T, N>>{
+    static constexpr size_t value = N;
 };
+}
 
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+#endif    // FRASY_UTILS_MISC_ARRAY_SIZE_H

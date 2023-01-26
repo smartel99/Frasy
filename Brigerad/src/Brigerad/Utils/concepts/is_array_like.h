@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    is_array_like.h
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-12-14
  * @brief
  *
  * @copyright
@@ -15,24 +15,24 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#ifndef BRIGERAD_CONCEPTS_IS_ARRAY_LIKE_H
+#define BRIGERAD_CONCEPTS_IS_ARRAY_LIKE_H
+#include <array>
+#include <type_traits>
 
-#include "../../layers/main_application_layer.h"
-
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+namespace Brigerad
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
-
-    void OnAttach() override;
-    void OnDetach() override;
-
-protected:
-    void RenderControlRoom() override;
-
-private:
+template<class T>
+struct is_array_like : std::is_array<T>
+{
 };
 
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+template<class T, std::size_t N>
+struct is_array_like<std::array<T, N>> : std::true_type
+{
+};
+
+template<typename T>
+concept array_like = is_array_like<T>::value;
+}    // namespace Brigerad
+#endif    // BRIGERAD_CONCEPTS_IS_ARRAY_LIKE_H

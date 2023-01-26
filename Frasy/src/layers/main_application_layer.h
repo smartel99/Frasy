@@ -15,12 +15,12 @@
 
 /*****************************************************************************/
 /* Includes */
-#    include <Brigerad.h>
-#    include <Brigerad/Renderer/Texture.h>
-
+#    include "device_viewer.h"
 #    include "log_window.h"
 
 #    include <array>
+#    include <Brigerad.h>
+#    include <Brigerad/Renderer/Texture.h>
 
 
 /*****************************************************************************/
@@ -47,17 +47,21 @@ public:
     void OnDetach() override;
 
     void OnUpdate(Brigerad::Timestep ts) override;
-    void OnImGuiRender() override;
+    void OnImGuiRender() override final;
     void OnEvent(Brigerad::Event& e) override;
 
 protected:
+    virtual void RenderControlRoom();
+
     virtual void MakeLogWindowVisible();
+    virtual void MakeDeviceViewerVisible();
     void         RenderAbout();
 
 protected:
     bool m_renderAbout = false;
 
-    std::unique_ptr<LogWindow> m_logWindow = nullptr;
+    std::unique_ptr<LogWindow>    m_logWindow    = nullptr;
+    std::unique_ptr<DeviceViewer> m_deviceViewer = nullptr;
 
     Brigerad::Ref<Brigerad::Texture2D> m_run;
     Brigerad::Ref<Brigerad::Texture2D> m_pass;
@@ -65,6 +69,9 @@ protected:
     Brigerad::Ref<Brigerad::Texture2D> m_testing;
     Brigerad::Ref<Brigerad::Texture2D> m_waiting;
     Brigerad::Ref<Brigerad::Texture2D> m_disabled;
+
+private:
+    void PresetControlRoomOptions();
 };
 }    // namespace Frasy
 /*****************************************************************************/

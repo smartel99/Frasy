@@ -30,34 +30,21 @@ void MyMainApplicationLayer::OnDetach()
     MainApplicationLayer::OnDetach();
 }
 
-void MyMainApplicationLayer::OnUpdate(Brigerad::Timestep ts)
+void MyMainApplicationLayer::RenderControlRoom()
 {
-    MainApplicationLayer::OnUpdate(ts);
-}
-
-void MyMainApplicationLayer::OnImGuiRender()
-{
-    MainApplicationLayer::OnImGuiRender();
     ImGui::Begin("Control Room", nullptr);
 
-    auto buttonFunc =
-      [](const auto& texture, const std::string& loggerName, spdlog::level::level_enum level)
+    auto buttonFunc = [](const auto& texture, const std::string& loggerName, spdlog::level::level_enum level)
     {
         static const ImVec2 buttonSize = ImVec2 {100.0f, 100.0f};
         static const ImVec2 buttonUv0  = ImVec2 {0.0f, 1.0f};
         static const ImVec2 buttonUv1  = ImVec2 {1.0f, 0.0f};
         if (ImGui::ImageButton(
-              reinterpret_cast<void*>(static_cast<uint64_t>(texture->GetRenderID())),
-              buttonSize,
-              buttonUv0,
-              buttonUv1))
+              reinterpret_cast<void*>(static_cast<uint64_t>(texture->GetRenderID())), buttonSize, buttonUv0, buttonUv1))
         {
             BR_LOG(loggerName, level, "This is a message for {}!", loggerName);
         }
-        if (ImGui::IsItemActive())
-        {
-            BR_LOG(loggerName, level, "This is a message for {}!", loggerName);
-        }
+        if (ImGui::IsItemActive()) { BR_LOG(loggerName, level, "This is a message for {}!", loggerName); }
     };
 
     buttonFunc(m_run, "m_run", spdlog::level::trace);
@@ -68,9 +55,4 @@ void MyMainApplicationLayer::OnImGuiRender()
     buttonFunc(m_disabled, "m_disabled", spdlog::level::critical);
 
     ImGui::End();
-}
-
-void MyMainApplicationLayer::OnEvent(Brigerad::Event& e)
-{
-    MainApplicationLayer::OnEvent(e);
 }

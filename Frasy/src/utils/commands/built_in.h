@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    built_in.h
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-12-14
  * @brief
  *
  * @copyright
@@ -15,24 +15,19 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#ifndef FRASY_UTILS_COMMANDS_BUILT_IN_H
+#define FRASY_UTILS_COMMANDS_BUILT_IN_H
 
-#include "../../layers/main_application_layer.h"
+#include "../../instrumentation_card/info.h"
+#include "command.h"
 
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+namespace Frasy::Commands
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
+using IdentifyInstrumentationCard = GenericCommand<0x8000,                      // Command ID.
+                                                   void,                      // Payload type.
+                                                   InstrumentationCardInfo    // Response Type.
+                                                   >;
 
-    void OnAttach() override;
-    void OnDetach() override;
+}
 
-protected:
-    void RenderControlRoom() override;
-
-private:
-};
-
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+#endif    // FRASY_UTILS_COMMANDS_BUILT_IN_H

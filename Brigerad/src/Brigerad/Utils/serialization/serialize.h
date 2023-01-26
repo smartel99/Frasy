@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    serialize.h
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-12-12
  * @brief
  *
  * @copyright
@@ -15,24 +15,31 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#ifndef BRIGERAD_UTILS_SERIALIZATION_SERIALIZE_H
+#define BRIGERAD_UTILS_SERIALIZATION_SERIALIZE_H
 
-#include "../../layers/main_application_layer.h"
+#include "basic_serializer.h"
+#include "is_serializable.h"
+#include "serializer.h"
 
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+#include <vector>
+
+namespace Brigerad
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
+template<typename T, typename S = BasicSerializer>
+static std::vector<uint8_t> Serialize(T&& t)
+    requires Serializable<std::remove_cvref_t<T>> && Serializer<S, T>
+{
+    return S::Serialize(t);
+}
 
-    void OnAttach() override;
-    void OnDetach() override;
+template<Serializable T, typename S = BasicSerializer>
+static T Deserialize(std::vector<uint8_t>&& raw)
+    requires Serializer<S, T>
+{
+    return S::Deserialize(raw);
+}
 
-protected:
-    void RenderControlRoom() override;
+}    // namespace Brigerad
 
-private:
-};
-
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+#endif    // BRIGERAD_UTILS_SERIALIZATION_SERIALIZE_H

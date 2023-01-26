@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    enumerator.h
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-12-14
  * @brief
  *
  * @copyright
@@ -15,24 +15,23 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#ifndef FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
+#define FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
 
-#include "../../layers/main_application_layer.h"
+#include "../../../instrumentation_card/info.h"
 
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+#include <string>
+#include <vector>
+
+namespace Frasy::Communication
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
-
-    void OnAttach() override;
-    void OnDetach() override;
-
-protected:
-    void RenderControlRoom() override;
-
-private:
+struct DeviceInfo
+{
+    std::string             ComPort;
+    InstrumentationCardInfo Info;
 };
 
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+std::vector<DeviceInfo> EnumerateInstrumentationCards();
+}    // namespace Frasy::Communication
+
+#endif    // FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H

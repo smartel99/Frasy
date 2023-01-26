@@ -17,7 +17,7 @@
 #include "log_window.h"
 
 #include "frasy_interpreter.h"
-#include "utils/internal_config.h"
+#include "utils/config.h"
 #include "utils/logging/log_window_sink.h"
 
 #include <Brigerad/Core/Log.h>
@@ -28,21 +28,17 @@ namespace Frasy
 {
 LogWindow::LogWindow() noexcept
 {
-    InternalConfig cfg = FrasyInterpreter::Get().GetConfig().GetField("LogWindow");
-    m_options          = LogWindowOptions(cfg);
+    Config cfg = FrasyInterpreter::Get().GetConfig().GetField("LogWindow");
+    m_options  = LogWindowOptions(cfg);
 
-    m_renderLoggersFunc =
-      m_options.CombineLoggers ? &RenderCombinedLoggers : &RenderSeparateLoggers;
+    m_renderLoggersFunc = m_options.CombineLoggers ? &RenderCombinedLoggers : &RenderSeparateLoggers;
 }
 
 void LogWindow::OnAttach()
 {
     BR_PROFILE_FUNCTION();
 
-    if (m_options.CombineLoggers)
-    {
-        m_sink = std::make_shared<LogWindowSingleSink>(m_options.EntriesToShow);
-    }
+    if (m_options.CombineLoggers) { m_sink = std::make_shared<LogWindowSingleSink>(m_options.EntriesToShow); }
     else { m_sink = std::make_shared<LogWindowMultiSink>(m_options.EntriesToShow); }
     m_sink->set_pattern(m_options.CombineLoggers ? s_combinedPattern : s_separatePattern);
     Brigerad::Log::AddSink(m_sink);
@@ -81,8 +77,7 @@ void LogWindow::RenderOptions()
 {
 }
 
-void LogWindow::RenderCombinedLoggers(LogWindowOptions&                     options,
-                                      const std::shared_ptr<LogWindowSink>& sink)
+void LogWindow::RenderCombinedLoggers(LogWindowOptions& options, const std::shared_ptr<LogWindowSink>& sink)
 {
     try
     {
@@ -95,8 +90,7 @@ void LogWindow::RenderCombinedLoggers(LogWindowOptions&                     opti
     }
 }
 
-void LogWindow::RenderSeparateLoggers(LogWindowOptions&                     options,
-                                      const std::shared_ptr<LogWindowSink>& sink)
+void LogWindow::RenderSeparateLoggers(LogWindowOptions& options, const std::shared_ptr<LogWindowSink>& sink)
 {
     if (ImGui::BeginTabBar("loggerTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton))
     {
@@ -114,8 +108,7 @@ void LogWindow::RenderSeparateLoggers(LogWindowOptions&                     opti
             {
                 // TODO: Indicate new entries from inactive tabs to the user through the unsaved
                 //  flag.
-                ImGuiTabItemFlags flags =
-                  ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder;
+                ImGuiTabItemFlags flags = ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder;
                 if (ImGui::BeginTabItem(logger.data(), nullptr, flags))
                 {
                     // Tab is active, render it. We do not directly render the entries here to
@@ -140,10 +133,9 @@ void LogWindow::RenderLoggerEntries(LogWindowOptions&               options,
                                     const LogWindow::LoggerName&    loggerName,
                                     const LogWindow::LoggerEntries& loggerEntries)
 {
-    static ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-                                        ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |
-                                        ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY |
-                                        ImGuiTableFlags_SortMulti | ImGuiTableFlags_SortTristate;
+    static ImGuiTableFlags tableFlags =
+      ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |
+      ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SortMulti | ImGuiTableFlags_SortTristate;
 
     float maxY = ImGui::GetContentRegionMax().y;
     if (ImGui::BeginTable("entries", 5, tableFlags, ImVec2 {0.0f, maxY}))
@@ -151,16 +143,15 @@ void LogWindow::RenderLoggerEntries(LogWindowOptions&               options,
         auto flagFromOption = [](bool enabled)
         { return enabled ? ImGuiTableColumnFlags_None : ImGuiTableColumnFlags_DefaultHide; };
         ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_NoHide);
-        ImGui::TableSetupColumn(
-          "Timestamp", ImGuiTableColumnFlags_DefaultSort | flagFromOption(options.ShowTimeStamp));
+        ImGui::TableSetupColumn("Timestamp", ImGuiTableColumnFlags_DefaultSort | flagFromOption(options.ShowTimeStamp));
         ImGui::TableSetupColumn("Source", flagFromOption(options.ShowLogSource));
         ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoHide);
         ImGui::TableSetupColumn("Location", flagFromOption(options.ShowSourceLocation));
         ImGui::TableHeadersRow();
-        for (size_t i = 0; i < loggerEntries.size(); i++)
+        for (size_t i = loggerEntries.size(); i > 0; i--)
         {
             ImGui::TableNextRow();
-            const LogEntry& entry = loggerEntries.at(i);
+            const LogEntry& entry = loggerEntries.at(i - 1);
             if (options.ShowLevels[entry.Level])
             {
                 if (!options.Filter.IsActive() || options.Filter.PassFilter(entry.Entry.c_str()))
@@ -185,7 +176,7 @@ void LogWindow::RenderEntry(LogWindowOptions& options, const LogEntry& entry)
             ImGui::PushTextWrapPos(wrapPos);
             ImGui::TextWrapped("%s", t.c_str());
             ImGuiTableColumnFlags currentFlags = ImGui::TableGetColumnFlags();
-            isEnabled = (currentFlags & ImGuiTableColumnFlags_IsEnabled) != 0;
+            isEnabled                          = (currentFlags & ImGuiTableColumnFlags_IsEnabled) != 0;
             ImGui::PopTextWrapPos();
         }
     };
@@ -204,8 +195,7 @@ void LogWindow::RenderEntry(LogWindowOptions& options, const LogEntry& entry)
     renderColumn(1, entry.Timestamp, options.ShowTimeStamp);
     renderColumn(2, entry.LoggerName, options.ShowLogSource);
     renderColumn(3, entry.Entry, dummy);
-    renderColumn(
-      4, entry.FormatSourceLocation(options.SourceLocationRenderStyle), options.ShowSourceLocation);
+    renderColumn(4, entry.FormatSourceLocation(options.SourceLocationRenderStyle), options.ShowSourceLocation);
 
     ImGui::PopStyleColor(isCritical ? 1 : 0);
     ImGui::PopID();

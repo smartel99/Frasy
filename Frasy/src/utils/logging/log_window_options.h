@@ -18,10 +18,9 @@
 #ifndef FRASY_UTILS_LOG_WINDOW_OPTIONS_H
 #define FRASY_UTILS_LOG_WINDOW_OPTIONS_H
 
-#include "../internal_config.h"
-#include "log_entry.h"
-
+#include "../config.h"
 #include "imgui.h"
+#include "log_entry.h"
 #include "spdlog/common.h"
 
 #include <array>
@@ -49,7 +48,7 @@ struct LogWindowOptions
 
 
     LogWindowOptions() noexcept = default;
-    explicit LogWindowOptions(const InternalConfig& cfg) noexcept
+    explicit LogWindowOptions(const Config& cfg) noexcept
     {
 #define LOAD_FIELD(v) v = cfg.GetField<decltype(v)>(#v, this->v)
         LOAD_FIELD(EntriesToShow);
@@ -63,9 +62,9 @@ struct LogWindowOptions
 #undef LOAD_FIELD
     }
 
-    [[nodiscard]] InternalConfig Serialize() const noexcept
+    [[nodiscard]] Config Serialize() const noexcept
     {
-        InternalConfig cfg = {};
+        Config cfg = {};
 
 #define SET_FIELD(v) cfg.SetField(#v, v)
         SET_FIELD(EntriesToShow);

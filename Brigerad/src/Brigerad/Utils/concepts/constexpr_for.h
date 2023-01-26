@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    constexpr_for.h
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-12-12
  * @brief
  *
  * @copyright
@@ -15,24 +15,22 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#ifndef BRIGERAD_UTILS_CONCEPTS_CONSTEXPR_FOR_H
+#define BRIGERAD_UTILS_CONCEPTS_CONSTEXPR_FOR_H
+#include <type_traits>
 
-#include "../../layers/main_application_layer.h"
-
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+namespace Brigerad
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
+template<auto Start, auto End, auto Inc, typename F>
+constexpr void ConstexprFor(F&& f)
+{
+    if constexpr (Start < End)
+    {
+        f(std::integral_constant<decltype(Start), Start>());
+        ConstexprFor<Start + Inc, End, Inc>(f);
+    }
+}
 
-    void OnAttach() override;
-    void OnDetach() override;
 
-protected:
-    void RenderControlRoom() override;
-
-private:
-};
-
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+}    // namespace Brigerad
+#endif    // BRIGERAD_UTILS_CONCEPTS_CONSTEXPR_FOR_H

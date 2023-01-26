@@ -22,7 +22,7 @@
 #include <string>
 
 
-class MyFrasyInterpreter : public FrasyInterpreter
+class MyFrasyInterpreter : public Frasy::FrasyInterpreter
 {
 public:
     MyFrasyInterpreter() : FrasyInterpreter("Frasy - Demo Mode")

@@ -91,7 +91,8 @@ function CommonFlags()
             "%{IncludeDir.entt}",
             "%{IncludeDir.lua}/src",
             "%{IncludeDir.sol}/include",
-            "%{IncludeDir.yaml_cpp}"
+            "%{IncludeDir.yaml_cpp}",
+            "%{IncludeDir.pfr}"
         }
 
         externalincludedirs{
@@ -105,7 +106,8 @@ function CommonFlags()
             "%{IncludeDir.entt}",
             "%{IncludeDir.lua}/src",
             "%{IncludeDir.sol}/include",
-            "%{IncludeDir.yaml_cpp}"
+            "%{IncludeDir.yaml_cpp}",
+            "%{IncludeDir.pfr}"
         }
 
         externalwarnings "Off"
@@ -146,6 +148,7 @@ function DefineSolution()
     IncludeDir["sol"] = "Brigerad/vendor/sol"
     IncludeDir["yaml_cpp"] = "Brigerad/vendor/yaml-cpp/include"
     IncludeDir["gtest"] = _MAIN_SCRIPT_DIR.."/Brigerad/vendor/googletest/googletest"
+    IncludeDir["pfr"] = _MAIN_SCRIPT_DIR .. "/Brigerad/vendor/pfr/include"
 
     group "Dependencies"
         include "Brigerad/vendor/GLFW"

@@ -12,8 +12,8 @@
  *
  ******************************************************************************
  */
-#ifndef _Config
-#    define _Config
+#ifndef FRASY_UTILS_CONFIG
+#    define FRASY_UTILS_CONFIG
 
 /*****************************************************************************/
 /* Includes */
@@ -21,28 +21,28 @@
 
 #    include <string_view>
 
-class InternalConfig
+namespace Frasy
+{
+class Config
 {
 public:
     using config_t    = nlohmann::json;
     using exception_t = config_t::exception;
 
 public:
-    InternalConfig() noexcept                                 = default;
-    InternalConfig(const InternalConfig&) noexcept            = default;
-    InternalConfig(InternalConfig&&) noexcept                 = default;
-    InternalConfig& operator=(const InternalConfig&) noexcept = default;
-    InternalConfig& operator=(InternalConfig&&) noexcept      = default;
+    Config() noexcept                         = default;
+    Config(const Config&) noexcept            = default;
+    Config(Config&&) noexcept                 = default;
+    Config& operator=(const Config&) noexcept = default;
+    Config& operator=(Config&&) noexcept      = default;
 
-    explicit InternalConfig(const std::string& path);
+    explicit Config(const std::string& path);
 
-    InternalConfig(const std::string& key, const config_t& config) : m_path(key), m_config(config)
-    {
-    }
+    Config(const std::string& key, const config_t& config) : m_path(key), m_config(config) {}
 
-    static InternalConfig Load(const std::string& path);
-    static void           Save(const std::string& path, const InternalConfig& cfg);
-    void                  Save() const { Save(m_path, *this); }
+    static Config Load(const std::string& path);
+    static void   Save(const std::string& path, const Config& cfg);
+    void          Save() const { Save(m_path, *this); }
 
     template<class T>
     void SetField(const std::string& key, const T& val)
@@ -51,20 +51,17 @@ public:
     }
 
     template<>
-    void SetField(const std::string& key, const InternalConfig& val)
+    void SetField(const std::string& key, const Config& val)
     {
         m_config[key] = val.m_config;
     }
 
-    template<class T = InternalConfig>
+    template<class T = Config>
     T GetField(const std::string& key, const T& def = {}) const
     {
         try
         {
-            if constexpr(std::is_same_v<T, InternalConfig>)
-            {
-                return {key, m_config.at(key)};
-            }
+            if constexpr (std::is_same_v<T, Config>) { return {key, m_config.at(key)}; }
             else { return static_cast<T>(m_config.at(key)); }
         }
         catch (exception_t&)
@@ -91,11 +88,13 @@ public:
 private:
     std::string m_path;
     config_t    m_config = {};
-};
 
+    static constexpr const char* s_tag = "Config";
+};
+}    // namespace Frasy
 
 /* Have a wonderful day :) */
-#endif /* _Config */
+#endif /* FRASY_UTILS_CONFIG */
 /**
  * @}
  */

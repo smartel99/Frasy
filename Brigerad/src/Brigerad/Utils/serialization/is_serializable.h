@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    is_serializable.h
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-12-12
  * @brief
  *
  * @copyright
@@ -15,24 +15,23 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#ifndef BRIGERAD_UTILS_SERIALIZATION_IS_SERIALIZABLE_H
+#define BRIGERAD_UTILS_SERIALIZATION_IS_SERIALIZABLE_H
 
-#include "../../layers/main_application_layer.h"
+#include "../concepts/members_all_match.h"
 
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+namespace Brigerad
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
-
-    void OnAttach() override;
-    void OnDetach() override;
-
-protected:
-    void RenderControlRoom() override;
-
-private:
+template<typename T>
+struct IsASerializableType
+: IsAnyOf<std::remove_cvref_t<T>, bool, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t,
+          float,
+          double>
+{
 };
 
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+template<typename T>
+concept Serializable = MembersAllMeetCheck<std::remove_cvref_t<T>, IsASerializableType>;
+
+}    // namespace Brigerad
+#endif    // BRIGERAD_UTILS_SERIALIZATION_IS_SERIALIZABLE_H

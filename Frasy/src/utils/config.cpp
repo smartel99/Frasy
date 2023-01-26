@@ -1,9 +1,11 @@
-﻿#include "internal_config.h"
+﻿#include "config.h"
 
 #include <Brigerad.h>
 #include <Brigerad/Core/Log.h>
 
-InternalConfig::InternalConfig(const std::string& path) : m_path(path)
+namespace Frasy
+{
+Config::Config(const std::string& path) : m_path(path)
 {
     BR_PROFILE_FUNCTION();
     // Open the file or create it if it doesn't exist.
@@ -14,10 +16,7 @@ InternalConfig::InternalConfig(const std::string& path) : m_path(path)
     std::string fullFile;
     std::string line;
 
-    while (std::getline(j, line))
-    {
-        fullFile += line;
-    }
+    while (std::getline(j, line)) { fullFile += line; }
 
     try
     {
@@ -33,12 +32,12 @@ InternalConfig::InternalConfig(const std::string& path) : m_path(path)
     j.close();
 }
 
-InternalConfig InternalConfig::Load(const std::string& path)
+Config Config::Load(const std::string& path)
 {
-    return InternalConfig(path);
+    return Config(path);
 }
 
-void InternalConfig::Save(const std::string& path, const InternalConfig& cfg)
+void Config::Save(const std::string& path, const Config& cfg)
 {
     BR_PROFILE_FUNCTION();
     std::fstream file(path, std::ios::out);
@@ -46,7 +45,7 @@ void InternalConfig::Save(const std::string& path, const InternalConfig& cfg)
 
     if (!file.is_open())
     {
-        BR_APP_ERROR("Unable to open file!");
+        BR_LOG_ERROR(s_tag, "Unable to open file '{}'!", path);
         return;
     }
 
@@ -55,3 +54,4 @@ void InternalConfig::Save(const std::string& path, const InternalConfig& cfg)
 
     file.close();
 }
+}    // namespace Frasy

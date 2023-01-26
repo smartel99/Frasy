@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    primitives.h
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-09-22
  * @brief
  *
  * @copyright
@@ -15,24 +15,21 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#ifndef GUARD_NILAI_INTERFACES_COMMANDS_PRIMITIVES_H
+#define GUARD_NILAI_INTERFACES_COMMANDS_PRIMITIVES_H
 
-#include "../../layers/main_application_layer.h"
 
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+#include <string>
+#include <type_traits>
+
+namespace Frasy::Commands
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
+/**
+ * A primitive is any value that is arithmetical or a string.
+ * @tparam T
+ */
+template<typename T>
+concept CommandPrimitive = std::is_arithmetic_v<T> || std::same_as<T, std::string>;
+}    // namespace Frasy::Commands
 
-    void OnAttach() override;
-    void OnDetach() override;
-
-protected:
-    void RenderControlRoom() override;
-
-private:
-};
-
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+#endif    // GUARD_NILAI_INTERFACES_COMMANDS_PRIMITIVES_H

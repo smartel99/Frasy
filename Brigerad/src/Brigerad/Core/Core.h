@@ -62,22 +62,20 @@
 #ifdef BR_ENABLE_ASSERTS
 #    include "Log.h"
 #    define BR_ASSERT(x, msg, ...)                                                                 \
-        do                                                                                         \
-        {                                                                                          \
+        do {                                                                                       \
             if (!(x))                                                                              \
             {                                                                                      \
-                BR_APP_ERROR("Assertion Failed: {}", msg __VA_OPT__(, ) __VA_ARGS__);             \
+                BR_APP_ERROR("Assertion Failed: {}", fmt::format(msg __VA_OPT__(, ) __VA_ARGS__)); \
                 DEBUG_BREAK();                                                                     \
             }                                                                                      \
         } while (0)
-#    define BR_CORE_ASSERT(x, msg, ...)                                                            \
-        do                                                                                         \
-        {                                                                                          \
-            if (!(x))                                                                              \
-            {                                                                                      \
-                BR_CORE_ERROR("Assertion Failed: {}", msg __VA_OPT__(, ) __VA_ARGS__);            \
-                DEBUG_BREAK();                                                                     \
-            }                                                                                      \
+#    define BR_CORE_ASSERT(x, msg, ...)                                                             \
+        do {                                                                                        \
+            if (!(x))                                                                               \
+            {                                                                                       \
+                BR_CORE_ERROR("Assertion Failed: {}", fmt::format(msg __VA_OPT__(, ) __VA_ARGS__)); \
+                DEBUG_BREAK();                                                                      \
+            }                                                                                       \
         } while (0)
 #else
 #    define BR_ASSERT(x, msg, ...)
@@ -86,9 +84,8 @@
 
 #define BIT(x) (1 << (x))
 
-#define BR_BIND_EVENT_FN(fn)                                                                       \
-    [this](auto&&... args) -> decltype(auto)                                                       \
-    { return this->fn(std::forward<decltype(args)>(args)...); }
+#define BR_BIND_EVENT_FN(fn) \
+    [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 namespace Brigerad
 {

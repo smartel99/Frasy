@@ -1,7 +1,7 @@
 /**
- * @file    my_main_application_layer.h
+ * @file    frasy_interpreter.cpp
  * @author  Samuel Martel
- * @date    2022-12-05
+ * @date    2022-12-13
  * @brief
  *
  * @copyright
@@ -14,25 +14,13 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
+#include "frasy_interpreter.h"
 
-#ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
-#define GUARD_MY_MAIN_APPLICATION_LAYER_H
+#include "utils/communication/serial/enumerator.h"
 
-#include "../../layers/main_application_layer.h"
+#include <serial/serial.h>
 
-class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
+namespace Frasy
 {
-public:
-    MyMainApplicationLayer();
-    ~MyMainApplicationLayer() override = default;
 
-    void OnAttach() override;
-    void OnDetach() override;
-
-protected:
-    void RenderControlRoom() override;
-
-private:
-};
-
-#endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H
+}    // namespace Frasy

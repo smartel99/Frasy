@@ -12,28 +12,21 @@
  */
 #include "main_application_layer.h"
 
+#include "../../version.h"
+#include "frasy_interpreter.h"
 #include "log_window.h"
 
-#include "frasy_interpreter.h"
-
 #include <Brigerad/Core/File.h>
-
 #include <imgui/imgui.h>
 
-#include "../../version.h"
-
-#define CREATE_TEXTURE(texture, path)                                                              \
-    do                                                                                             \
-    {                                                                                              \
-        if (Brigerad::File::CheckIfPathExists(path) == true)                                       \
-        {                                                                                          \
-            texture = Brigerad::Texture2D::Create(path);                                           \
-        }                                                                                          \
-        else                                                                                       \
-        {                                                                                          \
-            BR_CORE_ERROR("Unable to open '{}'!", path);                                           \
-            texture = placeholderTexture;                                                          \
-        }                                                                                          \
+#define CREATE_TEXTURE(texture, path)                                                                         \
+    do {                                                                                                      \
+        if (Brigerad::File::CheckIfPathExists(path) == true) { texture = Brigerad::Texture2D::Create(path); } \
+        else                                                                                                  \
+        {                                                                                                     \
+            BR_CORE_ERROR("Unable to open '{}'!", path);                                                      \
+            texture = placeholderTexture;                                                                     \
+        }                                                                                                     \
     } while (0)
 
 namespace Frasy
@@ -54,8 +47,11 @@ void MainApplicationLayer::OnAttach()
     CREATE_TEXTURE(m_waiting, "assets/textures/waiting.png");
     CREATE_TEXTURE(m_disabled, "assets/textures/disabled.png");
 
-    m_logWindow = std::make_unique<LogWindow>();
+    m_logWindow    = std::make_unique<LogWindow>();
+    m_deviceViewer = std::make_unique<DeviceViewer>();
+
     m_logWindow->OnAttach();
+    m_deviceViewer->OnAttach();
 }
 
 
@@ -64,6 +60,7 @@ void MainApplicationLayer::OnDetach()
     BR_PROFILE_FUNCTION();
 
     m_logWindow->OnDetach();
+    m_deviceViewer->OnDetach();
 }
 
 
@@ -72,7 +69,9 @@ void MainApplicationLayer::OnUpdate(Brigerad::Timestep ts)
     BR_PROFILE_FUNCTION();
 
     if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F2)) { MakeLogWindowVisible(); }
+    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F3)) { MakeDeviceViewerVisible(); }
     m_logWindow->OnUpdate(ts);
+    m_deviceViewer->OnUpdate(ts);
 }
 
 
@@ -92,6 +91,7 @@ void MainApplicationLayer::OnImGuiRender()
         if (ImGui::BeginMenu("View"))
         {
             if (ImGui::MenuItem("Logger", "F2")) { MakeLogWindowVisible(); }
+            if (ImGui::MenuItem("Device Viewer", "F3")) { MakeDeviceViewerVisible(); }
             ImGui::EndMenu();
         }
 
@@ -107,33 +107,32 @@ void MainApplicationLayer::OnImGuiRender()
         if (m_renderAbout) { RenderAbout(); }
     }
 
-    ImGuiID dockId = ImGui::GetWindowDockID();
-    ImGui::SetNextWindowDockID(dockId);
-
-    static bool      isInFrontOfBg = false;
-    ImGuiWindowFlags flags =
-      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus;
-    if (!isInFrontOfBg)
-    {
-        ImGui::SetNextWindowFocus();
-        isInFrontOfBg = true;
-    }
-    else { flags |= ImGuiWindowFlags_NoBringToFrontOnFocus; }
-    ImGui::Begin("Control Room", nullptr, flags);
-    ImGui::End();
+    PresetControlRoomOptions();
+    RenderControlRoom();
 
     m_logWindow->OnImGuiRender();
+    m_deviceViewer->OnImGuiRender();
 }
 
 
 void MainApplicationLayer::OnEvent(Brigerad::Event& e)
 {
     m_logWindow->OnEvent(e);
+    m_deviceViewer->OnEvent(e);
+}
+
+void MainApplicationLayer::RenderControlRoom()
+{
 }
 
 void MainApplicationLayer::MakeLogWindowVisible()
 {
     m_logWindow->SetVisibility(true);
+}
+
+void MainApplicationLayer::MakeDeviceViewerVisible()
+{
+    m_deviceViewer->SetVisibility(true);
 }
 
 void MainApplicationLayer::RenderAbout()
@@ -146,4 +145,22 @@ void MainApplicationLayer::RenderAbout()
 
     ImGui::End();
 }
+
+void MainApplicationLayer::PresetControlRoomOptions()
+{
+    ImGuiID dockId = ImGui::GetWindowDockID();
+    ImGui::SetNextWindowDockID(dockId);
+
+    static bool      isInFrontOfBg = false;
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus;
+    if (!isInFrontOfBg)
+    {
+        ImGui::SetNextWindowFocus();
+        isInFrontOfBg = true;
+    }
+    else { flags |= ImGuiWindowFlags_NoBringToFrontOnFocus; }
+    ImGui::Begin("Control Room", nullptr, flags);
+    ImGui::End();
+}
+
 }    // namespace Frasy

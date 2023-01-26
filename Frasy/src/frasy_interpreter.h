@@ -17,12 +17,12 @@
 /* Includes */
 
 #    include "Brigerad.h"
-#    include "utils/internal_config.h"
+#    include "utils/communication/serial/device_map.h"
+#    include "utils/config.h"
 
 #    include <memory>
 #    include <string>
 #    include <thread>
-
 #    include <WinSock2.h>
 
 /*****************************************************************************/
@@ -39,37 +39,47 @@
 
 /*****************************************************************************/
 /* Exported Structs and Classes */
+namespace Frasy
+{
 class FrasyInterpreter : public Brigerad::Application
 {
 public:
-    FrasyInterpreter(const std::string& name, const std::string& cfgPath = "config.json")
-    : Application(name)
+    FrasyInterpreter(const std::string& name, const std::string& cfgPath = "config.json") : Application(name)
     {
-        if (s_instance != nullptr)
-        {
-            throw std::exception("Interpreter instance already created!");
-        }
+        if (s_instance != nullptr) { throw std::exception("Interpreter instance already created!"); }
 
-        s_instance       = this;
-        m_internalConfig = InternalConfig::Load(cfgPath);
+        s_instance                               = this;
+        m_internalConfig                         = Frasy::Config(cfgPath);
+        static constexpr const char* s_usrCfgKey = "UserConfigPath";
+        std::string                  userCfgPath = m_internalConfig.GetField<std::string>(s_usrCfgKey);
+        if (!userCfgPath.empty()) { m_userConfig = Frasy::Config(userCfgPath); }
+        else { BR_CORE_ERROR("'{}' not found in {}!", s_usrCfgKey, cfgPath); }
     }
 
     ~FrasyInterpreter() override
     {
         m_internalConfig.Save();
+        m_userConfig.Save();
 
         s_instance = nullptr;
     }
 
     static FrasyInterpreter& Get() { return *s_instance; }
 
-    virtual InternalConfig& GetConfig() { return m_internalConfig; }
+    virtual Config&                   GetConfig() { return m_internalConfig; }
+    virtual Config&                   GetUserConfig() { return m_userConfig; }
+    virtual Communication::DeviceMap& GetDevices() { return m_deviceMap; }
+
 
 protected:
     inline static FrasyInterpreter* s_instance = nullptr;
 
-    InternalConfig m_internalConfig;
+    Config m_internalConfig;
+    Config m_userConfig;
+
+    Communication::DeviceMap m_deviceMap;
 };
+}    // namespace Frasy
 
 
 /* Have a wonderful day :) */

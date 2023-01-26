@@ -5,7 +5,7 @@ AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: Consecutive
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: Consecutive
-AlignEscapedNewlines: Right
+AlignEscapedNewlines: Left
 AlignOperands: true
 AlignTrailingComments: true
 
@@ -17,7 +17,7 @@ AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLambdasOnASingleLine: All
-AllowShortLoopsOnASingleLine: false
+AllowShortLoopsOnASingleLine: true
 
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
@@ -32,7 +32,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
 BreakStringLiterals: true
-ColumnLimit: 100
+ColumnLimit: 120
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 0
@@ -40,12 +40,12 @@ Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 DisableFormat: false
 FixNamespaceComments: true
-IncludeBlocks: Preserve
+IncludeBlocks: Regroup
 IndentCaseLabels: true
 IndentWidth: 4
 IndentPPDirectives: AfterHash
 Language: Cpp
-MaxEmptyLinesToKeep: 4
+MaxEmptyLinesToKeep: 2
 NamespaceIndentation: None
 PointerAlignment: Left
 SortIncludes: CaseInsensitive
