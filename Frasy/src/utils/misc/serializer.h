@@ -18,7 +18,7 @@
 #ifndef GUARD_NILAI_SERVICES_SERIALIZER_H
 #define GUARD_NILAI_SERVICES_SERIALIZER_H
 
-
+#include "serializable_container.h"
 #include <algorithm>
 #include <array>
 #include <bit>
@@ -27,57 +27,8 @@
 #include <type_traits>
 #include <vector>
 
-
 namespace Frasy
 {
-/**
- * A serializable container is a container that can be iterated over, and who's values are also
- * serializable.
- *
- * For a container to be serializable, the following requirements needs to be met:
- * <ul>
- *  <li>Member Types: <ul>
- *      <li>@c value_type: The type of the value. Must meet <a
- * href=https://en.cppreference.com/w/cpp/types/is_arithmetic>@c std::is_arithmetic</a>.</li>
- *      <li>@c iterator: Iterator to @c value_type (e.g. @c value_type* ).</li>
- *      <li>@c const_iterator: Constant iterator @c value_type (e.g. @c const @c value_type* ).</li>
- *      <li>@c size_type: Unsigned integer type (usually @c std::size_t ).</li>
- *  </ul></li>
- *  <li>Member Functions: <ul>
- *
- *  </ul></li>
- * </ul>
- * @tparam T
- */
-template<typename T>
-concept SerializableContainer = requires(T t) {
-                                    typename T::value_type;
-
-                                    typename T::iterator;
-                                    typename T::const_iterator;
-                                    {
-                                        t.begin()
-                                    } -> std::same_as<typename T::iterator>;
-                                    {
-                                        std::as_const(t).begin()
-                                    } -> std::same_as<typename T::const_iterator>;
-
-                                    {
-                                        t.end()
-                                    } -> std::same_as<typename T::iterator>;
-                                    {
-                                        std::as_const(t).end()
-                                    } -> std::same_as<typename T::const_iterator>;
-
-                                    {
-                                        t.size()
-                                    } -> std::same_as<typename T::size_type>;
-                                    {
-                                        std::as_const(t).size()
-                                    } -> std::same_as<typename T::size_type>;
-                                } && std::is_arithmetic_v<typename T::value_type>;
-
-
 /**
  * A type that can be serialized.
  * @tparam T
@@ -86,41 +37,38 @@ template<typename T>
 concept Serializable =
   std::is_arithmetic_v<T> || SerializableContainer<T> || std::convertible_to<T, std::vector<uint8_t>>;
 
-
 template<typename T>
-concept arithmetic = std::is_arithmetic_v<T>;
-
-template<arithmetic T, size_t N = sizeof(T)>
-std::array<uint8_t, N> Serialize(T&& t)
+std::vector<uint8_t> Serialize(const T& t)
 {
-    auto tAsBytes = std::bit_cast<std::array<uint8_t, sizeof(T)>>(t);
-    if constexpr (std::endian::native == std::endian::little) { return {tAsBytes.rbegin(), tAsBytes.rend()}; }
-    else { return tAsBytes; }
-}
-
-template<SerializableContainer T>
-std::vector<uint8_t> Serialize(T&& t)
-{
-    std::vector<uint8_t> out;
-    for (auto&& v : t)
+    if constexpr (std::is_arithmetic_v<T>)
     {
-        auto serV = Serialize(v);
-        out.insert(out.back(), serV.begin(), serV.end());
+        auto tAsBytes = std::bit_cast<std::array<uint8_t, sizeof(T)>>(t);
+        if constexpr (std::endian::native == std::endian::little) { std::reverse(tAsBytes.begin(), tAsBytes.end()); }
+        return std::vector<uint8_t> {tAsBytes.begin(), tAsBytes.end()};
     }
-    return out;
-}
-
-template<typename T>
-std::vector<uint8_t> Serialize(T&& t)
-{
-    std::vector<uint8_t> out;
-    boost::pfr::for_each_field(t,
-                               [&](auto&& i)
-                               {
-                                   auto tmp = Serialize(i);
-                                   out.insert(tmp.begin(), tmp.end());
-                               });
-    return out;
+    else if constexpr (SerializableContainer<T>)
+    {
+        std::vector<uint8_t> out;
+        std::vector<uint8_t> size = Serialize(static_cast<uint16_t>(t.size()));
+        out.insert(out.end(), size.begin(), size.end());
+        for (auto&& v : t)
+        {
+            auto serV = Serialize(v);
+            out.insert(out.end(), serV.begin(), serV.end());
+        }
+        return out;
+    }
+    else
+    {
+        std::vector<uint8_t> out;
+        boost::pfr::for_each_field(t,
+                                   [&](auto&& i)
+                                   {
+                                       auto tmp = Serialize(i);
+                                       out.insert(out.end(), tmp.begin(), tmp.end());
+                                   });
+        return out;
+    }
 }
 
 }    // namespace Frasy
