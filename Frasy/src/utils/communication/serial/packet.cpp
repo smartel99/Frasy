@@ -16,22 +16,22 @@
  */
 #include "packet.h"
 
-#include "../../misc/char_conv.h"
 #include "exceptions.h"
+#include "utils/misc/char_conv.h"
+#include "utils/misc/serializer.h"
 
 #include <Brigerad/Core/Log.h>
 
 namespace Frasy::Communication
 {
-constexpr PacketHeader::PacketHeader(
-  pkt_id_t pktId, cmd_id_t cmdId, PacketModifiers mods, blk_id_t blkId, payload_size_t payloadSize)
+constexpr PacketHeader::PacketHeader(pkt_id_t pktId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize)
 : PacketId(pktId == AUTOMATIC_PACKET_ID ? s_lastPktId : pktId),
   CommandId(cmdId),
   Modifiers(mods),
-  BlockId(blkId),
   PayloadSize(payloadSize)
 {
-    // If packet is a command and the ID is automatic, we increment the last ID, for the next packet.
+    // If packet is a command and the ID is automatic, we increment the last ID, for the next
+    // packet.
     if (!Modifiers.IsResponse && PacketId == s_lastPktId) { ++s_lastPktId; }
 }
 
@@ -39,21 +39,15 @@ constexpr PacketHeader::PacketHeader(PacketHeader::RawData data)
 : PacketId(AsciiToT<decltype(PacketId)>(&data[s_packetIdOffset])),
   CommandId(AsciiToT<decltype(CommandId)>(&data[s_commandIdOffset])),
   Modifiers(AsciiToT<uint8_t>(&data[s_modifiersOffset])),
-  BlockId(AsciiToT<decltype(BlockId)>(&data[s_blockIdOffset])),
   PayloadSize(AsciiToT<decltype(PayloadSize)>(&data[s_payloadSizeOffset]))
 {
     if (data.size() != s_headerSize) { throw MissingDataException(data.data(), data.length(), "header"); }
-    else if (data[s_sohOffset] != s_sohFlag)
-    {
-        throw BadDelimiterException(data.data(), data.length(), "header", s_sohFlag);
-    }
 }
 
-constexpr PacketHeader::operator std::vector<uint8_t>() const noexcept
+[[nodiscard]] std::vector<uint8_t> PacketHeader::ToAscii() const noexcept
 {
     std::vector<uint8_t> out;
     out.reserve(s_headerSize);
-    out.push_back(s_sohFlag);
 
     auto pktId = TToAscii(PacketId);
     out.insert(out.end(), pktId.begin(), pktId.end());
@@ -64,66 +58,98 @@ constexpr PacketHeader::operator std::vector<uint8_t>() const noexcept
     auto modifiers = TToAscii(static_cast<uint8_t>(Modifiers));
     out.insert(out.end(), modifiers.begin(), modifiers.end());
 
-    auto blockId = TToAscii(BlockId);
-    out.insert(out.end(), blockId.begin(), blockId.end());
-
     auto payloadSize = TToAscii(PayloadSize);
     out.insert(out.end(), payloadSize.begin(), payloadSize.end());
 
     return out;
 }
+PacketHeader::operator std::vector<uint8_t>() const noexcept
+{
+    std::vector<uint8_t> out;
+    out.reserve(s_headerSize);
+
+    auto pktId = Serialize(PacketId);
+    out.insert(out.end(), pktId.begin(), pktId.end());
+
+    auto cmdId = Serialize(CommandId);
+    out.insert(out.end(), cmdId.begin(), cmdId.end());
+
+    auto modifiers = Serialize(static_cast<uint8_t>(Modifiers));
+    out.insert(out.end(), modifiers.begin(), modifiers.end());
+
+    auto payloadSize = Serialize(PayloadSize);
+    out.insert(out.end(), payloadSize.begin(), payloadSize.end());
+
+    return out;
+}
+
+bool PacketHeader::operator==(const PacketHeader& other) const
+{
+    return PacketId == other.PacketId &&      //
+           CommandId == other.CommandId &&    //
+           Modifiers == other.Modifiers &&    //
+           PayloadSize == other.PayloadSize;
+}
 
 
-Packet::Packet(
-  cmd_id_t cmdId, blk_id_t blkId, const std::vector<uint8_t>& data, bool isResp, bool isLast, pkt_id_t pktId)
-: Header(pktId, cmdId, PacketModifiers {isResp, isLast}, blkId, static_cast<uint8_t>(data.size())), Payload(data), Crc()
+Packet::Packet(cmd_id_t cmdId, const std::vector<uint8_t>& data, bool isResp, bool isLast, pkt_id_t pktId, uint32_t crc)
+: Header(pktId, cmdId, PacketModifiers {isResp, isLast}, static_cast<uint8_t>(data.size())), Payload(data), m_crc(crc)
 {
 }
 
 Packet::Packet(const std::vector<uint8_t>& raw)
 {
     if (raw.size() <= s_minimumPacketSize) { throw MissingDataException(raw.data(), raw.size(), "packet"); }
-    else if (raw[0] != s_packetStartFlag)
+    if (raw[0] != s_packetStartFlag)
     {
         throw BadDelimiterException(raw.data(), raw.size(), "packet", s_packetStartFlag);
     }
-    else
+    if (raw[s_sohOffset] != s_sohFlag) { throw BadDelimiterException(raw.data(), raw.size(), "header", s_sohFlag); }
+
+    Header = PacketHeader({&raw[s_headerOffset], PacketHeader::s_headerSize});
+
+    // Make sure payload start is there.
+    if (raw[s_payloadStartOffset] != s_payloadStartFlag)
     {
-        Header = PacketHeader({&raw[1], PacketHeader::s_headerSize});
-        // Make sure payload start is there.
-        if (raw[s_payloadStartOffset] != s_payloadStartFlag)
-        {
-            throw BadDelimiterException(raw.data(), raw.size(), "payload", s_payloadStartFlag);
-        }
-
-        // Find the end of the payload.
-        size_t realPayloadSize       = (Header.PayloadSize * s_charsPerBytes);
-        size_t expectedPayloadEndIdx = s_payloadStartOffset + realPayloadSize + 1;
-        if (raw[expectedPayloadEndIdx] != s_payloadEndFlag)
-        {
-            throw BadPayloadException(raw.data(), raw.size(), expectedPayloadEndIdx);
-        }
-
-        Payload.reserve(Header.PayloadSize);
-        for (size_t i = s_payloadStartOffset + 1; i < expectedPayloadEndIdx; i += 2)
-        {
-            Payload.push_back(AsciiToT<uint8_t>(&raw[i]));
-        }
-
-        // TODO: Verify CRC.
-        Crc = AsciiToT<decltype(Crc)>((&raw[expectedPayloadEndIdx]) + 1);
+        throw BadDelimiterException(raw.data(), raw.size(), "payload", s_payloadStartFlag);
     }
+
+    // Find the end of the payload.
+    size_t realPayloadSize       = (Header.PayloadSize * s_charsPerBytes);
+    size_t expectedPayloadEndIdx = s_payloadStartOffset + realPayloadSize + 1;
+    if (raw[expectedPayloadEndIdx] != s_payloadEndFlag)
+    {
+        throw BadPayloadException(raw.data(), raw.size(), expectedPayloadEndIdx);
+    }
+
+    Payload.reserve(Header.PayloadSize);
+    for (size_t i = s_payloadStartOffset + 1; i < expectedPayloadEndIdx; i += 2)
+    {
+        Payload.push_back(AsciiToT<uint8_t>(&raw[i]));
+    }
+
+    m_crc    = AsciiToT<decltype(m_crc)>((&raw[expectedPayloadEndIdx]) + 1);
+    auto crc = crc32_calculate({std::vector<uint8_t>(Header), Payload});
+    if (m_crc != crc) { throw BadCrcException(raw.data(), raw.size(), m_crc, crc); }
 }
 
 Packet::operator std::vector<uint8_t>() const noexcept
 {
     std::vector<uint8_t> out;
-    out.reserve(PacketHeader::s_headerSize + sizeof(s_payloadStartFlag) + (Payload.size() * 2) +
-                sizeof(s_payloadEndFlag) + SizeInChars<decltype(Crc)>() + sizeof(s_packetEndFlag));
+    out.reserve(sizeof(s_packetStartFlag) +             // START PACKET     (1)
+                sizeof(s_sohFlag) +                     // START HEADER     (1)
+                PacketHeader::s_headerSize +            // HEADER           (18 * 2)
+                sizeof(s_payloadStartFlag) +            // START PAYLOAD    (1)
+                (Payload.size() * s_charsPerBytes) +    // PAYLOAD          (X * 2)
+                sizeof(s_payloadEndFlag) +              // END PAYLOAD      (1)
+                SizeInChars<decltype(m_crc)>() +        // CRC              (4 * 2)
+                sizeof(s_packetEndFlag)                 // END TRANSMISSION (1)
+    );                                                  // TOTAL            (49 + X * 2)
 
     out.push_back(s_packetStartFlag);
+    out.push_back(s_sohFlag);
 
-    auto header = static_cast<std::vector<uint8_t>>(Header);
+    auto header = Header.ToAscii();
     out.insert(out.end(), header.begin(), header.end());
 
     out.push_back(s_payloadStartFlag);
@@ -134,13 +160,19 @@ Packet::operator std::vector<uint8_t>() const noexcept
     }
     out.push_back(s_payloadEndFlag);
 
-    auto crc = TToAscii(Crc);
-    out.insert(out.end(), crc.begin(), crc.end());
+    auto crc = crc32_calculate({std::vector<uint8_t>(Header), Payload});
+    auto ascii_crc = TToAscii(crc);
+    out.insert(out.end(), ascii_crc.begin(), ascii_crc.end());
 
     out.push_back(s_packetEndFlag);
     BR_APP_DEBUG("Serialized Packet: {}", std::span {out.begin(), out.end()});
 
     return out;
+}
+
+[[nodiscard]] bool Packet::operator==(const Packet& other) const
+{
+    return Header == other.Header && Payload == other.Payload;
 }
 
 }    // namespace Frasy::Communication

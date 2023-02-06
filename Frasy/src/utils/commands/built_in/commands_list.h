@@ -1,7 +1,7 @@
 /**
- * @file    built_in.h
- * @author  Samuel Martel
- * @date    2022-12-14
+ * @file    get_commands.h
+ * @author  Paul Thomas
+ * @date    2023-02-06
  * @brief
  *
  * @copyright
@@ -15,19 +15,22 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef FRASY_UTILS_COMMANDS_BUILT_IN_H
-#define FRASY_UTILS_COMMANDS_BUILT_IN_H
+#ifndef FRASY_SRC_INSTRUMENTATION_CARD_GET_COMMANDS_H
+#define FRASY_SRC_INSTRUMENTATION_CARD_GET_COMMANDS_H
 
-#include "../../instrumentation_card/info.h"
-#include "command.h"
+#include "utils/commands/command.h"
+#include "utils/misc/deserializer.h"
 
-namespace Frasy::Commands
+#include <cstdint>
+#include <string>
+#include <vector>
+
+namespace Frasy::Actions::CommandsList
 {
-using IdentifyInstrumentationCard = GenericCommand<0x8000,                      // Command ID.
-                                                   void,                      // Payload type.
-                                                   InstrumentationCardInfo    // Response Type.
-                                                   >;
+using Reply = std::vector<std::string>;
+static_assert(std::same_as<decltype(Deserialize<Reply>(nullptr, nullptr)), Reply>);
 
-}
+using CommandInfo = Commands::GenericCommand<0x8001, void, Reply>;
+}    // namespace Frasy::Actions::CommandsList
 
-#endif    // FRASY_UTILS_COMMANDS_BUILT_IN_H
+#endif    // FRASY_SRC_INSTRUMENTATION_CARD_GET_COMMANDS_H

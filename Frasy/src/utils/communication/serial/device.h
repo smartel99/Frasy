@@ -17,7 +17,6 @@
 
 #ifndef FRASY_UTILS_COMM_SERIAL_DEVICE_H
 #define FRASY_UTILS_COMM_SERIAL_DEVICE_H
-#include "../../../instrumentation_card/command_description.h"
 #include "../../commands/dispatcher.h"
 #include "../../commands/event.h"
 #include "enumerator.h"
@@ -25,6 +24,7 @@
 #include "packet.h"
 #include "response.h"
 #include "types.h"
+#include "utils/commands/command_description.h"
 
 #include <Brigerad/Core/Log.h>
 #include <Brigerad/Core/Time.h>
@@ -117,8 +117,11 @@ public:
 
     void Close();
 
-    [[nodiscard]] const PrettyInstrumentationCardInfo&                   GetInfo() const noexcept { return m_info; }
-    [[nodiscard]] const std::vector<Instrumentation::CommandDescription> GetSupportedCommands() const noexcept
+    [[nodiscard]] const Frasy::Actions::Identify::PrettyInstrumentationCardInfo& GetInfo() const noexcept
+    {
+        return m_info;
+    }
+    [[nodiscard]] const std::vector<Commands::CommandDescription> GetSupportedCommands() const noexcept
     {
         return m_supportedCommands;
     }
@@ -151,11 +154,11 @@ private:
     std::thread m_rxThread;
     std::string m_rxBuff = {};    //!< Buffer where the received data go.
 
-    PrettyInstrumentationCardInfo m_info = {};
+    Frasy::Actions::Identify::PrettyInstrumentationCardInfo m_info = {};
 
     std::unordered_map<pkt_id_t, ResponsePromise> m_pending;
 
-    std::vector<Instrumentation::CommandDescription> m_supportedCommands;
+    std::vector<Commands::CommandDescription> m_supportedCommands;
 };
 }    // namespace Frasy::Communication
 

@@ -22,7 +22,7 @@
 #include <string_view>
 #include <vector>
 
-namespace Frasy::Instrumentation
+namespace Frasy::Commands
 {
 enum ValueType
 {

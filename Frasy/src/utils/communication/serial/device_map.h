@@ -37,7 +37,7 @@ public:
 
     std::future<size_t> ScanForDevices();
 
-    const PrettyInstrumentationCardInfo& GetDeviceInfo(uint8_t deviceId) const
+    const Frasy::Actions::Identify::PrettyInstrumentationCardInfo& GetDeviceInfo(uint8_t deviceId) const
     {
         WaitForScanComplete();
         return m_devices.at(deviceId).GetInfo();

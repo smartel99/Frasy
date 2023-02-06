@@ -103,20 +103,7 @@ struct GenericCommand
     static auto MakeCommand(Ts&&... ts)
         requires(std::same_as<Ts, payload_type> && ...)
     {
-        auto impl = [](const std::vector<uint8_t>& data)
-        {
-            static constexpr size_t s_maxSize = Communication::Packet::s_maximumPayloadSize;
-            if constexpr (payload_size <= s_maxSize)
-            {
-                // Single packet to make.
-                return Communication::Packet(id, 0, data, false, true);
-            }
-            else
-            {
-//                static_assert(payload_size <= s_maxSize, "Multi packet commands are not supported yet");
-                // More than 1 packet to make.
-            }
-        };
+        auto impl = [](const std::vector<uint8_t>& data) { return Communication::Packet(id, data, false, true); };
         static_assert(sizeof...(Ts) <= 1, "Only one payload allowed!");
         if constexpr (sizeof...(Ts) == 0) { return impl({}); }
         else { return impl(Serialize(ts...)); }

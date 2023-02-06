@@ -19,15 +19,15 @@
 #define FRASY_UTILS_COMMUNICATION_SERIAL_TYPES_H
 
 #include <cstdint>
+#include <limits>
 
 namespace Frasy::Communication
 {
-using pkt_id_t                                = std::uint32_t;
-static constexpr pkt_id_t AUTOMATIC_PACKET_ID = std::numeric_limits<pkt_id_t>::max();
-
+using pkt_id_t       = std::uint32_t;
 using cmd_id_t       = std::uint16_t;
-using blk_id_t       = std::uint8_t;
-using payload_size_t = std::uint8_t;
+using payload_size_t = std::uint16_t;
+
+static constexpr pkt_id_t AUTOMATIC_PACKET_ID = std::numeric_limits<pkt_id_t>::max();
 
 struct PacketModifiers
 {
@@ -44,6 +44,11 @@ struct PacketModifiers
     {
         return (static_cast<uint8_t>(IsResponse) << s_isRespShift) |
                (static_cast<uint8_t>(IsLastPacket) << s_isLastShift);
+    }
+
+    [[nodiscard]] bool operator==(const PacketModifiers& other) const
+    {
+        return IsResponse == other.IsResponse && IsLastPacket == other.IsLastPacket;
     }
 
 private:

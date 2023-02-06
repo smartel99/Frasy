@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-namespace Frasy::Instrumentation
+namespace Frasy::Commands
 {
 /**
  * Structure describing a command's value.
@@ -46,12 +46,12 @@ struct CommandValue
  */
 struct CommandDescription
 {
-    uint16_t    Id = 0;    //!< ID of the command.
-    std::string Name;      //!< Name of the command.
-    std::vector<CommandValue> Parameters;   //!< Parameters taken by the command.
-    std::vector<CommandValue> Returned; //!< Values returned by the command.
-    std::string Help;   //!< Help message associated with the command.
+    uint16_t    Id = 0;                    //!< ID of the command.
+    std::string Name;                      //!< Name of the command.
+    std::vector<CommandValue> Parameters;  //!< Parameters taken by the command.
+    std::vector<CommandValue> Returned;    //!< Values returned by the command.
+    std::string Help;                      //!< Help message associated with the command.
 };
-}    // namespace Frasy::Instrumentation
+}  // namespace Frasy::Commands
 
 #endif    // FRASY_INSTRUMENTATION_CARD_COMMAND_DESCRIPTION_H

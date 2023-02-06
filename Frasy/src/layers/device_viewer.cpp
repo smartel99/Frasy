@@ -73,7 +73,7 @@ void DeviceViewer::RenderDeviceList()
 
         if (TreeNodeOpen())
         {
-            const PrettyInstrumentationCardInfo& devInfo = device.GetInfo();
+            const Frasy::Actions::Identify::PrettyInstrumentationCardInfo& devInfo = device.GetInfo();
             ImGui::PushID(devInfo.Uuid.c_str());
             if (isOpen)
             {
@@ -95,8 +95,15 @@ void DeviceViewer::RenderDeviceList()
 
                 if (ImGui::TreeNode("Features"))
                 {
-                    // TODO fill in the features.
-                    ImGui::Text("%d supported commands", devInfo.SupportedCommandsCount);
+                    if (devInfo.SupportedCommands.empty()) { ImGui::Text("No commands supported"); }
+                    else
+                    {
+                        ImGui::Text("%zu supported commands", devInfo.SupportedCommands.size());
+                        for (const auto& command : devInfo.SupportedCommands)
+                        {
+                            ImGui::BulletText("%s", command.c_str());
+                        }
+                    }
                     ImGui::TreePop();
                 }
 

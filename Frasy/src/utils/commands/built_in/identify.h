@@ -18,6 +18,7 @@
 #ifndef FRASY_INSTRUMENTATION_CARD_INFO_H
 #define FRASY_INSTRUMENTATION_CARD_INFO_H
 
+#include "utils/commands/command.h"
 #include "utils/misc/deserializer.h"
 
 #include <array>
@@ -25,44 +26,44 @@
 #include <spdlog/fmt/fmt.h>
 #include <string>
 
-namespace Frasy
+namespace Frasy::Actions::Identify
 {
 
-struct InstrumentationCardInfo
+struct Reply
 {
-    std::array<uint8_t, 16> Uuid                   = {};
-    uint8_t                 Id                     = 0;
-    std::array<uint8_t, 32> Version                = {};
-    std::array<uint8_t, 32> PrjName                = {};
-    std::array<uint8_t, 16> BuildTime              = {};
-    std::array<uint8_t, 16> BuildDate              = {};
-    uint16_t                SupportedCommandsCount = 0;
+    std::array<uint32_t, 4>  Uuid              = {};
+    uint8_t                  Id                = 0;
+    std::array<uint8_t, 32>  Version           = {};
+    std::array<uint8_t, 32>  PrjName           = {};
+    std::array<uint8_t, 16>  BuildTime         = {};
+    std::array<uint8_t, 16>  BuildDate         = {};
+    std::vector<std::string> SupportedCommands = {};
 };
-static_assert(std::same_as<decltype(Deserialize<InstrumentationCardInfo>(nullptr, nullptr)), InstrumentationCardInfo>);
+static_assert(std::same_as<decltype(Deserialize<Reply>(nullptr, nullptr)), Reply>);
+
+using CommandInfo = Commands::GenericCommand<0x8000, void, Reply>;
 
 struct PrettyInstrumentationCardInfo
 {
-    std::string Uuid;
-    uint8_t     Id = 0;
-    std::string Version;
-    std::string PrjName;
-    std::string Built;
-    uint16_t    SupportedCommandsCount = 0;
+    std::string              Uuid;
+    uint8_t                  Id = 0;
+    std::string              Version;
+    std::string              PrjName;
+    std::string              Built;
+    std::vector<std::string> SupportedCommands;
 
     PrettyInstrumentationCardInfo() = default;
-    PrettyInstrumentationCardInfo(const InstrumentationCardInfo& o)
-    : Id(o.Id), SupportedCommandsCount(o.SupportedCommandsCount)
+    PrettyInstrumentationCardInfo(const Reply& o) : Id(o.Id), SupportedCommands(o.SupportedCommands)
     {
-        auto toStr = [](auto v) -> std::string { return fmt::format("{:02X}", fmt::join(v, "")); };
-        Uuid       = fmt::format("{:02X}", fmt::join(o.Uuid, ""));
-        Version    = std::string {o.Version.begin(), o.Version.end()};
-        PrjName    = std::string {o.PrjName.begin(), o.PrjName.end()};
-        Built      = fmt::format("{} - {}",
+        Uuid    = fmt::format("{:08X}", fmt::join(o.Uuid, ""));
+        Version = std::string {o.Version.begin(), o.Version.end()};
+        PrjName = std::string {o.PrjName.begin(), o.PrjName.end()};
+        Built   = fmt::format("{} - {}",
                             std::string {o.BuildDate.begin(), o.BuildDate.end()}.c_str(),
                             std::string {o.BuildTime.begin(), o.BuildTime.end()}.c_str());
     }
 };
 
-}    // namespace Frasy
+}    // namespace Frasy::Actions::Identify
 
 #endif    // FRASY_INSTRUMENTATION_CARD_INFO_H

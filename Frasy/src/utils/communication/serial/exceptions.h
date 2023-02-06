@@ -72,6 +72,15 @@ public:
     }
 };
 
+class BadCrcException : public BasePacketException
+{
+public:
+    BadCrcException(const uint8_t* data, size_t len, uint32_t expected, uint32_t computed)
+    : BasePacketException(data, len, fmt::format("Bad CRC, expected {}, got {}", expected, computed))
+    {
+    }
+};
+
 }    // namespace Frasy::Communication
 
 #endif    // FRASY_UTILS_COMM_SERIAL_EXCEPTIONS_H

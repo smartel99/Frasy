@@ -18,7 +18,7 @@
 #ifndef FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
 #define FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
 
-#include "../../../instrumentation_card/info.h"
+#include "utils/commands/built_in/identify.h"
 
 #include <string>
 #include <vector>
@@ -27,8 +27,8 @@ namespace Frasy::Communication
 {
 struct DeviceInfo
 {
-    std::string             ComPort;
-    InstrumentationCardInfo Info;
+    std::string                     ComPort;
+    Frasy::Actions::Identify::Reply Info;
 };
 
 std::vector<DeviceInfo> EnumerateInstrumentationCards();
