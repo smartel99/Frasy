@@ -16,7 +16,9 @@
  */
 #include "device.h"
 
-#include <Windows.h>
+#include "utils/commands/built_in/id.h"
+
+#include <barrier>
 
 namespace Frasy::Communication
 {
@@ -30,7 +32,7 @@ void SerialDevice::CheckForPackets()
         if (sofPos != std::string::npos)
         {
             // Found a start of packet! Flush the preceding data, it's probably not valid anymore...
-            m_rxBuff.erase(0, sofPos - 1);
+            if (sofPos > 0) { m_rxBuff.erase(0, sofPos); }
 
             // Start of packet is now the first byte.
             sofPos = 0;
@@ -42,7 +44,7 @@ void SerialDevice::CheckForPackets()
                 // We got a full packet!
                 std::string raw = m_rxBuff.substr(0, eofPos);
                 m_rxBuff.erase(0, eofPos);
-                BR_LOG_DEBUG(m_label, "Received Packet: {:02X}", fmt::join(raw, ", "));
+                //                BR_LOG_DEBUG(m_label, "Received Packet: {:02X}", fmt::join(raw, ", "));
                 try
                 {
                     Packet packet = Packet {{raw.begin(), raw.end()}};
@@ -51,16 +53,17 @@ void SerialDevice::CheckForPackets()
                     {
                         try
                         {
-                            std::lock_guard lock(m_lock);
-                            auto&           promise = m_pending.at(packet.Header.PacketId);
+                            std::lock_guard lock {m_lock};
+                            auto&           promise = m_pending.at(packet.Header.TransactionId);
+                            //                            BR_LOG_DEBUG("Promise", "Received packet");
                             promise.Promise.set_value(packet);
-                            m_pending.erase(packet.Header.PacketId);
+                            m_pending.erase(packet.Header.TransactionId);
                         }
                         catch (std::out_of_range&)
                         {
                             BR_LOG_ERROR(m_label,
                                          "Received response for packet '{:08X}', which doesn't exist!",
-                                         packet.Header.PacketId);
+                                         packet.Header.TransactionId);
                         }
                     }
                     else
@@ -79,6 +82,52 @@ void SerialDevice::CheckForPackets()
     } while (sofPos != std::string::npos);
 }
 
+void SerialDevice::Open()
+{
+    // If already open, re-open.
+    if (m_device.isOpen()) { Close(); }
+
+    try
+    {
+        m_device.open();
+    }
+    catch (std::exception& e)
+    {
+        BR_LOG_ERROR(m_label, "While opening '{}': {}", m_device.getPort(), e.what());
+        return;
+    }
+
+    m_shouldRun = true;
+    std::barrier rxReady {2};
+    m_rxThread = std::thread(
+      [&]()
+      {
+          BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
+          std::string endOfPacket = std::string(1, Packet::s_packetEndFlag);
+          rxReady.arrive_and_wait();
+          while (m_shouldRun)
+          {
+              std::string read;
+              try
+              {
+                  read = m_device.readline(Packet::s_maximumPacketSize, endOfPacket);
+                  //                  if (!read.empty()) { BR_LOG_DEBUG(m_label, "RX: {}", read); }
+                  m_rxBuff += read;
+              }
+              catch (std::exception& e)
+              {
+                  BR_LOG_ERROR(m_label, "An error occurred in the listener thread: {}", e.what());
+                  break;
+              }
+              if (!read.empty() && read.back() == Packet::s_packetEndFlag) { CheckForPackets(); }
+          }
+          BR_LOG_INFO(m_label, "RX listener terminated on '{}'", m_device.getPort());
+      });
+    rxReady.arrive_and_wait();
+
+    GetCapabilities();
+}
+
 void SerialDevice::Close()
 {
     // If already closed, don't do anything.
@@ -86,33 +135,127 @@ void SerialDevice::Close()
     {
         m_shouldRun = false;
 
-        // Forcefully terminate *any* I/O operation done by the thread.
-        if (CancelSynchronousIo(m_rxThread.native_handle()))
-        {
-            BR_LOG_WARN(m_label, "CancelSynchronousIo returned non-0");
-        }
+        //        // Forcefully terminate *any* I/O operation done by the thread.
+        //        if (CancelSynchronousIo(m_rxThread.native_handle()) != 0)
+        //        {
+        //            BR_LOG_WARN(m_label, "CancelSynchronousIo returned non-0");
+        //        }
         if (m_rxThread.joinable()) { m_rxThread.join(); }
         m_device.close();
     }
 }
 
-void SerialDevice::EnumerateDeviceCapabilities()
+void SerialDevice::Reset()
 {
-    // Get Command ID from index
-    // Get Command Name
-    // Get Command Help
-    // Get Command Argument count
-    // For each argument:
-    //  Get Argument Name
-    //  Get Argument Help
-    //  Get Argument Type
-    //  Get Number of values (if > 1, argument is an array)
-    //  Get Minimum value
-    //  Get Maximum value
-    // Get Command Returned value count
-    // For each returned value:
-    //  Get Returned value name
-    //  Get returned value help
-    //  Get returned value type
+//    Packet pkt;
+//    pkt.Header.CommandId = static_cast<cmd_id_t>(Frasy::Actions::CommandId::Reset);
+//    m_device.write(std::vector<uint8_t>(pkt));
+}
+
+bool SerialDevice::Log(bool enable)
+{
+    return enable;
+//    Packet pkt;
+//    pkt.Header.CommandId = static_cast<cmd_id_t>(Frasy::Actions::CommandId::Log);
+//    pkt.MakePayload(enable);
+//    return Transmit(pkt).Collect<bool>();
+}
+
+void SerialDevice::GetCapabilities()
+{
+    if (m_ready)
+    {
+        BR_APP_DEBUG("Already loaded");
+        return;
+    }
+
+    BR_APP_INFO("Getting information for board {}", m_info.Id);
+
+    using namespace Frasy::Actions;
+
+    try
+    {
+        m_commands.clear();
+        m_structs.clear();
+        m_enums.clear();
+
+        auto cmdNames = Transmit(Packet::Request(CommandId::CommandsList)).Collect<std::vector<std::string>>();
+
+        for (const auto& name : cmdNames)
+        {
+            Transmit(Packet::Request(CommandId::CommandInfo).MakePayload(name))
+              .OnComplete(
+                [&](const Packet& packet)
+                {
+                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::CommandInfo))
+                    {
+                        m_commands.push_back(packet.FromPayload<Actions::Command>());
+                        return;
+                    }
+                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
+                    {
+                        throw std::exception(packet.FromPayload<std::string>().c_str());
+                    }
+                    throw std::exception("Invalid command");
+                })
+              .Await();
+        }
+
+        auto enumIds = Transmit(Packet::Request(CommandId::EnumsList)).Collect<std::vector<Type::BasicInfo>>();
+
+        auto structIds = Transmit(Packet::Request(CommandId::StructsList)).Collect<std::vector<Type::BasicInfo>>();
+
+        for (const auto& info : enumIds)
+        {
+            Transmit(Packet::Request(CommandId::EnumInfo).MakePayload(info.id))
+              .OnComplete(
+                [&](const Packet& packet)
+                {
+                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::EnumInfo))
+                    {
+                        m_enums.push_back(packet.FromPayload<Type::Enum>());
+                        return;
+                    }
+                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
+                    {
+                        throw std::exception(packet.FromPayload<std::string>().c_str());
+                    }
+                    throw std::exception("Invalid command");
+                })
+              .Await();
+        }
+
+        for (const auto& info : structIds)
+        {
+            Transmit(Packet::Request(CommandId::StructInfo).MakePayload(info.id))
+              .OnComplete(
+                [&](const Packet& packet)
+                {
+                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::StructInfo))
+                    {
+                        m_structs.push_back(packet.FromPayload<Type::Struct>());
+                        return;
+                    }
+                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
+                    {
+                        throw std::exception(packet.FromPayload<std::string>().c_str());
+                    }
+                    throw std::exception("Invalid command");
+                })
+              .Await();
+        }
+
+        m_ready = true;
+
+        BR_APP_INFO("Device {} loaded: {} commands, {} structs, {} enums",
+                    m_info.Id,
+                    m_commands.size(),
+                    m_structs.size(),
+                    m_enums.size());
+    }
+    catch (std::exception& e)
+    {
+        BR_APP_ERROR("Failed to get board capabilities: {}", e.what());
+    }
 }
 }    // namespace Frasy::Communication

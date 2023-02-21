@@ -1,7 +1,7 @@
 /**
- * @file    get_commands.h
+ * @file    type_id_t.h
  * @author  Paul Thomas
- * @date    2023-02-06
+ * @date    2023-02-16
  * @brief
  *
  * @copyright
@@ -14,23 +14,11 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-
-#ifndef FRASY_SRC_INSTRUMENTATION_CARD_GET_COMMANDS_H
-#define FRASY_SRC_INSTRUMENTATION_CARD_GET_COMMANDS_H
-
-#include "utils/commands/command.h"
-#include "utils/misc/deserializer.h"
+#ifndef INSTRUMENTATION_BOARD_MAIN_INTERFACES_COMMANDS_TYPE_TYPE_ID_T_H
+#define INSTRUMENTATION_BOARD_MAIN_INTERFACES_COMMANDS_TYPE_TYPE_ID_T_H
 
 #include <cstdint>
-#include <string>
-#include <vector>
 
-namespace Frasy::Actions::CommandsList
-{
-using Reply = std::vector<std::string>;
-static_assert(std::same_as<decltype(Deserialize<Reply>(nullptr, nullptr)), Reply>);
+using type_id_t = uint16_t;
 
-using CommandInfo = Commands::GenericCommand<0x8001, void, Reply>;
-}    // namespace Frasy::Actions::CommandsList
-
-#endif    // FRASY_SRC_INSTRUMENTATION_CARD_GET_COMMANDS_H
+#endif    // INSTRUMENTATION_BOARD_MAIN_INTERFACES_COMMANDS_TYPE_TYPE_ID_T_H

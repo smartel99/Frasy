@@ -17,6 +17,7 @@
 
 #ifndef FRASY_UTILS_COMM_SERIAL_DEVICE_H
 #define FRASY_UTILS_COMM_SERIAL_DEVICE_H
+
 #include "../../commands/dispatcher.h"
 #include "../../commands/event.h"
 #include "enumerator.h"
@@ -24,7 +25,7 @@
 #include "packet.h"
 #include "response.h"
 #include "types.h"
-#include "utils/commands/command_description.h"
+#include "utils/commands/description/command.h"
 
 #include <Brigerad/Core/Log.h>
 #include <Brigerad/Core/Time.h>
@@ -57,11 +58,14 @@ public:
 
     SerialDevice& operator=(SerialDevice&& o) noexcept
     {
-        m_label             = std::move(o.m_label);
-        m_rxBuff            = std::move(o.m_rxBuff);
-        m_pending           = std::move(o.m_pending);
-        m_info              = std::move(o.m_info);
-        m_supportedCommands = std::move(o.m_supportedCommands);
+        m_label    = std::move(o.m_label);
+        m_rxBuff   = std::move(o.m_rxBuff);
+        m_pending  = std::move(o.m_pending);
+        m_info     = std::move(o.m_info);
+        m_commands = std::move(o.m_commands);
+        m_structs  = std::move(o.m_structs);
+        m_enums    = std::move(o.m_enums);
+        m_ready    = o.m_ready;
 
         bool reopen = false;
         if (o.m_device.isOpen())
@@ -74,74 +78,29 @@ public:
         return *this;
     }
 
-    void Open()
-    {
-        // If already open, re-open.
-        if (m_device.isOpen()) { Close(); }
-
-        try
-        {
-            m_device.open();
-        }
-        catch (std::exception& e)
-        {
-            BR_LOG_ERROR(m_label, "While opening '{}': {}", m_device.getPort(), e.what());
-            return;
-        }
-
-        m_shouldRun = true;
-        m_rxThread  = std::thread(
-          [this]()
-          {
-              BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
-              std::string endOfPacket = std::string(1, Packet::s_packetEndFlag);
-              while (m_shouldRun)
-              {
-                  try
-                  {
-                      std::string read = m_device.readline(Packet::s_maximumPacketSize, endOfPacket);
-                      m_rxBuff += read;
-                  }
-                  catch (std::exception& e)
-                  {
-                      BR_LOG_ERROR(m_label, "An error occurred in the listener thread: {}", e.what());
-                      break;
-                  }
-                  CheckForPackets();
-              }
-              BR_LOG_INFO(m_label, "RX listener terminated on '{}'", m_device.getPort());
-          });
-
-        EnumerateDeviceCapabilities();
-    }
-
+    void Open();
     void Close();
+    void Reset();
+    bool Log(bool enable);
 
-    [[nodiscard]] const Frasy::Actions::Identify::PrettyInstrumentationCardInfo& GetInfo() const noexcept
-    {
-        return m_info;
-    }
-    [[nodiscard]] const std::vector<Commands::CommandDescription> GetSupportedCommands() const noexcept
-    {
-        return m_supportedCommands;
-    }
+    [[nodiscard]] const Actions::Identify::Info&       GetInfo() const noexcept { return m_info; }
+    [[nodiscard]] const std::vector<Actions::Command>& GetCommands() const noexcept { return m_commands; }
 
     [[nodiscard]] bool        IsOpen() const noexcept { return m_device.isOpen(); }
     [[nodiscard]] std::string GetPort() const noexcept { return m_device.getPort(); }
 
-    TransmissionCallbacks& Transmit(const Packet& pkt)
+    ResponsePromise& Transmit(const Packet& pkt)
     {
         std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);
         m_device.write(data);
-        std::lock_guard lock(m_lock);
-        auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.PacketId, std::move(ResponsePromise {}));
-        return it->second.Callbacks;
+        std::lock_guard lock {m_lock};
+        auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise {}));
+        return it->second;
     }
 
 private:
     void CheckForPackets();
-
-    void EnumerateDeviceCapabilities();
+    void GetCapabilities();
 
 private:
     std::string    m_label;
@@ -154,11 +113,12 @@ private:
     std::thread m_rxThread;
     std::string m_rxBuff = {};    //!< Buffer where the received data go.
 
-    Frasy::Actions::Identify::PrettyInstrumentationCardInfo m_info = {};
+    Actions::Identify::Info       m_info     = {};
+    std::vector<Actions::Command> m_commands = {};
+    std::vector<Type::Struct>     m_structs  = {};
+    std::vector<Type::Enum>       m_enums    = {};
 
-    std::unordered_map<pkt_id_t, ResponsePromise> m_pending;
-
-    std::vector<Commands::CommandDescription> m_supportedCommands;
+    std::unordered_map<trs_id_t, ResponsePromise> m_pending;
 };
 }    // namespace Frasy::Communication
 

@@ -24,19 +24,19 @@
 
 namespace Frasy::Communication
 {
-constexpr PacketHeader::PacketHeader(pkt_id_t pktId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize)
-: PacketId(pktId == AUTOMATIC_PACKET_ID ? s_lastPktId : pktId),
+constexpr PacketHeader::PacketHeader(trs_id_t pktId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize)
+: TransactionId(pktId == AUTOMATIC_TRANSACTION_ID ? s_lastTrsId : pktId),
   CommandId(cmdId),
   Modifiers(mods),
   PayloadSize(payloadSize)
 {
     // If packet is a command and the ID is automatic, we increment the last ID, for the next
     // packet.
-    if (!Modifiers.IsResponse && PacketId == s_lastPktId) { ++s_lastPktId; }
+    if (!Modifiers.IsResponse && TransactionId == s_lastTrsId) { ++s_lastTrsId; }
 }
 
 constexpr PacketHeader::PacketHeader(PacketHeader::RawData data)
-: PacketId(AsciiToT<decltype(PacketId)>(&data[s_packetIdOffset])),
+: TransactionId(AsciiToT<decltype(TransactionId)>(&data[s_transactionIdOffset])),
   CommandId(AsciiToT<decltype(CommandId)>(&data[s_commandIdOffset])),
   Modifiers(AsciiToT<uint8_t>(&data[s_modifiersOffset])),
   PayloadSize(AsciiToT<decltype(PayloadSize)>(&data[s_payloadSizeOffset]))
@@ -49,7 +49,7 @@ constexpr PacketHeader::PacketHeader(PacketHeader::RawData data)
     std::vector<uint8_t> out;
     out.reserve(s_headerSize);
 
-    auto pktId = TToAscii(PacketId);
+    auto pktId = TToAscii(TransactionId);
     out.insert(out.end(), pktId.begin(), pktId.end());
 
     auto cmdId = TToAscii(CommandId);
@@ -68,7 +68,7 @@ PacketHeader::operator std::vector<uint8_t>() const noexcept
     std::vector<uint8_t> out;
     out.reserve(s_headerSize);
 
-    auto pktId = Serialize(PacketId);
+    auto pktId = Serialize(TransactionId);
     out.insert(out.end(), pktId.begin(), pktId.end());
 
     auto cmdId = Serialize(CommandId);
@@ -85,15 +85,15 @@ PacketHeader::operator std::vector<uint8_t>() const noexcept
 
 bool PacketHeader::operator==(const PacketHeader& other) const
 {
-    return PacketId == other.PacketId &&      //
-           CommandId == other.CommandId &&    //
-           Modifiers == other.Modifiers &&    //
+    return TransactionId == other.TransactionId &&    //
+           CommandId == other.CommandId &&            //
+           Modifiers == other.Modifiers &&            //
            PayloadSize == other.PayloadSize;
 }
 
 
-Packet::Packet(cmd_id_t cmdId, const std::vector<uint8_t>& data, bool isResp, bool isLast, pkt_id_t pktId, uint32_t crc)
-: Header(pktId, cmdId, PacketModifiers {isResp, isLast}, static_cast<uint8_t>(data.size())), Payload(data), m_crc(crc)
+Packet::Packet(cmd_id_t cmdId, const std::vector<uint8_t>& data, bool isResp, trs_id_t trsId, uint32_t crc)
+: Header(trsId, cmdId, PacketModifiers(isResp), static_cast<uint8_t>(data.size())), Payload(data), m_crc(crc)
 {
 }
 
@@ -160,12 +160,11 @@ Packet::operator std::vector<uint8_t>() const noexcept
     }
     out.push_back(s_payloadEndFlag);
 
-    auto crc = crc32_calculate({std::vector<uint8_t>(Header), Payload});
+    auto crc       = crc32_calculate({std::vector<uint8_t>(Header), Payload});
     auto ascii_crc = TToAscii(crc);
     out.insert(out.end(), ascii_crc.begin(), ascii_crc.end());
 
     out.push_back(s_packetEndFlag);
-    BR_APP_DEBUG("Serialized Packet: {}", std::span {out.begin(), out.end()});
 
     return out;
 }

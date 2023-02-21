@@ -19,6 +19,7 @@
 #define FRASY_UTILS_COMM_SERIAL_PACKET_H
 
 #include "types.h"
+#include "utils/commands/built_in/id.h"
 #include "utils/misc/char_conv.h"
 #include "utils/misc/crc32.h"
 #include "utils/misc/deserializer.h"
@@ -38,13 +39,13 @@ struct PacketHeader
 {
     using RawData = std::basic_string_view<uint8_t>;
 
-    pkt_id_t        PacketId    = {};
-    cmd_id_t        CommandId   = {};
-    PacketModifiers Modifiers   = PacketModifiers {0};
+    trs_id_t        TransactionId = {};
+    cmd_id_t        CommandId     = {};
+    PacketModifiers Modifiers;
     payload_size_t  PayloadSize = {};
 
     constexpr PacketHeader() noexcept = default;
-    constexpr PacketHeader(pkt_id_t pktId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize);
+    constexpr PacketHeader(trs_id_t pktId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize);
     explicit constexpr PacketHeader(RawData data);
 
     [[nodiscard]] std::vector<uint8_t> ToAscii() const noexcept;
@@ -52,19 +53,19 @@ struct PacketHeader
     [[nodiscard]] bool                 operator==(const PacketHeader& other) const;
 
 private:
-    inline static pkt_id_t s_lastPktId = 0;
+    inline static trs_id_t s_lastTrsId = 0;
 
-    static constexpr size_t s_packetIdOffset    = std::distance(RawData {}.begin(), RawData {}.begin());
-    static constexpr size_t s_commandIdOffset   = s_packetIdOffset + SizeInChars<decltype(PacketId)>();
-    static constexpr size_t s_modifiersOffset   = s_commandIdOffset + SizeInChars<decltype(CommandId)>();
-    static constexpr size_t s_payloadSizeOffset = s_modifiersOffset + SizeInChars<uint8_t>();
+    static constexpr size_t s_transactionIdOffset = std::distance(RawData {}.begin(), RawData {}.begin());
+    static constexpr size_t s_commandIdOffset     = s_transactionIdOffset + SizeInChars<decltype(TransactionId)>();
+    static constexpr size_t s_modifiersOffset     = s_commandIdOffset + SizeInChars<decltype(CommandId)>();
+    static constexpr size_t s_payloadSizeOffset   = s_modifiersOffset + SizeInChars<uint8_t>();
 
 public:
     static constexpr size_t s_headerSize = s_payloadSizeOffset + SizeInChars<decltype(PayloadSize)>();
 
-    static_assert(s_headerSize == SizeInChars<decltype(PacketId)>() +       //
-                                    SizeInChars<decltype(CommandId)>() +    //
-                                    SizeInChars<uint8_t>() +                //
+    static_assert(s_headerSize == SizeInChars<decltype(TransactionId)>() +    //
+                                    SizeInChars<decltype(CommandId)>() +      //
+                                    SizeInChars<uint8_t>() +                  //
                                     SizeInChars<decltype(PayloadSize)>());
 };
 
@@ -82,9 +83,9 @@ public:
     Packet(cmd_id_t                    cmdId,
            const std::vector<uint8_t>& data,
            bool                        isResp = false,
-           bool                        isLast = false,
-           pkt_id_t                    pktId  = AUTOMATIC_PACKET_ID,
+           trs_id_t                    trsId  = AUTOMATIC_TRANSACTION_ID,
            uint32_t                    crc    = 0);
+
     [[nodiscard]] explicit operator std::vector<uint8_t>() const noexcept;
     [[nodiscard]] bool     operator==(const Packet& other) const;
 
@@ -96,17 +97,36 @@ private:
 
 public:
     [[nodiscard]] uint32_t Crc() const { return m_crc; }
-    uint32_t               ComputeCrc() { return m_crc = crc32_calculate({std::vector<uint8_t>(Header), Payload}); }
-    [[nodiscard]] bool     IsCrcValid() { return m_crc == crc32_calculate({std::vector<uint8_t>(Header), Payload}); }
+    [[nodiscard]] uint32_t ComputeCrc() const { return crc32_calculate({std::vector<uint8_t>(Header), Payload}); }
+    [[nodiscard]] bool IsCrcValid() const { return m_crc == crc32_calculate({std::vector<uint8_t>(Header), Payload}); }
 
+    static Packet Request(cmd_id_t cmdId)
+    {
+        Packet pkt;
+        pkt.Header.CommandId = cmdId;
+        pkt.m_crc            = pkt.ComputeCrc();
+        return pkt;
+    }
+    static Packet Request(Actions::CommandId cmdId) { return Request(static_cast<cmd_id_t>(cmdId)); }
+
+
+    static Packet Reply(const Packet& og, cmd_id_t cmdId = INVALID_COMMAND_ID)
+    {
+        Packet pkt;
+        pkt.Header                      = og.Header;
+        pkt.Header.Modifiers.IsResponse = true;
+        if (cmdId != INVALID_COMMAND_ID) { pkt.Header.CommandId = cmdId; }
+        return pkt;
+    }
 
     template<typename T>
-    void MakePayload(const T& t)
+    Packet& MakePayload(const T& t)
         requires requires { Serialize(t); }
     {
         Payload            = Serialize(t);
         Header.PayloadSize = Payload.size();
-        ComputeCrc();
+        m_crc              = ComputeCrc();
+        return *this;
     }
 
     template<typename T>

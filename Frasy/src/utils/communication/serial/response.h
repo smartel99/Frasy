@@ -27,106 +27,81 @@
 #include <functional>
 #include <future>
 #include <thread>
+#include <utility>
 
 
 namespace Frasy::Communication
 {
-class TransmissionCallbacks
+struct ResponsePromise
 {
-public:
-    TransmissionCallbacks() noexcept                                   = default;
-    TransmissionCallbacks(TransmissionCallbacks&&) noexcept            = default;
-    TransmissionCallbacks& operator=(TransmissionCallbacks&&) noexcept = default;
+    std::promise<Packet> Promise;
+    std::thread          Thread;
+
+    explicit ResponsePromise()                    = default;
+    ResponsePromise(ResponsePromise&&)            = default;
+    ResponsePromise& operator=(ResponsePromise&&) = default;
+    ~ResponsePromise();
 
     using on_complete_cb_t = std::function<void(Packet)>;
     using on_timeout_cb_t  = std::function<void()>;
     using on_error_cb_t    = std::function<void()>;
 
-    TransmissionCallbacks& OnComplete(const on_complete_cb_t& func)
-    {
-        if (func) { m_onCompleteCb = func; }
-        else { throw std::bad_function_call(); }
-    }
-    TransmissionCallbacks& OnTimeout(const on_timeout_cb_t& func)
-    {
-        if (func) { m_onTimeoutCb = func; }
-        else { throw std::bad_function_call(); }
-    }
+    ResponsePromise& OnComplete(const on_complete_cb_t& func);
+    ResponsePromise& OnTimeout(const on_timeout_cb_t& func);
+    ResponsePromise& OnError(const on_error_cb_t& func);
 
-    TransmissionCallbacks& OnError(const on_error_cb_t& func)
-    {
-        if (func) { m_onErrorCb = func; }
-        else { throw std::bad_function_call(); }
-    }
+    /// Run the promise in asynchronous mode
+    void Async();
 
+    /// Run the promise in synchronous mode
+    void Await();
+
+    /// Run the promise in synchronous mode
+    /// Immediately collect and convert the response
     template<typename T>
-    T Await()
+    T Collect()
     {
-        BR_ASSERT(!m_onCompleteCb, "Await cannot be called after OnComplete!");
-        std::atomic_flag ready;
         Packet           packet;
-        m_onCompleteCb = [&](Packet pkt)
+        std::atomic_flag completed;
+        m_localOnCompleteCb = [&](Packet pkt)
         {
-            packet = pkt;
-            ready.test_and_set();
-            ready.notify_all();
+            packet = std::move(pkt);
+            completed.test_and_set();
+            completed.notify_all();
         };
-        ready.wait(false);
+        run();
+        completed.wait(false);
         return packet.FromPayload<T>();
     }
 
+    /// Run promise in synchronous mode
+    /// Immediately collect the packet
+    template<>
+    Packet Collect()
+    {
+        Packet           packet;
+        std::atomic_flag completed;
+        m_localOnCompleteCb = [&](Packet pkt)
+        {
+            packet = std::move(pkt);
+            completed.test_and_set();
+            completed.notify_all();
+        };
+        run();
+        completed.wait(false);
+        return packet;
+    }
+
+
 private:
-    on_complete_cb_t m_onCompleteCb = {};
-    on_timeout_cb_t  m_onTimeoutCb  = []() { BR_LOG_WARN(s_tag, "Timed out"); };
-    on_error_cb_t    m_onErrorCb    = []() { BR_LOG_ERROR(s_tag, "An error occurred."); };
+    static constexpr const char* s_tag = "Promise";
 
+    on_complete_cb_t m_localOnCompleteCb = [&](const Packet& packet) { m_onCompleteCb(packet); };
+    on_complete_cb_t m_onCompleteCb      = {};
+    on_timeout_cb_t  m_onTimeoutCb       = []() { BR_LOG_WARN(s_tag, "Timed out"); };
+    on_error_cb_t    m_onErrorCb         = []() { BR_LOG_ERROR(s_tag, "An error occurred."); };
 
-    static constexpr const char* s_tag = "Transmission callbacks";
-
-    friend class ResponsePromise;
-};
-
-
-struct ResponsePromise
-{
-    TransmissionCallbacks Callbacks;
-    std::promise<Packet>  Promise;
-    std::thread           Thread;
-
-    explicit ResponsePromise()
-    {
-        using namespace std::chrono_literals;
-        constexpr auto s_timeout = 100ms;
-        Thread                   = std::thread(
-          [s_timeout, this]()
-          {
-              try
-              {
-                  std::future<Packet> future = Promise.get_future();
-                  std::future_status  status = future.wait_for(s_timeout);
-                  switch (status)
-                  {
-                      case std::future_status::ready:
-                      case std::future_status::deferred:    // Result only available when explicitly requested.
-                          Callbacks.m_onCompleteCb(future.get());
-                          break;
-                      case std::future_status::timeout: Callbacks.m_onTimeoutCb(); break;
-                  }
-              }
-              catch (std::future_error& e)
-              {
-                  BR_LOG_ERROR("ResponsePromise", "A future error occurred: {}", e.what());
-                  Callbacks.m_onErrorCb();
-              }
-          });
-    }
-    ResponsePromise(ResponsePromise&&)            = default;
-    ResponsePromise& operator=(ResponsePromise&&) = default;
-
-    ~ResponsePromise()
-    {
-        if (Thread.joinable()) { Thread.join(); }
-    }
+    void run();
 };
 }    // namespace Frasy::Communication
 

@@ -1,7 +1,7 @@
 /**
- * @file    enumerator.h
- * @author  Samuel Martel
- * @date    2022-12-14
+ * @file    id.h
+ * @author  Paul Thomas
+ * @date    2023-02-07
  * @brief
  *
  * @copyright
@@ -14,24 +14,28 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
+#ifndef INTERFACE_BOARD_MAIN_INTERFACES_COMMANDS_BUILT_IN_ID_H
+#define INTERFACE_BOARD_MAIN_INTERFACES_COMMANDS_BUILT_IN_ID_H
+#include "../../communication/serial/types.h"
+#include <cstdint>
 
-#ifndef FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
-#define FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
-
-#include "utils/commands/built_in/identify/reply.h"
-
-#include <string>
-#include <vector>
-
-namespace Frasy::Communication
+namespace Frasy::Actions
 {
-struct DeviceInfo
+using Frasy::Communication::cmd_id_t;
+
+enum class CommandId : cmd_id_t
 {
-    std::string             ComPort;
-    Actions::Identify::Info Info;
+    Identify = 0x8000,
+    Status,
+    Reset,
+    Log,
+    CommandsList,
+    CommandInfo,
+    EnumsList,
+    EnumInfo,
+    StructsList,
+    StructInfo,
 };
+}    // namespace Frasy::Actions
 
-std::vector<DeviceInfo> EnumerateInstrumentationCards();
-}    // namespace Frasy::Communication
-
-#endif    // FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
+#endif    // INTERFACE_BOARD_MAIN_INTERFACES_COMMANDS_BUILT_IN_ID_H

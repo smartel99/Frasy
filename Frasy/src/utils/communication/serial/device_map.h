@@ -37,13 +37,13 @@ public:
 
     std::future<size_t> ScanForDevices();
 
-    const Frasy::Actions::Identify::PrettyInstrumentationCardInfo& GetDeviceInfo(uint8_t deviceId) const
+    const Frasy::Actions::Identify::Info& GetDeviceInfo(uint8_t deviceId) const
     {
         WaitForScanComplete();
         return m_devices.at(deviceId).GetInfo();
     }
 
-    TransmissionCallbacks& Transmit(uint8_t deviceId, const Packet& pkt)
+    ResponsePromise& Transmit(uint8_t deviceId, const Packet& pkt)
     {
         WaitForScanComplete();
         return m_devices.at(deviceId).Transmit(pkt);

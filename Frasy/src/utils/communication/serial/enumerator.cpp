@@ -17,8 +17,6 @@
 #include "enumerator.h"
 
 #include "packet.h"
-#include "utils/commands/built_in/commands_list.h"
-#include "utils/commands/built_in/identify.h"
 
 #include <Brigerad/Core/Log.h>
 #include <optional>
@@ -29,8 +27,7 @@ namespace Frasy::Communication
 
 static constexpr const char* s_tag = "Enumerator";
 
-static std::optional<Frasy::Actions::Identify::Reply>     IdentifyPort(const serial::PortInfo& info);
-static std::optional<Frasy::Actions::CommandsList::Reply> GetCommands(const serial::PortInfo& info);
+static std::optional<Actions::Identify::Info> IdentifyPort(const serial::PortInfo& info);
 
 std::vector<DeviceInfo> EnumerateInstrumentationCards()
 {
@@ -42,18 +39,13 @@ std::vector<DeviceInfo> EnumerateInstrumentationCards()
     for (auto&& port : ports)
     {
         auto info = IdentifyPort(port);
-        if (info)
-        {
-            auto commands = GetCommands(port);
-            if (commands) { info->SupportedCommands = commands.value(); }
-            devices.emplace_back(DeviceInfo {port.port, *info});
-        }
+        if (info) { devices.emplace_back(DeviceInfo {port.port, *info}); }
     }
 
     return devices;
 }
 
-std::optional<Frasy::Actions::Identify::Reply> IdentifyPort(const serial::PortInfo& info)
+std::optional<Actions::Identify::Info> IdentifyPort(const serial::PortInfo& info)
 {
     BR_LOG_DEBUG(s_tag,
                  "Attempting to identify device on port '{}' (des: {}, id: {})",
@@ -61,7 +53,8 @@ std::optional<Frasy::Actions::Identify::Reply> IdentifyPort(const serial::PortIn
                  info.description,
                  info.hardware_id);
 
-    Packet pkt = Frasy::Actions::Identify::CommandInfo::MakeCommand();
+    Packet pkt;
+    pkt.Header.CommandId = static_cast<cmd_id_t>(Actions::CommandId::Identify);
 
     std::string packetEnd = std::string(1, Packet::s_packetEndFlag);
     try
@@ -71,7 +64,8 @@ std::optional<Frasy::Actions::Identify::Reply> IdentifyPort(const serial::PortIn
 
         port.write(static_cast<std::vector<uint8_t>>(pkt));
         std::string resp = port.readline(Packet::s_maximumPacketSize, packetEnd);
-        return Packet({resp.begin(), resp.end()}).FromPayload<Frasy::Actions::Identify::Reply>();
+        port.close();    // We must close serial because it will be reopened later by SerialDevice
+        return Actions::Identify::Info(Packet({resp.begin(), resp.end()}).FromPayload<Actions::Identify::Reply>());
     }
     catch (std::exception& e)
     {
@@ -81,26 +75,4 @@ std::optional<Frasy::Actions::Identify::Reply> IdentifyPort(const serial::PortIn
     return {};
 }
 
-std::optional<Frasy::Actions::CommandsList::Reply> GetCommands(const serial::PortInfo& info)
-{
-    BR_LOG_DEBUG(s_tag, "Attempting to get commands from device on port '{}'", info.port);
-
-    Packet pkt = Frasy::Actions::CommandsList::CommandInfo::MakeCommand();
-
-    std::string packetEnd = std::string(1, Packet::s_packetEndFlag);
-    try
-    {
-        serial::Serial port = serial::Serial(info.port, 460800, serial::Timeout::simpleTimeout(500));
-        if (!port.isOpen()) { port.open(); }
-        port.write(static_cast<std::vector<uint8_t>>(pkt));
-        std::string resp = port.readline(Packet::s_maximumPacketSize, packetEnd);
-        return Packet({resp.begin(), resp.end()}).FromPayload<Frasy::Actions::CommandsList::Reply>();
-    }
-    catch (std::exception& e)
-    {
-        BR_LOG_ERROR(s_tag, "While getting commands from {}: {}", info.port, e.what());
-    }
-
-    return {};
-}
 }    // namespace Frasy::Communication

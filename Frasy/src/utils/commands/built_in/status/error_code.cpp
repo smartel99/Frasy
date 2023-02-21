@@ -1,7 +1,7 @@
 /**
- * @file    enumerator.h
- * @author  Samuel Martel
- * @date    2022-12-14
+ * @file    error_codes.cpp
+ * @author  Paul Thomas
+ * @date    2023-02-16
  * @brief
  *
  * @copyright
@@ -15,23 +15,16 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
-#define FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
-
-#include "utils/commands/built_in/identify/reply.h"
-
-#include <string>
-#include <vector>
-
-namespace Frasy::Communication
+#include "error_code.h"
+#include "utils/misc/deserializer.h"
+namespace Frasy::Actions::Status
 {
-struct DeviceInfo
-{
-    std::string             ComPort;
-    Actions::Identify::Info Info;
-};
+type_id_t ErrorCode::Manager::id = 0;
 
-std::vector<DeviceInfo> EnumerateInstrumentationCards();
-}    // namespace Frasy::Communication
+static_assert(requires {
+                  {
+                      Deserialize<ErrorCode>(nullptr, nullptr)
+                  } -> std::same_as<ErrorCode>;
+              });
 
-#endif    // FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
+}    // namespace Frasy::Actions::Status

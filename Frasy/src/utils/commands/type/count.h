@@ -1,7 +1,7 @@
 /**
- * @file    enumerator.h
- * @author  Samuel Martel
- * @date    2022-12-14
+ * @file    count.h
+ * @author  Paul Thomas
+ * @date    2023-02-16
  * @brief
  *
  * @copyright
@@ -14,24 +14,16 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
+#ifndef INSTRUMENTATION_BOARD_MAIN_INTERFACES_COMMANDS_TYPE_COUNT_H
+#define INSTRUMENTATION_BOARD_MAIN_INTERFACES_COMMANDS_TYPE_COUNT_H
 
-#ifndef FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
-#define FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
+#include <cstdint>
 
-#include "utils/commands/built_in/identify/reply.h"
-
-#include <string>
-#include <vector>
-
-namespace Frasy::Communication
+namespace Frasy::Type
 {
-struct DeviceInfo
-{
-    std::string             ComPort;
-    Actions::Identify::Info Info;
-};
+static constexpr uint16_t VECTOR = 0;
+static constexpr uint16_t SINGLE = 1;
+static constexpr uint16_t ARRAY(uint16_t size) { return size; }
+}    // namespace Frasy::Type
 
-std::vector<DeviceInfo> EnumerateInstrumentationCards();
-}    // namespace Frasy::Communication
-
-#endif    // FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
+#endif    // INSTRUMENTATION_BOARD_MAIN_INTERFACES_COMMANDS_TYPE_COUNT_H

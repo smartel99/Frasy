@@ -1,7 +1,7 @@
 /**
- * @file    enumerator.h
- * @author  Samuel Martel
- * @date    2022-12-14
+ * @file    enum.cpp
+ * @author  Paul Thomas
+ * @date    2023-02-16
  * @brief
  *
  * @copyright
@@ -15,23 +15,24 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
-#define FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
+#include "enum.h"
+#include "utils/misc/deserializer.h"
 
-#include "utils/commands/built_in/identify/reply.h"
-
-#include <string>
-#include <vector>
-
-namespace Frasy::Communication
+namespace Frasy::Type
 {
-struct DeviceInfo
-{
-    std::string             ComPort;
-    Actions::Identify::Info Info;
-};
 
-std::vector<DeviceInfo> EnumerateInstrumentationCards();
-}    // namespace Frasy::Communication
+type_id_t Enum::Field::Manager::id = 0;
+type_id_t Enum::Manager::id        = 0;
 
-#endif    // FRASY_UTILS_COMMUNICATION_SERIAL_ENUMERATOR_H
+static_assert(requires {
+                  {
+                      Deserialize<Enum::Field>(nullptr, nullptr)
+                  } -> std::same_as<Enum::Field>;
+              });
+
+static_assert(requires {
+                  {
+                      Deserialize<Enum>(nullptr, nullptr)
+                  } -> std::same_as<Enum>;
+              });
+}    // namespace Frasy::Type

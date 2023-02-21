@@ -23,40 +23,44 @@
 
 namespace Frasy::Communication
 {
-using pkt_id_t       = std::uint32_t;
+using trs_id_t       = std::uint32_t;
 using cmd_id_t       = std::uint16_t;
 using payload_size_t = std::uint16_t;
 
-static constexpr pkt_id_t AUTOMATIC_PACKET_ID = std::numeric_limits<pkt_id_t>::max();
+static constexpr trs_id_t AUTOMATIC_TRANSACTION_ID = std::numeric_limits<trs_id_t>::max();
+static constexpr cmd_id_t INVALID_COMMAND_ID       = std::numeric_limits<cmd_id_t>::max();
 
 struct PacketModifiers
 {
-    bool IsResponse   = false;
-    bool IsLastPacket = false;
+    bool IsResponse      = false;
+    bool PayloadAsString = false;
+
+    PacketModifiers() = default;
 
     explicit constexpr PacketModifiers(uint8_t v) noexcept
-    : IsResponse(((v & s_isRespMask) >> s_isRespShift) != 0), IsLastPacket(((v & s_isLastMask) >> s_isLastShift) != 0)
+    : IsResponse(((v & s_isRespMask) >> s_isRespShift) != 0),
+      PayloadAsString(((v & s_asStringMask) >> s_asStringShift) != 0)
     {
     }
-    constexpr PacketModifiers(bool isResp, bool isLast) noexcept : IsResponse(isResp), IsLastPacket(isLast) {}
+    constexpr PacketModifiers(bool isResp, bool asString) noexcept : IsResponse(isResp), PayloadAsString(asString) {}
 
     explicit constexpr operator uint8_t() const noexcept
     {
         return (static_cast<uint8_t>(IsResponse) << s_isRespShift) |
-               (static_cast<uint8_t>(IsLastPacket) << s_isLastShift);
+               (static_cast<uint8_t>(PayloadAsString) << s_asStringShift);
     }
 
     [[nodiscard]] bool operator==(const PacketModifiers& other) const
     {
-        return IsResponse == other.IsResponse && IsLastPacket == other.IsLastPacket;
+        return IsResponse == other.IsResponse && PayloadAsString == other.PayloadAsString;
     }
 
 private:
     static constexpr uint8_t s_isRespShift = 0x00;
     static constexpr uint8_t s_isRespMask  = 0x01;
 
-    static constexpr uint8_t s_isLastShift = 0x01;
-    static constexpr uint8_t s_isLastMask  = 0x02;
+    static constexpr uint8_t s_asStringShift = 0x01;
+    static constexpr uint8_t s_asStringMask  = 0x02;
 };
 
 

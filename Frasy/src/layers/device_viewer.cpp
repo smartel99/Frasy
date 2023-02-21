@@ -73,7 +73,7 @@ void DeviceViewer::RenderDeviceList()
 
         if (TreeNodeOpen())
         {
-            const Frasy::Actions::Identify::PrettyInstrumentationCardInfo& devInfo = device.GetInfo();
+            const Frasy::Actions::Identify::Info& devInfo = device.GetInfo();
             ImGui::PushID(devInfo.Uuid.c_str());
             if (isOpen)
             {
@@ -95,14 +95,12 @@ void DeviceViewer::RenderDeviceList()
 
                 if (ImGui::TreeNode("Features"))
                 {
-                    if (devInfo.SupportedCommands.empty()) { ImGui::Text("No commands supported"); }
+                    auto commands = device.GetCommands();
+                    if (commands.empty()) { ImGui::Text("No commands supported"); }
                     else
                     {
-                        ImGui::Text("%zu supported commands", devInfo.SupportedCommands.size());
-                        for (const auto& command : devInfo.SupportedCommands)
-                        {
-                            ImGui::BulletText("%s", command.c_str());
-                        }
+                        ImGui::Text("%zu supported commands", commands.size());
+                        for (const auto& command : commands) { ImGui::BulletText("%s", command.Name.c_str()); }
                     }
                     ImGui::TreePop();
                 }
@@ -113,8 +111,8 @@ void DeviceViewer::RenderDeviceList()
             if (ImGui::TreeNode("Options"))
             {
                 bool shouldLog = false;
-                if (ImGui::Checkbox("Log", &shouldLog)) { BR_APP_WARN("Instrumentation card log not implemented"); }
-                if (ImGui::Button("Reset")) { BR_APP_WARN("Instrumentation card reset not implemented"); }
+                if (ImGui::Checkbox("Log", &shouldLog)) { device.Log(shouldLog); }
+                if (ImGui::Button("Reset")) { device.Reset(); }
                 if (ImGui::Button("Update")) { BR_APP_WARN("Instrumentation card update not implemented"); }
                 ImGui::TreePop();
             }
