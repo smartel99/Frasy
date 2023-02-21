@@ -47,6 +47,7 @@ static uint32_t ShaderDataTypeSize(ShaderDataType type)
               spdlog::level::err,
               "Assertion Failed: {}",
               "Unknown shader data type");
+            return 0;
     }
 }
 
