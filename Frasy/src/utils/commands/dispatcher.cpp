@@ -16,22 +16,60 @@
  */
 #include "dispatcher.h"
 
-#include <Brigerad/Core/Log.h>
+#include "../misc/type_name.h"
+#include "utils/commands/built_in/log/command.h"
+
+#include <utility>
 
 
 namespace Frasy::Commands
 {
-CommandDispatcher::CommandDispatcher(const CommandEvent& event, CommandManager& manager) noexcept
-: m_event(event), m_manager(manager)
+
+CommandDispatcher::CommandDispatcher(CommandEvent event, CommandManager& manager) noexcept
+: m_event(std::move(event)), m_manager(manager)
 {
 }
 
 void CommandDispatcher::Dispatch() const noexcept
 {
-    BR_APP_DEBUG("Dispatching command!");
-    for (auto&& [t, handler] : m_manager.m_handlers)
+    BR_APP_DEBUG("Looking for handler...");
+    for (auto&& [id, command] : m_manager.m_commands)
     {
-        if (handler.DestinedTo(m_event)) { handler.Handle(m_event); }
+        if (command.IsForMe(m_event))
+        {
+            BR_APP_DEBUG("Dispatching command to {}", command.Name.c_str());
+            command.Execute(m_event);
+        }
     }
+    BR_APP_DEBUG("Dispatch complete!");
 }
+
+void CommandManager::MakeHandlerList()
+{
+    AddCommand(Frasy::Actions::Log::Make());
+}
+
+void CommandManager::AddCommand(const Actions::Command& command)
+{
+    m_commands[command.Name] = command;
+}
+
+void CommandManager::SetCommandActiveState(const std::string& name, bool active)
+{
+    m_commands.at(name).Enabled = active;
+}
+
+void CommandManager::RemoveHandler(const std::string& name)
+{
+    m_commands.erase(name);
+}
+
+std::vector<std::string_view> CommandManager::GetCommandsKeys() const
+{
+    std::vector<std::string_view> commands;
+    commands.reserve(m_commands.size());
+    for (const auto& [key, value] : m_commands) { commands.push_back(key); }
+    return commands;
+}
+
 }    // namespace Frasy::Commands

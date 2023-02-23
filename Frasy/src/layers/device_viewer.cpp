@@ -25,7 +25,7 @@ namespace Frasy
 {
 DeviceViewer::DeviceViewer() noexcept : m_deviceMap(Communication::DeviceMap::Get())
 {
-    m_scanResult = m_deviceMap.ScanForDevices();
+    m_deviceMap.ScanForDevices();
 }
 
 void DeviceViewer::OnImGuiRender()
@@ -36,13 +36,13 @@ void DeviceViewer::OnImGuiRender()
     {
         if (ImGui::Button("Rescan"))
         {
-            if (IsScanComplete()) { m_scanResult = m_deviceMap.ScanForDevices(); }
+            if (!m_deviceMap.IsScanning()) { m_deviceMap.ScanForDevices(); }
             else { BR_APP_WARN("Scan already in progress!"); }
         }
 
         ImGui::Separator();
 
-        if (IsScanComplete()) { RenderDeviceList(); }
+        if (!m_deviceMap.IsScanning()) { RenderDeviceList(); }
     }
     ImGui::End();
 }
@@ -110,8 +110,8 @@ void DeviceViewer::RenderDeviceList()
 
             if (ImGui::TreeNode("Options"))
             {
-                bool shouldLog = false;
-                if (ImGui::Checkbox("Log", &shouldLog)) { device.Log(shouldLog); }
+                bool shouldLog = device.GetLog();
+                if (ImGui::Checkbox("Log", &shouldLog)) { device.SetLog(shouldLog); }
                 if (ImGui::Button("Reset")) { device.Reset(); }
                 if (ImGui::Button("Update")) { BR_APP_WARN("Instrumentation card update not implemented"); }
                 ImGui::TreePop();
@@ -123,27 +123,5 @@ void DeviceViewer::RenderDeviceList()
 
         ImGui::Separator();
     }
-}
-
-bool DeviceViewer::IsScanComplete()
-{
-    using namespace std::chrono_literals;
-    if (m_scanResult.valid())
-    {
-        // Make sure it's valid before waiting for it!
-        auto r = m_scanResult.wait_for(50us);
-
-        // If the wait timed-out, result not ready yet.
-        if (r == std::future_status::timeout) { return false; }
-        else
-        {
-            // std::future_status::deferred is considered as "completed".
-            // TODO is this good?
-            return true;
-        }
-    }
-
-    // Future not valid -> assume no scan on-going.
-    return false;
 }
 }    // namespace Frasy

@@ -45,11 +45,14 @@ namespace Frasy::Commands
 struct CommandEvent
 {
     using RespondFunc = std::function<void(const Communication::Packet&)>;
-    RespondFunc Respond;
-
+    RespondFunc           Respond;
+    std::string           Source;
     Communication::Packet Pkt;
 
-    explicit CommandEvent(RespondFunc f, Communication::Packet pkt) : Respond(std::move(f)), Pkt(std::move(pkt)) {}
+    explicit CommandEvent(RespondFunc f, std::string src, Communication::Packet pkt)
+    : Respond(std::move(f)), Source(std::move(src)), Pkt(std::move(pkt))
+    {
+    }
 
     template<Command Cmd>
     [[nodiscard]] bool Is() noexcept

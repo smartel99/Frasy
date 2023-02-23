@@ -18,6 +18,7 @@
 #ifndef FRASY_INTERFACES_COMMANDS_DESCRIPTION_COMMAND_H
 #define FRASY_INTERFACES_COMMANDS_DESCRIPTION_COMMAND_H
 
+#include "../event.h"
 #include "value.h"
 
 #include <string>
@@ -34,12 +35,19 @@ using Communication::cmd_id_t;
 class Command
 {
 public:
-    cmd_id_t           Id         = 0;     //!< ID of the command.
-    std::string        Name       = {};    //!< Name of the command.
-    std::string        Help       = {};    //!< Help message associated with the command.
-    std::string        Alias      = {};    //!< Supported alias.
-    std::vector<Value> Parameters = {};    //!< Parameters taken by the command.
-    std::vector<Value> Returned   = {};    //!< Values returned by the command.
+    cmd_id_t                                           Id    = 0;     //!< ID of the command.
+    std::string                                        Name  = {};    //!< Name of the command.
+    std::string                                        Help  = {};    //!< Help message associated with the command.
+    std::string                                        Alias = {};    //!< Supported alias.
+    std::vector<Value>                                 Parameters = {};    //!< Parameters taken by the command.
+    std::vector<Value>                                 Returned   = {};    //!< Values returned by the command.
+    std::function<void(const Commands::CommandEvent&)> Executor   = [](auto) {};
+
+    bool Enabled = true;
+
+    [[nodiscard]] bool IsForMe(const Commands::CommandEvent& e) const { return Id == e.Pkt.Header.CommandId; }
+    void               Execute(const Commands::CommandEvent& e) { return Executor(e); }
+
 
     explicit operator std::string() const
     {

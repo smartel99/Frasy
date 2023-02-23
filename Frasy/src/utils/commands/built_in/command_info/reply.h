@@ -31,12 +31,12 @@ namespace Frasy::Actions::CommandInfo
 using Frasy::Type::Fundamental;
 struct Reply
 {
+    cmd_id_t           Id = 0;
     std::string        Name;
     std::string        Help;
-    uint16_t           Id;
+    std::string        Alias;
     std::vector<Value> Parameters;
     std::vector<Value> Returns;
-    std::string        Alias;
 
     explicit operator std::string() const
     {

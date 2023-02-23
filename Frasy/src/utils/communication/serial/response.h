@@ -42,9 +42,9 @@ struct ResponsePromise
     ResponsePromise& operator=(ResponsePromise&&) = default;
     ~ResponsePromise();
 
-    using on_complete_cb_t = std::function<void(Packet)>;
+    using on_complete_cb_t = std::function<void(const Packet&)>;
     using on_timeout_cb_t  = std::function<void()>;
-    using on_error_cb_t    = std::function<void()>;
+    using on_error_cb_t    = std::function<void(const std::exception&)>;
 
     ResponsePromise& OnComplete(const on_complete_cb_t& func);
     ResponsePromise& OnTimeout(const on_timeout_cb_t& func);
@@ -96,10 +96,24 @@ struct ResponsePromise
 private:
     static constexpr const char* s_tag = "Promise";
 
-    on_complete_cb_t m_localOnCompleteCb = [&](const Packet& packet) { m_onCompleteCb(packet); };
-    on_complete_cb_t m_onCompleteCb      = {};
-    on_timeout_cb_t  m_onTimeoutCb       = []() { BR_LOG_WARN(s_tag, "Timed out"); };
-    on_error_cb_t    m_onErrorCb         = []() { BR_LOG_ERROR(s_tag, "An error occurred."); };
+    on_complete_cb_t m_localOnCompleteCb = [&](const Packet& packet)
+    {
+        if (m_onCompleteCb) { m_onCompleteCb(packet); }
+    };
+    on_timeout_cb_t m_localOnTimeoutCb = [&]()
+    {
+        if (m_onTimeoutCb) { m_onTimeoutCb(); }
+        else { throw std::exception("Timeout"); }
+    };
+    on_error_cb_t m_localOnErrorCb = [&](const std::exception& e)
+    {
+        if (m_onErrorCb) { m_onErrorCb(e); }
+        else { throw e; }
+    };
+
+    on_complete_cb_t m_onCompleteCb = {};
+    on_timeout_cb_t  m_onTimeoutCb  = {};
+    on_error_cb_t    m_onErrorCb    = {};
 
     void run();
 };

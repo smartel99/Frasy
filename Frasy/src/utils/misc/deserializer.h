@@ -43,7 +43,7 @@ concept Primitives = std::is_arithmetic_v<T> || std::same_as<T, std::string>;
 // }
 
 template<typename T, typename Begin, typename End>
-    requires(std::is_integral_v<T> && !std::is_same_v<T, bool>)
+    requires((std::is_integral_v<T> && !std::is_same_v<T, bool>))
 T Deserialize(Begin&& b, End&& e);
 
 template<typename T, typename Begin, typename End>
@@ -66,7 +66,7 @@ T Deserialize(Begin&& b, End&& e);
 
 
 template<typename T, typename Begin, typename End>
-    requires(std::is_integral_v<T> && !std::is_same_v<T, bool>)
+    requires((std::is_integral_v<T> && !std::is_same_v<T, bool>))
 T Deserialize(Begin&& b, End&& e)
 {
     constexpr size_t N = sizeof(T);
@@ -77,6 +77,18 @@ T Deserialize(Begin&& b, End&& e)
         ++b;
     }
     return t;
+}
+
+template <typename T, typename Begin, typename End>
+    requires(std::is_enum_v<T>)
+T Deserialize(Begin &&b, End &&e) {
+    constexpr size_t N = sizeof(T);
+    std::underlying_type_t<T> t = {};
+    for (size_t i = 1; i <= sizeof(T); i++) {
+        t |= *b << ((N * 8) - (i * 8));
+        ++b;
+    }
+    return static_cast<T>(t);
 }
 
 template<typename T, typename Begin, typename End>

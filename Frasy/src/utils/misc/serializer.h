@@ -40,7 +40,7 @@ concept Serializable =
 template<typename T>
 std::vector<uint8_t> Serialize(const T& t)
 {
-    if constexpr (std::is_arithmetic_v<T>)
+    if constexpr (std::is_arithmetic_v<T> || std::is_enum_v<T>)
     {
         auto tAsBytes = std::bit_cast<std::array<uint8_t, sizeof(T)>>(t);
         if constexpr (std::endian::native == std::endian::little) { std::reverse(tAsBytes.begin(), tAsBytes.end()); }

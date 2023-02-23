@@ -45,8 +45,8 @@ struct PacketHeader
     payload_size_t  PayloadSize = {};
 
     constexpr PacketHeader() noexcept = default;
-    constexpr PacketHeader(trs_id_t pktId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize);
-    explicit constexpr PacketHeader(RawData data);
+    PacketHeader(trs_id_t trsId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize);
+    constexpr explicit PacketHeader(RawData data);
 
     [[nodiscard]] std::vector<uint8_t> ToAscii() const noexcept;
     [[nodiscard]] explicit             operator std::vector<uint8_t>() const noexcept;
@@ -59,6 +59,9 @@ private:
     static constexpr size_t s_commandIdOffset     = s_transactionIdOffset + SizeInChars<decltype(TransactionId)>();
     static constexpr size_t s_modifiersOffset     = s_commandIdOffset + SizeInChars<decltype(CommandId)>();
     static constexpr size_t s_payloadSizeOffset   = s_modifiersOffset + SizeInChars<uint8_t>();
+
+private:
+    [[nodiscard]] trs_id_t MakeTransactionId(trs_id_t id);
 
 public:
     static constexpr size_t s_headerSize = s_payloadSizeOffset + SizeInChars<decltype(PayloadSize)>();

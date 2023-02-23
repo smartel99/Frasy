@@ -35,9 +35,10 @@ public:
         return instance;
     }
 
-    std::future<size_t> ScanForDevices();
+    void ScanForDevices();
+    bool IsScanning();
 
-    const Frasy::Actions::Identify::Info& GetDeviceInfo(uint8_t deviceId) const
+    const Actions::Identify::Info& GetDeviceInfo(uint8_t deviceId) const
     {
         WaitForScanComplete();
         return m_devices.at(deviceId).GetInfo();
@@ -71,12 +72,12 @@ public:
     }
 
 private:
-    void WaitForScanComplete() const { return m_isScanning.wait(true); }
+    void WaitForScanComplete() const { return m_scan_done.wait(false); }
 
 private:
     std::map<uint8_t, SerialDevice> m_devices;
-
-    std::atomic_flag m_isScanning = ATOMIC_FLAG_INIT;
+    std::future<size_t>             m_scan_future;
+    std::atomic_flag                m_scan_done = ATOMIC_FLAG_INIT;
 
     static constexpr const char* s_tag = "DeviceMap";
 };

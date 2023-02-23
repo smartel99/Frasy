@@ -18,6 +18,7 @@
 #ifndef GUARD_INTERFACES_COMMANDS_DISPATCHER_H
 #define GUARD_INTERFACES_COMMANDS_DISPATCHER_H
 
+#include "description/command.h"
 #include "event.h"
 
 #include <concepts>
@@ -25,17 +26,6 @@
 
 namespace Frasy::Commands
 {
-template<typename T>
-concept CommandHandler = requires(Frasy::Commands::CommandEvent e) {
-                             {
-                                 T::ExecuteCommand(e)
-                             } -> std::same_as<void>;
-
-                             {
-                                 T::DestinedTo(e)
-                             } -> std::same_as<bool>;
-                         };
-
 class CommandManager;
 
 
@@ -52,7 +42,7 @@ private:
      * Parses and interprets the received packet as a command from the ESP.
      * @param pkt
      */
-    explicit CommandDispatcher(const Commands::CommandEvent& event, CommandManager& manager) noexcept;
+    explicit CommandDispatcher(Commands::CommandEvent event, CommandManager& manager) noexcept;
 
     Commands::CommandEvent m_event;
     CommandManager&        m_manager;
@@ -63,24 +53,6 @@ private:
 
 class CommandManager
 {
-    struct CommandEventHandler
-    {
-        using CommandEvent  = Commands::CommandEvent;
-        using destined_to_t = bool (*)(const CommandEvent&);
-        using handle_t      = void (*)(const CommandEvent&);
-
-        constexpr CommandEventHandler() = default;
-        constexpr CommandEventHandler(destined_to_t destinedTo, handle_t handle, bool enabled)
-        : DestinedTo(destinedTo), Handle(handle), IsActive(enabled)
-        {
-        }
-
-        bool (*DestinedTo)(const CommandEvent&) = nullptr;
-        void (*Handle)(const CommandEvent&)     = nullptr;
-
-        bool IsActive = true;
-    };
-
 public:
     static CommandManager& Get()
     {
@@ -88,40 +60,25 @@ public:
         return s_manager;
     }
 
-    template<CommandHandler T>
-    void AddHandler(bool enabled)
-    {
-        m_handlers[typeid(T).hash_code()] = MakeHandler<T>(enabled);
-    }
+    void AddCommand(const Actions::Command& command);
 
-    template<CommandHandler T>
-    void SetHandlerActiveState(bool active)
-    {
-        m_handlers.at(typeid(T).hash_code()).IsActive = active;
-    }
+    void SetCommandActiveState(const std::string& name, bool active);
 
-    template<CommandHandler T>
-    void RemoveHandler()
-    {
-        m_handlers.erase(typeid(T).hash_code());
-    }
+    void RemoveHandler(const std::string& name);
 
     CommandDispatcher MakeDispatcher(const Commands::CommandEvent& event) { return CommandDispatcher(event, *this); }
 
+    size_t                        GetActiveHandlerCount() const noexcept { return m_commands.size(); }
+    Actions::Command&             GetCommand(const std::string_view& name) { return m_commands.at(name); }
+    std::vector<std::string_view> GetCommandsKeys() const;
+
 private:
-    template<CommandHandler T>
-    static CommandEventHandler MakeHandler(bool enabled)
-    {
-        return CommandEventHandler {T::DestinedTo, T::ExecuteCommand, enabled};
-    }
+    using HandlerList = std::unordered_map<std::string_view, Actions::Command>;
+    void MakeHandlerList();
 
-    using HandlerList = std::unordered_map<size_t, CommandEventHandler>;
-    static HandlerList MakeHandlerList() { return {}; }
+    CommandManager() { MakeHandlerList(); }
 
-
-    CommandManager() : m_handlers(MakeHandlerList()) {}
-
-    HandlerList m_handlers = {};
+    HandlerList m_commands = {};
 
     friend class CommandDispatcher;
 };

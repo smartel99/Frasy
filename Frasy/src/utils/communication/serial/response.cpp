@@ -56,9 +56,9 @@ void ResponsePromise::Async()
 void ResponsePromise::Await()
 {
     std::atomic_flag completed;
-    m_localOnCompleteCb = [&](Packet pkt)
+    m_localOnCompleteCb = [&](const Packet& pkt)
     {
-        m_onCompleteCb(std::move(pkt));
+        m_onCompleteCb(pkt);
         completed.test_and_set();
         completed.notify_all();
     };
@@ -85,17 +85,12 @@ void ResponsePromise::run()
                       // Result only available when explicitly requested.
                       m_localOnCompleteCb(future.get());
                       break;
-                  case std::future_status::timeout:
-                      if (m_onTimeoutCb) { m_onTimeoutCb(); }
-                      else { throw std::exception("Timeout"); }
-                      break;
+                  case std::future_status::timeout: m_localOnTimeoutCb(); break;
               }
           }
-          catch (std::future_error& e)
+          catch (const std::exception& e)
           {
-              BR_LOG_ERROR("ResponsePromise", "A future error occurred: {}", e.what());
-              if (m_onErrorCb) { m_onErrorCb(); }
-              else { throw e; }
+              m_localOnErrorCb(e);
           }
       },
       std::move(s_future));

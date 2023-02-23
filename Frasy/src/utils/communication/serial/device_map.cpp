@@ -23,28 +23,40 @@
 
 namespace Frasy::Communication
 {
-std::future<size_t> DeviceMap::ScanForDevices()
+void DeviceMap::ScanForDevices()
 {
-    return std::async(std::launch::async,
-                      [this]()
-                      {
-                          m_isScanning.test_and_set();
+    if (IsScanning()) { return; }
+    m_scan_future = std::async(std::launch::async,
+                               [this]()
+                               {
+                                   m_scan_done.clear();
 
-                          BR_APP_DEBUG("Closing {} serial devices...", m_devices.size());
-                          m_devices.clear();
+                                   BR_LOG_INFO(s_tag, "Closing {} serial devices...", m_devices.size());
+                                   m_devices.clear();
 
-                          BR_APP_INFO("Scanning for instrumentation cards...");
+                                   BR_LOG_INFO(s_tag, "Scanning for instrumentation cards...");
 
-                          std::vector<Communication::DeviceInfo> devices =
-                            Communication::EnumerateInstrumentationCards();
-                          BR_APP_INFO("{} devices found!", devices.size());
+                                   std::vector<Communication::DeviceInfo> devices =
+                                     Communication::EnumerateInstrumentationCards();
+                                   BR_LOG_INFO(s_tag, "{} devices found!", devices.size());
 
-                          for (auto&& device : devices) { m_devices[device.Info.Id] = SerialDevice(device); }
+                                   for (auto&& device : devices)
+                                   {
+                                       m_devices[device.Info.Id] = std::move(SerialDevice(device));
+                                   }
 
-                          m_isScanning.clear();
-                          m_isScanning.notify_all();
+                                   m_scan_done.test_and_set();
+                                   m_scan_done.notify_all();
 
-                          return m_devices.size();
-                      });
+
+                                   return m_devices.size();
+                               });
+    if (!m_scan_future.valid()) { BR_LOG_INFO(s_tag, "Failed to start scan task"); }
+}
+
+bool DeviceMap::IsScanning()
+{
+    using namespace std::chrono_literals;
+    return m_scan_future.valid() && m_scan_future.wait_for(50us) == std::future_status::timeout;
 }
 }    // namespace Frasy::Communication

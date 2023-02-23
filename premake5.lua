@@ -30,7 +30,7 @@ function DefineWorkspace()
         flags
         {
             "MultiProcessorCompile",
-            "LinkTimeOptimization",
+--             "LinkTimeOptimization", -- Culprit for build corruption
             "Color"
         }
 

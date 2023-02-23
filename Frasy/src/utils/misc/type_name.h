@@ -1,5 +1,5 @@
 /**
- * @file    device_viewer.h
+ * @file    type_name.h
  * @author  Samuel Martel
  * @date    2022-12-20
  * @brief
@@ -15,37 +15,38 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef FRASY_LAYERS_DEVICE_VIEWER_H
-#define FRASY_LAYERS_DEVICE_VIEWER_H
+#ifndef FRASY_UTILS_MISC_TYPE_NAME_H
+#define FRASY_UTILS_MISC_TYPE_NAME_H
 
-#include "utils/communication/serial/device_map.h"
-#include "utils/communication/serial/enumerator.h"
 
-#include <atomic>
-#include <Brigerad.h>
+#ifdef __GNUG__
+#    include <cxxabi.h>
+#    include <memory>
+#endif
+
+#include <string>
+
 
 namespace Frasy
 {
-class DeviceViewer : public Brigerad::Layer
+inline std::string Demangle(const char* name)
 {
-public:
-    DeviceViewer() noexcept;
-    ~DeviceViewer() override = default;
+#ifdef __GNUG__
+    int                                    status = 0;
+    std::unique_ptr<char, void (*)(void*)> res {abi::__cxa_demangle(name, nullptr, nullptr, &status), std::free};
 
-    void OnImGuiRender() override;
+    return (status == 0) ? res.get() : name;
+#else
+    return name;
+#endif
+}
 
-    void SetVisibility(bool visibility);
+template<typename T>
+std::string TypeName()
+{
+    return Demangle(typeid(T).name());
+}
 
-private:
-    void RenderDeviceList();
-
-private:
-    bool m_isVisible = false;
-
-    Communication::DeviceMap& m_deviceMap;
-    std::future<size_t>       m_scanResult;
-
-    static constexpr const char* s_windowName = "Devices";
-};
 }    // namespace Frasy
-#endif    // FRASY_LAYERS_DEVICE_VIEWER_H
+
+#endif    // FRASY_UTILS_MISC_TYPE_NAME_H

@@ -25,6 +25,7 @@
 #include "packet.h"
 #include "response.h"
 #include "types.h"
+#include "utils/commands/built_in/command_info/reply.h"
 #include "utils/commands/description/command.h"
 
 #include <Brigerad/Core/Log.h>
@@ -58,6 +59,13 @@ public:
 
     SerialDevice& operator=(SerialDevice&& o) noexcept
     {
+        bool reopen = false;
+        if (o.m_device.isOpen())
+        {
+            reopen = true;
+            o.Close();
+        }
+
         m_label    = std::move(o.m_label);
         m_rxBuff   = std::move(o.m_rxBuff);
         m_pending  = std::move(o.m_pending);
@@ -65,26 +73,25 @@ public:
         m_commands = std::move(o.m_commands);
         m_structs  = std::move(o.m_structs);
         m_enums    = std::move(o.m_enums);
+        m_log      = o.m_log;
         m_ready    = o.m_ready;
 
-        bool reopen = false;
-        if (o.m_device.isOpen())
-        {
-            reopen = true;
-            o.Close();
-        }
+        serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
+        m_device.setTimeout(timeout);
+        m_device.setBaudrate(460800);
         m_device.setPort(o.m_device.getPort());
         if (reopen) { Open(); }
         return *this;
     }
 
-    void Open();
-    void Close();
-    void Reset();
-    bool Log(bool enable);
+    void               Open();
+    void               Close();
+    void               Reset();
+    [[nodiscard]] bool GetLog() const;
+    void               SetLog(bool enable);
 
-    [[nodiscard]] const Actions::Identify::Info&       GetInfo() const noexcept { return m_info; }
-    [[nodiscard]] const std::vector<Actions::Command>& GetCommands() const noexcept { return m_commands; }
+    [[nodiscard]] const Actions::Identify::Info&                  GetInfo() const noexcept { return m_info; }
+    [[nodiscard]] const std::vector<Actions::CommandInfo::Reply>& GetCommands() const noexcept { return m_commands; }
 
     [[nodiscard]] bool        IsOpen() const noexcept { return m_device.isOpen(); }
     [[nodiscard]] std::string GetPort() const noexcept { return m_device.getPort(); }
@@ -113,10 +120,11 @@ private:
     std::thread m_rxThread;
     std::string m_rxBuff = {};    //!< Buffer where the received data go.
 
-    Actions::Identify::Info       m_info     = {};
-    std::vector<Actions::Command> m_commands = {};
-    std::vector<Type::Struct>     m_structs  = {};
-    std::vector<Type::Enum>       m_enums    = {};
+    Actions::Identify::Info                  m_info     = {};
+    std::vector<Actions::CommandInfo::Reply> m_commands = {};
+    std::vector<Type::Struct>                m_structs  = {};
+    std::vector<Type::Enum>                  m_enums    = {};
+    bool                                     m_log      = false;
 
     std::unordered_map<trs_id_t, ResponsePromise> m_pending;
 };

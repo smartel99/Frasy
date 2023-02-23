@@ -24,11 +24,8 @@
 
 namespace Frasy::Communication
 {
-constexpr PacketHeader::PacketHeader(trs_id_t pktId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize)
-: TransactionId(pktId == AUTOMATIC_TRANSACTION_ID ? s_lastTrsId : pktId),
-  CommandId(cmdId),
-  Modifiers(mods),
-  PayloadSize(payloadSize)
+PacketHeader::PacketHeader(trs_id_t trsId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize)
+: TransactionId(MakeTransactionId(trsId)), CommandId(cmdId), Modifiers(mods), PayloadSize(payloadSize)
 {
     // If packet is a command and the ID is automatic, we increment the last ID, for the next
     // packet.
@@ -89,6 +86,13 @@ bool PacketHeader::operator==(const PacketHeader& other) const
            CommandId == other.CommandId &&            //
            Modifiers == other.Modifiers &&            //
            PayloadSize == other.PayloadSize;
+}
+
+[[nodiscard]] trs_id_t PacketHeader::MakeTransactionId(trs_id_t id)
+{
+    static uint32_t s_lastId = 0;
+    if (id == AUTOMATIC_TRANSACTION_ID) { id = 0xF000 | s_lastId++; }
+    return id;
 }
 
 
