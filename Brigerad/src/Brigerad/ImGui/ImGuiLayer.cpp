@@ -7,11 +7,11 @@
  */
 #include "ImGuiLayer.h"
 
+#include "../Core/Application.h"
+
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
-
-#include "../Core/Application.h"
 
 // TEMP
 #include <glad/glad.h>
@@ -34,13 +34,12 @@ void ImGuiLayer::OnAttach()
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
-    io.ConfigFlags |=
-      ImGuiConfigFlags_NavEnableKeyboard;                // Enable keyboard control.
-                                                         //     io.ConfigFlags |=
-                                                         //     ImGuiConfigFlags_NavEnableGamepad;
-                                                         //     // Enable Gamepad control.
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;    // Enable docking.
-                                                         //   io.ConfigFlags |=
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;    // Enable keyboard control.
+                                                             //     io.ConfigFlags |=
+                                                             //     ImGuiConfigFlags_NavEnableGamepad;
+                                                             //     // Enable Gamepad control.
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;        // Enable docking.
+                                                             //   io.ConfigFlags |=
     //     ImGuiConfigFlags_ViewportsEnable;    // Enable multi-viewport / platform window.
 
     // io.Fonts->AddFontFromFileTTF("assets/fonts/OpenSans-Bold.ttf", 18.0f);
@@ -142,8 +141,7 @@ void ImGuiLayer::OnImGuiRender()
         {
             if (!m_isProfiling)
             {
-                m_profilingStartTime =
-                  m_profilingDuration > 0 ? m_time : std::numeric_limits<double>::max();
+                m_profilingStartTime = m_profilingDuration > 0 ? m_time : std::numeric_limits<double>::max();
                 BR_PROFILE_BEGIN_SESSION("Profiling Session", "BrigeradProfiling-Session.json");
                 m_isProfiling = true;
             }
@@ -186,15 +184,14 @@ void ImGuiLayer::Begin()
         ImGui::SetNextWindowViewport(viewport->ID);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-                        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                        ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     }
 
     // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and
     // handle the pass-thru hole, so we ask Begin() to not render a background.
-    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-        window_flags |= ImGuiWindowFlags_NoBackground;
+    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) window_flags |= ImGuiWindowFlags_NoBackground;
 
     // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
     // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
@@ -223,7 +220,7 @@ void ImGuiLayer::End()
 
     ImGuiIO&     io  = ImGui::GetIO();
     Application& app = Application::Get();
-    io.DisplaySize = ImVec2(float(app.GetWindow().GetWidth()), float(app.GetWindow().GetHeight()));
+    io.DisplaySize   = ImVec2(float(app.GetWindow().GetWidth()), float(app.GetWindow().GetHeight()));
 
     // End viewport.
     ImGui::End();

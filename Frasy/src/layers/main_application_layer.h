@@ -59,6 +59,7 @@ protected:
 
 protected:
     bool m_renderAbout = false;
+    bool m_noMove      = true;
 
     std::unique_ptr<LogWindow>    m_logWindow    = nullptr;
     std::unique_ptr<DeviceViewer> m_deviceViewer = nullptr;
@@ -66,8 +67,10 @@ protected:
     Brigerad::Ref<Brigerad::Texture2D> m_run;
     Brigerad::Ref<Brigerad::Texture2D> m_pass;
     Brigerad::Ref<Brigerad::Texture2D> m_fail;
+    Brigerad::Ref<Brigerad::Texture2D> m_error;
     Brigerad::Ref<Brigerad::Texture2D> m_testing;
     Brigerad::Ref<Brigerad::Texture2D> m_waiting;
+    Brigerad::Ref<Brigerad::Texture2D> m_idle;
     Brigerad::Ref<Brigerad::Texture2D> m_disabled;
 
 private:

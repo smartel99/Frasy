@@ -58,7 +58,7 @@ void ResponsePromise::Await()
     std::atomic_flag completed;
     m_localOnCompleteCb = [&](const Packet& pkt)
     {
-        m_onCompleteCb(pkt);
+        if (m_onCompleteCb) m_onCompleteCb(pkt);
         completed.test_and_set();
         completed.notify_all();
     };
@@ -82,9 +82,12 @@ void ResponsePromise::run()
               {
                   case std::future_status::ready:
                   case std::future_status::deferred:
+                  {
                       // Result only available when explicitly requested.
-                      m_localOnCompleteCb(future.get());
-                      break;
+                      Packet packet = future.get();
+                      m_localOnCompleteCb(packet);
+                  }
+                  break;
                   case std::future_status::timeout: m_localOnTimeoutCb(); break;
               }
           }

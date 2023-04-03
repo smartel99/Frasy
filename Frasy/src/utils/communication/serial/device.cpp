@@ -53,7 +53,7 @@ void SerialDevice::CheckForPackets()
                     {
                         try
                         {
-                            std::lock_guard lock {m_lock};
+                            std::lock_guard lock {m_promiseLock};
                             auto&           promise = m_pending.at(packet.Header.TransactionId);
                             promise.Promise.set_value(packet);
                             m_pending.erase(packet.Header.TransactionId);
@@ -180,28 +180,26 @@ void SerialDevice::GetCapabilities()
     try
     {
         m_commands.clear();
-        m_structs.clear();
-        m_enums.clear();
 
-//        Transmit(Packet::Request(CommandId::Log).MakePayload(true))
-//          .OnComplete(
-//            [&](const Packet& packet)
-//            {
-//                if (packet.Header.CommandId != static_cast<cmd_id_t>(CommandId::Status))
-//                {
-//                    throw std::exception("Invalid command");
-//                }
-//
-//                auto response = packet.FromPayload<Actions::Status::Reply>();
-//                if (response.Code != Actions::Status::ErrorCode::E::NoError)
-//                {
-//                    throw std::exception(response.Message.c_str());
-//                }
-//
-//                BR_LOG_DEBUG(m_label, "Logs enabled");
-//                m_log = true;
-//            })
-//          .Await();
+        //        Transmit(Packet::Request(CommandId::Log).MakePayload(true))
+        //          .OnComplete(
+        //            [&](const Packet& packet)
+        //            {
+        //                if (packet.Header.CommandId != static_cast<cmd_id_t>(CommandId::Status))
+        //                {
+        //                    throw std::exception("Invalid command");
+        //                }
+        //
+        //                auto response = packet.FromPayload<Actions::Status::Reply>();
+        //                if (response.Code != Actions::Status::ErrorCode::E::NoError)
+        //                {
+        //                    throw std::exception(response.Message.c_str());
+        //                }
+        //
+        //                BR_LOG_DEBUG(m_label, "Logs enabled");
+        //                m_log = true;
+        //            })
+        //          .Await();
 
         auto cmdNames = Transmit(Packet::Request(CommandId::CommandsList)).Collect<std::vector<std::string>>();
 
@@ -213,7 +211,8 @@ void SerialDevice::GetCapabilities()
                 {
                     if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::CommandInfo))
                     {
-                        m_commands.push_back(packet.FromPayload<Actions::CommandInfo::Reply>());
+                        auto info           = packet.FromPayload<Actions::CommandInfo::Reply>();
+                        m_commands[info.Id] = info;
                         return;
                     }
                     if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
@@ -237,7 +236,7 @@ void SerialDevice::GetCapabilities()
                 {
                     if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::EnumInfo))
                     {
-                        m_enums.push_back(packet.FromPayload<Type::Enum>());
+                        m_typeManager.AddEnum(info.id, packet.FromPayload<Type::Enum>());
                         return;
                     }
                     if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
@@ -245,6 +244,18 @@ void SerialDevice::GetCapabilities()
                         throw std::exception(packet.FromPayload<std::string>().c_str());
                     }
                     throw std::exception("Invalid command");
+                })
+              .OnTimeout(
+                []
+                {
+                    int a;
+                    BR_LOG_ERROR("Device", "Timeout");
+                })
+              .OnError(
+                [](const std::exception& e)
+                {
+                    int a;
+                    BR_LOG_ERROR("Device", "Exception {}", e.what());
                 })
               .Await();
         }
@@ -257,7 +268,7 @@ void SerialDevice::GetCapabilities()
                 {
                     if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::StructInfo))
                     {
-                        m_structs.push_back(packet.FromPayload<Type::Struct>());
+                        m_typeManager.AddStruct(info.id, packet.FromPayload<Type::Struct>());
                         return;
                     }
                     if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
@@ -271,8 +282,11 @@ void SerialDevice::GetCapabilities()
 
         m_ready = true;
 
-        BR_LOG_INFO(
-          m_label, "loaded: {} commands, {} structs, {} enums", m_commands.size(), m_structs.size(), m_enums.size());
+        BR_LOG_INFO(m_label,
+                    "loaded: {} commands, {} structs, {} enums",
+                    m_commands.size(),
+                    m_typeManager.GetStructs().size(),
+                    m_typeManager.GetEnums().size());
     }
     catch (std::exception& e)
     {

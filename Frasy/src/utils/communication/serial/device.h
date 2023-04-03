@@ -66,15 +66,14 @@ public:
             o.Close();
         }
 
-        m_label    = std::move(o.m_label);
-        m_rxBuff   = std::move(o.m_rxBuff);
-        m_pending  = std::move(o.m_pending);
-        m_info     = std::move(o.m_info);
-        m_commands = std::move(o.m_commands);
-        m_structs  = std::move(o.m_structs);
-        m_enums    = std::move(o.m_enums);
-        m_log      = o.m_log;
-        m_ready    = o.m_ready;
+        m_label       = std::move(o.m_label);
+        m_rxBuff      = std::move(o.m_rxBuff);
+        m_pending     = std::move(o.m_pending);
+        m_info        = std::move(o.m_info);
+        m_commands    = std::move(o.m_commands);
+        m_typeManager = std::move(o.m_typeManager);
+        m_log         = o.m_log;
+        m_ready       = o.m_ready;
 
         serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
         m_device.setTimeout(timeout);
@@ -90,17 +89,33 @@ public:
     [[nodiscard]] bool GetLog() const;
     void               SetLog(bool enable);
 
-    [[nodiscard]] const Actions::Identify::Info&                  GetInfo() const noexcept { return m_info; }
-    [[nodiscard]] const std::vector<Actions::CommandInfo::Reply>& GetCommands() const noexcept { return m_commands; }
+    [[nodiscard]] const Actions::Identify::Info& GetInfo() const noexcept { return m_info; }
+    [[nodiscard]] const std::unordered_map<cmd_id_t, Actions::CommandInfo::Reply>& GetCommands() const noexcept
+    {
+        return m_commands;
+    }
+    [[nodiscard]] const std::unordered_map<type_id_t, Type::Struct>& GetStructs() const noexcept
+    {
+        return m_typeManager.GetStructs();
+    }
+    [[nodiscard]] const std::unordered_map<type_id_t, Type::Enum>& GetEnums() const noexcept
+    {
+        return m_typeManager.GetEnums();
+    }
+    [[nodiscard]] const Type::Manager & GetTypeManager() const noexcept { return m_typeManager; }
+
 
     [[nodiscard]] bool        IsOpen() const noexcept { return m_device.isOpen(); }
     [[nodiscard]] std::string GetPort() const noexcept { return m_device.getPort(); }
+    [[nodiscard]] bool        Ready() const noexcept { return m_ready; }
+    [[nodiscard]] bool        Enabled() const noexcept { return m_enabled; }
 
     ResponsePromise& Transmit(const Packet& pkt)
     {
         std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);
+        std::lock_guard      txLock {m_txLock};
         m_device.write(data);
-        std::lock_guard lock {m_lock};
+        std::lock_guard promiseLock {m_promiseLock};
         auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise {}));
         return it->second;
     }
@@ -113,18 +128,19 @@ private:
     std::string    m_label;
     serial::Serial m_device = {};    //!< The physical communication interface.
 
-    bool m_ready = false;
+    bool m_ready   = false;
+    bool m_enabled = true;
 
-    std::mutex  m_lock;
+    std::mutex  m_txLock;
+    std::mutex  m_promiseLock;
     bool        m_shouldRun = true;
     std::thread m_rxThread;
     std::string m_rxBuff = {};    //!< Buffer where the received data go.
 
-    Actions::Identify::Info                  m_info     = {};
-    std::vector<Actions::CommandInfo::Reply> m_commands = {};
-    std::vector<Type::Struct>                m_structs  = {};
-    std::vector<Type::Enum>                  m_enums    = {};
-    bool                                     m_log      = false;
+    Actions::Identify::Info                                   m_info     = {};
+    std::unordered_map<cmd_id_t, Actions::CommandInfo::Reply> m_commands = {};
+    bool                                                      m_log      = false;
+    Frasy::Type::Manager                                      m_typeManager;
 
     std::unordered_map<trs_id_t, ResponsePromise> m_pending;
 };

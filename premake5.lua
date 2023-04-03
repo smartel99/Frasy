@@ -17,29 +17,26 @@ end
 
 function DefineWorkspace()
     workspace "Brigerad"
-        architecture "x64"
-        startproject "Frasy"
+    architecture "x64"
+    startproject "Frasy"
 
-        configurations
-        {
-            "Debug",
-            "Release",
-            "Dist"
-        }
+    configurations {
+        "Debug",
+        "Release",
+        "Dist"
+    }
 
-        flags
-        {
-            "MultiProcessorCompile",
---             "LinkTimeOptimization", -- Culprit for build corruption
-            "Color"
-        }
+    flags {
+        "MultiProcessorCompile",
+        "LinkTimeOptimization",
+        "Color"
+    }
 
-        filter {"toolset:not gcc", "toolset:not clang"}
-            buildoptions
-            {
-                "/wd5105",
-                "/Zc:preprocessor"
-            }
+    filter { "toolset:not gcc", "toolset:not clang" }
+    buildoptions {
+        "/wd5105",
+        "/Zc:preprocessor"
+    }
 end
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -48,89 +45,83 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 
 function CommonFlags()
-    filter {"toolset:not gcc", "toolset:not clang"}
-        defines
-        {
-            "_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
-            "_SILENCE_CXX20_CISO646_REMOVED_WARNING",
-            "_CRT_SECURE_NO_WARNINGS",
-        }
-        buildoptions
-        {
-            "/wd26812",
-            "/wd5105"
-        }
-        buildoptions
-        {
-            "/openmp:experimental"
-        }
+    filter { "toolset:not gcc", "toolset:not clang" }
+    defines {
+        "_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
+        "_SILENCE_CXX20_CISO646_REMOVED_WARNING",
+        "_CRT_SECURE_NO_WARNINGS",
+    }
+    buildoptions {
+        "/wd26812",
+        "/wd5105"
+    }
+    buildoptions {
+        "/openmp:experimental"
+    }
 
-    filter {"toolset:not gcc", "toolset:not clang", "configurations:Debug"}
-        buildoptions
-        {
-            "/MTd"
-        }
+    filter { "toolset:not gcc", "toolset:not clang", "configurations:Debug" }
+    buildoptions {
+        "/MTd"
+    }
 
-    filter {"toolset:not gcc", "toolset:not clang", "configurations:not Debug"}
-        buildoptions
-        {
-            "/MT"
-        }
+    filter { "toolset:not gcc", "toolset:not clang", "configurations:not Debug" }
+    buildoptions {
+        "/MT"
+    }
 
     filter "*"
-        includedirs
-        {
-            "Brigerad/vendor/spdlog/include",
-            "%{IncludeDir.GLFW}",
-            "%{IncludeDir.GLFW}",
-            "%{IncludeDir.Glad}",
-            "%{IncludeDir.ImGui}",
-            "%{IncludeDir.glm}",
-            "%{IncludeDir.stb_image}",
-            "%{IncludeDir.serial}/include",
-            "%{IncludeDir.entt}",
-            "%{IncludeDir.lua}/src",
-            "%{IncludeDir.sol}/include",
-            "%{IncludeDir.yaml_cpp}",
-            "%{IncludeDir.pfr}"
-        }
+    includedirs {
+        "Brigerad/vendor/spdlog/include",
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.Glad}",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.stb_image}",
+        "%{IncludeDir.serial}/include",
+        "%{IncludeDir.entt}",
+        "%{IncludeDir.lua}/src",
+        "%{IncludeDir.sol}/include",
+        "%{IncludeDir.yaml_cpp}",
+        "%{IncludeDir.pfr}",
+        "%{IncludeDir.gtest}",
+    }
 
-        externalincludedirs{
-            "Brigerad/vendor/spdlog/include",
-            "%{IncludeDir.GLFW}",
-            "%{IncludeDir.Glad}",
-            "%{IncludeDir.ImGui}",
-            "%{IncludeDir.glm}",
-            "%{IncludeDir.stb_image}",
-            "%{IncludeDir.serial}/include",
-            "%{IncludeDir.entt}",
-            "%{IncludeDir.lua}/src",
-            "%{IncludeDir.sol}/include",
-            "%{IncludeDir.yaml_cpp}",
-            "%{IncludeDir.pfr}"
-        }
+    externalincludedirs {
+        "Brigerad/vendor/spdlog/include",
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.Glad}",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.stb_image}",
+        "%{IncludeDir.serial}/include",
+        "%{IncludeDir.entt}",
+        "%{IncludeDir.lua}/src",
+        "%{IncludeDir.sol}/include",
+        "%{IncludeDir.yaml_cpp}",
+        "%{IncludeDir.pfr}",
+        "%{IncludeDir.gtest}",
+    }
 
-        externalwarnings "Off"
+    externalwarnings "Off"
 
     filter "configurations:Debug"
-        defines
-        {
-            "BR_DEBUG",
-            "BR_ENABLE_ASSERTS",
-            "BR_PROFILE"
-        }
-        runtime "Debug"
-        symbols "on"
+    defines {
+        "BR_DEBUG",
+        "BR_ENABLE_ASSERTS",
+        "BR_PROFILE"
+    }
+    runtime "Debug"
+    symbols "on"
 
     filter "configurations:Release"
-        defines "BR_RELEASE"
-        runtime "Release"
-        optimize "on"
+    defines "BR_RELEASE"
+    runtime "Release"
+    optimize "on"
 
     filter "configurations:Dist"
-        defines "BR_DIST"
-        runtime "Release"
-        optimize "on"
+    defines "BR_DIST"
+    runtime "Release"
+    optimize "on"
 end
 
 function DefineSolution()
@@ -147,85 +138,82 @@ function DefineSolution()
     IncludeDir["lua"] = "Brigerad/vendor/lua"
     IncludeDir["sol"] = "Brigerad/vendor/sol"
     IncludeDir["yaml_cpp"] = "Brigerad/vendor/yaml-cpp/include"
-    IncludeDir["gtest"] = _MAIN_SCRIPT_DIR.."/Brigerad/vendor/googletest/googletest"
+    IncludeDir["gtest"] = _MAIN_SCRIPT_DIR .. "/Brigerad/vendor/googletest/googletest/include"
     IncludeDir["pfr"] = _MAIN_SCRIPT_DIR .. "/Brigerad/vendor/pfr/include"
 
     group "Dependencies"
-        include "Brigerad/vendor/GLFW"
-        include "Brigerad/vendor/Glad"
-        include "Brigerad/vendor/ImGui"
-        include "Brigerad/vendor/lua"
-        include "Brigerad/vendor/yaml-cpp"
-        include "Brigerad/vendor/serial"
+    include "Brigerad/vendor/GLFW"
+    include "Brigerad/vendor/Glad"
+    include "Brigerad/vendor/ImGui"
+    include "Brigerad/vendor/lua"
+    include "Brigerad/vendor/yaml-cpp"
+    include "Brigerad/vendor/serial"
 
     group "Tests"
-        include "Brigerad/vendor/googletest"
+    include "Brigerad/vendor/googletest"
 
     group ""
     DefineBrigerad()
     DefineFrasy()
+    DefineFrasyLib()
+    DefineTestLuaDeserializer()
 end
 
 function DefineBrigerad()
     project "Brigerad"
-        location "Brigerad"
-        kind "StaticLib"
-        language "C++"
-        cppdialect "C++20"
-        staticruntime "On"
+    location "Brigerad"
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "On"
 
-        targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-        objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+    targetdir("bin/" .. outputdir .. "/%{prj.name}")
+    objdir("bin-int/" .. outputdir .. "/%{prj.name}")
 
-        files
-        {
-            "%{prj.name}/src/**.h",
-            "%{prj.name}/src/**.cpp",
-            "%{prj.name}/vendor/stb_image/**.cpp",
-            "%{prj.name}/vendor/stb_image/**.h",
-            "%{prj.name}/vendor/glm/**.hpp",
-            "%{prj.name}/vendor/glm/**.inl",
-            "%{prj.name}/vendor/spdlog/include/**.h",
-            -- "%{prj.name}/vendor/spdlog/src/**.cpp",
-        }
+    files {
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.cpp",
+        "%{prj.name}/vendor/stb_image/**.cpp",
+        "%{prj.name}/vendor/stb_image/**.h",
+        "%{prj.name}/vendor/glm/**.hpp",
+        "%{prj.name}/vendor/glm/**.inl",
+        "%{prj.name}/vendor/spdlog/include/**.h",
+        -- "%{prj.name}/vendor/spdlog/src/**.cpp",
+    }
 
-        includedirs
-        {
-            "%{prj.name}/src",
-        }
+    includedirs {
+        "%{prj.name}/src",
+    }
 
-        CommonFlags()
+    CommonFlags()
 
-        filter "system:windows"
-            systemversion "latest"
+    filter "system:windows"
+    systemversion "latest"
 
-            defines
-            {
-                "BR_PLATFORM_WINDOWS",
-                "BR_BUILD_DLL",
-                "GLFW_INCLUDE_NONE"
-            }
+    defines {
+        "BR_PLATFORM_WINDOWS",
+        "BR_BUILD_DLL",
+        "GLFW_INCLUDE_NONE"
+    }
 
-            links
-            {
-                "GLFW",
-                "Glad",
-                "ImGui",
-                "lua",
-                "serial",
-                "opengl32.lib",
-                "yaml-cpp"
-            }
+    links {
+        "GLFW",
+        "Glad",
+        "ImGui",
+        "lua",
+        "serial",
+        "opengl32.lib",
+        "yaml-cpp"
+    }
 
-            excludes
-            {
-                "%{prj.name}/src/Platform/Linux/**.h",
-                "%{prj.name}/src/Platform/Linux/**.cpp",
-            }
+    excludes {
+        "%{prj.name}/src/Platform/Linux/**.h",
+        "%{prj.name}/src/Platform/Linux/**.cpp",
+    }
 end
 
 function DefineFrasy()
-project "Frasy"
+    project "Frasy"
     location "Frasy"
     kind "ConsoleApp"
 
@@ -254,8 +242,7 @@ project "Frasy"
         _OPTIONS.src_loc .. "/**.cpp",
     }
 
-    excludes {"%{prj.name}/test/**.h", "%{prj.name}/test/**.cpp" }
-
+    excludes { "%{prj.name}/test/**.h", "%{prj.name}/test/**.cpp" }
 
     includedirs {
         "%{prj.name}/src",
@@ -267,33 +254,134 @@ project "Frasy"
     CommonFlags()
 
     filter "system:windows"
-        systemversion "latest"
+    systemversion "latest"
 
-        defines {"BR_PLATFORM_WINDOWS"}
+    defines { "BR_PLATFORM_WINDOWS" }
 
-        links {
-            "Brigerad",
-            "GLFW",
-            "Glad",
-            "ImGui",
-            "serial",
-            "gtest",
-            "opengl32.lib",
-            "Ws2_32.lib"
+    links {
+        "Brigerad",
+        "GLFW",
+        "Glad",
+        "ImGui",
+        "serial",
+        "gtest",
+        "opengl32.lib",
+        "Ws2_32.lib"
+    }
+
+    prebuildcommands {
+        "python.exe incrementVersion.py",
+        "{COPYDIR} lua"
+    }
+    postbuildcommands {
+        -- "{COPY} vendor\\lua54\\bin\\lua54.dll ..\\bin\\" .. outputdir .. "\\%{prj.name} /K /I /Y",
+        "{COPYDIR} assets",
+    }
+
+    if _OPTIONS.copy_dir ~= "" and _OPTIONS.copy_dir ~= nil then
+        print("Copying '" .. _OPTIONS.copy_dir .. "' to bin output directory")
+        postBuildCommands {
+            "{COPY} " .. _OPTIONS.copy_dir .. " ..\\bin\\" .. outputdir .. "\\%{prj.name}\\" .. _OPTIONS.copy_dir
         }
+    end
+end
 
-        prebuildcommands {"python.exe incrementVersion.py"}
-        postbuildcommands {
-            -- "{COPY} vendor\\lua54\\bin\\lua54.dll ..\\bin\\" .. outputdir .. "\\%{prj.name} /K /I /Y",
-            "{COPYDIR} assets",
-        }
+function DefineFrasyLib()
+    project "FrasyLib"
+    location "Frasy"
+    kind "StaticLib"
 
-        if _OPTIONS.copy_dir ~= "" and _OPTIONS.copy_dir ~= nil then
-            print("Copying '" .. _OPTIONS.copy_dir .. "' to bin output directory")
-            postBuildCommands {
-                "{COPY} " .. _OPTIONS.copy_dir .. " ..\\bin\\" .. outputdir .. "\\%{prj.name}\\" .. _OPTIONS.copy_dir
-            }
-        end
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "On"
+
+    targetdir("bin/" .. outputdir .. "/%{prj.name}")
+    objdir("bin-int/" .. outputdir .. "/%{prj.name}")
+
+    files {
+        "Frasy/src/**.cpp",
+    }
+    excludes {
+        "Frasy/src/demo_mode/my_frasy_interpreter.cpp"
+    }
+
+    includedirs {
+        "Brigerad/vendor",
+        "Brigerad/src",
+        "Frasy/vendor",
+        "Frasy/src",
+    }
+
+    CommonFlags()
+
+    filter "system:windows"
+    systemversion "latest"
+
+    defines { "BR_PLATFORM_WINDOWS" }
+
+    links {
+        "Brigerad",
+        "GLFW",
+        "Glad",
+        "ImGui",
+        "serial",
+        "gtest",
+        "opengl32.lib",
+        "Ws2_32.lib",
+    }
+end
+
+function DefineTestLuaDeserializer()
+    project "TestLuaDeserializer"
+    location "Tests/LuaDeserializer"
+    kind "ConsoleApp"
+
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "On"
+
+    targetdir("bin/" .. outputdir .. "/%{prj.name}")
+    objdir("bin-int/" .. outputdir .. "/%{prj.name}")
+
+    files {
+        "Tests/LuaDeserializer/**.h",
+        "Tests/LuaDeserializer/**.cpp",
+    }
+
+    excludes {
+        "Frasy/src/demo_mode/my_frasy_interpreter.cpp"
+    }
+
+    includedirs {
+        "Brigerad/vendor",
+        "Brigerad/src",
+        "Frasy/vendor",
+        "Frasy/src",
+        "%{prj.name}",
+    }
+
+    CommonFlags()
+
+    filter "system:windows"
+    systemversion "latest"
+
+    defines { "BR_PLATFORM_WINDOWS" }
+
+    links {
+        "Brigerad",
+        "GLFW",
+        "Glad",
+        "ImGui",
+        "serial",
+        "gtest",
+        "opengl32.lib",
+        "Ws2_32.lib",
+        "FrasyLib",
+    }
+
+    postbuildcommands {
+        "{COPYDIR} ../../Frasy/lua lua"
+    }
 end
 
 DefineSolution()

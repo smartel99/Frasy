@@ -3,6 +3,8 @@
 
 namespace Frasy
 {
+using serializable_container_size_t = uint16_t;
+
 /**
  * A serializable container is a container that can be iterated over, and who's values are also
  * serializable.

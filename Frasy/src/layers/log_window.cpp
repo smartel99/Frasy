@@ -59,13 +59,13 @@ void LogWindow::OnImGuiRender()
 
     if (!m_isVisible) { return; }
 
-    if (ImGui::Begin(s_windowName, &m_isVisible))
+    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking))
     {
         RenderOptions();
 
         ImGui::Separator();
 
-        ImGuiWindowFlags flags = ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoDocking;
+        ImGuiWindowFlags flags = ImGuiWindowFlags_HorizontalScrollbar;
         ImGui::BeginChild("ScrollingLog", ImVec2 {0.0f, 0.0f}, false, flags);
         m_renderLoggersFunc(m_options, m_sink);
         ImGui::EndChild();

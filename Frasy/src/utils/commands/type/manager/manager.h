@@ -32,11 +32,26 @@ namespace Frasy::Type
 class Manager
 {
 private:
-    static Manager                        s_instance;
     type_id_t                             m_count   = 0;
     std::unordered_map<type_id_t, Struct> m_structs = {};
     std::unordered_map<type_id_t, Enum>   m_enums   = {};
 
+public:
+    class InvalidIdException : public std::exception
+    {
+    public:
+        InvalidIdException() : std::exception("Invalid ID"){}
+        [[nodiscard]] const char* what() const final;
+    };
+
+    class TypeNotFoundException : public std::exception
+    {
+    public:
+        TypeNotFoundException() : std::exception("Type not found"){}
+        [[nodiscard]] const char* what() const final;
+    };
+
+public:
     Manager()
     {
         m_structs.clear();
@@ -46,103 +61,102 @@ private:
         AddBuiltInStructs();
     }
 
-public:
-    class InvalidIdException : public std::exception
-    {
-    public:
-        [[nodiscard]] const char* what() const final;
-    };
-
-    class TypeNotFoundException : public std::exception
-    {
-    public:
-        [[nodiscard]] const char* what() const final;
-    };
-
-public:
     /// Add a struct type to the type manager
     /// \param obj struct to add
     /// \return the ID for that struct
-    static type_id_t AddStruct(const Struct& obj);
+    type_id_t AddStruct(const Struct& obj);
 
     /// Add a struct type to the type manager with a set ID
     /// \param id forced ID for that enum
     /// \param obj struct to add
     /// \return the ID for that struct
     /// \throw InvalidIdException if id is already assigned
-    static type_id_t AddStruct(type_id_t id, const Struct& obj);
+    type_id_t AddStruct(type_id_t id, const Struct& obj);
 
     /// Add an enum type to the type manager
     /// \param obj enum to add
     /// \return the ID for that enum
-    static type_id_t AddEnum(const Enum& obj);
+    type_id_t AddEnum(const Enum& obj);
 
     /// Add an enum type to the type manager with a set ID
     /// \param id forced ID for that enum
     /// \param obj enum to add
     /// \return the ID for that enum
     /// \throw InvalidIdException if id is already assigned
-    static type_id_t AddEnum(type_id_t id, const Enum& obj);
+    type_id_t AddEnum(type_id_t id, const Enum& obj);
 
 
     /// Get a struct by its ID
     /// \param id the object id
     /// \return the struct definition
     /// \throw TypeNotFoundException if no type has been found
-    static const Struct& GetStruct(type_id_t id);
+    const Struct& GetStruct(type_id_t id) const;
 
     /// Get a struct by its ID
     /// \param name the name of the type
     /// \return the struct definition
     /// \throw TypeNotFoundException if no type has been found
-    static const Struct& GetStruct(const std::string& name);
+    const Struct& GetStruct(const std::string& name) const;
 
     /// Get a struct ID by its name
     /// \param name the name of the type
     /// \return the ID of the struct
     /// \throw TypeNotFoundException if no type has been found
-    static type_id_t GetStructId(const std::string& name);
+    type_id_t GetStructId(const std::string& name) const;
 
     /// Get list of Struct ids, including fundamentals
     /// \return list of stored struct ids
-    static std::vector<type_id_t> GetStructIds();
+    std::vector<type_id_t> GetStructIds() const;
+
+    /// Get list of Structs, including fundamentals
+    /// \return list of stored structs
+    const std::unordered_map<type_id_t, Struct>& GetStructs() const { return m_structs; }
 
     /// Get an enum by its ID
     /// \param name the name of the type
     /// \return the enum definition
     /// \throw TypeNotFoundException if no type has been found
-    static const Enum& GetEnum(type_id_t id);
+    const Enum& GetEnum(type_id_t id) const;
 
     /// Get an enum by its ID
     /// \param name the name of the type
     /// \return the enum definition
     /// \throw TypeNotFoundException if no type has been found
-    static const Enum& GetEnum(const std::string& name);
+    const Enum& GetEnum(const std::string& name) const;
 
     /// Get an enum ID by its name
     /// \param name the name of the type
     /// \return the ID of the enum
     /// \throw TypeNotFoundException if no type has been found
-    static type_id_t GetEnumId(const std::string& name);
+    type_id_t GetEnumId(const std::string& name) const;
 
     /// Get list of enum ids
     /// \return list of stored enum ids
-    static std::vector<type_id_t> GetEnumIds();
+    std::vector<type_id_t> GetEnumIds() const;
+
+    /// Get list of enum
+    /// \return list of stored enums
+    const std::unordered_map<type_id_t, Enum>& GetEnums() const { return m_enums; }
 
     /// Get the name of a type regardless of it being a struct or an enum
     /// \return the name of the type, or a warning reporting the id of the not found type
-    static std::string GetTypeName(type_id_t id);
+    std::string GetTypeName(type_id_t id) const;
+
+    /// Tell if the type requested is a fundamental kind
+    bool IsFundamental(type_id_t id) const { return id < static_cast<type_id_t>(Fundamental::E::Size); }
+
+    /// Tell if the type requested is a struct
+    bool IsStruct(type_id_t id) const { return m_structs.contains(id); }
+
+    /// tell if the type requested is an enum
+    bool IsEnum(type_id_t id) const { return m_enums.contains(id); }
 
 private:
-    [[nodiscard]] bool IsIdTaken(type_id_t id);
+    [[nodiscard]] bool IsIdTaken(type_id_t id) const;
 
-    void        AddFundamentals();
-    static void AddBuiltInEnums();
-    static void AddBuiltInStructs();
-
-private:    // Tests related
-    [[maybe_unused]] static void ResetForTests();
-    friend class TestTypeManager;
+    void AddFundamentals();
+    void AddBuiltInEnums();
+    void AddBuiltInStructs();
 };
 }    // namespace Frasy::Type
 

@@ -32,7 +32,7 @@ void DeviceViewer::OnImGuiRender()
 {
     if (!m_isVisible) { return; }
 
-    if (ImGui::Begin(s_windowName, &m_isVisible))
+    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking))
     {
         if (ImGui::Button("Rescan"))
         {
@@ -100,7 +100,7 @@ void DeviceViewer::RenderDeviceList()
                     else
                     {
                         ImGui::Text("%zu supported commands", commands.size());
-                        for (const auto& command : commands) { ImGui::BulletText("%s", command.Name.c_str()); }
+                        for (const auto& [id, command] : commands) { ImGui::BulletText("%s", command.Name.c_str()); }
                     }
                     ImGui::TreePop();
                 }

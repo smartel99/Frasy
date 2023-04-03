@@ -50,6 +50,12 @@ public:
         return m_devices.at(deviceId).Transmit(pkt);
     }
 
+    SerialDevice& operator[](std::size_t index)
+    {
+        WaitForScanComplete();
+        return m_devices.at(index);
+    }
+
     auto begin() noexcept
     {
         WaitForScanComplete();

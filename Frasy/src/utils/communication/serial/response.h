@@ -111,9 +111,9 @@ private:
         else { throw e; }
     };
 
-    on_complete_cb_t m_onCompleteCb = {};
-    on_timeout_cb_t  m_onTimeoutCb  = {};
-    on_error_cb_t    m_onErrorCb    = {};
+    on_complete_cb_t m_onCompleteCb;
+    on_timeout_cb_t  m_onTimeoutCb;
+    on_error_cb_t    m_onErrorCb;
 
     void run();
 };

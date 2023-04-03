@@ -19,6 +19,8 @@
 #define GUARD_MY_MAIN_APPLICATION_LAYER_H
 
 #include "../../layers/main_application_layer.h"
+#include "utils/lua/orchestrator/orchestrator.h"
+#include "utils/lua/popup.h"
 
 class MyMainApplicationLayer final : public Frasy::MainApplicationLayer
 {
@@ -33,6 +35,19 @@ protected:
     void RenderControlRoom() override;
 
 private:
+    void DoTests();
+    bool GetSerials();
+
+private:
+    Frasy::Lua::Orchestrator     m_orchestrator;
+    static constexpr std::size_t operatorLength                                = 20;
+    char                         m_operator[operatorLength]                    = "Paul";
+    static constexpr std::size_t serialNumberLength                            = 12;
+    char                         m_serialNumberTopLeft[serialNumberLength]     = "1001";
+    char                         m_serialNumberBottomRight[serialNumberLength] = "1010";
+    bool                         m_serialIsDirty;
+    std::vector<std::string>     m_serials;
+    Frasy::Map                   m_map;
 };
 
 #endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H

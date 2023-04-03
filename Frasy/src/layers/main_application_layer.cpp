@@ -43,8 +43,10 @@ void MainApplicationLayer::OnAttach()
     CREATE_TEXTURE(m_run, "assets/textures/run.png");
     CREATE_TEXTURE(m_pass, "assets/textures/pass.png");
     CREATE_TEXTURE(m_fail, "assets/textures/fail.png");
+    CREATE_TEXTURE(m_error, "assets/textures/error.png");
     CREATE_TEXTURE(m_testing, "assets/textures/testing.png");
     CREATE_TEXTURE(m_waiting, "assets/textures/waiting.png");
+    CREATE_TEXTURE(m_idle, "assets/textures/idle.png");
     CREATE_TEXTURE(m_disabled, "assets/textures/disabled.png");
 
     m_logWindow    = std::make_unique<LogWindow>();
@@ -82,7 +84,7 @@ void MainApplicationLayer::OnImGuiRender()
     {
         if (ImGui::BeginMenu("File"))
         {
-            ImGui::Separator();
+            //            ImGui::Separator();
 
             if (ImGui::MenuItem("Exit")) { Brigerad::Application::Get().Close(); }
             ImGui::EndMenu();
@@ -92,6 +94,9 @@ void MainApplicationLayer::OnImGuiRender()
         {
             if (ImGui::MenuItem("Logger", "F2")) { MakeLogWindowVisible(); }
             if (ImGui::MenuItem("Device Viewer", "F3")) { MakeDeviceViewerVisible(); }
+            ImGui::Separator();
+            if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
+            if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }
             ImGui::EndMenu();
         }
 
@@ -148,18 +153,27 @@ void MainApplicationLayer::RenderAbout()
 
 void MainApplicationLayer::PresetControlRoomOptions()
 {
-    ImGuiID dockId = ImGui::GetWindowDockID();
-    ImGui::SetNextWindowDockID(dockId);
+    if (m_noMove) ImGui::SetNextWindowDockID(ImGui::GetWindowDockID());
 
-    static bool      isInFrontOfBg = false;
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus;
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |    //
+                             ImGuiWindowFlags_NoResize |      //
+                             ImGuiWindowFlags_NoMove |        //
+                             ImGuiWindowFlags_NoNavFocus |    //
+                             ImGuiWindowFlags_NoCollapse;
+
+    // Put in front of main window for first initialization
+    static bool isInFrontOfBg = false;
     if (!isInFrontOfBg)
     {
         ImGui::SetNextWindowFocus();
         isInFrontOfBg = true;
     }
     else { flags |= ImGuiWindowFlags_NoBringToFrontOnFocus; }
-    ImGui::Begin("Control Room", nullptr, flags);
+
+    if (m_noMove)
+        ImGui::Begin("Control Room", nullptr, flags);
+    else
+        ImGui::Begin("Control Room");
     ImGui::End();
 }
 

@@ -132,6 +132,12 @@ public:
         return *this;
     }
 
+    void RefreshOnExternalPayloadUpdate()
+    {
+        Header.PayloadSize = Payload.size();
+        m_crc              = ComputeCrc();
+    }
+
     template<typename T>
     T FromPayload() const
     {

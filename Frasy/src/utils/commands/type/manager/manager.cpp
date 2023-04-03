@@ -15,15 +15,16 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#include <string_view>
-
 #include "manager.h"
+
+#include "Brigerad/Core/Log.h"
+
 #include <stdexcept>
+#include <string_view>
 
 namespace Frasy::Type
 {
-static const char* s_tag               = "Type::Manager";
-Manager            Manager::s_instance = Manager();
+static const char* s_tag = "Type::Manager";
 
 const char* Manager::InvalidIdException::what() const
 {
@@ -37,37 +38,59 @@ const char* Manager::TypeNotFoundException::what() const
 
 type_id_t Manager::AddStruct(const Struct& obj)
 {
-    while (s_instance.IsIdTaken(s_instance.m_count)) { ++s_instance.m_count; }
-    s_instance.m_structs[s_instance.m_count] = obj;
-    return s_instance.m_count;
+    while (IsIdTaken(m_count)) { ++m_count; }
+    BR_LOG_DEBUG("TypeManager", "Adding Struct {} ({})", obj.Name, m_count);
+    m_structs[m_count] = obj;
+    return m_count;
 }
 
 type_id_t Manager::AddStruct(type_id_t id, const Struct& obj)
 {
-    if (s_instance.IsIdTaken(id)) { throw InvalidIdException(); }
-    s_instance.m_structs[id] = obj;
+    BR_LOG_DEBUG("TypeManager", "Adding struct {} ({})", obj.Name, id);
+    if (IsIdTaken(id))
+    {
+        if (obj.Name == GetTypeName(id))
+        {
+            BR_LOG_DEBUG("TypeManager", "Type already exist, skipping");
+            return id;
+        }
+        BR_LOG_ERROR("TypeManager", "Type {} is already taken by {}", id, GetTypeName(id));
+        throw InvalidIdException();
+    }
+    m_structs[id] = obj;
     return id;
 }
 
 type_id_t Manager::AddEnum(const Enum& obj)
 {
-    while (s_instance.IsIdTaken(s_instance.m_count)) { ++s_instance.m_count; }
-    s_instance.m_enums[s_instance.m_count] = obj;
-    return s_instance.m_count;
+    while (IsIdTaken(m_count)) { ++m_count; }
+    BR_LOG_DEBUG("TypeManager", "Adding enum {} ({})", obj.Name, m_count);
+    m_enums[m_count] = obj;
+    return m_count;
 }
 
 type_id_t Manager::AddEnum(type_id_t id, const Enum& obj)
 {
-    if (s_instance.IsIdTaken(id)) { throw InvalidIdException(); }
-    s_instance.m_enums[id] = obj;
+    BR_LOG_DEBUG("TypeManager", "Adding enum {} ({})", obj.Name, id);
+    if (IsIdTaken(id))
+    {
+        if (obj.Name == GetTypeName(id))
+        {
+            BR_LOG_DEBUG("TypeManager", "Type already exist, skipping");
+            return id;
+        }
+        BR_LOG_ERROR("TypeManager", "Type {} is already taken by {}", id, GetTypeName(id));
+        throw InvalidIdException();
+    }
+    m_enums[id] = obj;
     return id;
 }
 
-const Struct& Manager::GetStruct(type_id_t id)
+const Struct& Manager::GetStruct(type_id_t id) const
 {
     try
     {
-        return s_instance.m_structs.at(id);
+        return m_structs.at(id);
     }
     catch (std::out_of_range& e)
     {
@@ -75,40 +98,37 @@ const Struct& Manager::GetStruct(type_id_t id)
     }
 }
 
-const Struct& Manager::GetStruct(const std::string& name)
+const Struct& Manager::GetStruct(const std::string& name) const
 {
-    for (const auto& [id, obj] : s_instance.m_structs)
+    for (const auto& [id, obj] : m_structs)
     {
         if (obj.Name == name) { return obj; }
     }
     throw TypeNotFoundException();
 }
 
-type_id_t Manager::GetStructId(const std::string& name)
+type_id_t Manager::GetStructId(const std::string& name) const
 {
-    for (const auto& [id, obj] : s_instance.m_structs)
+    for (const auto& [id, obj] : m_structs)
     {
         if (obj.Name == name) { return id; }
     }
     throw TypeNotFoundException();
 }
 
-std::vector<type_id_t> Manager::GetStructIds()
+std::vector<type_id_t> Manager::GetStructIds() const
 {
     std::vector<type_id_t> ids;
-    ids.reserve(s_instance.m_structs.size());
-    for (const auto& [id, obj] : s_instance.m_structs)
-    {
-        ids.push_back(id);
-    }
+    ids.reserve(m_structs.size());
+    for (const auto& [id, obj] : m_structs) { ids.push_back(id); }
     return ids;
 }
 
-const Enum& Manager::GetEnum(type_id_t id)
+const Enum& Manager::GetEnum(type_id_t id) const
 {
     try
     {
-        return s_instance.m_enums.at(id);
+        return m_enums.at(id);
     }
     catch (std::out_of_range& e)
     {
@@ -116,48 +136,45 @@ const Enum& Manager::GetEnum(type_id_t id)
     }
 }
 
-const Enum& Manager::GetEnum(const std::string& name)
+const Enum& Manager::GetEnum(const std::string& name) const
 {
-    for (const auto& [id, obj] : s_instance.m_enums)
+    for (const auto& [id, obj] : m_enums)
     {
         if (obj.Name == name) { return obj; }
     }
     throw TypeNotFoundException();
 }
 
-type_id_t Manager::GetEnumId(const std::string& name)
+type_id_t Manager::GetEnumId(const std::string& name) const
 {
-    for (const auto& [id, obj] : s_instance.m_enums)
+    for (const auto& [id, obj] : m_enums)
     {
         if (obj.Name == name) { return id; }
     }
     throw TypeNotFoundException();
 }
 
-std::vector<type_id_t> Manager::GetEnumIds()
+std::vector<type_id_t> Manager::GetEnumIds() const
 {
     std::vector<type_id_t> ids;
-    ids.reserve(s_instance.m_enums.size());
-    for (const auto& [id, obj] : s_instance.m_enums) { ids.push_back(id); }
+    ids.reserve(m_enums.size());
+    for (const auto& [id, obj] : m_enums) { ids.push_back(id); }
     return ids;
 }
 
-std::string Manager::GetTypeName(type_id_t id)
+std::string Manager::GetTypeName(type_id_t id) const
 {
-    if (s_instance.m_structs.contains(id))
-    {
-        return {s_instance.m_structs[id].Name.begin(), s_instance.m_structs[id].Name.end()};
-    }
-    if (s_instance.m_enums.contains(id))
-    {
-        return {s_instance.m_enums[id].Name.begin(), s_instance.m_enums[id].Name.end()};
-    }
+    if (m_structs.contains(id)) { return {m_structs.at(id).Name.begin(), m_structs.at(id).Name.end()}; }
+    if (m_enums.contains(id)) { return {m_enums.at(id).Name.begin(), m_enums.at(id).Name.end()}; }
     static std::string error;
     error = "Unknown type: " + std::to_string(id);
     return error;
 }
 
-bool Manager::IsIdTaken(type_id_t id) { return m_structs.contains(id) || m_enums.contains(id); }
+bool Manager::IsIdTaken(type_id_t id) const
+{
+    return m_structs.contains(id) || m_enums.contains(id);
+}
 
 void Manager::AddFundamentals()
 {
@@ -182,6 +199,4 @@ void Manager::AddFundamentals()
     m_count = static_cast<std::size_t>(Fundamental::E::Size);
 }
 
-
-void Manager::ResetForTests() { s_instance = Manager(); }
 }    // namespace Frasy::Type
