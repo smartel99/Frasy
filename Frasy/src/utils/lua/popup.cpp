@@ -57,18 +57,18 @@ std::string Popup::GetName(std::size_t uut, sol::table builder)
     return name;
 }
 
-void Popup::Routine()
+void Popup::Routine(bool once)
 {
     using namespace std::chrono_literals;
-    while (!m_consumed)
-    {
+    if (once) m_consumed = true;
+    do {
         if (m_routine)
         {
             std::lock_guard lock {m_luaMutex};
             (*m_routine)(m_inputs);
         }
         else { std::this_thread::sleep_for(10ms); }
-    }
+    } while (!m_consumed);
 }
 
 void Popup::Render()

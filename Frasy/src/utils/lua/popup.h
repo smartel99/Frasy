@@ -75,7 +75,7 @@ public:
     static std::string              GetName(std::size_t uut, sol::table builder);
     const std::string&              GetName() { return m_name; }
     const std::vector<std::string>& GetInputs() { return m_inputs; }
-    void                            Routine();
+    void                            Routine(bool once = false);
     void                            Consume()
     {
         BR_LUA_DEBUG("Consume {}", m_name);

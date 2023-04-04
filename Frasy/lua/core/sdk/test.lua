@@ -45,3 +45,7 @@ end
 function Expect(value)
     return Expectation:new(value)
 end
+
+function Exclusive(value, func)
+    __exclusive(value, func)
+end

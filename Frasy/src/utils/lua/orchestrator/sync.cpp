@@ -19,10 +19,10 @@
 
 namespace Frasy::Lua
 {
-void Orchestrator::ImportSync(sol::state& lua)
+void Orchestrator::ImportSync(sol::state& lua, Stage stage)
 {
     lua.script_file("lua/core/sdk/sync.lua");
-    if (lua["Context"]["stage"].get<Stage>() != Stage::Execution) return;
+    if (stage != Stage::Execution) return;
     lua["Sync"]["Global"] = [&]() { m_globalSync->arrive_and_wait(); };
 }
 }    // namespace Frasy::Lua

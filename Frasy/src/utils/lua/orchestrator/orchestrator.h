@@ -46,6 +46,7 @@ public:
         Validation = 2,
         Execution  = 3,
     };
+    static std::string stage2str(Stage stage);
 
 public:
     static constexpr std::string_view passDirectory = "pass";
@@ -69,8 +70,13 @@ private:
 
     std::unique_ptr<std::barrier<>> m_globalSync;
 
+    std::unique_ptr<std::mutex>       m_exclusiveLock;
+    std::map<std::size_t, std::mutex> m_exclusiveLockMap;
+
+    std::function<void(sol::state& lua, Stage stage)> m_populateUserMethods = [](sol::state&, Stage) {};
+
 public:
-    void Init(const std::string& environment, const std::string& testsDir);
+    void Init(const std::string& environment, const std::string& tests);
     void RenderPopups();
     void DoTests(const std::vector<std::string>& serials, bool regenerate = true);
     Map  GetMap() const { return m_map; }
@@ -79,14 +85,19 @@ public:
 
     [[nodiscard]] bool     IsRunning() const;
     [[nodiscard]] UutState UutState(std::size_t uut) const;
+    void                   SetPopulateUserMethodsCallback(std::function<void(sol::state&, Stage)> callback)
+    {
+        m_populateUserMethods = callback;
+    }
 
 
 private:
     bool CreateOutputDirs();
-    void InitLua(sol::state& lua, std::size_t uut = 0, const std::string& state = "Generation");
-    void ImportLog(sol::state& lua, std::size_t uut);
-    void ImportPopup(sol::state& lua, std::size_t uut);
-    void ImportSync(sol::state& lua);
+    void InitLua(sol::state& lua, std::size_t uut = 0, Stage stage = Stage::Generation);
+    void ImportExclusive(sol::state& lua, Stage stage);
+    void ImportLog(sol::state& lua, std::size_t uut, Stage stage);
+    void ImportPopup(sol::state& lua, std::size_t uut, Stage stage);
+    void ImportSync(sol::state& lua, Stage stage);
     void LoadIb(sol::state& lua);
     void LoadIbCommandForExecution(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
     void LoadIbCommandForValidation(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);

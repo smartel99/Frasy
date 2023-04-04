@@ -43,6 +43,10 @@ function Team.Join(...)
     Context.Team.teams[leader] = { ... }
 end
 
+function Team.GetLeader()
+    return Context.Team.players[Context.uut].leader
+end
+
 function Team.IsLeader()
     return Context.Team.players[Context.uut].position == 1
 end

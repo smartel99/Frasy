@@ -29,22 +29,42 @@ void Orchestrator::RenderPopups()
     for (auto& [name, popup] : m_popups) popup->Render();
 }
 
-void Orchestrator::ImportPopup(sol::state& lua, std::size_t uut)
+void Orchestrator::ImportPopup(sol::state& lua, std::size_t uut, Stage stage)
 {
     lua.script_file("lua/core/sdk/popup.lua");
     lua["__popup"]            = lua.create_table();
     lua["__popup"]["consume"] = [&, uut](sol::table builder) { m_popups[Popup::GetName(uut, builder)]->Consume(); };
-    lua["__popup"]["show"]    = [&, uut](sol::table builder)
+    if (stage == Stage::Execution)
     {
-        Popup popup = Popup(uut, builder);
-        m_popupMutex->lock();
-        m_popups[popup.GetName()] = &popup;
-        m_popupMutex->unlock();
-        popup.Routine();
-        m_popupMutex->lock();
-        m_popups.erase(popup.GetName());
-        m_popupMutex->unlock();
-        return popup.GetInputs();
-    };
+        lua["__popup"]["show"] = [&, uut](sol::table builder)
+        {
+            Popup popup = Popup(uut, builder);
+            m_popupMutex->lock();
+            m_popups[popup.GetName()] = &popup;
+            m_popupMutex->unlock();
+            popup.Routine();
+            m_popupMutex->lock();
+            m_popups.erase(popup.GetName());
+            m_popupMutex->unlock();
+            return popup.GetInputs();
+        };
+    }
+    else if (stage == Stage::Validation)
+    {
+        lua["__popup"]["show"] = [&, uut](sol::table builder)
+        {
+            Popup popup = Popup(uut, builder);
+            popup.Routine();
+            return popup.GetInputs();
+        };
+    }
+    else
+    {
+        lua["__popup"]["show"] = [&, uut](sol::table builder)
+        {
+            Popup popup = Popup(uut, builder);
+            return popup.GetInputs();
+        };
+    }
 }
 }    // namespace Frasy::Lua

@@ -33,6 +33,18 @@
 namespace Frasy::Lua
 {
 
+std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
+{
+    switch (stage)
+    {
+        case Stage::Generation: return "Generation";
+        case Stage::Validation: return "Validation";
+        case Stage::Execution: return "Execution";
+        case Stage::Idle:
+        default: return "Idle";
+    }
+}
+
 void Orchestrator::DoTests(const std::vector<std::string>& serials, bool regenerate)
 {
     if (IsRunning() && m_map.count.uut != 0) { return; }
@@ -61,7 +73,7 @@ bool Orchestrator::CreateOutputDirs()
 }
 
 
-void Orchestrator::InitLua(sol::state& lua, std::size_t uut, const std::string& state)
+void Orchestrator::InitLua(sol::state& lua, std::size_t uut, Stage stage)
 {
     lua.open_libraries(sol::lib::debug,
                        sol::lib::base,
@@ -78,7 +90,7 @@ void Orchestrator::InitLua(sol::state& lua, std::size_t uut, const std::string& 
     // Variables
     lua.script_file("lua/core/framework/context.lua");
 
-    lua["Context"]["stage"]   = lua["Stage"][state];
+    lua["Context"]["stage"]   = lua["Stage"][stage2str(stage)];
     lua["Context"]["uut"]     = uut;
     lua["Context"]["version"] = "0.1.0";
     std::atomic_thread_fence(std::memory_order_release);
@@ -98,9 +110,10 @@ void Orchestrator::InitLua(sol::state& lua, std::size_t uut, const std::string& 
     };
     lua["Utils"]["sleep_for"] = [](int duration) { std::this_thread::sleep_for(std::chrono::milliseconds(duration)); };
     lua.require_file("Json", "lua/core/vendor/json.lua");
-    ImportLog(lua, uut);
-    ImportPopup(lua, uut);
-    ImportSync(lua);
+    ImportLog(lua, uut, stage);
+    ImportPopup(lua, uut, stage);
+    ImportSync(lua, stage);
+    ImportExclusive(lua, stage);
     lua.script_file("lua/core/framework/exception.lua");
 
     // Framework
@@ -109,6 +122,8 @@ void Orchestrator::InitLua(sol::state& lua, std::size_t uut, const std::string& 
     lua.script_file("lua/core/sdk/testbench.lua");
     lua.script_file("lua/core/framework/orchestrator.lua");
     lua.script_file("lua/core/sdk/test.lua");
+
+    m_populateUserMethods(lua, stage);
 }
 
 void Orchestrator::LoadIb(sol::state& lua)
@@ -310,7 +325,7 @@ bool Orchestrator::Verify(const sol::state& team)
               [&, uut]
               {
                   sol::state lua;
-                  InitLua(lua, uut, "Validation");
+                  InitLua(lua, uut, Stage::Validation);
                   LoadIb(lua);
                   LoadEnvironment(lua, m_environment);
                   LoadTests(lua, m_testsDir);
@@ -370,7 +385,7 @@ void Orchestrator::Execute(const sol::state& team, const std::vector<std::string
               {
                   if (m_uutStates[uut] == UutState::Disabled) return;
                   sol::state lua;
-                  InitLua(lua, uut, "Execution");
+                  InitLua(lua, uut, Stage::Execution);
                   lua["Context"]["serial"] = serials[uut];
                   LoadIb(lua);
                   LoadEnvironment(lua, m_environment);

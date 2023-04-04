@@ -22,7 +22,7 @@
 namespace Frasy::Lua
 {
 
-void Orchestrator::ImportLog(sol::state& lua, std::size_t uut)
+void Orchestrator::ImportLog(sol::state& lua, std::size_t uut, Stage stage)
 {
     lua.script_file("lua/core/sdk/log.lua");
     lua["Log"]["c"] = [uut](std::string message) { BR_LOG_CRITICAL(std::format("UUT{}", uut), message); };
