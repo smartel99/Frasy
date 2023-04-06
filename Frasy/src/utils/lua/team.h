@@ -17,36 +17,44 @@
 #ifndef FRASYLUA_TEAM_H
 #define FRASYLUA_TEAM_H
 
-#include <sol/sol.hpp>
-#include <barrier>
 #include <array>
+#include <barrier>
 #include <mutex>
+#include <sol/sol.hpp>
 #include <vector>
 
-class Team {
+class Team
+{
 private:
-    enum SyncState { pass, fail, critical_failure };
-    std::size_t m_teamSize = 0;
-    std::unique_ptr<sol::state> m_teamState;
+    enum SyncState
+    {
+        pass,
+        fail,
+        critical_failure
+    };
+    std::size_t                                    m_teamSize = 0;
+    std::unique_ptr<sol::state>                    m_teamState;
     std::array<std::unique_ptr<std::barrier<>>, 3> m_bShare;
     std::array<std::unique_ptr<std::barrier<>>, 2> m_bSync;
-    std::unique_ptr<std::mutex> m_mutex;
-    std::vector<uint8_t> m_buf;
-    std::vector<SyncState> m_syncStates;
+    std::unique_ptr<std::mutex>                    m_mutex;
+    std::vector<uint8_t>                           m_buf;
+    std::vector<SyncState>                         m_syncStates;
 
 public:
     Team() = default;
     explicit Team(std::size_t teamSize);
-    void InitializeState(sol::state &other, std::size_t uut, std::size_t position, bool is_leader);
-    void Store(sol::state &lua, const sol::object &o);
-    std::optional<sol::object> Load(sol::state &lua);
+    void InitializeState(sol::state& other, std::size_t uut, std::size_t position, bool is_leader);
+    void Store(sol::state& lua, const sol::object& o);
+    std::optional<sol::object> Load(sol::state& lua);
 
 private:
-    template<typename T> void Serialize(const T &t);
-    template<typename T> T Deserialize(std::size_t &cur);
+    template<typename T>
+    void Serialize(const T& t);
+    template<typename T>
+    T Deserialize(std::size_t& cur);
 
-    void _Store(sol::state &lua, const sol::object &o);
-    std::optional<sol::object> _Load(sol::state &lua, std::size_t &cur);
+    void                       _Store(sol::state& lua, const sol::object& o);
+    std::optional<sol::object> _Load(sol::state& lua, std::size_t& cur);
 };
 
-#endif //FRASYLUA_TEAM_H
+#endif    // FRASYLUA_TEAM_H

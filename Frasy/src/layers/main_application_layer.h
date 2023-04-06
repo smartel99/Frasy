@@ -47,7 +47,7 @@ public:
     void OnDetach() override;
 
     void OnUpdate(Brigerad::Timestep ts) override;
-    void OnImGuiRender() override final;
+    void OnImGuiRender() final;
     void OnEvent(Brigerad::Event& e) override;
 
 protected:

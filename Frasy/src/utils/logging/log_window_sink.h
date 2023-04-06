@@ -19,11 +19,9 @@
 #define FRASY_UTILS_LOG_WINDOW_SINK_H
 
 #include "log_entry.h"
-
 #include "spdlog/details/circular_q.h"
-#include "spdlog/sinks/base_sink.h"
-
 #include "spdlog/fmt/chrono.h"
+#include "spdlog/sinks/base_sink.h"
 
 #include <array>
 #include <map>
@@ -81,10 +79,7 @@ class LogWindowSingleSink : public LogWindowSink
 public:
     explicit LogWindowSingleSink(size_t max) noexcept : m_maxLen {max}, m_entries(m_maxLen) {}
 
-    [[nodiscard]] const spdlog::details::circular_q<LogEntry>& GetEntries() const noexcept
-    {
-        return m_entries;
-    }
+    [[nodiscard]] const spdlog::details::circular_q<LogEntry>& GetEntries() const noexcept { return m_entries; }
 
 protected:
     void sink_it_(const spdlog::details::log_msg& msg) override

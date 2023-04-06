@@ -24,6 +24,7 @@
 
 #include <array>
 #include <cstdint>
+#include <spdlog/spdlog.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -121,10 +122,10 @@ struct Reply::Manager
 };
 
 static_assert(requires {
-                  {
-                      Deserialize<Reply>(nullptr, nullptr)
-                  } -> std::same_as<Reply>;
-              });
+    {
+        Deserialize<Reply>(nullptr, nullptr)
+    } -> std::same_as<Reply>;
+});
 static_assert(requires { Serialize(Reply {}); });
 
 }    // namespace Frasy::Actions::Identify

@@ -16,15 +16,16 @@
  */
 
 #include "error_code.h"
+
 #include "utils/misc/deserializer.h"
 namespace Frasy::Actions::Status
 {
 type_id_t ErrorCode::Manager::id = 0;
 
 static_assert(requires {
-                  {
-                      Deserialize<ErrorCode>(nullptr, nullptr)
-                  } -> std::same_as<ErrorCode>;
-              });
+    {
+        Deserialize<ErrorCode>(nullptr, nullptr)
+    } -> std::same_as<ErrorCode>;
+});
 
 }    // namespace Frasy::Actions::Status

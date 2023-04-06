@@ -39,7 +39,10 @@ static constexpr uint32_t lookup_table[256] = {
 
 static uint32_t crc;
 
-void crc32_clear() { crc = initial_value; }
+void crc32_clear()
+{
+    crc = initial_value;
+}
 
 uint32_t crc32_calculate(const uint8_t* data, std::size_t len)
 {
@@ -47,10 +50,14 @@ uint32_t crc32_calculate(const uint8_t* data, std::size_t len)
     crc32_accumulate(data, len);
     return crc32_finalize();
 }
-uint32_t crc32_calculate(const std::vector<uint8_t>& data) { return crc32_calculate(data.data(), data.size()); }
-uint32_t crc32_calculate(const std::vector<std::vector<uint8_t>>& data) {
+uint32_t crc32_calculate(const std::vector<uint8_t>& data)
+{
+    return crc32_calculate(data.data(), data.size());
+}
+uint32_t crc32_calculate(const std::vector<std::vector<uint8_t>>& data)
+{
     crc32_clear();
-    for(const auto& d: data) crc32_accumulate(d.data(), d.size());
+    for (const auto& d : data) crc32_accumulate(d.data(), d.size());
     return crc32_finalize();
 }
 
@@ -59,6 +66,12 @@ uint32_t crc32_accumulate(const uint8_t* data, std::size_t len)
     for (size_t i = 0; i < len; i++) crc = (crc << 8) ^ lookup_table[((crc >> 24) ^ *data++) & 0xff];
     return crc;
 }
-uint32_t crc32_accumulate(const std::vector<uint8_t>& data) { return crc32_accumulate(data.data(), data.size()); }
+uint32_t crc32_accumulate(const std::vector<uint8_t>& data)
+{
+    return crc32_accumulate(data.data(), data.size());
+}
 
-uint32_t crc32_finalize() { return crc ^ xor_value; }
+uint32_t crc32_finalize()
+{
+    return crc ^ xor_value;
+}

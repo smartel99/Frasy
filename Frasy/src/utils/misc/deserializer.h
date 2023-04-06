@@ -79,12 +79,14 @@ T Deserialize(Begin&& b, End&& e)
     return t;
 }
 
-template <typename T, typename Begin, typename End>
+template<typename T, typename Begin, typename End>
     requires(std::is_enum_v<T>)
-T Deserialize(Begin &&b, End &&e) {
-    constexpr size_t N = sizeof(T);
+T Deserialize(Begin&& b, End&& e)
+{
+    constexpr size_t          N = sizeof(T);
     std::underlying_type_t<T> t = {};
-    for (size_t i = 1; i <= sizeof(T); i++) {
+    for (size_t i = 1; i <= sizeof(T); i++)
+    {
         t |= *b << ((N * 8) - (i * 8));
         ++b;
     }

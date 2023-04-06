@@ -11,13 +11,13 @@
  ******************************************************************************
  */
 #ifndef helpers_H
-#define helpers_H
+#    define helpers_H
 
 /*****************************************************************************/
 /* Includes */
-#include <string_view>
+#    include "ImGui/imgui.h"
 
-#include "ImGui/imgui.h"
+#    include <string_view>
 
 
 /*****************************************************************************/
@@ -37,18 +37,14 @@
 namespace UI
 {
 template<typename Func>
-concept UiFunc = requires(Func func)
-{
+concept UiFunc = requires(Func func) {
     {
         func()
-    }
-    ->std::same_as<bool>;
+    } -> std::same_as<bool>;
 };
 
 template<UiFunc Func>
-constexpr bool ImGuiWidgetHelper(const std::string_view label,
-                                 Func                   uiFunc,
-                                 const std::string_view helpMessage)
+constexpr bool ImGuiWidgetHelper(const std::string_view label, Func uiFunc, const std::string_view helpMessage)
 {
     const float  height = ImGui::GetFrameHeightWithSpacing();
     const ImVec2 size   = {0.0f, height};
@@ -62,10 +58,7 @@ constexpr bool ImGuiWidgetHelper(const std::string_view label,
     ImGui::Columns(1);
 
     ImGui::EndChildFrame();
-    if (!hovered && ImGui::IsItemHovered())
-    {
-        ImGui::SetTooltip("%s", helpMessage.data());
-    }
+    if (!hovered && ImGui::IsItemHovered()) { ImGui::SetTooltip("%s", helpMessage.data()); }
     return r;
 }
 

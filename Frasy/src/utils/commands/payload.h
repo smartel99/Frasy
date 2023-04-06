@@ -55,16 +55,15 @@ struct CommandPayloadSize<Class, std::void_t<decltype(sizeof(typename Class::pay
 };
 
 
-
 template<typename T>
 consteval bool CommandHasPayload()
 {
     using payload_type = typename CommandPayloadMemberType<T>::type;
     return requires(T t) {
-               typename T::payload_type;
-               t.payload;
-               t.payload_size;
-           } && std::same_as<payload_type, typename T::payload_type> && !std::same_as<payload_type, void> &&
+        typename T::payload_type;
+        t.payload;
+        t.payload_size;
+    } && std::same_as<payload_type, typename T::payload_type> && !std::same_as<payload_type, void> &&
            std::same_as<decltype(T::payload_size), const size_t>;
 }
 

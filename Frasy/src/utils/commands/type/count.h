@@ -23,7 +23,10 @@ namespace Frasy::Type
 {
 static constexpr uint16_t VECTOR = 0;
 static constexpr uint16_t SINGLE = 1;
-static constexpr uint16_t ARRAY(uint16_t size) { return size; }
+static constexpr uint16_t ARRAY(uint16_t size)
+{
+    return size;
+}
 }    // namespace Frasy::Type
 
 #endif    // INSTRUMENTATION_BOARD_MAIN_INTERFACES_COMMANDS_TYPE_COUNT_H

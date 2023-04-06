@@ -26,31 +26,31 @@ using serializable_container_size_t = uint16_t;
  */
 template<typename T>
 concept SerializableContainer = requires(T t) {
-                                    typename T::value_type;
+    typename T::value_type;
 
-                                    typename T::iterator;
-                                    typename T::const_iterator;
-                                    {
-                                        t.begin()
-                                    } -> std::same_as<typename T::iterator>;
-                                    {
-                                        std::as_const(t).begin()
-                                    } -> std::same_as<typename T::const_iterator>;
+    typename T::iterator;
+    typename T::const_iterator;
+    {
+        t.begin()
+    } -> std::same_as<typename T::iterator>;
+    {
+        std::as_const(t).begin()
+    } -> std::same_as<typename T::const_iterator>;
 
-                                    {
-                                        t.end()
-                                    } -> std::same_as<typename T::iterator>;
-                                    {
-                                        std::as_const(t).end()
-                                    } -> std::same_as<typename T::const_iterator>;
+    {
+        t.end()
+    } -> std::same_as<typename T::iterator>;
+    {
+        std::as_const(t).end()
+    } -> std::same_as<typename T::const_iterator>;
 
-                                    {
-                                        t.size()
-                                    } -> std::same_as<typename T::size_type>;
-                                    {
-                                        std::as_const(t).size()
-                                    } -> std::same_as<typename T::size_type>;
-                                };
+    {
+        t.size()
+    } -> std::same_as<typename T::size_type>;
+    {
+        std::as_const(t).size()
+    } -> std::same_as<typename T::size_type>;
+};
 static_assert(SerializableContainer<std::string>);
 static_assert(SerializableContainer<std::array<char, 256>>);
 }    // namespace Frasy

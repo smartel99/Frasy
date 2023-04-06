@@ -26,7 +26,8 @@ Communication::Packet ToPacket(const Actions::Command& command, const sol::varia
     Communication::Packet packet;
     if (command.Parameters.size() != args.size())
     {
-        BR_LOG_ERROR(s_tag.data(), "Invalid number of arguments. expected {}, got {}", command.Parameters.size(), args.size());
+        BR_LOG_ERROR(
+          s_tag.data(), "Invalid number of arguments. expected {}, got {}", command.Parameters.size(), args.size());
         throw std::exception();
     }
 

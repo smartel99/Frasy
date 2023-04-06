@@ -17,6 +17,7 @@
 #ifndef INTERFACE_BOARD_MAIN_INTERFACES_COMMANDS_BUILT_IN_ID_H
 #define INTERFACE_BOARD_MAIN_INTERFACES_COMMANDS_BUILT_IN_ID_H
 #include "../../communication/serial/types.h"
+
 #include <cstdint>
 
 namespace Frasy::Actions

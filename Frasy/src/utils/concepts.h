@@ -28,6 +28,6 @@ concept Enum = std::is_enum_v<T>;
 template<typename T>
 concept IntegralAndNotBool = std::is_integral_v<T> && !std::is_same_v<T, bool>;
 
-}
+}    // namespace Frasy
 
 #endif    // BRIGERAD_FRASY_SRC_UTILS_CONCEPTS_H

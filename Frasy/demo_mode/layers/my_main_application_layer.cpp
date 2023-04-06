@@ -113,7 +113,7 @@ void MyMainApplicationLayer::RenderControlRoom()
 
 void MyMainApplicationLayer::DoTests()
 {
-    if (!GetSerials()) return;
+    if (!GetSerials()) { return; }
     m_orchestrator.DoTests(m_serials);
 }
 
@@ -133,14 +133,14 @@ bool MyMainApplicationLayer::GetSerials()
     else { return false; }
     if (std::regex_search(m_serialNumberBottomRight, matches, snRe))
     {
-        if (snPrefix != matches[1]) return false;
+        if (snPrefix != matches[1]) { return false; }
         snEnd = std::stoi(matches[2], nullptr, 10);
     }
     else { return false; }
     auto map = m_orchestrator.GetMap();
-    if (snEnd - snStart != map.count.uut - 1) return false;
+    if (snEnd - snStart != map.count.uut - 1) { return false; }
     m_serials.reserve(map.count.uut + 1);
-    m_serials.push_back({});
+    m_serials.emplace_back();
     for (int i = snStart; i <= snStart + map.count.uut - 1; ++i)
     {
         m_serials.push_back(std::format("{}{:03x}", snPrefix, i));

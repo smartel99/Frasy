@@ -40,14 +40,14 @@ public:
     class InvalidIdException : public std::exception
     {
     public:
-        InvalidIdException() : std::exception("Invalid ID"){}
+        InvalidIdException() : std::exception("Invalid ID") {}
         [[nodiscard]] const char* what() const final;
     };
 
     class TypeNotFoundException : public std::exception
     {
     public:
-        TypeNotFoundException() : std::exception("Type not found"){}
+        TypeNotFoundException() : std::exception("Type not found") {}
         [[nodiscard]] const char* what() const final;
     };
 

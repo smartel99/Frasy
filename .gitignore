@@ -1,8 +1,8 @@
 .vscode
 .idea
 .vs
-/bin
-/bin-int
+bin
+bin-int
 cmake-build*
 *.cmake
 CMakeLists.txt

@@ -72,9 +72,9 @@ std::string PrintBuildDate(std::array<uint8_t, Reply::build_date_size> date)
 }
 
 static_assert(requires {
-                  {
-                      Deserialize<Reply>(nullptr, nullptr)
-                  } -> std::same_as<Reply>;
-              });
+    {
+        Deserialize<Reply>(nullptr, nullptr)
+    } -> std::same_as<Reply>;
+});
 
 }    // namespace Frasy::Actions::Identify

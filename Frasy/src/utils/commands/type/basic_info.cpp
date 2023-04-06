@@ -16,6 +16,7 @@
  */
 
 #include "basic_info.h"
+
 #include "utils/misc/deserializer.h"
 
 namespace Frasy::Type
@@ -23,8 +24,8 @@ namespace Frasy::Type
 type_id_t BasicInfo::Manager::id = 0;
 
 static_assert(requires {
-                  {
-                      Deserialize<BasicInfo>(nullptr, nullptr)
-                  } -> std::same_as<BasicInfo>;
-              });
+    {
+        Deserialize<BasicInfo>(nullptr, nullptr)
+    } -> std::same_as<BasicInfo>;
+});
 }    // namespace Frasy::Type

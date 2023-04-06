@@ -49,8 +49,8 @@ struct PacketHeader
     constexpr explicit PacketHeader(RawData data);
 
     [[nodiscard]] std::vector<uint8_t> ToAscii() const noexcept;
-    [[nodiscard]] explicit             operator std::vector<uint8_t>() const noexcept;
-    [[nodiscard]] bool                 operator==(const PacketHeader& other) const;
+    [[nodiscard]] explicit operator std::vector<uint8_t>() const noexcept;
+    [[nodiscard]] bool operator==(const PacketHeader& other) const;
 
 private:
     inline static trs_id_t s_lastTrsId = 0;
@@ -90,7 +90,7 @@ public:
            uint32_t                    crc    = 0);
 
     [[nodiscard]] explicit operator std::vector<uint8_t>() const noexcept;
-    [[nodiscard]] bool     operator==(const Packet& other) const;
+    [[nodiscard]] bool operator==(const Packet& other) const;
 
     PacketHeader         Header  = {};
     std::vector<uint8_t> Payload = {};
@@ -147,7 +147,7 @@ public:
     static constexpr size_t  s_charsPerBytes   = 2;         //!< Each byte of data is 2 characters.
     static constexpr uint8_t s_packetStartFlag = '\x16';    //!< Value for SYN (Synchronization).
 
-    static constexpr uint8_t s_sohFlag      = '\x01';    //!< ASCII for Start of Heading.
+    static constexpr uint8_t s_sohFlag      = '\x01';       //!< ASCII for Start of Heading.
     static constexpr size_t  s_sohOffset    = sizeof(s_packetStartFlag);
     static constexpr size_t  s_headerOffset = s_sohOffset + sizeof(s_sohFlag);
 

@@ -11,12 +11,12 @@
  ******************************************************************************
  */
 #ifndef sliders_H
-#define sliders_H
+#    define sliders_H
 
 /*****************************************************************************/
 /* Includes */
-#include <string_view>
-#include <limits>
+#    include <limits>
+#    include <string_view>
 
 /*****************************************************************************/
 /* Exported Defines and Macros */
@@ -152,11 +152,8 @@ bool SliderInt4(std::string_view label,
                 int              max    = std::numeric_limits<int>::max(),
                 std::string_view format = "%d"sv);
 
-bool SliderAngle(std::string_view label,
-                 float*           v,
-                 float            min    = -360.0f,
-                 float            max    = 360.0f,
-                 std::string_view format = "%.0f deg"sv);
+bool SliderAngle(
+  std::string_view label, float* v, float min = -360.0f, float max = 360.0f, std::string_view format = "%.0f deg"sv);
 }    // namespace UI
 
 /* Have a wonderful day :) */

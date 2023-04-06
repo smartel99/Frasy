@@ -20,16 +20,14 @@
 
 #include "Brigerad.h"
 #include "Brigerad/Renderer/Texture.h"
-
 #include "utils/logging/log_window_options.h"
 #include "utils/logging/log_window_sink.h"
 
-#include <imgui/imgui.h>
-#include <spdlog/common.h>
-
 #include <array>
 #include <functional>
+#include <imgui/imgui.h>
 #include <memory>
+#include <spdlog/common.h>
 
 namespace Frasy
 {
@@ -51,10 +49,8 @@ public:
 protected:
     void RenderOptions();
 
-    static void RenderCombinedLoggers(LogWindowOptions&                     options,
-                                      const std::shared_ptr<LogWindowSink>& sink);
-    static void RenderSeparateLoggers(LogWindowOptions&                     options,
-                                      const std::shared_ptr<LogWindowSink>& sink);
+    static void RenderCombinedLoggers(LogWindowOptions& options, const std::shared_ptr<LogWindowSink>& sink);
+    static void RenderSeparateLoggers(LogWindowOptions& options, const std::shared_ptr<LogWindowSink>& sink);
     void (*m_renderLoggersFunc)(LogWindowOptions&, const std::shared_ptr<LogWindowSink>&) = nullptr;
 
     using LoggerName    = LogWindowMultiSink::LoggerMap::key_type;

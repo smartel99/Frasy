@@ -4,9 +4,7 @@
 
 namespace Frasy::StringUtils
 {
-std::string ReplaceAll(const std::string& str,
-                       const std::string& toReplace,
-                       const std::string& replaceBy)
+std::string ReplaceAll(const std::string& str, const std::string& toReplace, const std::string& replaceBy)
 {
     std::string newStr = str;
 

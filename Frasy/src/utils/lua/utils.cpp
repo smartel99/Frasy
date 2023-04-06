@@ -15,61 +15,64 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 #include "utils.h"
+
 #include <iostream>
 
-sol::object copy(const sol::object &obj, sol::state &target) {
+sol::object copy(const sol::object& obj, sol::state& target)
+{
     sol::type tp = obj.get_type();
-    if (tp == sol::type::number) {
+    if (tp == sol::type::number)
+    {
         const double d = obj.as<double>();
         return sol::make_object(target, d);
     }
-    else if (tp == sol::type::boolean) {
+    else if (tp == sol::type::boolean)
+    {
         const bool b = obj.as<bool>();
         return sol::make_object(target, b);
     }
-    else if (tp == sol::type::string) {
+    else if (tp == sol::type::string)
+    {
         const std::string s = obj.as<std::string>();
         return sol::make_object(target, s);
     }
-    else if (tp == sol::type::table) {
-        sol::table t = obj.as<sol::table>();
+    else if (tp == sol::type::table)
+    {
+        sol::table t     = obj.as<sol::table>();
         sol::table tcopy = target.create_table();
-        for (auto &[k, v] : t) tcopy.set(copy(k, target), copy(v, target));
+        for (auto& [k, v] : t) tcopy.set(copy(k, target), copy(v, target));
         return tcopy;
     }
     return {};
 }
 
-void print(const sol::object &obj, int level) {
+void print(const sol::object& obj, int level)
+{
     sol::type tp = obj.get_type();
     for (int i = 0; i < level - 1; ++i) std::cout << "   ";
     if (level != 0) std::cout << "|--- ";
 
-    auto pv = [](const sol::object &o) {
+    auto pv = [](const sol::object& o)
+    {
         sol::type tp = o.get_type();
-        if (tp == sol::type::number) {
-            std::cout << std::to_string(o.as<double>());
-        }
-        else if (tp == sol::type::boolean) {
-            std::cout << std::to_string(o.as<bool>());
-        }
-        else if (tp == sol::type::string) {
-            std::cout << o.as<std::string>();
-        }
-        else {
-            std::cout << "Invalid type: " << static_cast<int>(tp);
-        }
+        if (tp == sol::type::number) { std::cout << std::to_string(o.as<double>()); }
+        else if (tp == sol::type::boolean) { std::cout << std::to_string(o.as<bool>()); }
+        else if (tp == sol::type::string) { std::cout << o.as<std::string>(); }
+        else { std::cout << "Invalid type: " << static_cast<int>(tp); }
     };
 
-    if (tp == sol::type::table) {
+    if (tp == sol::type::table)
+    {
         sol::table t = obj.as<sol::table>();
-        for (auto [key, val] : t) {
+        for (auto [key, val] : t)
+        {
             pv(key);
             std::cout << ":" << std::endl;
             print(val, level + 1);
         }
     }
-    else {
+    else
+    {
         pv(obj);
         std::cout << std::endl;
     }

@@ -16,6 +16,7 @@
  */
 
 #include "enum.h"
+
 #include "utils/misc/deserializer.h"
 
 namespace Frasy::Type
@@ -25,14 +26,14 @@ type_id_t Enum::Field::Manager::id = 0;
 type_id_t Enum::Manager::id        = 0;
 
 static_assert(requires {
-                  {
-                      Deserialize<Enum::Field>(nullptr, nullptr)
-                  } -> std::same_as<Enum::Field>;
-              });
+    {
+        Deserialize<Enum::Field>(nullptr, nullptr)
+    } -> std::same_as<Enum::Field>;
+});
 
 static_assert(requires {
-                  {
-                      Deserialize<Enum>(nullptr, nullptr)
-                  } -> std::same_as<Enum>;
-              });
+    {
+        Deserialize<Enum>(nullptr, nullptr)
+    } -> std::same_as<Enum>;
+});
 }    // namespace Frasy::Type

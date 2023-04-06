@@ -66,9 +66,9 @@ consteval bool CommandNeedsResponse()
  */
 template<typename T>
 concept CommandResponse = std::same_as<T, void> || requires {
-                                                       Frasy::Serialize(std::declval<T>());
-                                                       Frasy::Deserialize<T>(nullptr, nullptr);
-                                                   };
+    Frasy::Serialize(std::declval<T>());
+    Frasy::Deserialize<T>(nullptr, nullptr);
+};
 
 template<typename T>
 concept ValidCommandResponse =

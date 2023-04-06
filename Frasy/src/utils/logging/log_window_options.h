@@ -37,14 +37,12 @@ struct LogWindowOptions
 
     bool CombineLoggers = false;
 
-    std::array<bool, spdlog::level::n_levels> ShowLevels = {
-      true, true, true, true, true, true, true};
+    std::array<bool, spdlog::level::n_levels> ShowLevels = {true, true, true, true, true, true, true};
 
-    bool                                 ShowTimeStamp      = true;
-    bool                                 ShowLogSource      = true;
-    bool                                 ShowSourceLocation = true;
-    LogEntry::SourceLocationRenderStyles SourceLocationRenderStyle =
-      LogEntry::SourceLocationRenderStyle_All;
+    bool                                 ShowTimeStamp             = true;
+    bool                                 ShowLogSource             = true;
+    bool                                 ShowSourceLocation        = true;
+    LogEntry::SourceLocationRenderStyles SourceLocationRenderStyle = LogEntry::SourceLocationRenderStyle_All;
 
 
     LogWindowOptions() noexcept = default;

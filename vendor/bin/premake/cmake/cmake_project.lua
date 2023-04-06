@@ -316,7 +316,7 @@ function m.generate(prj)
         local getBuildCommands = function(t, cmd)
             local out = ""
             for _, v in ipairs(cfg[t]) do
-                local s, e, match = v:find("({COPY%u*})")
+                local s, e, match = v:find("({CMD_%u*})")
                 if s == nil then
                     printf("WARNING: Command '%s...' is not supported...",
                             v:sub(1, 64))
@@ -328,7 +328,13 @@ function m.generate(prj)
                             prj.name, cmd)
 
                     -- Check if the file we have is a dir or a file.
-                    if match == "{COPYDIR}" then
+                    if match == "{CMD_RMDIR}" then
+                        tmp = tmp .. string.format("COMMAND \"${CMAKE_COMMAND}\" -E rm -r -f \"%s/%s\"\n",
+                                        cfg.project.location, v)
+                    elseif match == "{CMD_MKDIR}" then
+                        tmp = tmp .. string.format("COMMAND \"${CMAKE_COMMAND}\" -E make_directory \"%s/%s\"\n",
+                                        cfg.project.location, v)
+                    elseif match == "{CMD_COPYDIR}" then
                         local parameters = split_command(v)
                         local source = parameters[1]
                         local destination = parameters[2]
@@ -338,21 +344,21 @@ function m.generate(prj)
                         tmp = tmp .. string.format(
                                 "COMMAND \"${CMAKE_COMMAND}\" -E copy_directory \"%s/%s\" \"%s/%s\"\n",
                                 cfg.project.location, source,
-                                cfg.buildtarget.directory, destination)
-                    elseif match == "{COPYFILE}" then
+                                cfg.project.location, destination)
+                    elseif match == "{CMD_COPYFILE}" then
                         tmp = tmp ..
                                 string.format(
                                         "COMMAND \"${CMAKE_COMMAND}\" -E copy \"%s/%s\" \"%s\"\n",
                                         cfg.project.location, v,
-                                        cfg.buildtarget.directory)
+                                        cfg.project.location)
                     else
                         printf("WARNING: Command '%s...' is not supported...",
                                 match)
                     end
-                    out = out .. tmp ..
-                            string.format(
-                                    "COMMENT \"Copied '%s' to target directory\"\n)\n\n",
-                                    v)
+                    out = out .. tmp .. ")\n"
+                            --string.format(
+                             --       "COMMENT \"Copied '%s' to target directory\"\n)\n\n",
+                             --       v)
                 end
             end
 

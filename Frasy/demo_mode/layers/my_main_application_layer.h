@@ -18,7 +18,7 @@
 #ifndef GUARD_MY_MAIN_APPLICATION_LAYER_H
 #define GUARD_MY_MAIN_APPLICATION_LAYER_H
 
-#include "../../layers/main_application_layer.h"
+#include "layers/main_application_layer.h"
 #include "utils/lua/orchestrator/orchestrator.h"
 #include "utils/lua/popup.h"
 

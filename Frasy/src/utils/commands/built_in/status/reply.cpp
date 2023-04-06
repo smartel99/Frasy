@@ -16,6 +16,7 @@
  */
 
 #include "reply.h"
+
 #include "utils/misc/deserializer.h"
 
 namespace Frasy::Actions::Status
@@ -23,8 +24,8 @@ namespace Frasy::Actions::Status
 type_id_t Reply::Manager::id = 0;
 
 static_assert(requires {
-                  {
-                      Deserialize<Reply>(nullptr, nullptr)
-                  } -> std::same_as<Reply>;
-              });
+    {
+        Deserialize<Reply>(nullptr, nullptr)
+    } -> std::same_as<Reply>;
+});
 }    // namespace Frasy::Actions::Status

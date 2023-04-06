@@ -102,7 +102,7 @@ public:
     {
         return m_typeManager.GetEnums();
     }
-    [[nodiscard]] const Type::Manager & GetTypeManager() const noexcept { return m_typeManager; }
+    [[nodiscard]] const Type::Manager& GetTypeManager() const noexcept { return m_typeManager; }
 
 
     [[nodiscard]] bool        IsOpen() const noexcept { return m_device.isOpen(); }

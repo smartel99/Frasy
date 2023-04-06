@@ -17,10 +17,11 @@
 
 #ifndef FRASY_UTILS_COMM_SERIAL_EXCEPTIONS_H
 #define FRASY_UTILS_COMM_SERIAL_EXCEPTIONS_H
+#include "Brigerad/Core/Log.h"
 #include "packet.h"
 
 #include <exception>
-#include <spdlog/fmt/fmt.h>
+#include <span>
 #include <string_view>
 #include <vector>
 

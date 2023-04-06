@@ -16,23 +16,24 @@
  */
 
 #include "struct.h"
+
 #include "type_id_t.h"
 #include "utils/misc/deserializer.h"
 namespace Frasy::Type
 {
 
-type_id_t Struct::Manager::id         = 0;
+type_id_t Struct::Manager::id        = 0;
 type_id_t Struct::Field::Manager::id = 0;
 
 static_assert(requires {
-                  {
-                      Deserialize<Struct::Field>(nullptr, nullptr)
-                  } -> std::same_as<Struct::Field>;
-              });
+    {
+        Deserialize<Struct::Field>(nullptr, nullptr)
+    } -> std::same_as<Struct::Field>;
+});
 
 static_assert(requires {
-                  {
-                      Deserialize<Struct>(nullptr, nullptr)
-                  } -> std::same_as<Struct>;
-              });
+    {
+        Deserialize<Struct>(nullptr, nullptr)
+    } -> std::same_as<Struct>;
+});
 }    // namespace Frasy::Type

@@ -12,8 +12,8 @@
  */
 /*****************************************************************************/
 /* Includes */
-#include "../sliders.h"
 #include "../helpers.h"
+#include "../sliders.h"
 
 #include <format>
 
@@ -45,9 +45,7 @@ bool SliderInt(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderInt(std::format("##{}", label).c_str(), v, min, max, format.data());
-      },
+      [&]() -> bool { return ImGui::SliderInt(std::format("##{}", label).c_str(), v, min, max, format.data()); },
       helpMessage);
 }
 
@@ -60,9 +58,7 @@ bool SliderInt2(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderInt2(std::format("##{}", label).c_str(), v, min, max, format.data());
-      },
+      [&]() -> bool { return ImGui::SliderInt2(std::format("##{}", label).c_str(), v, min, max, format.data()); },
       helpMessage);
 }
 
@@ -75,9 +71,7 @@ bool SliderInt3(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderInt3(std::format("##{}", label).c_str(), v, min, max, format.data());
-      },
+      [&]() -> bool { return ImGui::SliderInt3(std::format("##{}", label).c_str(), v, min, max, format.data()); },
       helpMessage);
 }
 
@@ -90,52 +84,37 @@ bool SliderInt4(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderInt4(std::format("##{}", label).c_str(), v, min, max, format.data());
-      },
+      [&]() -> bool { return ImGui::SliderInt4(std::format("##{}", label).c_str(), v, min, max, format.data()); },
       helpMessage);
 }
 
 
-bool SliderInt(
-  const std::string_view label, int* v, const int min, const int max, const std::string_view format)
+bool SliderInt(const std::string_view label, int* v, const int min, const int max, const std::string_view format)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderInt(std::format("##{}", label).c_str(), v, min, max, format.data());
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool { return ImGui::SliderInt(std::format("##{}", label).c_str(), v, min, max, format.data()); });
 }
 
-bool SliderInt2(const std::string_view label,
-                int                    v[2],
-                const int              min,
-                const int              max,
-                const std::string_view format)
+bool SliderInt2(const std::string_view label, int v[2], const int min, const int max, const std::string_view format)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderInt2(std::format("##{}", label).c_str(), v, min, max, format.data());
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool { return ImGui::SliderInt2(std::format("##{}", label).c_str(), v, min, max, format.data()); });
 }
 
-bool SliderInt3(const std::string_view label,
-                int                    v[3],
-                const int              min,
-                const int              max,
-                const std::string_view format)
+bool SliderInt3(const std::string_view label, int v[3], const int min, const int max, const std::string_view format)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderInt3(std::format("##{}", label).c_str(), v, min, max, format.data());
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool { return ImGui::SliderInt3(std::format("##{}", label).c_str(), v, min, max, format.data()); });
 }
 
-bool SliderInt4(const std::string_view label,
-                int                    v[4],
-                const int              min,
-                const int              max,
-                const std::string_view format)
+bool SliderInt4(const std::string_view label, int v[4], const int min, const int max, const std::string_view format)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderInt4(std::format("##{}", label).c_str(), v, min, max, format.data());
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool { return ImGui::SliderInt4(std::format("##{}", label).c_str(), v, min, max, format.data()); });
 }
 /*****************************************************************************/
 /* Private Member Definitions */

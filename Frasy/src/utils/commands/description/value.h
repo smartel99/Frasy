@@ -114,14 +114,15 @@ struct Value
     std::string ToString(const Frasy::Type::Manager& manager) const
     {
         return "{" + std::to_string(Pos) + ", " + std::string(Name) + ", " + std::string(Help) + ", " +
-               std::string(Alias) + ", " + std::string(manager.GetTypeName(Type)) + ", " +
-               std::to_string(Count) + ", " + std::string(Min) + ", " + std::string(Max) + "}";
+               std::string(Alias) + ", " + std::string(manager.GetTypeName(Type)) + ", " + std::to_string(Count) +
+               ", " + std::string(Min) + ", " + std::string(Max) + "}";
     }
 
-    explicit operator std::string() const {
+    explicit operator std::string() const
+    {
         return "{" + std::to_string(Pos) + ", " + std::string(Name) + ", " + std::string(Help) + ", " +
-               std::string(Alias) + ", " + "???" + ", " +
-               std::to_string(Count) + ", " + std::string(Min) + ", " + std::string(Max) + "}";
+               std::string(Alias) + ", " + "???" + ", " + std::to_string(Count) + ", " + std::string(Min) + ", " +
+               std::string(Max) + "}";
     }
 };
 
