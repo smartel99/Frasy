@@ -61,7 +61,7 @@ private:
     static constexpr size_t s_payloadSizeOffset   = s_modifiersOffset + SizeInChars<uint8_t>();
 
 private:
-    [[nodiscard]] trs_id_t MakeTransactionId(trs_id_t id);
+    [[nodiscard]] trs_id_t MakeTransactionId(trs_id_t id) const;
 
 public:
     static constexpr size_t s_headerSize = s_payloadSizeOffset + SizeInChars<decltype(PayloadSize)>();
@@ -105,9 +105,8 @@ public:
 
     static Packet Request(cmd_id_t cmdId)
     {
-        Packet pkt;
-        pkt.Header.CommandId = cmdId;
-        pkt.m_crc            = pkt.ComputeCrc();
+        Packet pkt {cmdId, {}};
+        pkt.m_crc = pkt.ComputeCrc();
         return pkt;
     }
     static Packet Request(Actions::CommandId cmdId) { return Request(static_cast<cmd_id_t>(cmdId)); }

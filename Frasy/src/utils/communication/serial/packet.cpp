@@ -65,7 +65,8 @@ PacketHeader::operator std::vector<uint8_t>() const noexcept
     std::vector<uint8_t> out;
     out.reserve(s_headerSize);
 
-    auto pktId = Serialize(TransactionId);
+    auto pktId = Serialize(TransactionId == AUTOMATIC_TRANSACTION_ID ? MakeTransactionId(AUTOMATIC_TRANSACTION_ID)
+                                                                     : TransactionId);
     out.insert(out.end(), pktId.begin(), pktId.end());
 
     auto cmdId = Serialize(CommandId);
@@ -88,7 +89,7 @@ bool PacketHeader::operator==(const PacketHeader& other) const
            PayloadSize == other.PayloadSize;
 }
 
-[[nodiscard]] trs_id_t PacketHeader::MakeTransactionId(trs_id_t id)
+[[nodiscard]] trs_id_t PacketHeader::MakeTransactionId(trs_id_t id) const
 {
     static uint32_t s_lastId = 0;
     if (id == AUTOMATIC_TRANSACTION_ID) { id = 0xF000 | s_lastId++; }

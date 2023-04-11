@@ -112,6 +112,7 @@ public:
 
     ResponsePromise& Transmit(const Packet& pkt)
     {
+        BR_LOG_TRACE("Device", "Sending transaction {}", pkt.Header.TransactionId);
         std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);
         std::lock_guard      txLock {m_txLock};
         m_device.write(data);
@@ -143,6 +144,9 @@ private:
     Frasy::Type::Manager                                      m_typeManager;
 
     std::unordered_map<trs_id_t, ResponsePromise> m_pending;
+    void                                          GetDeviceCommands();
+    void                                          GetDeviceEnums();
+    void                                          GetDeviceStructs();
 };
 }    // namespace Frasy::Communication
 

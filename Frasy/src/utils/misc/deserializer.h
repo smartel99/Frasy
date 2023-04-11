@@ -69,6 +69,7 @@ template<typename T, typename Begin, typename End>
     requires((std::is_integral_v<T> && !std::is_same_v<T, bool>))
 T Deserialize(Begin&& b, End&& e)
 {
+    BR_CORE_ASSERT(sizeof(T) <= std::distance(b, e), "Not enough data");
     constexpr size_t N = sizeof(T);
     T                t = {};
     for (size_t i = 1; i <= sizeof(T); i++)
@@ -120,6 +121,11 @@ bool Deserialize(Begin&& b, End&& e)
 template<SerializableContainer T, typename Begin, typename End>
 T Deserialize(Begin&& b, End&& e)
 {
+    if(std::distance(b, e) < sizeof(uint16_t))
+    {
+        BR_CORE_ERROR("Not enough data to deserialize container");
+        return {};
+    }
     T        t;
     uint16_t size = Deserialize<uint16_t>(b, e);    // Get reported size from serializer
     if constexpr (std::is_same_v<std::array<typename T::value_type, sizeof(T) / sizeof(typename T::value_type)>, T>)

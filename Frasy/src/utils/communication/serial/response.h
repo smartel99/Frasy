@@ -37,9 +37,11 @@ struct ResponsePromise
     std::promise<Packet> Promise;
     std::thread          Thread;
 
-    explicit ResponsePromise()                    = default;
-    ResponsePromise(ResponsePromise&&)            = default;
-    ResponsePromise& operator=(ResponsePromise&&) = default;
+    explicit ResponsePromise()                         = default;
+    ResponsePromise(ResponsePromise&&)                 = default;
+    ResponsePromise(const ResponsePromise&)            = delete;
+    ResponsePromise& operator=(ResponsePromise&&)      = default;
+    ResponsePromise& operator=(const ResponsePromise&) = delete;
     ~ResponsePromise();
 
     using on_complete_cb_t = std::function<void(const Packet&)>;
@@ -61,12 +63,18 @@ struct ResponsePromise
     template<typename T>
     T Collect()
     {
-        Packet           packet;
-        std::atomic_flag completed;
+        Packet            packet;
+        std::atomic<bool> completed;
         m_localOnCompleteCb = [&](Packet pkt)
         {
-            packet = std::move(pkt);
-            completed.test_and_set();
+            packet    = std::move(pkt);
+            completed = true;
+            completed.notify_all();
+        };
+        m_localOnErrorCb = [&](std::exception_ptr e)
+        {
+            OnErrorCb(e);
+            completed = true;
             completed.notify_all();
         };
         run();
@@ -79,12 +87,18 @@ struct ResponsePromise
     template<>
     Packet Collect()
     {
-        Packet           packet;
-        std::atomic_flag completed;
-        m_localOnCompleteCb = [&](Packet pkt)
+        Packet            packet;
+        std::atomic<bool> completed = false;
+        m_localOnCompleteCb         = [&](Packet pkt)
         {
-            packet = std::move(pkt);
-            completed.test_and_set();
+            packet    = std::move(pkt);
+            completed = true;
+            completed.notify_all();
+        };
+        m_localOnErrorCb = [&](std::exception_ptr e)
+        {
+            OnErrorCb(e);
+            completed = true;
             completed.notify_all();
         };
         run();
@@ -100,22 +114,35 @@ private:
     {
         if (m_onCompleteCb) { m_onCompleteCb(packet); }
     };
-    on_timeout_cb_t m_localOnTimeoutCb = [&]()
-    {
-        if (m_onTimeoutCb) { m_onTimeoutCb(); }
-        else { throw std::exception("Timeout"); }
-    };
-    on_error_cb_t m_localOnErrorCb = [&](const std::exception& e)
-    {
-        if (m_onErrorCb) { m_onErrorCb(e); }
-        else { throw e; }
-    };
+    std::function<void(std::exception_ptr)> m_localOnErrorCb = [&](std::exception_ptr e) { OnErrorCb(e); };
 
     on_complete_cb_t m_onCompleteCb;
     on_timeout_cb_t  m_onTimeoutCb;
     on_error_cb_t    m_onErrorCb;
 
     void run();
+
+    void OnTimeoutCb()
+    {
+        if (m_onTimeoutCb) { m_onTimeoutCb(); }
+        else { throw std::runtime_error("Timed out"); }
+    }
+    void OnErrorCb(std::exception_ptr eptr)
+    {
+        if (m_onErrorCb)
+        {
+            try
+            {
+                if (eptr) { std::rethrow_exception(eptr); }
+                else { throw std::runtime_error("No information provided"); }
+            }
+            catch (const std::exception& e)
+            {
+                m_onErrorCb(e);
+            }
+        }
+        else { Promise.set_exception(eptr); }
+    }
 };
 }    // namespace Frasy::Communication
 

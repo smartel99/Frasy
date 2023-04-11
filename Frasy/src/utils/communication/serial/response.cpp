@@ -55,11 +55,17 @@ void ResponsePromise::Async()
 
 void ResponsePromise::Await()
 {
-    std::atomic_flag completed;
-    m_localOnCompleteCb = [&](const Packet& pkt)
+    std::atomic<bool> completed = false;
+    m_localOnCompleteCb         = [&](const Packet& pkt)
     {
         if (m_onCompleteCb) m_onCompleteCb(pkt);
-        completed.test_and_set();
+        completed = true;
+        completed.notify_all();
+    };
+    m_localOnErrorCb = [&](std::exception_ptr e)
+    {
+        OnErrorCb(e);
+        completed = true;
         completed.notify_all();
     };
     run();
@@ -88,12 +94,16 @@ void ResponsePromise::run()
                       m_localOnCompleteCb(packet);
                   }
                   break;
-                  case std::future_status::timeout: m_localOnTimeoutCb(); break;
+                  case std::future_status::timeout:
+                  {
+                      OnTimeoutCb();
+                  }
+                  break;
               }
           }
-          catch (const std::exception& e)
+          catch (...)
           {
-              m_localOnErrorCb(e);
+              m_localOnErrorCb(std::current_exception());
           }
       },
       std::move(s_future));

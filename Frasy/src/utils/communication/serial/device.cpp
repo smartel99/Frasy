@@ -181,6 +181,7 @@ void SerialDevice::GetCapabilities()
     {
         m_commands.clear();
 
+        // TODO fix me
         //        Transmit(Packet::Request(CommandId::Log).MakePayload(true))
         //          .OnComplete(
         //            [&](const Packet& packet)
@@ -201,84 +202,9 @@ void SerialDevice::GetCapabilities()
         //            })
         //          .Await();
 
-        auto cmdNames = Transmit(Packet::Request(CommandId::CommandsList)).Collect<std::vector<std::string>>();
-
-        for (const auto& name : cmdNames)
-        {
-            Transmit(Packet::Request(CommandId::CommandInfo).MakePayload(name))
-              .OnComplete(
-                [&](const Packet& packet)
-                {
-                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::CommandInfo))
-                    {
-                        auto info           = packet.FromPayload<Actions::CommandInfo::Reply>();
-                        m_commands[info.Id] = info;
-                        return;
-                    }
-                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
-                    {
-                        throw std::exception(packet.FromPayload<std::string>().c_str());
-                    }
-                    throw std::exception("Invalid command");
-                })
-              .Await();
-        }
-
-        auto enumIds = Transmit(Packet::Request(CommandId::EnumsList)).Collect<std::vector<Type::BasicInfo>>();
-
-        auto structIds = Transmit(Packet::Request(CommandId::StructsList)).Collect<std::vector<Type::BasicInfo>>();
-
-        for (const auto& info : enumIds)
-        {
-            Transmit(Packet::Request(CommandId::EnumInfo).MakePayload(info.id))
-              .OnComplete(
-                [&](const Packet& packet)
-                {
-                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::EnumInfo))
-                    {
-                        m_typeManager.AddEnum(info.id, packet.FromPayload<Type::Enum>());
-                        return;
-                    }
-                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
-                    {
-                        throw std::exception(packet.FromPayload<std::string>().c_str());
-                    }
-                    throw std::exception("Invalid command");
-                })
-              .OnTimeout(
-                []
-                {
-                    int a;
-                    BR_LOG_ERROR("Device", "Timeout");
-                })
-              .OnError(
-                [](const std::exception& e)
-                {
-                    int a;
-                    BR_LOG_ERROR("Device", "Exception {}", e.what());
-                })
-              .Await();
-        }
-
-        for (const auto& info : structIds)
-        {
-            Transmit(Packet::Request(CommandId::StructInfo).MakePayload(info.id))
-              .OnComplete(
-                [&](const Packet& packet)
-                {
-                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::StructInfo))
-                    {
-                        m_typeManager.AddStruct(info.id, packet.FromPayload<Type::Struct>());
-                        return;
-                    }
-                    if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
-                    {
-                        throw std::exception(packet.FromPayload<std::string>().c_str());
-                    }
-                    throw std::exception("Invalid command");
-                })
-              .Await();
-        }
+        GetDeviceCommands();
+//        GetDeviceEnums();
+//        GetDeviceStructs();
 
         m_ready = true;
 
@@ -291,6 +217,92 @@ void SerialDevice::GetCapabilities()
     catch (std::exception& e)
     {
         BR_LOG_ERROR(m_label, "Failed to get board capabilities: {}", e.what());
+    }
+}
+
+void SerialDevice::GetDeviceStructs()
+{
+    auto structIds = Transmit(Packet::Request(Actions::CommandId::StructsList)).Collect<std::vector<Type::BasicInfo>>();
+    for (const auto& info : structIds)
+    {
+        Transmit(Packet::Request(Actions::CommandId::StructInfo).MakePayload(info.id))
+          .OnComplete(
+            [&](const Packet& packet)
+            {
+                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::StructInfo))
+                {
+                    m_typeManager.AddStruct(info.id, packet.FromPayload<Type::Struct>());
+                    return;
+                }
+                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+                {
+                    throw std::exception(packet.FromPayload<std::string>().c_str());
+                }
+                throw std::exception("Invalid command");
+            })
+          .Await();
+    }
+}
+
+void SerialDevice::GetDeviceEnums()
+{
+    auto enumIds = Transmit(Packet::Request(Actions::CommandId::EnumsList)).Collect<std::vector<Type::BasicInfo>>();
+    for (const auto& info : enumIds)
+    {
+        Transmit(Packet::Request(Actions::CommandId::EnumInfo).MakePayload(info.id))
+          .OnComplete(
+            [&](const Packet& packet)
+            {
+                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::EnumInfo))
+                {
+                    m_typeManager.AddEnum(info.id, packet.FromPayload<Type::Enum>());
+                    return;
+                }
+                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+                {
+                    throw std::exception(packet.FromPayload<std::string>().c_str());
+                }
+                throw std::exception("Invalid command");
+            })
+          .OnTimeout([] { BR_LOG_ERROR("Device", "Timeout"); })
+          .OnError([](const std::exception& e) { BR_LOG_ERROR("Device", "Exception {}", e.what()); })
+          .Await();
+    }
+}
+
+void SerialDevice::GetDeviceCommands()
+{
+    auto cmdNames = Transmit(Packet::Request(Actions::CommandId::CommandsList)).Collect<std::vector<std::string>>();
+
+    for (const auto& name : cmdNames)
+    {
+        BR_LOG_DEBUG(m_label, "Getting information for '{}'...", name);
+        try
+        {
+            Transmit(Packet::Request(Actions::CommandId::CommandInfo).MakePayload(name))
+              .OnComplete(
+                [&](const Packet& packet)
+                {
+                    if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::CommandInfo))
+                    {
+                        auto info           = packet.FromPayload<Actions::CommandInfo::Reply>();
+                        m_commands[info.Id] = info;
+                        BR_LOG_DEBUG(m_label, "Received information for '{}'", info.Name);
+                        return;
+                    }
+                    if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+                    {
+                        throw std::exception(packet.FromPayload<std::string>().c_str());
+                    }
+                    throw std::exception("Invalid command");
+                })
+              .OnError([&](const std::exception& e)
+                       { BR_LOG_ERROR(m_label, "Unable to get information for '{}': {}", name, e.what()); })
+              .Await();
+        }
+        catch (...)
+        {
+        }
     }
 }
 }    // namespace Frasy::Communication
