@@ -1,7 +1,7 @@
 /**
- * @file    map.h
- * @author  Paul Thomas
- * @date    3/28/2023
+ * @file    warning.h
+ * @author  Samuel Martel
+ * @date    2023-04-17
  * @brief
  *
  * @copyright
@@ -14,36 +14,27 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H
-#define COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H
 
-#include <map>
-#include <vector>
+#ifndef BRIGERAD_SRC_BRIGERAD_UTILS_DIALOGS_WARNING_H
+#define BRIGERAD_SRC_BRIGERAD_UTILS_DIALOGS_WARNING_H
 
-namespace Frasy
+#include <format>
+#include <string>
+#include <string_view>
+
+namespace Brigerad
 {
-struct Map
+namespace Details
 {
-    struct IB
-    {
-        struct Team
-        {
-            std::vector<std::size_t> uuts;
-        };
-        // Key: leader
-        std::map<std::size_t, Team> teams;
-    };
-    // Key: index
-    std::map<std::size_t, IB> ibs;
-    std::vector<std::size_t>  uuts;
+void WarningDialogImpl(std::string_view title, const std::string& msg);
+}
 
-    struct
-    {
-        std::size_t uut=0;
-        std::size_t teams=0;
-        std::size_t ib=0;
-    } count;
-};
-}    // namespace Frasy
+template<typename... Args>
+void WarningDialog(std::string_view title, std::string_view msg, Args&&... args)
+{
+    std::string fmtMessage = std::vformat(msg, std::make_format_args(args...));
+    Details::WarningDialogImpl(title, fmtMessage);
+}
+}    // namespace Brigerad
 
-#endif    // COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H
+#endif    // BRIGERAD_SRC_BRIGERAD_UTILS_DIALOGS_WARNING_H

@@ -85,6 +85,11 @@ public:
         }
     }
 
+    [[nodiscard]] auto begin() noexcept { return m_config.items().begin(); }
+    [[nodiscard]] auto begin() const noexcept { return m_config.items().begin(); }
+    [[nodiscard]] auto end() noexcept { return m_config.items().end(); }
+    [[nodiscard]] auto end() const noexcept { return m_config.items().end(); }
+
 private:
     std::string m_path;
     config_t    m_config = {};

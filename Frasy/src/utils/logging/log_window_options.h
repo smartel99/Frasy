@@ -58,6 +58,21 @@ struct LogWindowOptions
         LOAD_FIELD(ShowSourceLocation);
         LOAD_FIELD(SourceLocationRenderStyle);
 #undef LOAD_FIELD
+
+        // Load the configured logger levels.
+        auto loggers = cfg.GetField("Loggers");
+        for (auto&& logger : loggers)
+        {
+            try
+            {
+                std::string name  = logger.key();
+                auto        level = static_cast<spdlog::level::level_enum>(logger.value().get<int>());
+                Brigerad::Log::SetLoggerLevel(name, level);
+            }
+            catch (...)
+            {
+            }
+        }
     }
 
     [[nodiscard]] Config Serialize() const noexcept
@@ -74,6 +89,16 @@ struct LogWindowOptions
         SET_FIELD(ShowSourceLocation);
         SET_FIELD(SourceLocationRenderStyle);
 #undef SET_FIELD
+
+        // Save the overriden log levels, if any.
+        std::map<std::string, int> loggerLevels;
+        const auto&                loggers = Brigerad::Log::GetLoggers();
+        for (auto&& [name, ptr] : loggers)
+        {
+            if (ptr->level() != Brigerad::Log::s_defaultLevel) { loggerLevels[name] = ptr->level(); }
+        }
+        cfg.SetField("Loggers", loggerLevels);
+
         return cfg;
     }
 };

@@ -15,8 +15,11 @@
 
 local mapper = require("lua/core/sdk/environment/map")
 local worker = require("lua/core/sdk/environment/worker")
-local team   = require("lua/core/sdk/environment/team")
+local team = require("lua/core/sdk/environment/team")
 
+
+---Environment
+---@param func function Function that defines the environment.
 function Environment(func)
     func()
     Map = mapper.validate()
@@ -24,16 +27,25 @@ function Environment(func)
     worker.evaluate()
 end
 
+---@class TestPoint
+---@field public To fun(uut: number, ib: number, tp: number):TestPoint Establishes a connection between the UUT and the instrumentation board.
+---
+
+--- Creates a new test point
+---@param name string The name of the test point.
+---@return TestPoint
 function TestPoint(name)
-    if name ~= nil then mapper.TestPoint.New(name) end
+    if name ~= nil then
+        mapper.TestPoint.New(name)
+    end
     return {
-        To    = mapper.TestPoint.To,
+        To = mapper.TestPoint.To,
         Count = mapper.TestPoint.Count,
     }
 end
 
-UUT    = { Count = mapper.UUT.Count }
+UUT = { Count = mapper.UUT.Count }
 
-IB     = { Count = mapper.IB.Count }
+IB = { Count = mapper.IB.Count }
 
 Worker = { Count = worker.count, Limit = worker.limit }

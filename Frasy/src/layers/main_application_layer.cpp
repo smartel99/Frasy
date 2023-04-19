@@ -170,6 +170,10 @@ void MainApplicationLayer::PresetControlRoomOptions()
     }
     else { flags |= ImGuiWindowFlags_NoBringToFrontOnFocus; }
 
+    auto size = ImGui::GetContentRegionAvail();
+    ImGui::SetNextWindowPos(ImGui::GetWindowContentRegionMin(), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImGui::GetWindowContentRegionMax(), ImGuiCond_Always);
+
     if (m_noMove)
         ImGui::Begin("Control Room", nullptr, flags);
     else

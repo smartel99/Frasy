@@ -76,12 +76,12 @@ private:
     std::function<void(sol::state& lua, Stage stage)> m_populateUserMethods = [](sol::state&, Stage) {};
 
 public:
-    void Init(const std::string& environment, const std::string& tests);
-    void RenderPopups();
-    void DoTests(const std::vector<std::string>& serials, bool regenerate = true);
-    Map  GetMap() const { return m_map; }
-    void ToggleUut(std::size_t index);
-    void EnableIb(bool enable = true) { m_ibEnabled = enable; }
+    bool       Init(const std::string& environment, const std::string& tests);
+    void       RenderPopups();
+    void       DoTests(const std::vector<std::string>& serials, bool regenerate = true);
+    const Map& GetMap() const { return m_map; }
+    void       ToggleUut(std::size_t index);
+    void       EnableIb(bool enable = true) { m_ibEnabled = enable; }
 
     [[nodiscard]] bool     IsRunning() const;
     [[nodiscard]] UutState UutState(std::size_t uut) const;
@@ -90,21 +90,20 @@ public:
         m_populateUserMethods = callback;
     }
 
-
 private:
-    bool CreateOutputDirs();
-    void InitLua(sol::state& lua, std::size_t uut = 0, Stage stage = Stage::Generation);
-    void ImportExclusive(sol::state& lua, Stage stage);
-    void ImportLog(sol::state& lua, std::size_t uut, Stage stage);
-    void ImportPopup(sol::state& lua, std::size_t uut, Stage stage);
-    void ImportSync(sol::state& lua, Stage stage);
-    void LoadIb(sol::state& lua);
-    void LoadIbCommandForExecution(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
-    void LoadIbCommandForValidation(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
-    bool LoadEnvironment(sol::state& lua, const std::string& filename);
-    bool LoadTests(sol::state& lua, const std::string& filename);
-    bool DoStep(sol::state& lua, const std::string& filename);
-    void RunTests(const std::vector<std::string>& serials, bool regenerate);
+    bool        CreateOutputDirs();
+    void        InitLua(sol::state& lua, std::size_t uut = 0, Stage stage = Stage::Generation);
+    void        ImportExclusive(sol::state& lua, Stage stage);
+    void        ImportLog(sol::state& lua, std::size_t uut, Stage stage);
+    void        ImportPopup(sol::state& lua, std::size_t uut, Stage stage);
+    void        ImportSync(sol::state& lua, Stage stage);
+    void        LoadIb(sol::state& lua);
+    void        LoadIbCommandForExecution(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
+    void        LoadIbCommandForValidation(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
+    static bool LoadEnvironment(sol::state& lua, const std::string& filename);
+    static bool LoadTests(sol::state& lua, const std::string& filename);
+    bool        DoStep(sol::state& lua, const std::string& filename);
+    void        RunTests(const std::vector<std::string>& serials, bool regenerate);
 
     void PopulateMap();
     void UpdateUutState(enum UutState state, bool force = false);

@@ -330,10 +330,10 @@ function m.generate(prj)
                     -- Check if the file we have is a dir or a file.
                     if match == "{CMD_RMDIR}" then
                         tmp = tmp .. string.format("COMMAND \"${CMAKE_COMMAND}\" -E rm -r -f \"%s/%s\"\n",
-                                        cfg.project.location, v)
+                                cfg.project.location, v)
                     elseif match == "{CMD_MKDIR}" then
                         tmp = tmp .. string.format("COMMAND \"${CMAKE_COMMAND}\" -E make_directory \"%s/%s\"\n",
-                                        cfg.project.location, v)
+                                cfg.project.location, v)
                     elseif match == "{CMD_COPYDIR}" then
                         local parameters = split_command(v)
                         local source = parameters[1]
@@ -346,19 +346,32 @@ function m.generate(prj)
                                 cfg.project.location, source,
                                 cfg.project.location, destination)
                     elseif match == "{CMD_COPYFILE}" then
+                        local parameters = split_command(v)
+                        local source = parameters[1]
+                        local destination = parameters[2]
+                        local file = parameters[3]
+                        if destination == nil then
+                            destination = source
+                        end
+                        if file == nil then
+                            error("File can't be empty!")
+                        end
                         tmp = tmp ..
                                 string.format(
-                                        "COMMAND \"${CMAKE_COMMAND}\" -E copy \"%s/%s\" \"%s\"\n",
-                                        cfg.project.location, v,
-                                        cfg.project.location)
+                                        "COMMAND \"${CMAKE_COMMAND}\" -E copy \"%s/%s/%s\" \"%s/%s/%s\"\n",
+                                        cfg.project.location, source, file,
+                                        cfg.project.location, destination, file)
                     else
                         printf("WARNING: Command '%s...' is not supported...",
                                 match)
+                        tmp = nil
                     end
-                    out = out .. tmp .. ")\n"
-                            --string.format(
-                             --       "COMMENT \"Copied '%s' to target directory\"\n)\n\n",
-                             --       v)
+                    if tmp ~= nil then
+                        out = out .. tmp .. ")\n"
+                    end
+                    --string.format(
+                    --       "COMMENT \"Copied '%s' to target directory\"\n)\n\n",
+                    --       v)
                 end
             end
 

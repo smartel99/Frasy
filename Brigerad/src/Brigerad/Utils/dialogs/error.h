@@ -1,7 +1,7 @@
 /**
- * @file    update_uut_state.cpp
- * @author  Paul Thomas
- * @date    3/28/2023
+ * @file    error.h
+ * @author  Samuel Martel
+ * @date    2023-04-17
  * @brief
  *
  * @copyright
@@ -15,21 +15,26 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#include "orchestrator.h"
-namespace Frasy::Lua
+#ifndef BRIGERAD_SRC_BRIGERAD_UTILS_DIALOGS_ERROR_H
+#define BRIGERAD_SRC_BRIGERAD_UTILS_DIALOGS_ERROR_H
+
+#include <format>
+#include <string>
+#include <string_view>
+
+namespace Brigerad
 {
-void Orchestrator::UpdateUutState(enum UutState state, bool force)
+namespace Details
 {
-    std::vector<std::size_t> uuts;
-    UpdateUutState(state, m_map.uuts, force);
+void FatalErrorDialogImpl(std::string_view title, const std::string& msg);
 }
 
-void Orchestrator::UpdateUutState(enum UutState state, const std::vector<std::size_t>& uuts, bool force)
+template<typename... Args>
+void FatalErrorDialog(std::string_view title, std::string_view msg, Args&&... args)
 {
-    for (auto uut : uuts)
-    {
-        if (m_uutStates[uut] == UutState::Disabled && !force) continue;
-        m_uutStates[uut] = state;
-    }
+    std::string fmtMessage = std::vformat(msg, std::make_format_args(args...));
+    Details::FatalErrorDialogImpl(title, fmtMessage);
 }
-}    // namespace Frasy::Lua
+}    // namespace Brigerad
+
+#endif    // BRIGERAD_SRC_BRIGERAD_UTILS_DIALOGS_ERROR_H

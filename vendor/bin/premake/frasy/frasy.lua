@@ -74,6 +74,20 @@ function frasy.generateProject(pjr)
                     print ("Copy " .. source .. " to " .. destination)
                     cmd = io.popen(string.format("robocopy %s %s /E /MT", source, destination))
                     cmd:close()
+                elseif match == "{CMD_COPYFILE}" then
+                    local parameters = split_command(v)
+                    local source = cfg.project.location .. "/" .. parameters[1]
+                    local destination = cfg.project.location .. "/" .. parameters[2]
+                    local file = parameters[3]
+                    if destination == nil then
+                        destination = source
+                    end
+                    if file == nil then
+                        error("File can't be empty!")
+                    end
+                    print ("Copy " .. file .. " from " .. source .. " to " .. destination)
+                    cmd = io.popen(string.format('robocopy "%s" "%s" "%s" /xo', source, destination, file))
+                    cmd:close()
                 else
                     printf("WARNING: Command '%s...' is not supported...", match)
                 end

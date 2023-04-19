@@ -33,6 +33,15 @@ public:
         return s_loggers[name];
     }
 
+    static spdlog::level::level_enum GetLoggerLevel(const std::string& name) { return GetLogger(name)->level(); }
+
+    static void SetLoggerLevel(const std::string& name, spdlog::level::level_enum level)
+    {
+        GetLogger(name)->set_level(level);
+    }
+
+    static const auto& GetLoggers() { return s_loggers; }
+
     static void AddSink(const spdlog::sink_ptr& sink);
 
     static void RemoveSink(const spdlog::sink_ptr& sink);
@@ -42,6 +51,7 @@ public:
     static constexpr const char* s_coreLoggerName   = "BRIGERAD";
     static constexpr const char* s_clientLoggerName = "APP";
     static constexpr const char* s_luaLoggerName    = "LUA";
+    static constexpr spdlog::level::level_enum s_defaultLevel     = spdlog::level::trace;
 
 private:
     static inline std::shared_ptr<spdlog::sinks::dist_sink_mt>                     s_sinks   = nullptr;
@@ -49,7 +59,6 @@ private:
 
     static spdlog::file_event_handlers s_eventHandlers;
 
-    static constexpr spdlog::level::level_enum s_defaultLevel = spdlog::level::trace;
 };
 
 }    // namespace Brigerad

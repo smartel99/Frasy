@@ -23,9 +23,10 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: "Yes"
-BinPackArguments: false
 
+BinPackArguments: false
 BreakAfterJavaFieldAnnotations: true
+
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true

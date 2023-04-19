@@ -24,6 +24,7 @@
 #include "../tag.h"
 #include "../team.h"
 
+#include <Brigerad/Utils/dialogs/warning.h>
 #include <chrono>
 #include <exception>
 #include <filesystem>
@@ -32,7 +33,7 @@
 
 namespace Frasy::Lua
 {
-
+// <editor-fold desc="Orchestrator">
 std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
 {
     switch (stage)
@@ -47,7 +48,16 @@ std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
 
 void Orchestrator::DoTests(const std::vector<std::string>& serials, bool regenerate)
 {
-    if (IsRunning() && m_map.count.uut != 0) { return; }
+    if (IsRunning())
+    {
+        Brigerad::WarningDialog("Frasy", "Test is already running!");
+        return;
+    }
+    if (m_map.count.uut == 0)
+    {
+        Brigerad::WarningDialog("Frasy", "No UUTs to test!");
+        return;
+    }
     m_running = std::async(std::launch::async, [this, &serials, regenerate] { RunTests(serials, regenerate); });
 }
 
@@ -161,6 +171,7 @@ void Orchestrator::LoadIbCommandForValidation(sol::state& lua, const Frasy::Acti
     {
         SerialDevice&                    device = devices[ib - 1];
         std::vector<Type::Struct::Field> fields;
+        fields.reserve(fun.Parameters.size());
         for (const auto& value : fun.Parameters) fields.push_back({value.Name, value.Type, value.Count});
         CheckArgs(lua, device.GetTypeManager(), fields, args);
         return {};
@@ -180,7 +191,7 @@ void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actio
             Packet                           packet;
             sol::table                       table = lua.create_table();
             std::vector<Type::Struct::Field> fields;
-            for (const auto& value : fun.Parameters) fields.push_back({value.Name, value.Type, value.Count});
+            for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
             Lua::ArgsToTable(table, device.GetTypeManager(), fields, args);
             Lua::ParseTable(table, device.GetTypeManager(), fields, packet.Payload);
 
@@ -195,7 +206,7 @@ void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actio
                   .OnComplete(
                     [&](const Packet& packet)
                     {
-                        using namespace Frasy::Actions;
+                        using Frasy::Actions::CommandId;
                         if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
                         {
                             lua["Log"]["d"]("Received status");
@@ -321,6 +332,7 @@ bool Orchestrator::Verify(const sol::state& team)
         std::map<std::size_t, bool> results;
         for (auto& uut : devices)
         {
+            if (m_uutStates[uut] == UutState::Disabled) continue;
             threads.emplace_back(
               [&, uut]
               {
@@ -342,7 +354,12 @@ bool Orchestrator::Verify(const sol::state& team)
               });
         }
         for (auto& thread : threads) thread.join();
-        if (results.size() != devices.size())
+        size_t expectedResults = std::accumulate(devices.begin(),
+                                                 devices.end(),
+                                                 size_t(0),
+                                                 [&](size_t tot, const auto& uut)
+                                                 { return tot + (m_uutStates[uut] == UutState::Disabled ? 0 : 1); });
+        if (results.size() != expectedResults)
         {
             BR_LUA_ERROR("Missing results from validation");
             return false;
@@ -461,6 +478,170 @@ bool Orchestrator::IsRunning() const
 {
     return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
 }
+// </editor-fold>
 
+// <editor-fold desc="exclusive">
+void Orchestrator::ImportExclusive(sol::state& lua, Stage stage)
+{
+    if (!m_exclusiveLock) m_exclusiveLock = std::make_unique<std::mutex>();
+    switch (stage)
+    {
+        case Stage::Execution:
+            lua["__exclusive"] = [&](std::size_t index, sol::function func)
+            {
+                m_exclusiveLock->lock();
+                auto& mutex = m_exclusiveLockMap[index];
+                m_exclusiveLock->unlock();
+                std::lock_guard lock {mutex};
+                std::cout << "Exclusive part: Start " << std::endl;
+                func();
+                std::cout << "Exclusive part: End " << std::endl;
+            };
+            break;
 
+        case Stage::Idle:
+        case Stage::Generation:
+        case Stage::Validation:
+        default: lua["__exclusive"] = [&](std::size_t index, sol::function func) { func(); }; break;
+    }
+}
+// </editor-fold>
+
+// <editor-fold desc="init">
+bool Orchestrator::Init(const std::string& environment, const std::string& testsDir)
+{
+    m_state       = std::make_unique<sol::state>();
+    m_map         = {};
+    m_generated   = false;
+    m_environment = environment;
+    m_testsDir    = testsDir;
+    InitLua(*m_state);
+    if (!LoadEnvironment(*m_state, m_environment)) { return false; }
+    if (!LoadTests(*m_state, m_testsDir)) { return false; }
+    PopulateMap();
+    m_uutStates.resize(m_map.count.uut + 1, UutState::Idle);
+    m_popupMutex = std::make_unique<std::mutex>();
+
+    return true;
+}
+// </editor-fold>
+
+// <editor-fold desc="log">
+void Orchestrator::ImportLog(sol::state& lua, std::size_t uut, Stage stage)
+{
+    lua.script_file("lua/core/sdk/log.lua");
+    lua["Log"]["c"] = [uut](std::string message) { BR_LOG_CRITICAL(std::format("UUT{}", uut), message); };
+    lua["Log"]["e"] = [uut](std::string message) { BR_LOG_ERROR(std::format("UUT{}", uut), message); };
+    lua["Log"]["w"] = [uut](std::string message) { BR_LOG_WARN(std::format("UUT{}", uut), message); };
+    lua["Log"]["i"] = [uut](std::string message) { BR_LOG_INFO(std::format("UUT{}", uut), message); };
+    lua["Log"]["d"] = [uut](std::string message) { BR_LOG_DEBUG(std::format("UUT{}", uut), message); };
+    lua["Log"]["y"] = [uut](std::string message) { BR_LOG_TRACE(std::format("UUT{}", uut), message); };
+}
+// </editor-fold>
+
+// <editor-fold desc="populate_map">
+void Orchestrator::PopulateMap()
+{
+    m_map = {};
+
+    m_map.count.uut   = (*m_state)["Context"]["Map"]["count"]["uut"].get<std::size_t>();
+    m_map.count.ib    = (*m_state)["Context"]["Map"]["count"]["ib"].get<std::size_t>();
+    m_map.count.teams = (*m_state)["Context"]["Team"]["teams"].get<std::vector<sol::object>>().size();
+
+    if (m_map.count.teams != 0)
+    {
+        for (auto& [k, v] : (*m_state)["Context"]["Team"]["teams"].get<sol::table>())
+        {
+            std::size_t leader               = k.as<std::size_t>();
+            std::size_t ib                   = (*m_state)["Context"]["Map"]["uut"][leader]["ib"].get<std::size_t>();
+            m_map.ibs[ib].teams[leader].uuts = v.as<std::vector<std::size_t>>();
+        }
+    }
+    else
+    {
+        for (auto& [ib, ibt] : (*m_state)["Context"]["Map"]["ib"].get<sol::table>())
+        {
+            for (auto& [_, uut] : ibt.as<sol::table>()["uut"].get<sol::table>())
+            {
+                m_map.ibs[ib.as<std::size_t>()].teams[uut.as<std::size_t>()].uuts = {uut.as<std::size_t>()};
+            }
+        }
+    }
+
+    for (std::size_t i = 1; i <= m_map.count.uut; ++i) { m_map.uuts.push_back(i); }
+}
+// </editor-fold>
+
+// <editor-fold desc="popup">
+void Orchestrator::RenderPopups()
+{
+    std::lock_guard lock {(*m_popupMutex)};
+    for (auto& [name, popup] : m_popups) { popup->Render(); }
+}
+
+void Orchestrator::ImportPopup(sol::state& lua, std::size_t uut, Stage stage)
+{
+    lua.script_file("lua/core/sdk/popup.lua");
+    lua["__popup"]            = lua.create_table();
+    lua["__popup"]["consume"] = [&, uut](sol::table builder) { m_popups[Popup::GetName(uut, builder)]->Consume(); };
+    if (stage == Stage::Execution)
+    {
+        lua["__popup"]["show"] = [&, uut](sol::table builder)
+        {
+            Popup popup = Popup(uut, builder);
+            m_popupMutex->lock();
+            m_popups[popup.GetName()] = &popup;
+            m_popupMutex->unlock();
+            popup.Routine();
+            m_popupMutex->lock();
+            m_popups.erase(popup.GetName());
+            m_popupMutex->unlock();
+            return popup.GetInputs();
+        };
+    }
+    else if (stage == Stage::Validation)
+    {
+        lua["__popup"]["show"] = [&, uut](sol::table builder)
+        {
+            Popup popup = Popup(uut, builder);
+            popup.Routine();
+            return popup.GetInputs();
+        };
+    }
+    else
+    {
+        lua["__popup"]["show"] = [&, uut](sol::table builder)
+        {
+            Popup popup = Popup(uut, builder);
+            return popup.GetInputs();
+        };
+    }
+}
+// </editor-fold>
+
+// <editor-fold desc="sync">
+void Orchestrator::ImportSync(sol::state& lua, Stage stage)
+{
+    lua.script_file("lua/core/sdk/sync.lua");
+    if (stage != Stage::Execution) return;
+    lua["Sync"]["Global"] = [&]() { m_globalSync->arrive_and_wait(); };
+}
+// </editor-fold>
+
+// <editor-fold desc="update_uut_state">
+void Orchestrator::UpdateUutState(enum UutState state, bool force)
+{
+    std::vector<std::size_t> uuts;
+    UpdateUutState(state, m_map.uuts, force);
+}
+
+void Orchestrator::UpdateUutState(enum UutState state, const std::vector<std::size_t>& uuts, bool force)
+{
+    for (auto uut : uuts)
+    {
+        if (m_uutStates[uut] == UutState::Disabled && !force) continue;
+        m_uutStates[uut] = state;
+    }
+}
+// </editor-fold>
 }    // namespace Frasy::Lua

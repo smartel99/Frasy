@@ -1,7 +1,7 @@
 /**
- * @file    map.h
- * @author  Paul Thomas
- * @date    3/28/2023
+ * @file    string_literal.h
+ * @author  Samuel Martel
+ * @date    2023-04-17
  * @brief
  *
  * @copyright
@@ -14,36 +14,23 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H
-#define COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H
 
-#include <map>
-#include <vector>
+#ifndef BRIGERAD_SRC_BRIGERAD_UTILS_TYPES_STRING_LITERAL_H
+#define BRIGERAD_SRC_BRIGERAD_UTILS_TYPES_STRING_LITERAL_H
 
-namespace Frasy
+#include <algorithm>
+
+namespace Brigerad
 {
-struct Map
+template<size_t N>
+struct StringLiteral
 {
-    struct IB
-    {
-        struct Team
-        {
-            std::vector<std::size_t> uuts;
-        };
-        // Key: leader
-        std::map<std::size_t, Team> teams;
-    };
-    // Key: index
-    std::map<std::size_t, IB> ibs;
-    std::vector<std::size_t>  uuts;
+    constexpr StringLiteral(const char(&str)[N]){
+        std::copy_n(str, N, value);
+    }
 
-    struct
-    {
-        std::size_t uut=0;
-        std::size_t teams=0;
-        std::size_t ib=0;
-    } count;
+    char value[N];
 };
-}    // namespace Frasy
+}
 
-#endif    // COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H
+#endif    // BRIGERAD_SRC_BRIGERAD_UTILS_TYPES_STRING_LITERAL_H

@@ -13,28 +13,30 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 local internal = {
-    map   = {},
+    map = {},
     scope = nil,
     count = {
         expected = { tp = 0, ib = 0, uut = 0, },
-        recount  = { tp = 0, ib = 0, uut = 0, },
+        recount = { tp = 0, ib = 0, uut = 0, },
     },
-    keys  = { tp = {}, ib = {}, uut = {} }
+    keys = { tp = {}, ib = {}, uut = {} }
 }
 
-if Map == nil then Map = {} end
+if Map == nil then
+    Map = {}
+end
 
 local mapper = { TestPoint = {}, UUT = {}, IB = {} }
 
 if Context.Map == nil then
     Context.Map = {
         count = {
-            tp  = 0,
+            tp = 0,
             uut = 0,
-            ib  = 0,
+            ib = 0,
         },
-        uut   = {},
-        ib    = {},
+        uut = {},
+        ib = {},
     }
 end
 
@@ -76,18 +78,22 @@ function mapper.validate()
         end
     end
 
-    Context.Map.count.tp  = internal.count.recount.tp
+    Context.Map.count.tp = internal.count.recount.tp
     Context.Map.count.uut = internal.count.recount.uut
-    Context.Map.count.ib  = internal.count.recount.ib
+    Context.Map.count.ib = internal.count.recount.ib
 
     return internal.map
 end
 
 function mapper.TestPoint.New(name)
-    internal.scope         = name
+    internal.scope = name
     internal.keys.tp[name] = 0
 end
 
+--- Establishes a connection between a UUT and an instrumentation board.
+---@param uut number ID of the UUT.
+---@param ib number ID of the Instrumentation board.
+---@param tp number ID of the test point on the instrumentation board.
 function mapper.TestPoint.To(uut, ib, tp)
     if internal.scope == nil then
         error(MapperError("No scope provided"))
@@ -101,35 +107,56 @@ function mapper.TestPoint.To(uut, ib, tp)
     if internal.map[internal.scope] == nil then
         internal.map[internal.scope] = {}
     end
-    internal.keys.uut[uut]            = 0
-    internal.keys.ib[ib]              = 0
+    internal.keys.uut[uut] = 0
+    internal.keys.ib[ib] = 0
     internal.map[internal.scope][uut] = { ib = ib, tp = tp }
 
-    if Context.Map.uut[uut] == nil then Context.Map.uut[uut] = {} end
+    if Context.Map.uut[uut] == nil then
+        Context.Map.uut[uut] = {}
+    end
     if Context.Map.uut[uut].ib ~= nil and Context.Map.uut[uut].ib ~= ib then
         error(MapperError(string.format("Frasy currently support only 1 IB per uut")))
     end
     Context.Map.uut[uut].ib = ib
 
-    if Context.Map.ib[ib] == nil then Context.Map.ib[ib] = {} end
-    if Context.Map.ib[ib].uut == nil then Context.Map.ib[ib].uut = {} end
+    if Context.Map.ib[ib] == nil then
+        Context.Map.ib[ib] = {}
+    end
+    if Context.Map.ib[ib].uut == nil then
+        Context.Map.ib[ib].uut = {}
+    end
     Context.Map.ib[ib].uut[uut] = uut
 
     return { To = mapper.TestPoint.To }
 end
 
+---Sets the number of expected connexions on this test point
+---@param count number The number of expected connexions.
+---@return number If count is not provided, returns the expected number of UUTs.
 function mapper.TestPoint.Count(count)
-    if count ~= nil then internal.count.expected.tp = count end
+    if count ~= nil then
+        internal.count.expected.tp = count
+    end
     return internal.count.expected.tp
 end
 
+---Sets the number of expected Units Under Tests (UUT).
+---@param count number|nil The number of expected UUTs.
+---@return number If count is not provided, returns the expected number of UUTs.
 function mapper.UUT.Count(count)
-    if count ~= nil then internal.count.expected.uut = count end
+    if count ~= nil then
+        internal.count.expected.uut = count
+    end
     return internal.count.expected.uut
 end
 
+---Sets the number of expected Instrumentation board.
+---@param count number|nil The number of expected Instrumentation Boards.
+---@return number If count is not provided, returns the expected number of instrumentation boards.
 function mapper.IB.Count(count)
-    if count ~= nil then internal.count.expected.ib = count end
+    if count ~= nil then
+        internal.count.expected.ib = count
+    end
     return internal.count.expected.ib
 end
 

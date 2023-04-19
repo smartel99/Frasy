@@ -48,13 +48,7 @@ class SerialDevice
 public:
     SerialDevice() noexcept = default;
     SerialDevice(SerialDevice&& o) noexcept { *this = std::move(o); }
-    explicit SerialDevice(DeviceInfo info, bool open = true)
-    : m_label(fmt::format("UART {}", info.ComPort)),
-      m_device(info.ComPort, 460800, serial::Timeout::simpleTimeout(10)),
-      m_info(info.Info)
-    {
-        if (open) { Open(); }
-    }
+    explicit SerialDevice(DeviceInfo info, bool open = true);
     ~SerialDevice() { Close(); }
 
     SerialDevice& operator=(SerialDevice&& o) noexcept
@@ -112,13 +106,26 @@ public:
 
     ResponsePromise& Transmit(const Packet& pkt)
     {
-        BR_LOG_TRACE("Device", "Sending transaction {}", pkt.Header.TransactionId);
+        BR_LOG_TRACE(m_label, "Sending packet '{:08X}'", pkt.Header.TransactionId);
         std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);
         std::lock_guard      txLock {m_txLock};
         m_device.write(data);
+        m_device.flushOutput();
         std::lock_guard promiseLock {m_promiseLock};
         auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise {}));
         return it->second;
+    }
+
+    [[nodiscard]] std::vector<trs_id_t> GetPendingTransactions() {
+        std::vector<trs_id_t> ids;
+        ids.reserve(m_pending.size());
+        std::lock_guard lock{m_promiseLock};
+        for(auto&& [id, p] : m_pending)
+        {
+            ids.push_back(id);
+        }
+
+        return ids;
     }
 
 private:
@@ -147,6 +154,8 @@ private:
     void                                          GetDeviceCommands();
     void                                          GetDeviceEnums();
     void                                          GetDeviceStructs();
+
+    inline static constexpr size_t s_maxAttempts = 5;
 };
 }    // namespace Frasy::Communication
 

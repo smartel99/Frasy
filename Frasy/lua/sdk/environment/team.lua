@@ -29,7 +29,7 @@ Team.Status = {
 }
 
 --- Create a new team
---- @param ... number the UUT to join the team. Provided in order, first is leader
+--- @vararg number the UUT to join the team. Provided in order, first is leader
 function Team.Join(...)
     Context.Team.hasTeam = true
     local leader
@@ -140,4 +140,3 @@ function team.validate()
     Log.d("Team OK!")
 end
 return team
-

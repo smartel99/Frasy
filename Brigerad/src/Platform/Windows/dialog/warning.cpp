@@ -1,7 +1,7 @@
 /**
- * @file    init.cpp
- * @author  Paul Thomas
- * @date    3/30/2023
+ * @file    warning.cpp
+ * @author  Samuel Martel
+ * @date    2023-04-17
  * @brief
  *
  * @copyright
@@ -14,25 +14,20 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
+#include "../../../src/Brigerad/Utils/dialogs/warning.h"
 
-#include "orchestrator.h"
+#include "../../../src/Brigerad/Core/Application.h"
 
-namespace Frasy::Lua
+#include <codecvt>
+#include <locale>
+#include <string>
+#include <Windows.h>
+
+
+namespace Brigerad::Details
 {
-
-void Orchestrator::Init(const std::string& environment, const std::string& testsDir)
+void WarningDialogImpl(std::string_view title, const std::string& msg)
 {
-    m_state       = std::make_unique<sol::state>();
-    m_map         = {};
-    m_generated   = false;
-    m_environment = environment;
-    m_testsDir    = testsDir;
-    InitLua(*m_state);
-    if (!LoadEnvironment(*m_state, m_environment)) return;
-    if (!LoadTests(*m_state, m_testsDir)) return;
-    PopulateMap();
-    m_uutStates.resize(m_map.count.uut + 1, UutState::Idle);
-    m_popupMutex = std::make_unique<std::mutex>();
+    MessageBoxA(nullptr, msg.c_str(), title.data(), MB_OK | MB_ICONWARNING | MB_TASKMODAL);
 }
-
-}    // namespace Frasy::Lua
+}    // namespace Brigerad::Details

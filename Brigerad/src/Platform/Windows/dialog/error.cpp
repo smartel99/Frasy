@@ -1,7 +1,7 @@
 /**
- * @file    sync.cpp
- * @author  Paul Thomas
- * @date    3/30/2023
+ * @file    error.cpp
+ * @author  Samuel Martel
+ * @date    2023-04-17
  * @brief
  *
  * @copyright
@@ -14,15 +14,21 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
+#include "../../../src/Brigerad/Utils/dialogs/error.h"
 
-#include "orchestrator.h"
+#include "../../../src/Brigerad/Core/Application.h"
 
-namespace Frasy::Lua
+#include <codecvt>
+#include <locale>
+#include <string>
+#include <Windows.h>
+
+
+namespace Brigerad::Details
 {
-void Orchestrator::ImportSync(sol::state& lua, Stage stage)
+void FatalErrorDialogImpl(std::string_view title, const std::string& msg)
 {
-    lua.script_file("lua/core/sdk/sync.lua");
-    if (stage != Stage::Execution) return;
-    lua["Sync"]["Global"] = [&]() { m_globalSync->arrive_and_wait(); };
+    MessageBoxA(nullptr, msg.c_str(), title.data(), MB_OK | MB_ICONERROR | MB_TASKMODAL);
+    std::abort();
 }
-}    // namespace Frasy::Lua
+}    // namespace Brigerad::Details

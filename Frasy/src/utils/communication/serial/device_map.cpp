@@ -29,7 +29,7 @@ void DeviceMap::ScanForDevices()
     m_scan_future = std::async(std::launch::async,
                                [this]()
                                {
-                                   m_scan_done.clear();
+                                   m_scan_done = false;
 
                                    BR_LOG_INFO(s_tag, "Closing {} serial devices...", m_devices.size());
                                    m_devices.clear();
@@ -45,9 +45,8 @@ void DeviceMap::ScanForDevices()
                                        m_devices[device.Info.Id] = std::move(SerialDevice(device));
                                    }
 
-                                   m_scan_done.test_and_set();
+                                   m_scan_done = true;
                                    m_scan_done.notify_all();
-
 
                                    return m_devices.size();
                                });

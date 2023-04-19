@@ -24,6 +24,20 @@
 namespace Frasy::Communication
 {
 
+SerialDevice::SerialDevice(DeviceInfo info, bool open)
+: m_label(fmt::format("UART {}", info.ComPort)),
+  m_device(info.ComPort,
+           460800,
+           serial::Timeout::simpleTimeout(10),
+           serial::eightbits,
+           serial::parity_none,
+           serial::stopbits_one,
+           serial::flowcontrol_software),
+  m_info(info.Info)
+{
+    if (open) { Open(); }
+}
+
 void SerialDevice::CheckForPackets()
 {
     // Check if we received a full packet somewhere.
@@ -57,12 +71,17 @@ void SerialDevice::CheckForPackets()
                             auto&           promise = m_pending.at(packet.Header.TransactionId);
                             promise.Promise.set_value(packet);
                             m_pending.erase(packet.Header.TransactionId);
+                            BR_LOG_TRACE(m_label, "Received response for '{:08X}'", packet.Header.TransactionId);
                         }
                         catch (std::out_of_range&)
                         {
                             BR_LOG_ERROR(m_label,
                                          "Received response for packet '{:08X}', which doesn't exist!",
                                          packet.Header.TransactionId);
+                        }
+                        catch (std::future_error& e)
+                        {
+                            BR_LOG_ERROR(m_label, "In transaction '{:08X}': {}", packet.Header.TransactionId, e.what());
                         }
                     }
                     else
@@ -110,12 +129,12 @@ void SerialDevice::Open()
               try
               {
                   read = m_device.readline(Packet::s_maximumPacketSize, endOfPacket);
-                  //                  if (!read.empty()) { BR_LOG_DEBUG(m_label, "RX: {}", read); }
+                  if (!read.empty()) { BR_LOG_TRACE(m_label, "RX: {}", read); }
                   m_rxBuff += read;
               }
               catch (std::exception& e)
               {
-                  BR_LOG_ERROR(m_label, "An error occurred in the listener thread: {}", e.what());
+                  if (m_shouldRun) { BR_LOG_ERROR(m_label, "An error occurred in the listener thread: {}", e.what()); }
                   break;
               }
               if (!read.empty() && read.back() == Packet::s_packetEndFlag) { CheckForPackets(); }
@@ -135,9 +154,9 @@ void SerialDevice::Close()
         m_shouldRun = false;
 
         // Forcefully terminate *any* I/O operation done by the thread.
-        if (CancelSynchronousIo(m_rxThread.native_handle()) != 0)
+        if (CancelSynchronousIo(m_rxThread.native_handle()) == 0)
         {
-            BR_LOG_WARN(m_label, "CancelSynchronousIo returned non-0");
+            BR_LOG_WARN(m_label, "CancelSynchronousIo returned {}", GetLastError());
         }
         if (m_rxThread.joinable()) { m_rxThread.join(); }
         m_device.close();
@@ -203,8 +222,8 @@ void SerialDevice::GetCapabilities()
         //          .Await();
 
         GetDeviceCommands();
-//        GetDeviceEnums();
-//        GetDeviceStructs();
+        GetDeviceEnums();
+        GetDeviceStructs();
 
         m_ready = true;
 
@@ -225,22 +244,39 @@ void SerialDevice::GetDeviceStructs()
     auto structIds = Transmit(Packet::Request(Actions::CommandId::StructsList)).Collect<std::vector<Type::BasicInfo>>();
     for (const auto& info : structIds)
     {
-        Transmit(Packet::Request(Actions::CommandId::StructInfo).MakePayload(info.id))
-          .OnComplete(
-            [&](const Packet& packet)
+        //        Transmit(Packet::Request(Actions::CommandId::StructInfo).MakePayload(info.id))
+        //          .OnComplete(
+        //            [&](const Packet& packet)
+        //            {
+        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::StructInfo))
+        //                {
+        //                    m_typeManager.AddStruct(info.id, packet.FromPayload<Type::Struct>());
+        //                    return;
+        //                }
+        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+        //                {
+        //                    throw std::exception(packet.FromPayload<std::string>().c_str());
+        //                }
+        //                throw std::exception("Invalid command");
+        //            })
+        //          .OnTimeout([] { DEBUG_BREAK(); })
+        //          .Await();
+        BR_LOG_DEBUG(m_label, "Getting information for '{}'...", info.name);
+        for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
+        {
+            Packet resp = Transmit(Packet::Request(Actions::CommandId::StructInfo).MakePayload(info.id)).Collect();
+            if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::StructInfo))
             {
-                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::StructInfo))
-                {
-                    m_typeManager.AddStruct(info.id, packet.FromPayload<Type::Struct>());
-                    return;
-                }
-                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
-                {
-                    throw std::exception(packet.FromPayload<std::string>().c_str());
-                }
-                throw std::exception("Invalid command");
-            })
-          .Await();
+                m_typeManager.AddStruct(info.id, resp.FromPayload<Type::Struct>());
+                break;
+            }
+            else if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+            {
+                auto [message, code] = resp.FromPayload<Actions::Status::Reply>();
+                BR_LOG_ERROR(m_label, "Device returned an error: ({}) {}", static_cast<size_t>(code), message);
+            }
+            else { BR_LOG_ERROR(m_label, "Invalid command from device"); }
+        }
     }
 }
 
@@ -249,24 +285,40 @@ void SerialDevice::GetDeviceEnums()
     auto enumIds = Transmit(Packet::Request(Actions::CommandId::EnumsList)).Collect<std::vector<Type::BasicInfo>>();
     for (const auto& info : enumIds)
     {
-        Transmit(Packet::Request(Actions::CommandId::EnumInfo).MakePayload(info.id))
-          .OnComplete(
-            [&](const Packet& packet)
+        //        Transmit(Packet::Request(Actions::CommandId::EnumInfo).MakePayload(info.id))
+        //          .OnComplete(
+        //            [&](const Packet& packet)
+        //            {
+        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::EnumInfo))
+        //                {
+        //                    m_typeManager.AddEnum(info.id, packet.FromPayload<Type::Enum>());
+        //                    return;
+        //                }
+        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+        //                {
+        //                    throw std::exception(packet.FromPayload<std::string>().c_str());
+        //                }
+        //                throw std::exception("Invalid command");
+        //            })
+        //          .OnTimeout([] { DEBUG_BREAK(); })
+        //          .OnError([](const std::exception& e) { BR_LOG_ERROR("Device", "Exception {}", e.what()); })
+        //          .Await();
+        BR_LOG_DEBUG(m_label, "Getting information for '{}'...", info.name);
+        for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
+        {
+            Packet resp = Transmit(Packet::Request(Actions::CommandId::EnumInfo).MakePayload(info.id)).Collect();
+            if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::EnumInfo))
             {
-                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::EnumInfo))
-                {
-                    m_typeManager.AddEnum(info.id, packet.FromPayload<Type::Enum>());
-                    return;
-                }
-                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
-                {
-                    throw std::exception(packet.FromPayload<std::string>().c_str());
-                }
-                throw std::exception("Invalid command");
-            })
-          .OnTimeout([] { BR_LOG_ERROR("Device", "Timeout"); })
-          .OnError([](const std::exception& e) { BR_LOG_ERROR("Device", "Exception {}", e.what()); })
-          .Await();
+                m_typeManager.AddEnum(info.id, resp.FromPayload<Type::Enum>());
+                break;
+            }
+            else if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+            {
+                auto [message, code] = resp.FromPayload<Actions::Status::Reply>();
+                BR_LOG_ERROR(m_label, "Device returned an error: ({}) {}", static_cast<size_t>(code), message);
+            }
+            else { BR_LOG_ERROR(m_label, "Invalid command from device"); }
+        }
     }
 }
 
@@ -276,32 +328,43 @@ void SerialDevice::GetDeviceCommands()
 
     for (const auto& name : cmdNames)
     {
+        //        Transmit(Packet::Request(Actions::CommandId::CommandInfo).MakePayload(name))
+        //          .OnComplete(
+        //            [&](const Packet& packet)
+        //            {
+        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::CommandInfo))
+        //                {
+        //                    auto info           = packet.FromPayload<Actions::CommandInfo::Reply>();
+        //                    m_commands[info.Id] = info;
+        //                    BR_LOG_DEBUG(m_label, "Received information for '{}'", info.Name);
+        //                    return;
+        //                }
+        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+        //                {
+        //                    throw std::exception(packet.FromPayload<std::string>().c_str());
+        //                }
+        //                throw std::exception("Invalid command");
+        //            })
+        //          .OnTimeout([] { DEBUG_BREAK(); })
+        //          .OnError([&](const std::exception& e)
+        //                   { BR_LOG_ERROR(m_label, "Unable to get information for '{}': {}", name, e.what()); })
+        //          .Await();
         BR_LOG_DEBUG(m_label, "Getting information for '{}'...", name);
-        try
+        for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
         {
-            Transmit(Packet::Request(Actions::CommandId::CommandInfo).MakePayload(name))
-              .OnComplete(
-                [&](const Packet& packet)
-                {
-                    if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::CommandInfo))
-                    {
-                        auto info           = packet.FromPayload<Actions::CommandInfo::Reply>();
-                        m_commands[info.Id] = info;
-                        BR_LOG_DEBUG(m_label, "Received information for '{}'", info.Name);
-                        return;
-                    }
-                    if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
-                    {
-                        throw std::exception(packet.FromPayload<std::string>().c_str());
-                    }
-                    throw std::exception("Invalid command");
-                })
-              .OnError([&](const std::exception& e)
-                       { BR_LOG_ERROR(m_label, "Unable to get information for '{}': {}", name, e.what()); })
-              .Await();
-        }
-        catch (...)
-        {
+            Packet resp = Transmit(Packet::Request(Actions::CommandId::CommandInfo).MakePayload(name)).Collect();
+            if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::CommandInfo))
+            {
+                auto info           = resp.FromPayload<Actions::CommandInfo::Reply>();
+                m_commands[info.Id] = info;
+                break;
+            }
+            else if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+            {
+                auto [message, code] = resp.FromPayload<Actions::Status::Reply>();
+                BR_LOG_ERROR(m_label, "Device returned an error: ({}) {}", static_cast<size_t>(code), message);
+            }
+            else { BR_LOG_ERROR(m_label, "Invalid command from device"); }
         }
     }
 }

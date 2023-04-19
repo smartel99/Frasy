@@ -22,11 +22,14 @@ if Context.Testbench == nil then Context.Testbench = { commands = {} } end
 --- @param executor function
 --- @param ... number Test points to resolve
 --- @return any forward the result of the requested command
+--- Example usage:
+---     Testbench("MyCommand", function(cmd, ...) return cmd(..., "other args") end, Map.TP1, Map.TP2)
 function Testbench(command, executor, ...)
     local tps = {}
     local ib  = 0
     local uut = Context.uut
 
+    -- Get the test points for the current UUT.
     for _, tp in ipairs({ ... }) do
         table.insert(tps, tp[uut].tp)
         if ib ~= 0 and ib ~= tp[uut].ib then error("Requesting TP on different IB") end

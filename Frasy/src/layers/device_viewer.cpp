@@ -100,7 +100,7 @@ void DeviceViewer::RenderDeviceList()
                     else
                     {
                         ImGui::Text("%zu supported commands", commands.size());
-                        for (const auto& [id, command] : commands) { ImGui::BulletText("%s", command.Name.c_str()); }
+                        for (const auto& [_, command] : commands) { ImGui::BulletText("%s", command.Name.c_str()); }
                     }
                     ImGui::TreePop();
                 }
@@ -114,6 +114,12 @@ void DeviceViewer::RenderDeviceList()
                 if (ImGui::Checkbox("Log", &shouldLog)) { device.SetLog(shouldLog); }
                 if (ImGui::Button("Reset")) { device.Reset(); }
                 if (ImGui::Button("Update")) { BR_APP_WARN("Instrumentation card update not implemented"); }
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("Pending Transactions"))
+            {
+                for (auto&& transId : device.GetPendingTransactions()) { ImGui::BulletText("%08X", transId); }
                 ImGui::TreePop();
             }
             ImGui::PopID();

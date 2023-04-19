@@ -83,7 +83,7 @@ private:
 private:
     std::map<uint8_t, SerialDevice> m_devices;
     std::future<size_t>             m_scan_future;
-    std::atomic_flag                m_scan_done = ATOMIC_FLAG_INIT;
+    std::atomic<bool>                m_scan_done = false;
 
     static constexpr const char* s_tag = "DeviceMap";
 };

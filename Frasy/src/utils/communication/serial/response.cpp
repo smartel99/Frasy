@@ -24,7 +24,12 @@ namespace Frasy::Communication
 
 ResponsePromise::~ResponsePromise()
 {
-    if (Thread.joinable()) { Thread.join(); }
+    if (Thread.joinable())
+    {
+        BR_LOG_DEBUG(s_tag, "Joining thread...");
+        Thread.join();
+        BR_LOG_DEBUG(s_tag, "Thread joined!");
+    }
 }
 
 ResponsePromise& ResponsePromise::OnComplete(const on_complete_cb_t& func)
@@ -79,8 +84,6 @@ void ResponsePromise::run()
     Thread        = std::thread(
       [this](std::future<Packet> future)
       {
-          using namespace std::chrono_literals;
-          constexpr auto s_timeout = 1000ms;
           try
           {
               std::future_status status = future.wait_for(s_timeout);
@@ -96,6 +99,7 @@ void ResponsePromise::run()
                   break;
                   case std::future_status::timeout:
                   {
+                      BR_LOG_WARN(s_tag, "Promise timed out!");
                       OnTimeoutCb();
                   }
                   break;

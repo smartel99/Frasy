@@ -37,7 +37,7 @@ void CheckArgs(sol::state&                                    lua,
                const std::vector<Frasy::Type::Struct::Field>& fields,
                sol::variadic_args&                            args)
 {
-    if (args.size() != fields.size()) throw std::exception();
+    if (args.size() != fields.size()) throw std::logic_error("Missing arguments!");
     for (std::size_t i = 0; i < args.size(); ++i)
     {
         const auto& field = fields[i];

@@ -10,11 +10,10 @@
  */
 #include "Application.h"
 
+#include "../Script/ScriptEngine.h"
 #include "Input.h"
 #include "KeyCodes.h"
 #include "Time.h"
-
-#include "../Script/ScriptEngine.h"
 
 namespace Brigerad
 {
@@ -93,20 +92,14 @@ void Application::Run()
             {
                 // Update all Application Layers.
                 BR_PROFILE_SCOPE("Layer Stack OnUpdate");
-                for (Layer* layer : m_layerStack)
-                {
-                    layer->OnUpdate(timestep);
-                }
+                for (Layer* layer : m_layerStack) { layer->OnUpdate(timestep); }
             }
 
             // Render all ImGui Layers.
             m_imguiLayer->Begin();
             {
                 BR_PROFILE_SCOPE("LayerStack OnImGuiRender");
-                for (Layer* layer : m_layerStack)
-                {
-                    layer->OnImGuiRender();
-                }
+                for (Layer* layer : m_layerStack) { layer->OnImGuiRender(); }
             }
             m_imguiLayer->End();
         }
@@ -115,12 +108,11 @@ void Application::Run()
         m_window->OnUpdate();
 
         // Execute the post-frame task queue.
-        for (const auto& task : m_postFrameTasks)
-        {
-            task();
-        }
+        for (const auto& task : m_postFrameTasks) { task(); }
         m_postFrameTasks.clear();
     }
+
+    for (auto&& layer : m_layerStack) { layer->OnDetach(); }
 }
 
 /**
@@ -137,8 +129,7 @@ void Application::OnEvent(Event& e)
     EventDispatcher dispatcher(e);
     // Dispatch it to the proper handling function in the Application, if the type matches.
     dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
-    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e)
-                                           { return OnWindowResize(e); });
+    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return OnWindowResize(e); });
     dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& e) { return OnKeyPressed(e); });
 
 
@@ -155,7 +146,6 @@ void Application::OnEvent(Event& e)
         }
     }
 }
-
 
 
 /**

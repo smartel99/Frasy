@@ -60,7 +60,7 @@ struct ResponsePromise
 
     /// Run the promise in synchronous mode
     /// Immediately collect and convert the response
-    template<typename T>
+    template<typename T = Packet>
     T Collect()
     {
         Packet            packet;
@@ -79,36 +79,13 @@ struct ResponsePromise
         };
         run();
         completed.wait(false);
-        return packet.FromPayload<T>();
+        if constexpr (std::is_same_v<T, Packet>) { return packet; }
+        else { return packet.FromPayload<T>(); }
     }
-
-    /// Run promise in synchronous mode
-    /// Immediately collect the packet
-    template<>
-    Packet Collect()
-    {
-        Packet            packet;
-        std::atomic<bool> completed = false;
-        m_localOnCompleteCb         = [&](Packet pkt)
-        {
-            packet    = std::move(pkt);
-            completed = true;
-            completed.notify_all();
-        };
-        m_localOnErrorCb = [&](std::exception_ptr e)
-        {
-            OnErrorCb(e);
-            completed = true;
-            completed.notify_all();
-        };
-        run();
-        completed.wait(false);
-        return packet;
-    }
-
 
 private:
-    static constexpr const char* s_tag = "Promise";
+    static constexpr const char* s_tag     = "Promise";
+    static constexpr auto        s_timeout = std::chrono::milliseconds(1000);
 
     on_complete_cb_t m_localOnCompleteCb = [&](const Packet& packet)
     {

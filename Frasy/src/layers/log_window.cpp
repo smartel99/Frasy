@@ -66,8 +66,10 @@ void LogWindow::OnImGuiRender()
         ImGui::Separator();
 
         ImGuiWindowFlags flags = ImGuiWindowFlags_HorizontalScrollbar;
-        ImGui::BeginChild("ScrollingLog", ImVec2 {0.0f, 0.0f}, false, flags);
-        m_renderLoggersFunc(m_options, m_sink);
+        if (ImGui::BeginChild("ScrollingLog", ImVec2 {0.0f, 0.0f}, false, flags))
+        {
+            m_renderLoggersFunc(m_options, m_sink);
+        }
         ImGui::EndChild();
     }
     ImGui::End();
@@ -75,6 +77,30 @@ void LogWindow::OnImGuiRender()
 
 void LogWindow::RenderOptions()
 {
+    if (ImGui::TreeNode("Options"))
+    {
+        const auto& loggers = Brigerad::Log::GetLoggers();
+
+        for (auto&& [name, ptr] : loggers)
+        {
+            auto currentLevel    = ptr->level();
+            auto currentLevelStr = spdlog::level::to_string_view(currentLevel);
+            if (ImGui::BeginCombo(name.c_str(), currentLevelStr.data()))
+            {
+                for (spdlog::level::level_enum level = spdlog::level::trace; level != spdlog::level::n_levels;
+                     level = static_cast<spdlog::level::level_enum>(static_cast<int>(level) + 1))
+                {
+                    if (ImGui::Selectable(spdlog::level::to_string_view(level).data()))
+                    {
+                        Brigerad::Log::SetLoggerLevel(name, level);
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
+
+        ImGui::TreePop();
+    }
 }
 
 void LogWindow::RenderCombinedLoggers(LogWindowOptions& options, const std::shared_ptr<LogWindowSink>& sink)
@@ -137,7 +163,7 @@ void LogWindow::RenderLoggerEntries(LogWindowOptions&               options,
       ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |
       ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SortMulti | ImGuiTableFlags_SortTristate;
 
-    float maxY = ImGui::GetContentRegionMax().y;
+    float maxY = ImGui::GetContentRegionAvail().y;
     if (ImGui::BeginTable("entries", 5, tableFlags, ImVec2 {0.0f, maxY}))
     {
         auto flagFromOption = [](bool enabled)
@@ -150,10 +176,10 @@ void LogWindow::RenderLoggerEntries(LogWindowOptions&               options,
         ImGui::TableHeadersRow();
         for (size_t i = loggerEntries.size(); i > 0; i--)
         {
-            ImGui::TableNextRow();
             const LogEntry& entry = loggerEntries.at(i - 1);
-            if (options.ShowLevels[entry.Level])
+            if (options.ShowLevels[entry.Level] && entry.Level >= Brigerad::Log::GetLoggerLevel(entry.LoggerName))
             {
+                ImGui::TableNextRow();
                 if (!options.Filter.IsActive() || options.Filter.PassFilter(entry.Entry.c_str()))
                 {
                     RenderEntry(options, entry);

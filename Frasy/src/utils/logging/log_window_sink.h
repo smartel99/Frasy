@@ -31,7 +31,6 @@
 namespace Frasy
 {
 
-
 class LogWindowSink : public spdlog::sinks::base_sink<std::mutex>
 {
 };
@@ -53,6 +52,7 @@ protected:
             // New logger!
             m_loggers[msg.logger_name] = spdlog::details::circular_q<LogEntry>(m_maxLen);
         }
+
         spdlog::memory_buf_t formatted;
         base_sink<std::mutex>::formatter_->format(msg, formatted);
 
