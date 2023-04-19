@@ -116,14 +116,12 @@ public:
         return it->second;
     }
 
-    [[nodiscard]] std::vector<trs_id_t> GetPendingTransactions() {
+    [[nodiscard]] std::vector<trs_id_t> GetPendingTransactions()
+    {
         std::vector<trs_id_t> ids;
         ids.reserve(m_pending.size());
-        std::lock_guard lock{m_promiseLock};
-        for(auto&& [id, p] : m_pending)
-        {
-            ids.push_back(id);
-        }
+        std::lock_guard lock {m_promiseLock};
+        for (auto&& [id, p] : m_pending) { ids.push_back(id); }
 
         return ids;
     }
@@ -131,10 +129,14 @@ public:
 private:
     void CheckForPackets();
     void GetCapabilities();
+    void CleanerTask();
 
 private:
     std::string    m_label;
     serial::Serial m_device = {};    //!< The physical communication interface.
+
+    std::thread m_cleanerThread;
+    bool        m_cleanerRun = false;
 
     bool m_ready   = false;
     bool m_enabled = true;

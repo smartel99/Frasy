@@ -70,7 +70,6 @@ void SerialDevice::CheckForPackets()
                             std::lock_guard lock {m_promiseLock};
                             auto&           promise = m_pending.at(packet.Header.TransactionId);
                             promise.Promise.set_value(packet);
-                            m_pending.erase(packet.Header.TransactionId);
                             BR_LOG_TRACE(m_label, "Received response for '{:08X}'", packet.Header.TransactionId);
                         }
                         catch (std::out_of_range&)
@@ -114,6 +113,8 @@ void SerialDevice::Open()
         BR_LOG_ERROR(m_label, "While opening '{}': {}", m_device.getPort(), e.what());
         return;
     }
+
+    m_cleanerThread = std::thread([this] { CleanerTask(); });
 
     m_shouldRun = true;
     std::barrier rxReady {2};
@@ -160,6 +161,11 @@ void SerialDevice::Close()
         }
         if (m_rxThread.joinable()) { m_rxThread.join(); }
         m_device.close();
+
+        using namespace std::chrono_literals;
+        while (!m_pending.empty()) { std::this_thread::sleep_for(10ms); }
+        m_cleanerRun = false;
+        if (m_cleanerThread.joinable()) { m_cleanerThread.join(); }
     }
 }
 
@@ -366,6 +372,24 @@ void SerialDevice::GetDeviceCommands()
             }
             else { BR_LOG_ERROR(m_label, "Invalid command from device"); }
         }
+    }
+}
+
+void SerialDevice::CleanerTask()
+{
+    m_cleanerRun = true;
+    while (m_cleanerRun)
+    {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(1s);
+        std::vector<uint32_t> consumed;
+        std::lock_guard lock {m_promiseLock};
+        consumed.reserve(m_pending.size());
+        for (const auto& [id, response] : m_pending)
+        {
+            if (response.IsConsumed()) { consumed.push_back(id); }
+        }
+        for (const auto& id : consumed) { m_pending.erase(id); }
     }
 }
 }    // namespace Frasy::Communication

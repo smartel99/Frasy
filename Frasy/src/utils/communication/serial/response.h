@@ -35,7 +35,6 @@ namespace Frasy::Communication
 struct ResponsePromise
 {
     std::promise<Packet> Promise;
-    std::thread          Thread;
 
     explicit ResponsePromise()                         = default;
     ResponsePromise(ResponsePromise&&)                 = default;
@@ -51,6 +50,8 @@ struct ResponsePromise
     ResponsePromise& OnComplete(const on_complete_cb_t& func);
     ResponsePromise& OnTimeout(const on_timeout_cb_t& func);
     ResponsePromise& OnError(const on_error_cb_t& func);
+
+    bool IsConsumed() const { return m_consumed; }
 
     /// Run the promise in asynchronous mode
     void Async();
@@ -86,6 +87,9 @@ struct ResponsePromise
 private:
     static constexpr const char* s_tag     = "Promise";
     static constexpr auto        s_timeout = std::chrono::milliseconds(1000);
+
+    std::thread m_thread;
+    bool        m_consumed = false;
 
     on_complete_cb_t m_localOnCompleteCb = [&](const Packet& packet)
     {

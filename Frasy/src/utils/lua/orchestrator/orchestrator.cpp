@@ -195,13 +195,13 @@ void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actio
             Lua::ArgsToTable(table, device.GetTypeManager(), fields, args);
             Lua::ParseTable(table, device.GetTypeManager(), fields, packet.Payload);
 
-            packet.RefreshOnExternalPayloadUpdate();
             packet.Header.CommandId    = fun.Id;
+            packet.Header.TransactionId = AUTOMATIC_TRANSACTION_ID;
+            packet.RefreshOnExternalPayloadUpdate();
             std::size_t          tries = 10;
             std::vector<uint8_t> response;
             while (tries-- != 0)
             {
-                packet.Header.TransactionId = AUTOMATIC_TRANSACTION_ID;
                 device.Transmit(packet)
                   .OnComplete(
                     [&](const Packet& packet)

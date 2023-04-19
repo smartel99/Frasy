@@ -24,10 +24,10 @@ namespace Frasy::Communication
 
 ResponsePromise::~ResponsePromise()
 {
-    if (Thread.joinable())
+    if (m_thread.joinable())
     {
         BR_LOG_DEBUG(s_tag, "Joining thread...");
-        Thread.join();
+        m_thread.join();
         BR_LOG_DEBUG(s_tag, "Thread joined!");
     }
 }
@@ -81,7 +81,7 @@ void ResponsePromise::run()
 {
     using namespace std::chrono_literals;
     auto s_future = Promise.get_future();
-    Thread        = std::thread(
+    m_thread      = std::thread(
       [this](std::future<Packet> future)
       {
           try
@@ -109,6 +109,7 @@ void ResponsePromise::run()
           {
               m_localOnErrorCb(std::current_exception());
           }
+          m_consumed = true;
       },
       std::move(s_future));
 }
