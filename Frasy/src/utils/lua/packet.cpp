@@ -50,7 +50,7 @@ Communication::Packet ToPacket(const Actions::Command& command, const sol::varia
     //    ArgsToTable(table, fields, args);
     //    ParseTable(table, fields, packet.Payload);
 
-    packet.RefreshOnExternalPayloadUpdate();
+    packet.UpdatePayloadSize();
     return packet;
 }
 

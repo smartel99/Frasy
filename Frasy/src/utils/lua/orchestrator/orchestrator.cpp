@@ -195,9 +195,9 @@ void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actio
             Lua::ArgsToTable(table, device.GetTypeManager(), fields, args);
             Lua::ParseTable(table, device.GetTypeManager(), fields, packet.Payload);
 
-            packet.Header.CommandId    = fun.Id;
+            packet.Header.CommandId     = fun.Id;
             packet.Header.TransactionId = AUTOMATIC_TRANSACTION_ID;
-            packet.RefreshOnExternalPayloadUpdate();
+            packet.UpdatePayloadSize();
             std::size_t          tries = 10;
             std::vector<uint8_t> response;
             while (tries-- != 0)

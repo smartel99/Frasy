@@ -39,7 +39,7 @@ struct PacketHeader
 {
     using RawData = std::basic_string_view<uint8_t>;
 
-    trs_id_t        TransactionId = {};
+    trs_id_t        TransactionId = AUTOMATIC_TRANSACTION_ID;
     cmd_id_t        CommandId     = {};
     PacketModifiers Modifiers;
     payload_size_t  PayloadSize = {};
@@ -59,9 +59,6 @@ private:
     static constexpr size_t s_commandIdOffset     = s_transactionIdOffset + SizeInChars<decltype(TransactionId)>();
     static constexpr size_t s_modifiersOffset     = s_commandIdOffset + SizeInChars<decltype(CommandId)>();
     static constexpr size_t s_payloadSizeOffset   = s_modifiersOffset + SizeInChars<uint8_t>();
-
-private:
-    [[nodiscard]] trs_id_t MakeTransactionId(trs_id_t id) const;
 
 public:
     static constexpr size_t s_headerSize = s_payloadSizeOffset + SizeInChars<decltype(PayloadSize)>();
@@ -100,17 +97,15 @@ private:
 
 public:
     [[nodiscard]] uint32_t Crc() const { return m_crc; }
-    [[nodiscard]] uint32_t ComputeCrc() const { return crc32_calculate({std::vector<uint8_t>(Header), Payload}); }
+    void                   ComputeCrc() { m_crc = crc32_calculate({std::vector<uint8_t>(Header), Payload}); }
     [[nodiscard]] bool IsCrcValid() const { return m_crc == crc32_calculate({std::vector<uint8_t>(Header), Payload}); }
 
     static Packet Request(cmd_id_t cmdId)
     {
         Packet pkt {cmdId, {}};
-        pkt.m_crc = pkt.ComputeCrc();
         return pkt;
     }
     static Packet Request(Actions::CommandId cmdId) { return Request(static_cast<cmd_id_t>(cmdId)); }
-
 
     static Packet Reply(const Packet& og, cmd_id_t cmdId = INVALID_COMMAND_ID)
     {
@@ -121,21 +116,32 @@ public:
         return pkt;
     }
 
+    void MakeTransactionId()
+    {
+        static constexpr uint32_t TRANSACTION_ID_FLAG_AUTOMATIC = 0x80000000;
+        static constexpr uint32_t TRANSACTION_ID_FLAG_FRASY     = 0x40000000;
+        static uint32_t           last_automatic_id             = 0;
+        if (Header.TransactionId != AUTOMATIC_TRANSACTION_ID) { return; }    // Never alter an ID that was already set!
+        Header.TransactionId = last_automatic_id++ | TRANSACTION_ID_FLAG_AUTOMATIC | TRANSACTION_ID_FLAG_FRASY;
+    }
+
     template<typename T>
     Packet& MakePayload(const T& t)
         requires requires { Serialize(t); }
     {
         Payload            = Serialize(t);
         Header.PayloadSize = Payload.size();
-        m_crc              = ComputeCrc();
         return *this;
     }
 
-    void RefreshOnExternalPayloadUpdate()
+    Packet& SetPayload(std::vector<uint8_t> payload)
     {
+        Payload            = std::move(payload);
         Header.PayloadSize = Payload.size();
-        m_crc              = ComputeCrc();
+        return *this;
     }
+
+    void UpdatePayloadSize() { Header.PayloadSize = Payload.size(); }
 
     template<typename T>
     T FromPayload() const

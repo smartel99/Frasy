@@ -38,6 +38,60 @@ SerialDevice::SerialDevice(DeviceInfo info, bool open)
     if (open) { Open(); }
 }
 
+SerialDevice& SerialDevice::operator=(SerialDevice&& o) noexcept
+{
+    bool reopen = false;
+    if (o.m_device.isOpen())
+    {
+        reopen = true;
+        o.Close();
+    }
+
+    m_label       = std::move(o.m_label);
+    m_rxBuff      = std::move(o.m_rxBuff);
+    m_pending     = std::move(o.m_pending);
+    m_info        = std::move(o.m_info);
+    m_commands    = std::move(o.m_commands);
+    m_typeManager = std::move(o.m_typeManager);
+    m_log         = o.m_log;
+    m_ready       = o.m_ready;
+
+    serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
+    m_device.setTimeout(timeout);
+    m_device.setBaudrate(460800);
+    m_device.setPort(o.m_device.getPort());
+    if (reopen) { Open(); }
+    return *this;
+}
+
+ResponsePromise& SerialDevice::Transmit(Packet pkt)
+{
+    // pkt MUST be a copy. We might modify it here in order to set a proper Transaction ID and compute its CRC
+    // The user has the right to use the same commands as below in order to generate a packet that will match
+    // our own modified packet, so they will not be "surprised"
+    pkt.MakeTransactionId();
+    pkt.ComputeCrc();
+
+    BR_LOG_TRACE(m_label, "Sending packet '{:08X}'", pkt.Header.TransactionId);
+    std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);
+    std::lock_guard      txLock {m_txLock};
+    m_device.write(data);
+    m_device.flushOutput();
+    std::lock_guard promiseLock {m_promiseLock};
+    auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise {}));
+    return it->second;
+}
+
+[[nodiscard]] std::vector<trs_id_t> SerialDevice::GetPendingTransactions()
+{
+    std::vector<trs_id_t> ids;
+    ids.reserve(m_pending.size());
+    std::lock_guard lock {m_promiseLock};
+    for (auto&& [id, p] : m_pending) { ids.push_back(id); }
+
+    return ids;
+}
+
 void SerialDevice::CheckForPackets()
 {
     // Check if we received a full packet somewhere.
