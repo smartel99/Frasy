@@ -107,7 +107,7 @@ function Orchestrator.RunTest(scope)
         if type(err) == "string" then
             Team.Sync(test.result)
             error(GenericError(err))
-        elseif err.code == UnmetExpectation().code or err.code == TeamError().code then
+        elseif err.code == UnmetExpectation().code then
             test.result.pass   = false
             test.result.reason = err.what
         elseif err.code == UnmetRequirement().code then
