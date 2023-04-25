@@ -118,8 +118,19 @@ void ParseEnum(const sol::table&     table,
                std::vector<uint8_t>& output)
 {
     using Type::Fundamental;
-    // TODO get enum underlying type
-    type_id_t underlying_type = static_cast<type_id_t>(Fundamental::E::UInt32);
+    auto to_underlying = [&typeManager](const Struct::Field& f)
+    {
+        // Get the information of the field's type.
+        auto typeInfo = typeManager.GetEnum(f.Type);
+        switch (typeInfo.UnderlyingSize)
+        {
+            case 1: return Fundamental::E::UInt8;
+            case 2: return Fundamental::E::UInt16;
+            case 4: return Fundamental::E::UInt32;
+            default: throw std::runtime_error("Bad underlying size for enum!");
+        }
+    };
+    type_id_t underlying_type = static_cast<type_id_t>(to_underlying(field));
     ParseFundamental(table, Struct::Field {.Name = field.Name, .Type = underlying_type}, output);
 }
 
@@ -174,8 +185,19 @@ void ParseEnumContainer(const sol::table&     table,
                         std::vector<uint8_t>& output)
 {
     using Type::Fundamental;
-    // TODO get enum underlying type
-    type_id_t underlying_type = static_cast<type_id_t>(Fundamental::E::UInt32);
+    auto to_underlying = [&typeManager](const Struct::Field& f)
+    {
+        // Get the information of the field's type.
+        auto typeInfo = typeManager.GetEnum(f.Type);
+        switch (typeInfo.UnderlyingSize)
+        {
+            case 1: return Fundamental::E::UInt8;
+            case 2: return Fundamental::E::UInt16;
+            case 4: return Fundamental::E::UInt32;
+            default: throw std::runtime_error("Bad underlying size for enum!");
+        }
+    };
+    type_id_t underlying_type = static_cast<type_id_t>(to_underlying(field));
     ParseFundamentalContainer(table, Struct::Field {.Name = field.Name, .Type = underlying_type}, output);
 }
 

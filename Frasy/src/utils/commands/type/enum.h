@@ -53,18 +53,19 @@ struct Enum
     };
 
     std::string        Name;
-    std::vector<Field> Fields      = {};
-    std::string        Description = {};
+    std::vector<Field> Fields         = {};
+    std::string        Description    = {};
+    uint8_t            UnderlyingSize = 0;    //!< Size of the underlying type. Must be 1, 2 or 4.
 
     struct Manager;
 
     bool operator==(const Enum& other) const
     {
-        if (Name != other.Name) return false;
-        if (Fields.size() != other.Fields.size()) return false;
+        if (Name != other.Name) { return false; }
+        if (Fields.size() != other.Fields.size()) { return false; }
         for (std::size_t i = 0; i < Fields.size(); ++i)
         {
-            if (Fields[i] != other.Fields[i]) return false;
+            if (Fields[i] != other.Fields[i]) { return false; }
         }
         return true;
     }
@@ -127,6 +128,12 @@ struct Enum::Manager
         static constexpr std::string_view name        = "Description";
         static constexpr std::string_view description = "Provide information about the purpose of the enum";
         static constexpr type_id_t        type        = static_cast<type_id_t>(Fundamental::E::String);
+    };
+    struct UnderlyingType
+    {
+        static constexpr std::string_view name        = "UnderlyingType";
+        static constexpr std::string_view description = "Gives the size (in bytes) of the underlying type.";
+        static constexpr type_id_t        type        = static_cast<type_id_t>(Fundamental::E::UInt8);
     };
 };
 

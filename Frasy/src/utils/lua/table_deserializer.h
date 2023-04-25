@@ -39,13 +39,13 @@ sol::table Deserialize(sol::state&                                        lua,
                        std::size_t&                                       offset);
 
 sol::table Deserialize(sol::state&                                        lua,
-                       const std::vector<Frasy::Actions::Value>           values,
+                       const std::vector<Frasy::Actions::Value>&          values,
                        const std::unordered_map<type_id_t, Type::Struct>& structs,
                        const std::unordered_map<type_id_t, Type::Enum>&   enums,
                        const std::vector<uint8_t>&                        data);
 
 sol::table Deserialize(sol::state&                                        lua,
-                       const std::vector<Frasy::Actions::Value>           values,
+                       const std::vector<Frasy::Actions::Value>&          values,
                        const std::unordered_map<type_id_t, Type::Struct>& structs,
                        const std::unordered_map<type_id_t, Type::Enum>&   enums,
                        const std::vector<uint8_t>&                        data,

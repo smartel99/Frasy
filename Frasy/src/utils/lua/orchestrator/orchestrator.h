@@ -94,12 +94,12 @@ private:
     bool        CreateOutputDirs();
     void        InitLua(sol::state& lua, std::size_t uut = 0, Stage stage = Stage::Generation);
     void        ImportExclusive(sol::state& lua, Stage stage);
-    void        ImportLog(sol::state& lua, std::size_t uut, Stage stage);
+    static void        ImportLog(sol::state& lua, std::size_t uut, Stage stage);
     void        ImportPopup(sol::state& lua, std::size_t uut, Stage stage);
     void        ImportSync(sol::state& lua, Stage stage);
     void        LoadIb(sol::state& lua);
-    void        LoadIbCommandForExecution(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
-    void        LoadIbCommandForValidation(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
+    static void        LoadIbCommandForExecution(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
+    static void        LoadIbCommandForValidation(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
     static bool LoadEnvironment(sol::state& lua, const std::string& filename);
     static bool LoadTests(sol::state& lua, const std::string& filename);
     bool        DoStep(sol::state& lua, const std::string& filename);

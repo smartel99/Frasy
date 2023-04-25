@@ -1,0 +1,21 @@
+{
+  "LogWindow": {
+    "AutoScroll": true,
+    "CombineLoggers": true,
+    "EntriesToShow": 4096,
+    "ShowLevels": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "ShowLogSource": true,
+    "ShowSourceLocation": true,
+    "ShowTimeStamp": true,
+    "SourceLocationRenderStyle": 4
+  },
+  "UserConfigPath": "usr_config.json"
+}

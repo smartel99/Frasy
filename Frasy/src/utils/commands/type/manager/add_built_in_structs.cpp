@@ -52,29 +52,36 @@ void Manager::AddBuiltInStructs()
 
     //<editor-fold desc="Enum">
     using Type::Enum;
-    Enum::Manager::id = AddStruct(Struct {
-      .Name = std::string(Enum::Manager::name),
-      .Fields =
-        {
-          Struct::Field {
-            .Name        = std::string(Enum::Manager::Name::name),
-            .Type        = Enum::Manager::Name::type,
-            .Description = std::string(Enum::Manager::Name::description),
-          },
-          Struct::Field {
-            .Name        = std::string(Enum::Manager::Fields::name),
-            .Type        = Enum::Manager::Fields::type(),
-            .Count       = Enum::Manager::Fields::count,
-            .Description = std::string(Enum::Manager::Fields::description),
-          },
-          Struct::Field {
-            .Name        = std::string(Enum::Manager::Description::name),
-            .Type        = Enum::Manager::Description::type,
-            .Description = std::string(Enum::Manager::Description::description),
-          },
-        },
-      .Description = std::string(Enum::Manager::description),
-    });
+    Enum::Manager::id =
+      AddStruct(
+        Struct {
+          .Name = std::string(Enum::Manager::name),
+          .Fields =
+            {
+              Struct::Field {
+                .Name        = std::string(Enum::Manager::Name::name),
+                .Type        = Enum::Manager::Name::type,
+                .Description = std::string(Enum::Manager::Name::description),
+              },
+              Struct::Field {
+                .Name        = std::string(Enum::Manager::Fields::name),
+                .Type        = Enum::Manager::Fields::type(),
+                .Count       = Enum::Manager::Fields::count,
+                .Description = std::string(Enum::Manager::Fields::description),
+              },
+              Struct::Field {
+                .Name        = std::string(Enum::Manager::Description::name),
+                .Type        = Enum::Manager::Description::type,
+                .Description = std::string(Enum::Manager::Description::description),
+              },
+              Struct::Field {
+                .Name        = std::string(Enum::Manager::UnderlyingType::name),
+                .Type        = Enum::Manager::UnderlyingType::type,
+                .Description = std::string(Enum::Manager::UnderlyingType::description),
+              },
+            },
+          .Description = std::string(Enum::Manager::description),
+        });
     //</editor-fold>
 
     //<editor-fold desc="Struct::Field">

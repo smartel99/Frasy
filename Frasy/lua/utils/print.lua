@@ -21,6 +21,8 @@ function utils.print(t, lvl)
     for _ = 1, (lvl - 1) do str = str .. "    " end
     if lvl ~= 0 then str = str .. "|--- " end
 
+    print(type(t))
+    
     if type(t) == "table" then
         for k, v in pairs(t) do
             print(str .. k .. ":")

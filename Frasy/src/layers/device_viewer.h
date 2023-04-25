@@ -37,7 +37,15 @@ public:
     void SetVisibility(bool visibility);
 
 private:
-    void RenderDeviceList();
+    void        RenderDeviceList();
+    static void RenderDeviceCommands(const std::unordered_map<Actions::cmd_id_t, Actions::CommandInfo::Reply>& commands,
+                                     const Type::Manager&                                                      manager);
+    static void RenderDeviceEnums(const std::unordered_map<Actions::cmd_id_t, Type::Enum>& enums);
+    static void RenderDeviceStructs(const std::unordered_map<Actions::cmd_id_t, Type::Struct>& structs,
+                                    const Type::Manager&                                       manager);
+    static void RenderCommandValues(std::string_view                   name,
+                                    const std::vector<Actions::Value>& values,
+                                    const Type::Manager&               manager);
 
 private:
     bool m_isVisible = false;

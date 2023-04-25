@@ -27,8 +27,8 @@ using trs_id_t       = std::uint32_t;
 using cmd_id_t       = std::uint16_t;
 using payload_size_t = std::uint16_t;
 
-static constexpr trs_id_t AUTOMATIC_TRANSACTION_ID = std::numeric_limits<trs_id_t>::max();
-static constexpr cmd_id_t INVALID_COMMAND_ID       = std::numeric_limits<cmd_id_t>::max();
+inline constexpr trs_id_t AUTOMATIC_TRANSACTION_ID = std::numeric_limits<trs_id_t>::max();
+inline constexpr cmd_id_t INVALID_COMMAND_ID       = std::numeric_limits<cmd_id_t>::max();
 
 struct PacketModifiers
 {

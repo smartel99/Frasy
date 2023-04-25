@@ -19,73 +19,38 @@
 
 namespace Frasy::Lua
 {
-
+namespace
+{
 void CheckFundamental(const Frasy::Type::Manager&       typeManager,
                       const Frasy::Type::Struct::Field& field,
-                      sol::object                       object);
-
+                      const sol::object&                object);
 void CheckTable(const Frasy::Type::Manager&                    typeManager,
                 const std::vector<Frasy::Type::Struct::Field>& fields,
                 sol::table                                     table);
-
-void CheckContainer(const Frasy::Type::Manager& typeManager,
-                    Frasy::Type::Struct::Field  field,
-                    std::vector<sol::object>    objects);
-
-void CheckArgs(sol::state&                                    lua,
-               const Frasy::Type::Manager&                    typeManager,
-               const std::vector<Frasy::Type::Struct::Field>& fields,
-               sol::variadic_args&                            args)
-{
-    if (args.size() != fields.size()) throw std::logic_error("Missing arguments!");
-    for (std::size_t i = 0; i < args.size(); ++i)
-    {
-        const auto& field = fields[i];
-        sol::object arg   = args[i];
-
-        if (field.Count == Type::SINGLE)
-        {
-            auto at = arg.get_type();
-            switch (at)
-            {
-                case sol::type::boolean:
-                case sol::type::string:
-                case sol::type::number: CheckFundamental(typeManager, field, arg); break;
-                case sol::type::table:
-                    if (!typeManager.IsStruct(field.Type)) throw std::exception();
-                    CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, arg);
-                    break;
-                case sol::type::thread:
-                case sol::type::function:
-                case sol::type::userdata:
-                case sol::type::lightuserdata:
-                case sol::type::poly:
-                case sol::type::none:
-                case sol::type::lua_nil: throw std::exception();
-            }
-        }
-        else { CheckContainer(typeManager, field, args[i].as<std::vector<sol::object>>()); }
-    }
-}
+void CheckContainer(const Frasy::Type::Manager&       typeManager,
+                    const Frasy::Type::Struct::Field& field,
+                    const std::vector<sol::object>&   objects);
 
 void CheckFundamental(const Frasy::Type::Manager&       typeManager,
                       const Frasy::Type::Struct::Field& field,
-                      sol::object                       object)
+                      const sol::object&                object)
 {
     auto ot = object.get_type();
     switch (ot)
     {
         case sol::type::boolean:
-            if (field.Type != static_cast<type_id_t>(Frasy::Type::Fundamental::E::Bool)) throw std::exception();
+            if (field.Type != static_cast<type_id_t>(Frasy::Type::Fundamental::E::Bool)) { throw std::exception(); }
             break;
         case sol::type::string:
-            if (field.Type != static_cast<type_id_t>(Frasy::Type::Fundamental::E::String)) throw std::exception();
+            if (field.Type != static_cast<type_id_t>(Frasy::Type::Fundamental::E::String)) { throw std::exception(); }
             break;
         case sol::type::number:
             if (field.Type < static_cast<type_id_t>(Frasy::Type::Fundamental::E::Int8) ||
                 (field.Type > static_cast<type_id_t>(Frasy::Type::Fundamental::E::Double) &&
                  !typeManager.IsEnum(field.Type)))
+            {
                 throw std::exception();
+            }
             break;
         case sol::type::table:
         case sol::type::thread:
@@ -104,7 +69,7 @@ void CheckTable(const Frasy::Type::Manager&                    typeManager,
 {
     std::size_t size = 0;
     for (const auto& [k, v] : table) { ++size; }
-    if (size != fields.size()) throw std::exception();
+    if (size != fields.size()) { throw std::exception(); }
     for (const auto& field : fields)
     {
         sol::object o  = table[field.Name];
@@ -117,7 +82,7 @@ void CheckTable(const Frasy::Type::Manager&                    typeManager,
                 case sol::type::string:
                 case sol::type::number: CheckFundamental(typeManager, field, o); break;
                 case sol::type::table:
-                    if (!typeManager.IsStruct(field.Type)) throw std::exception();
+                    if (!typeManager.IsStruct(field.Type)) { throw std::exception(); }
                     CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, o);
                     break;
                 case sol::type::thread:
@@ -133,11 +98,11 @@ void CheckTable(const Frasy::Type::Manager&                    typeManager,
     }
 }
 
-void CheckContainer(const Frasy::Type::Manager& typeManager,
-                    Frasy::Type::Struct::Field  field,
-                    std::vector<sol::object>    objects)
+void CheckContainer(const Frasy::Type::Manager&       typeManager,
+                    const Frasy::Type::Struct::Field& field,
+                    const std::vector<sol::object>&   objects)
 {
-    if (field.Count != Type::VECTOR && field.Count != objects.size()) throw std::exception();
+    if (field.Count != Type::VECTOR && field.Count != objects.size()) { throw std::exception(); }
     for (const auto& o : objects)
     {
         auto ot = o.get_type();
@@ -147,7 +112,7 @@ void CheckContainer(const Frasy::Type::Manager& typeManager,
             case sol::type::string:
             case sol::type::number: CheckFundamental(typeManager, field, o); break;
             case sol::type::table:
-                if (!typeManager.IsStruct(field.Type)) throw std::exception();
+                if (!typeManager.IsStruct(field.Type)) { throw std::exception(); }
                 CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, o);
                 break;
             case sol::type::thread:
@@ -160,4 +125,41 @@ void CheckContainer(const Frasy::Type::Manager& typeManager,
         }
     }
 }
+}    // namespace
+void CheckArgs(sol::state&                                    lua,
+               const Frasy::Type::Manager&                    typeManager,
+               const std::vector<Frasy::Type::Struct::Field>& fields,
+               sol::variadic_args&                            args)
+{
+    if (args.size() != fields.size()) { throw std::logic_error("Missing arguments!"); }
+    for (std::size_t i = 0; i < args.size(); ++i)
+    {
+        const auto& field = fields[i];
+        sol::object arg   = args[i];
+
+        if (field.Count == Type::SINGLE)
+        {
+            auto at = arg.get_type();
+            switch (at)
+            {
+                case sol::type::boolean:
+                case sol::type::string:
+                case sol::type::number: CheckFundamental(typeManager, field, arg); break;
+                case sol::type::table:
+                    if (!typeManager.IsStruct(field.Type)) { throw std::exception(); }
+                    CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, arg);
+                    break;
+                case sol::type::thread:
+                case sol::type::function:
+                case sol::type::userdata:
+                case sol::type::lightuserdata:
+                case sol::type::poly:
+                case sol::type::none:
+                case sol::type::lua_nil: throw std::exception();
+            }
+        }
+        else { CheckContainer(typeManager, field, args[i].as<std::vector<sol::object>>()); }
+    }
+}
+
 }    // namespace Frasy::Lua

@@ -17,6 +17,7 @@
 
 #include "orchestrator.h"
 
+#include "../../commands/built_in/status/reply.h"
 #include "../../communication/serial/device_map.h"
 #include "../args_checker.h"
 #include "../table_deserializer.h"
@@ -109,9 +110,9 @@ void Orchestrator::InitLua(sol::state& lua, std::size_t uut, Stage stage)
     lua.require_file("Utils", "lua/core/utils/module.lua");
     lua["Utils"]["dirlist"] = [](const std::string& dir)
     {
-        using namespace std::filesystem;
+        namespace fs = std::filesystem;
         std::vector<std::string> files;
-        for (auto const& dir_entry : directory_iterator {dir})
+        for (auto const& dir_entry : fs::directory_iterator {dir})
         {
             auto file = dir_entry.path().string();
             files.push_back(file.substr(0, file.size() - 4));
@@ -138,11 +139,13 @@ void Orchestrator::InitLua(sol::state& lua, std::size_t uut, Stage stage)
 
 void Orchestrator::LoadIb(sol::state& lua)
 {
-    if (!m_ibEnabled) return;
-    using namespace Frasy::Communication;
+    if (!m_ibEnabled) { return; }
+    using Frasy::Communication::DeviceMap;
+    using Frasy::Communication::SerialDevice;
+
     DeviceMap& devices = DeviceMap::Get();
 
-    if (devices.IsScanning()) throw std::runtime_error("Cannot load IB when DeviceMap is scanning");
+    if (devices.IsScanning()) { throw std::runtime_error("Cannot load IB when DeviceMap is scanning"); }
 
     SerialDevice& device = devices.begin()->second;
     for (const auto& [_, e] : device.GetEnums())
@@ -164,7 +167,8 @@ void Orchestrator::LoadIb(sol::state& lua)
 
 void Orchestrator::LoadIbCommandForValidation(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun)
 {
-    using namespace Frasy::Communication;
+    using Frasy::Communication::DeviceMap;
+    using Frasy::Communication::SerialDevice;
     DeviceMap& devices                                = DeviceMap::Get();
     lua["Context"]["Testbench"]["commands"][fun.Name] = [&](std::size_t        ib,
                                                             sol::variadic_args args) -> std::optional<sol::table>
@@ -172,7 +176,7 @@ void Orchestrator::LoadIbCommandForValidation(sol::state& lua, const Frasy::Acti
         SerialDevice&                    device = devices[ib - 1];
         std::vector<Type::Struct::Field> fields;
         fields.reserve(fun.Parameters.size());
-        for (const auto& value : fun.Parameters) fields.push_back({value.Name, value.Type, value.Count});
+        for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
         CheckArgs(lua, device.GetTypeManager(), fields, args);
         return {};
     };
@@ -180,42 +184,45 @@ void Orchestrator::LoadIbCommandForValidation(sol::state& lua, const Frasy::Acti
 
 void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun)
 {
-    using namespace Frasy::Communication;
-    DeviceMap& devices                                = DeviceMap::Get();
+    namespace fc = Frasy::Communication;
+
+    fc::DeviceMap& devices                            = fc::DeviceMap::Get();
     lua["Context"]["Testbench"]["commands"][fun.Name] = [&](std::size_t        ib,
                                                             sol::variadic_args args) -> std::optional<sol::table>
     {
         try
         {
-            SerialDevice&                    device = devices[ib - 1];
-            Packet                           packet;
+            fc::SerialDevice&                    device = devices[ib - 1];
+            fc::Packet                           packet;
             sol::table                       table = lua.create_table();
             std::vector<Type::Struct::Field> fields;
+            fields.reserve(fun.Parameters.size());
             for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
             Lua::ArgsToTable(table, device.GetTypeManager(), fields, args);
             Lua::ParseTable(table, device.GetTypeManager(), fields, packet.Payload);
 
             packet.Header.CommandId     = fun.Id;
-            packet.Header.TransactionId = AUTOMATIC_TRANSACTION_ID;
+            packet.Header.TransactionId = fc::AUTOMATIC_TRANSACTION_ID;
             packet.UpdatePayloadSize();
             std::size_t          tries = 10;
             std::vector<uint8_t> response;
             while (tries-- != 0)
             {
-                device.Transmit(packet)
-                  .OnComplete(
-                    [&](const Packet& packet)
-                    {
-                        using Frasy::Actions::CommandId;
-                        if (packet.Header.CommandId == static_cast<cmd_id_t>(CommandId::Status))
-                        {
-                            lua["Log"]["d"]("Received status");
-                        }
-                        else if (packet.Header.CommandId == fun.Id) { response = packet.Payload; }
-                        else { lua["Log"]["e"](std::format("Unknown command: {}", packet.Header.CommandId)); }
-                    })
-                  .Await();
-                if (response.empty())
+                auto resp = device.Transmit(packet).Collect();
+                using Frasy::Actions::CommandId;
+                if (resp.Header.CommandId == static_cast<fc::cmd_id_t>(CommandId::Status))
+                {
+                    auto status = resp.FromPayload<Frasy::Actions::Status::Reply>();
+                    lua["Log"]["w"](std::format("Received status '{}' : {}",
+                                                Frasy::Actions::Status::ErrorCode::ToStr(status.Code),
+                                                status.Message));
+                }
+                else if (resp.Header.CommandId == fun.Id)
+                {
+                    response = resp.Payload;
+                    break;
+                }
+                else { lua["Log"]["e"](std::format("Unknown command: {}", resp.Header.CommandId)); }
                 {
                     using namespace std::chrono_literals;
                     std::this_thread::sleep_for(50ms);
@@ -299,7 +306,7 @@ void Orchestrator::RunTests(const std::vector<std::string>& serials, bool regene
 
 bool Orchestrator::Generate(bool regenerate)
 {
-    if (m_generated && !regenerate) return true;
+    if (m_generated && !regenerate) { return true; }
 
     sol::state lua;
     InitLua(lua, 1);
@@ -332,7 +339,7 @@ bool Orchestrator::Verify(const sol::state& team)
         std::map<std::size_t, bool> results;
         for (auto& uut : devices)
         {
-            if (m_uutStates[uut] == UutState::Disabled) continue;
+            if (m_uutStates[uut] == UutState::Disabled) { continue; }
             threads.emplace_back(
               [&, uut]
               {
@@ -353,7 +360,7 @@ bool Orchestrator::Verify(const sol::state& team)
                   results[uut] = result;
               });
         }
-        for (auto& thread : threads) thread.join();
+        for (auto& thread : threads) { thread.join(); }
         size_t expectedResults = std::accumulate(devices.begin(),
                                                  devices.end(),
                                                  size_t(0),
@@ -389,10 +396,11 @@ void Orchestrator::Execute(const sol::state& team, const std::vector<std::string
             {
                 std::size_t leader      = team["Context"]["Team"]["players"][uut]["leader"];
                 auto        teamPlayers = team["Context"]["Team"]["teams"][leader].get<std::vector<std::size_t>>();
-                if (leader == uut) teams[leader] = Team(teamPlayers.size());
+                if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
             }
         }
-        std::vector<std::thread>    threads;
+        std::vector<std::thread> threads;
+        threads.reserve(devices.size());
         std::mutex                  mutex;
         std::map<std::size_t, bool> results;
         for (auto& uut : devices)
@@ -400,7 +408,7 @@ void Orchestrator::Execute(const sol::state& team, const std::vector<std::string
             threads.emplace_back(
               [&, uut]
               {
-                  if (m_uutStates[uut] == UutState::Disabled) return;
+                  if (m_uutStates[uut] == UutState::Disabled) { return; }
                   sol::state lua;
                   InitLua(lua, uut, Stage::Execution);
                   lua["Context"]["serial"] = serials[uut];
@@ -419,15 +427,14 @@ void Orchestrator::Execute(const sol::state& team, const std::vector<std::string
                   results[uut] = result;
               });
         }
-        for (auto& thread : threads) thread.join();
+        for (auto& thread : threads) { thread.join(); }
         CheckResults(devices);
     }
 }
 
 void Orchestrator::CheckResults(const std::vector<std::size_t>& devices)
 {
-    using namespace nlohmann;
-    using namespace std::filesystem;
+    using nlohmann::json;
     for (auto& uut : devices)
     {
         std::string resultFile = std::format("{}/{}/{}.json", m_outputDirectory, lastDirectory, uut);
@@ -449,14 +456,14 @@ void Orchestrator::CheckResults(const std::vector<std::size_t>& devices)
         else if (m_uutStates[uut] != UutState::Disabled)
         {
             m_uutStates[uut] = UutState::Error;
-            BR_LUA_ERROR("Missing report for UUT ", uut);
+            BR_LUA_ERROR("Missing report for UUT {}, files '{}' does not exist.", uut, resultFile);
         }
     }
 }
 
 void Orchestrator::ToggleUut(std::size_t index)
 {
-    if (IsRunning()) return;
+    if (IsRunning()) { return; }
     auto state   = m_uutStates[index] == UutState::Disabled ? UutState::Idle : UutState::Disabled;
     bool hasTeam = (*m_state)["Team"]["HasTeam"]();
     if (hasTeam)
@@ -483,7 +490,7 @@ bool Orchestrator::IsRunning() const
 // <editor-fold desc="exclusive">
 void Orchestrator::ImportExclusive(sol::state& lua, Stage stage)
 {
-    if (!m_exclusiveLock) m_exclusiveLock = std::make_unique<std::mutex>();
+    if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
     switch (stage)
     {
         case Stage::Execution:
@@ -527,7 +534,7 @@ bool Orchestrator::Init(const std::string& environment, const std::string& tests
 // </editor-fold>
 
 // <editor-fold desc="log">
-void Orchestrator::ImportLog(sol::state& lua, std::size_t uut, Stage stage)
+void Orchestrator::ImportLog(sol::state& lua, std::size_t uut, [[maybe_unused]] Stage stage)
 {
     lua.script_file("lua/core/sdk/log.lua");
     lua["Log"]["c"] = [uut](std::string message) { BR_LOG_CRITICAL(std::format("UUT{}", uut), message); };

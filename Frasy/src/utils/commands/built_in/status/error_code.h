@@ -30,7 +30,11 @@ struct ErrorCode
     {
         NoError,
         NotFound,
+        InvalidArgument,
+        NoResources,
         GenericError,
+        NotSupported,
+        PacketError,
     };
 
     struct Manager
@@ -52,13 +56,54 @@ struct ErrorCode
             static constexpr std::string_view description = "Reported when board could not found requested value";
             static constexpr uint32_t         value       = static_cast<uint32_t>(E::NotFound);
         };
+        struct InvalidArgument
+        {
+            static constexpr std::string_view name = "InvalidArgument";
+            static constexpr std::string_view description =
+              "Reported when an argument passed to a command is not valid";
+            static constexpr uint32_t value = static_cast<uint32_t>(E::InvalidArgument);
+        };
+        struct NoResources
+        {
+            static constexpr std::string_view name = "NoResources";
+            static constexpr std::string_view description =
+              "Reported when there are no available resources to execute the requested command";
+            static constexpr uint32_t value = static_cast<uint32_t>(E::NoResources);
+        };
         struct GenericError
         {
             static constexpr std::string_view name        = "GenericError";
             static constexpr std::string_view description = "Reported when undocumented error arise";
             static constexpr uint32_t         value       = static_cast<uint32_t>(E::GenericError);
         };
+        struct NotSupported
+        {
+            static constexpr std::string_view name        = "NotSupported";
+            static constexpr std::string_view description = "Reported when a requested feature is not supported";
+            static constexpr uint32_t         value       = static_cast<uint32_t>(E::NotSupported);
+        };
+        struct PacketError
+        {
+            static constexpr std::string_view name        = "PacketError";
+            static constexpr std::string_view description = "Reported when a packet fails to be parsed";
+            static constexpr uint32_t         value       = static_cast<uint32_t>(E::PacketError);
+        };
     };
+
+    static constexpr std::string_view ToStr(E v)
+    {
+        switch (v)
+        {
+            case E::NoError: return Manager::NoError::name;
+            case E::NotFound: return Manager::NotFound::name;
+            case E::InvalidArgument: return Manager::InvalidArgument::name;
+            case E::NoResources: return Manager::NoResources::name;
+            case E::GenericError: return Manager::GenericError::name;
+            case E::NotSupported: return Manager::NotSupported::name;
+            case E::PacketError: return Manager::PacketError::name;
+            default: return "Unknown error";
+        }
+    }
 };
 }    // namespace Frasy::Actions::Status
 

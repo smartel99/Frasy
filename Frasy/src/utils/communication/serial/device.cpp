@@ -242,10 +242,9 @@ void SerialDevice::SetLog(bool enable)
 
 void SerialDevice::GetCapabilities()
 {
-
-    using namespace Frasy::Actions;
-    Transmit(Packet::Request(CommandId::Identify))
-      .OnComplete([&](const Packet& packet) { m_info = Identify::Info(packet.FromPayload<Identify::Reply>()); })
+    namespace fa = Frasy::Actions;
+    Transmit(Packet::Request(fa::CommandId::Identify))
+      .OnComplete([&](const Packet& packet) { m_info = fa::Identify::Info(packet.FromPayload<fa::Identify::Reply>()); })
       .Await();
 
     if (m_ready)
@@ -304,23 +303,6 @@ void SerialDevice::GetDeviceStructs()
     auto structIds = Transmit(Packet::Request(Actions::CommandId::StructsList)).Collect<std::vector<Type::BasicInfo>>();
     for (const auto& info : structIds)
     {
-        //        Transmit(Packet::Request(Actions::CommandId::StructInfo).MakePayload(info.id))
-        //          .OnComplete(
-        //            [&](const Packet& packet)
-        //            {
-        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::StructInfo))
-        //                {
-        //                    m_typeManager.AddStruct(info.id, packet.FromPayload<Type::Struct>());
-        //                    return;
-        //                }
-        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
-        //                {
-        //                    throw std::exception(packet.FromPayload<std::string>().c_str());
-        //                }
-        //                throw std::exception("Invalid command");
-        //            })
-        //          .OnTimeout([] { DEBUG_BREAK(); })
-        //          .Await();
         BR_LOG_DEBUG(m_label, "Getting information for '{}'...", info.name);
         for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
         {
@@ -345,24 +327,6 @@ void SerialDevice::GetDeviceEnums()
     auto enumIds = Transmit(Packet::Request(Actions::CommandId::EnumsList)).Collect<std::vector<Type::BasicInfo>>();
     for (const auto& info : enumIds)
     {
-        //        Transmit(Packet::Request(Actions::CommandId::EnumInfo).MakePayload(info.id))
-        //          .OnComplete(
-        //            [&](const Packet& packet)
-        //            {
-        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::EnumInfo))
-        //                {
-        //                    m_typeManager.AddEnum(info.id, packet.FromPayload<Type::Enum>());
-        //                    return;
-        //                }
-        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
-        //                {
-        //                    throw std::exception(packet.FromPayload<std::string>().c_str());
-        //                }
-        //                throw std::exception("Invalid command");
-        //            })
-        //          .OnTimeout([] { DEBUG_BREAK(); })
-        //          .OnError([](const std::exception& e) { BR_LOG_ERROR("Device", "Exception {}", e.what()); })
-        //          .Await();
         BR_LOG_DEBUG(m_label, "Getting information for '{}'...", info.name);
         for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
         {
@@ -388,27 +352,6 @@ void SerialDevice::GetDeviceCommands()
 
     for (const auto& name : cmdNames)
     {
-        //        Transmit(Packet::Request(Actions::CommandId::CommandInfo).MakePayload(name))
-        //          .OnComplete(
-        //            [&](const Packet& packet)
-        //            {
-        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::CommandInfo))
-        //                {
-        //                    auto info           = packet.FromPayload<Actions::CommandInfo::Reply>();
-        //                    m_commands[info.Id] = info;
-        //                    BR_LOG_DEBUG(m_label, "Received information for '{}'", info.Name);
-        //                    return;
-        //                }
-        //                if (packet.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
-        //                {
-        //                    throw std::exception(packet.FromPayload<std::string>().c_str());
-        //                }
-        //                throw std::exception("Invalid command");
-        //            })
-        //          .OnTimeout([] { DEBUG_BREAK(); })
-        //          .OnError([&](const std::exception& e)
-        //                   { BR_LOG_ERROR(m_label, "Unable to get information for '{}': {}", name, e.what()); })
-        //          .Await();
         BR_LOG_DEBUG(m_label, "Getting information for '{}'...", name);
         for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
         {
@@ -437,7 +380,7 @@ void SerialDevice::CleanerTask()
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(1s);
         std::vector<uint32_t> consumed;
-        std::lock_guard lock {m_promiseLock};
+        std::lock_guard       lock {m_promiseLock};
         consumed.reserve(m_pending.size());
         for (const auto& [id, response] : m_pending)
         {

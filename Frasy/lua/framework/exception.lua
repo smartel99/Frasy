@@ -14,18 +14,18 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 local exceptions        = {
-    "UnmetRequirement",
-    "UnmetExpectation",
-    "NestedScope",
-    "BadScope",
-    "AlreadyDefined",
-    "NotFound",
-    "InvalidRequirement",
-    "InvalidStage",
-    "MapperError",
-    "TeamError",
-    "WorkerError",
-    "GenericError",
+    "UnmetRequirement", -- 1
+    "UnmetExpectation", -- 2
+    "NestedScope", -- 3
+    "BadScope", -- 4
+    "AlreadyDefined", -- 5
+    "NotFound", -- 6
+    "InvalidRequirement", -- 7
+    "InvalidStage", -- 8
+    "MapperError", -- 9
+    "TeamError", -- 10
+    "WorkerError", -- 11
+    "GenericError", -- 12
 }
 
 local exceptions_values = {}

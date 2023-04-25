@@ -35,13 +35,6 @@ template<typename T>
 concept Primitives = std::is_arithmetic_v<T> || std::same_as<T, std::string>;
 }
 
-// template<Internal::Primitives T, uint8_t... Is>
-// T Deserialize(const std::vector<uint8_t>&                                   v,
-//               [[maybe_unused]] const std::integer_sequence<uint8_t, Is...>& is)
-//{
-//     return Pack<T>(v[Is]...);
-// }
-
 template<typename T, typename Begin, typename End>
     requires((std::is_integral_v<T> && !std::is_same_v<T, bool>))
 T Deserialize(Begin&& b, End&& e);
@@ -69,7 +62,7 @@ template<typename T, typename Begin, typename End>
     requires((std::is_integral_v<T> && !std::is_same_v<T, bool>))
 T Deserialize(Begin&& b, End&& e)
 {
-    BR_CORE_ASSERT(sizeof(T) <= std::distance(b, e), "Not enough data");
+    if (sizeof(T) > std::distance(b, e)) { throw std::runtime_error("Not enough data!"); }
     constexpr size_t N = sizeof(T);
     T                t = {};
     for (size_t i = 1; i <= sizeof(T); i++)
@@ -114,24 +107,23 @@ template<typename T, typename Begin, typename End>
     requires(std::same_as<T, bool>)
 bool Deserialize(Begin&& b, End&& e)
 {
-    assert("Not enough data" && sizeof(bool) <= std::distance(b, e));
+    if (sizeof(bool) > std::distance(b, e)) { throw std::runtime_error("Not enough data!"); }
     return (*b) == 0x01;
 }
 
 template<SerializableContainer T, typename Begin, typename End>
 T Deserialize(Begin&& b, End&& e)
 {
-    if(std::distance(b, e) < sizeof(uint16_t))
-    {
-        BR_CORE_ERROR("Not enough data to deserialize container");
-        return {};
-    }
+    if (std::distance(b, e) < sizeof(uint16_t)) { throw std::runtime_error("Not enough data"); }
     T        t;
     uint16_t size = Deserialize<uint16_t>(b, e);    // Get reported size from serializer
     if constexpr (std::is_same_v<std::array<typename T::value_type, sizeof(T) / sizeof(typename T::value_type)>, T>)
     {
         // Array, check size is valid
-        BR_CORE_ASSERT(size == sizeof(T) / sizeof(typename T::value_type), "Received invalid size for array");
+        if (size != sizeof(T) / sizeof(typename T::value_type))
+        {
+            throw std::runtime_error("Received invalid size for array!");
+        }
     }
     else if constexpr (std::is_same_v<std::vector<typename T::value_type>, T>)
     {
