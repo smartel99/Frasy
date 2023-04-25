@@ -156,7 +156,6 @@ void Orchestrator::LoadIb(sol::state& lua)
     BR_LUA_DEBUG("Loading commands");
     for (const auto& [id, fun] : device.GetCommands())
     {
-        BR_LUA_DEBUG("Command {}", fun.Name);
         if (isExecution) { LoadIbCommandForExecution(lua, fun); }
         else { LoadIbCommandForValidation(lua, fun); }
     }
