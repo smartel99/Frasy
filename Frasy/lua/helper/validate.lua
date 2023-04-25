@@ -14,14 +14,8 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 return function()
-    local error_handler = require("lua/core/framework/error_handler")
-    local status, err = xpcall(function()
-        local file = io.open("lua/order.json", "r")
-        Orchestrator.SetOrder(Json.decode(file:read("*all")))
-        file:close()
-        Orchestrator.Validate()
-    end, error_handler)
-    if not status then
-        if type(err) == "string" then print(err) else print(err.what) end
-    end
+    local file = io.open("lua/order.json", "r")
+    Orchestrator.SetOrder(Json.decode(file:read("*all")))
+    file:close()
+    Orchestrator.Validate()
 end

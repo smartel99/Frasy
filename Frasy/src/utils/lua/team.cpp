@@ -43,7 +43,7 @@ void Team::InitializeState(sol::state& other, std::size_t uut, std::size_t posit
     other["Team"]["__tell"] = [&](const sol::object& value)
     {
         m_bShare[0]->arrive_and_wait();
-        m_teamState->set("share", copy(value, m_teamState.operator*()));
+        m_teamState->set("share", copy(value, *m_teamState));
         std::atomic_thread_fence(std::memory_order_release);
         m_bShare[1]->arrive_and_wait();
         m_bShare[2]->arrive_and_wait();
