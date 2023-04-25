@@ -68,7 +68,7 @@ end
 function Team.Sync(result)
     if (Team.HasTeam()) then
         local status
-        if result.stop == nil then
+        if result.stop == 0 then
             status = Team.Status.critical_failure
         elseif result.skipped or not result.pass then
             status = Team.Status.fail
