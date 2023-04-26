@@ -1,15 +1,11 @@
 #include "WindowsWindow.h"
 
 #include "../../Brigerad/Core/Input.h"
-
 #include "../../Brigerad/Debug/Instrumentor.h"
-
 #include "../../Brigerad/Events/ApplicationEvent.h"
 #include "../../Brigerad/Events/KeyEvents.h"
 #include "../../Brigerad/Events/MouseEvent.h"
-
 #include "../../Brigerad/Renderer/Renderer.h"
-
 #include "../OpenGL/OpenGLContext.h"
 
 namespace Brigerad
@@ -62,12 +58,10 @@ void WindowsWindow::Init(const WindowProps& props)
     {
         BR_PROFILE_SCOPE("glfwCreateWindow");
 #if defined(BR_DEBUG)
-        if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
-            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+        if (Renderer::GetAPI() == RendererAPI::API::OpenGL) glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-        m_window = glfwCreateWindow(
-          (int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
+        m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
         ++s_GLFWWindowCount;
     }
 
@@ -92,8 +86,7 @@ void WindowsWindow::Init(const WindowProps& props)
     glfwSetWindowCloseCallback(m_window,
                                [](GLFWwindow* window)
                                {
-                                   WindowData& data =
-                                     *(WindowData*)glfwGetWindowUserPointer(window);
+                                   WindowData&      data = *(WindowData*)glfwGetWindowUserPointer(window);
                                    WindowCloseEvent event;
                                    data.eventCallback(event);
                                });
@@ -135,28 +128,27 @@ void WindowsWindow::Init(const WindowProps& props)
                             data.eventCallback(event);
                         });
 
-    glfwSetMouseButtonCallback(
-      m_window,
-      [](GLFWwindow* window, int button, int action, int mods)
-      {
-          WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    glfwSetMouseButtonCallback(m_window,
+                               [](GLFWwindow* window, int button, int action, int mods)
+                               {
+                                   WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-          switch (action)
-          {
-              case GLFW_PRESS:
-              {
-                  MouseButtonPressedEvent event(static_cast<MouseCode>(button));
-                  data.eventCallback(event);
-                  break;
-              }
-              case GLFW_RELEASE:
-              {
-                  MouseButtonReleasedEvent event(static_cast<MouseCode>(button));
-                  data.eventCallback(event);
-                  break;
-              }
-          }
-      });
+                                   switch (action)
+                                   {
+                                       case GLFW_PRESS:
+                                       {
+                                           MouseButtonPressedEvent event(static_cast<MouseCode>(button));
+                                           data.eventCallback(event);
+                                           break;
+                                       }
+                                       case GLFW_RELEASE:
+                                       {
+                                           MouseButtonReleasedEvent event(static_cast<MouseCode>(button));
+                                           data.eventCallback(event);
+                                           break;
+                                       }
+                                   }
+                               });
 
     glfwSetScrollCallback(m_window,
                           [](GLFWwindow* window, double xOffset, double yOffset)
@@ -191,7 +183,8 @@ void WindowsWindow::OnUpdate()
 {
     BR_PROFILE_FUNCTION();
 
-    glfwPollEvents();
+    //    glfwPollEvents();
+    glfwWaitEvents();
     m_context->SwapBuffers();
 }
 
@@ -199,10 +192,8 @@ void WindowsWindow::SetVSync(bool enabled)
 {
     BR_PROFILE_FUNCTION();
 
-    if (enabled)
-        glfwSwapInterval(1);
-    else
-        glfwSwapInterval(0);
+    if (enabled) { glfwSwapInterval(1); }
+    else { glfwSwapInterval(0); }
 
     m_data.vsync = enabled;
 }

@@ -191,8 +191,8 @@ void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actio
     {
         try
         {
-            fc::SerialDevice&                    device = devices[ib - 1];
-            fc::Packet                           packet;
+            fc::SerialDevice&                device = devices[ib - 1];
+            fc::Packet                       packet;
             sol::table                       table = lua.create_table();
             std::vector<Type::Struct::Field> fields;
             fields.reserve(fun.Parameters.size());
@@ -227,11 +227,12 @@ void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actio
                     std::this_thread::sleep_for(50ms);
                 }
             }
-            table = Lua::Deserialize(lua, fun.Returns, device.GetStructs(), device.GetEnums(), response);
-            return table;
+            Lua::Deserializer deserializer{lua, fun.Returns, device.GetStructs(), device.GetEnums()};
+            return deserializer.Deserialize(response.begin(), response.end());
         }
         catch (const std::exception& e)
         {
+            lua["Log"]["e"](std::format("An error occurred while running '{}': {}", fun.Name, e.what()));
             return {};
         }
     };

@@ -20,36 +20,142 @@
 #include "utils/commands/description/value.h"
 #include "utils/commands/type/enum.h"
 #include "utils/commands/type/struct.h"
+#include "utils/misc/deserializer.h"
 
 #include <sol/sol.hpp>
+#include <type_traits>
 #include <vector>
+
 namespace Frasy::Lua
 {
-sol::table Deserialize(sol::state&                                        lua,
-                       const std::vector<Type::Struct::Field>&            fields,
-                       const std::unordered_map<type_id_t, Type::Struct>& structs,
-                       const std::unordered_map<type_id_t, Type::Enum>&   enums,
-                       const std::vector<uint8_t>&                        data);
+template<typename Field>
+    requires((
+               requires(Field t) { t.Pos; } || requires(Field t) { t.Name; }) &&
+             std::same_as<decltype(std::declval<Field>().Type), type_id_t> &&
+             std::same_as<decltype(std::declval<Field>().Count), uint16_t>)
+class Deserializer
+{
+    template<typename T>
+    std::string GetPosOrName(const T& field)
+    {
+        return field.Name;
+    }
 
-sol::table Deserialize(sol::state&                                        lua,
-                       const std::vector<Type::Struct::Field>&            fields,
-                       const std::unordered_map<type_id_t, Type::Struct>& structs,
-                       const std::unordered_map<type_id_t, Type::Enum>&   enums,
-                       const std::vector<uint8_t>&                        data,
-                       std::size_t&                                       offset);
+    template<typename T>
+        requires requires(T t) { t.Pos; }
+    int GetPosOrName(const T& field)
+    {
+        return field.Pos;
+    }
 
-sol::table Deserialize(sol::state&                                        lua,
-                       const std::vector<Frasy::Actions::Value>&          values,
-                       const std::unordered_map<type_id_t, Type::Struct>& structs,
-                       const std::unordered_map<type_id_t, Type::Enum>&   enums,
-                       const std::vector<uint8_t>&                        data);
+public:
+    Deserializer(sol::state&                                        lua,
+                 const std::vector<Field>&                          fields,
+                 const std::unordered_map<type_id_t, Type::Struct>& structs,
+                 const std::unordered_map<type_id_t, Type::Enum>&   enums)
+    : m_lua(lua), m_fields(fields), m_structs(structs), m_enums(enums)
+    {
+    }
 
-sol::table Deserialize(sol::state&                                        lua,
-                       const std::vector<Frasy::Actions::Value>&          values,
-                       const std::unordered_map<type_id_t, Type::Struct>& structs,
-                       const std::unordered_map<type_id_t, Type::Enum>&   enums,
-                       const std::vector<uint8_t>&                        data,
-                       std::size_t&                                       offset);
+    sol::table Deserialize(auto begin, auto end)
+    {
+        // Pre-allocate memory for m_fields.size() hashable entries in the table.
+        sol::table table = m_lua.create_table(static_cast<int>(m_fields.size()), static_cast<int>(m_fields.size()));
+
+        for (auto&& field : m_fields) { ParseFieldAndAddToTable(table, field, begin, end); }
+
+        return table;
+    }
+
+private:
+    sol::state&                                        m_lua;
+    const std::vector<Field>&                          m_fields;
+    const std::unordered_map<type_id_t, Type::Struct>& m_structs;
+    const std::unordered_map<type_id_t, Type::Enum>&   m_enums;
+
+private:
+    void ParseFieldAndAddToTable(sol::table& table, const Field& field, auto& begin, const auto& end)
+    {
+        switch (field.Type)
+        {
+            case static_cast<type_id_t>(Type::Fundamental::E::Bool):
+                ParseFieldAndAddToTableImpl<bool>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::Int8):
+                ParseFieldAndAddToTableImpl<int8_t>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::UInt8):
+                ParseFieldAndAddToTableImpl<uint8_t>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::Int16):
+                ParseFieldAndAddToTableImpl<int16_t>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::UInt16):
+                ParseFieldAndAddToTableImpl<uint16_t>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::Int32):
+                ParseFieldAndAddToTableImpl<int32_t>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::UInt32):
+                ParseFieldAndAddToTableImpl<uint32_t>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::Int64):
+                ParseFieldAndAddToTableImpl<int64_t>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::UInt64):
+                ParseFieldAndAddToTableImpl<uint64_t>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::Float):
+                ParseFieldAndAddToTableImpl<float>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::Double):
+                ParseFieldAndAddToTableImpl<double>(table, field, begin, end);
+                break;
+            case static_cast<type_id_t>(Type::Fundamental::E::String):
+                ParseFieldAndAddToTableImpl<std::string>(table, field, begin, end);
+                break;
+            default:
+                if (m_structs.contains(field.Type))
+                {
+                    auto                                                  s = m_structs.at(field.Type);
+                    Deserializer<typename decltype(s.Fields)::value_type> deserializer {
+                      m_lua, s.Fields, m_structs, m_enums};
+                    table[GetPosOrName(field)] = deserializer.Deserialize(begin, end);
+                }
+                else if (m_enums.contains(field.Type))
+                {
+                    switch (m_enums.at(field.Type).UnderlyingSize)
+                    {
+                        case 1: ParseFieldAndAddToTableImpl<uint8_t>(table, field, begin, end); break;
+                        case 2: ParseFieldAndAddToTableImpl<uint16_t>(table, field, begin, end); break;
+                        case 4: ParseFieldAndAddToTableImpl<uint32_t>(table, field, begin, end); break;
+                        default: table[GetPosOrName(field)] = sol::nil; break;
+                    }
+                }
+                else
+                {
+                    BR_LOG_ERROR("Deserializer", "Unknown type {}", field.Type);
+                    table[GetPosOrName(field)] = sol::nil;
+                }
+                break;
+        }
+    }
+
+    template<typename T>
+    void ParseFieldAndAddToTableImpl(sol::table& table, const Field& field, auto& begin, const auto& end)
+    {
+        if (field.Count == 1)
+        {
+            T t                        = Frasy::Deserialize<T>(begin, end);
+            table[GetPosOrName(field)] = t;
+        }
+        else
+        {
+            std::vector<T> t           = Frasy::Deserialize<std::vector<T>>(begin, end);
+            table[GetPosOrName(field)] = t;
+        }
+    }
+};
 
 }    // namespace Frasy::Lua
 

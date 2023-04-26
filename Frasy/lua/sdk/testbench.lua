@@ -44,6 +44,8 @@ function Testbench(command, executor, ...)
     return executor(function(...)
         local args   = { ... }
         local result = cmd(ib, table.unpack(args))
+        print("In Testbench:")
+        Utils.print(result)
         return result ~= nil and table.unpack(result) or result
     end, table.unpack(tps))
 end
