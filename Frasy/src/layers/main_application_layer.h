@@ -17,6 +17,7 @@
 /* Includes */
 #    include "device_viewer.h"
 #    include "log_window.h"
+#    include "result_viewer.h"
 
 #    include <array>
 #    include <Brigerad.h>
@@ -55,6 +56,7 @@ protected:
 
     virtual void MakeLogWindowVisible();
     virtual void MakeDeviceViewerVisible();
+    virtual void MakeResultViewerVisible();
     void         RenderAbout();
 
 protected:
@@ -63,8 +65,10 @@ protected:
 
     std::unique_ptr<LogWindow>    m_logWindow    = nullptr;
     std::unique_ptr<DeviceViewer> m_deviceViewer = nullptr;
+    std::unique_ptr<ResultViewer> m_resultViewer = nullptr;
 
     Brigerad::Ref<Brigerad::Texture2D> m_run;
+    Brigerad::Ref<Brigerad::Texture2D> m_runWarn;
     Brigerad::Ref<Brigerad::Texture2D> m_pass;
     Brigerad::Ref<Brigerad::Texture2D> m_fail;
     Brigerad::Ref<Brigerad::Texture2D> m_error;

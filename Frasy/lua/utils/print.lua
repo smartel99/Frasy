@@ -21,17 +21,24 @@ function utils.print(t, lvl)
     for _ = 1, (lvl - 1) do str = str .. "    " end
     if lvl ~= 0 then str = str .. "|--- " end
 
-    print(type(t))
+    local fmt = string.format("%s%s: ", str, type(t))
+    -- print(type(t))
     
     if type(t) == "table" then
+        fmt = fmt .. "{\n"
         for k, v in pairs(t) do
-            print(str .. k .. ":")
-            utils.print(v, lvl + 1)
+            fmt = fmt .. str .. k .. ":" .. utils.print(v, lvl + 1) .. "\n"
+            -- print(str .. k .. ":")
+            -- utils.print(v, lvl + 1)
         end
+        fmt = fmt .. str .. "}"
     else
         if type(t) == "string" then t = "\"" .. t .. "\"" end
-        print(str .. tostring(t))
+        fmt = fmt .. str .. tostring(t) .. "\n"
+        -- print(str .. tostring(t))
     end
+
+    if lvl == 0 then Log.i(fmt) else return fmt end
 end
 
 return utils.print

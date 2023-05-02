@@ -41,6 +41,7 @@ void MainApplicationLayer::OnAttach()
 
     // Create textures.
     CREATE_TEXTURE(m_run, "assets/textures/run.png");
+    CREATE_TEXTURE(m_runWarn, "assets/textures/run_warn.png");
     CREATE_TEXTURE(m_pass, "assets/textures/pass.png");
     CREATE_TEXTURE(m_fail, "assets/textures/fail.png");
     CREATE_TEXTURE(m_error, "assets/textures/error.png");
@@ -51,9 +52,11 @@ void MainApplicationLayer::OnAttach()
 
     m_logWindow    = std::make_unique<LogWindow>();
     m_deviceViewer = std::make_unique<DeviceViewer>();
+    m_resultViewer = std::make_unique<ResultViewer>();
 
     m_logWindow->OnAttach();
     m_deviceViewer->OnAttach();
+    m_resultViewer->OnAttach();
 }
 
 
@@ -63,6 +66,7 @@ void MainApplicationLayer::OnDetach()
 
     m_logWindow->OnDetach();
     m_deviceViewer->OnDetach();
+    m_resultViewer->OnDetach();
 }
 
 
@@ -72,8 +76,10 @@ void MainApplicationLayer::OnUpdate(Brigerad::Timestep ts)
 
     if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F2)) { MakeLogWindowVisible(); }
     if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F3)) { MakeDeviceViewerVisible(); }
+    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F4)) { MakeResultViewerVisible(); }
     m_logWindow->OnUpdate(ts);
     m_deviceViewer->OnUpdate(ts);
+    m_resultViewer->OnUpdate(ts);
 }
 
 
@@ -94,6 +100,7 @@ void MainApplicationLayer::OnImGuiRender()
         {
             if (ImGui::MenuItem("Logger", "F2")) { MakeLogWindowVisible(); }
             if (ImGui::MenuItem("Device Viewer", "F3")) { MakeDeviceViewerVisible(); }
+            if (ImGui::MenuItem("Result Viewer", "F4")) { MakeResultViewerVisible(); }
             ImGui::Separator();
             if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
             if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }
@@ -117,6 +124,7 @@ void MainApplicationLayer::OnImGuiRender()
 
     m_logWindow->OnImGuiRender();
     m_deviceViewer->OnImGuiRender();
+    m_resultViewer->OnImGuiRender();
 }
 
 
@@ -124,6 +132,7 @@ void MainApplicationLayer::OnEvent(Brigerad::Event& e)
 {
     m_logWindow->OnEvent(e);
     m_deviceViewer->OnEvent(e);
+    m_resultViewer->OnEvent(e);
 }
 
 void MainApplicationLayer::RenderControlRoom()
@@ -140,6 +149,11 @@ void MainApplicationLayer::MakeDeviceViewerVisible()
     m_deviceViewer->SetVisibility(true);
 }
 
+void MainApplicationLayer::MakeResultViewerVisible()
+{
+    m_resultViewer->SetVisibility(true);
+}
+
 void MainApplicationLayer::RenderAbout()
 {
     ImGui::Begin("About", &m_renderAbout);
@@ -153,7 +167,7 @@ void MainApplicationLayer::RenderAbout()
 
 void MainApplicationLayer::PresetControlRoomOptions()
 {
-    if (m_noMove) ImGui::SetNextWindowDockID(ImGui::GetWindowDockID());
+    if (m_noMove) { ImGui::SetNextWindowDockID(ImGui::GetWindowDockID()); }
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |    //
                              ImGuiWindowFlags_NoResize |      //
@@ -174,10 +188,8 @@ void MainApplicationLayer::PresetControlRoomOptions()
     ImGui::SetNextWindowPos(ImGui::GetWindowContentRegionMin(), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImGui::GetWindowContentRegionMax(), ImGuiCond_Always);
 
-    if (m_noMove)
-        ImGui::Begin("Control Room", nullptr, flags);
-    else
-        ImGui::Begin("Control Room");
+    if (m_noMove) { ImGui::Begin("Control Room", nullptr, flags); }
+    else { ImGui::Begin("Control Room"); }
     ImGui::End();
 }
 

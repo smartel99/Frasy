@@ -15,14 +15,16 @@
 
 local ExpectationResult   = {
     value    = nil,
+    note     = nil,
     pass     = false,
     inverted = false,
 }
 ExpectationResult.__index = ExpectationResult
 
-function ExpectationResult:new(value)
+function ExpectationResult:new(value, note)
     return setmetatable({
                             value    = value,
+                            note     = note,
                             pass     = false,
                             inverted = false,
                         }, ExpectationResult)

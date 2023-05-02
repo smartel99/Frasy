@@ -17,6 +17,9 @@
 
 #include "args_checker.h"
 
+#include <format>
+#include <stdexcept>
+
 namespace Frasy::Lua
 {
 namespace
@@ -36,20 +39,36 @@ void CheckFundamental(const Frasy::Type::Manager&       typeManager,
                       const sol::object&                object)
 {
     auto ot = object.get_type();
+
     switch (ot)
     {
         case sol::type::boolean:
-            if (field.Type != static_cast<type_id_t>(Frasy::Type::Fundamental::E::Bool)) { throw std::exception(); }
+            if (field.Type != static_cast<type_id_t>(Frasy::Type::Fundamental::E::Bool))
+            {
+                throw std::runtime_error(
+                  std::format("A bool cannot be assigned to field {} of type {}",
+                              field.Name,
+                              Frasy::Type::Fundamental::ToStr(static_cast<Type::Fundamental::E>(field.Type))));
+            }
             break;
         case sol::type::string:
-            if (field.Type != static_cast<type_id_t>(Frasy::Type::Fundamental::E::String)) { throw std::exception(); }
+            if (field.Type != static_cast<type_id_t>(Frasy::Type::Fundamental::E::String))
+            {
+                throw std::runtime_error(
+                  std::format("A string cannot be assigned to field {} of type {}",
+                              field.Name,
+                              Frasy::Type::Fundamental::ToStr(static_cast<Type::Fundamental::E>(field.Type))));
+            }
             break;
         case sol::type::number:
             if (field.Type < static_cast<type_id_t>(Frasy::Type::Fundamental::E::Int8) ||
                 (field.Type > static_cast<type_id_t>(Frasy::Type::Fundamental::E::Double) &&
                  !typeManager.IsEnum(field.Type)))
             {
-                throw std::exception();
+                throw std::runtime_error(
+                  std::format("A number cannot be assigned to field {} of type {}",
+                              field.Name,
+                              Frasy::Type::Fundamental::ToStr(static_cast<Type::Fundamental::E>(field.Type))));
             }
             break;
         case sol::type::table:
@@ -59,7 +78,10 @@ void CheckFundamental(const Frasy::Type::Manager&       typeManager,
         case sol::type::lightuserdata:
         case sol::type::poly:
         case sol::type::none:
-        case sol::type::lua_nil: throw std::exception();
+            throw std::runtime_error(std::format(
+              "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
+        case sol::type::lua_nil:
+            throw std::runtime_error(std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
     }
 }
 
@@ -69,7 +91,11 @@ void CheckTable(const Frasy::Type::Manager&                    typeManager,
 {
     std::size_t size = 0;
     for (const auto& [k, v] : table) { ++size; }
-    if (size != fields.size()) { throw std::exception(); }
+    if (size != fields.size())
+    {
+        throw std::runtime_error(
+          std::format("Received a table with {} elements, however the type only has {} fields", size, fields.size()));
+    }
     for (const auto& field : fields)
     {
         sol::object o  = table[field.Name];
@@ -82,7 +108,11 @@ void CheckTable(const Frasy::Type::Manager&                    typeManager,
                 case sol::type::string:
                 case sol::type::number: CheckFundamental(typeManager, field, o); break;
                 case sol::type::table:
-                    if (!typeManager.IsStruct(field.Type)) { throw std::exception(); }
+                    if (!typeManager.IsStruct(field.Type))
+                    {
+                        throw std::runtime_error(
+                          std::format("Field {} with type ID {} is not a struct!", field.Name, field.Type));
+                    }
                     CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, o);
                     break;
                 case sol::type::thread:
@@ -91,7 +121,10 @@ void CheckTable(const Frasy::Type::Manager&                    typeManager,
                 case sol::type::lightuserdata:
                 case sol::type::poly:
                 case sol::type::none:
-                case sol::type::lua_nil: throw std::exception();
+                    throw std::runtime_error(std::format(
+                      "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
+                case sol::type::lua_nil:
+                    throw std::runtime_error(std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
             }
         }
         else { CheckContainer(typeManager, field, o.as<std::vector<sol::object>>()); }
@@ -102,7 +135,11 @@ void CheckContainer(const Frasy::Type::Manager&       typeManager,
                     const Frasy::Type::Struct::Field& field,
                     const std::vector<sol::object>&   objects)
 {
-    if (field.Count != Type::VECTOR && field.Count != objects.size()) { throw std::exception(); }
+    if (field.Count != Type::VECTOR && field.Count != objects.size())
+    {
+        throw std::logic_error(
+          std::format("Expected an array of {} elements, only received {}", field.Count, objects.size()));
+    }
     for (const auto& o : objects)
     {
         auto ot = o.get_type();
@@ -112,7 +149,11 @@ void CheckContainer(const Frasy::Type::Manager&       typeManager,
             case sol::type::string:
             case sol::type::number: CheckFundamental(typeManager, field, o); break;
             case sol::type::table:
-                if (!typeManager.IsStruct(field.Type)) { throw std::exception(); }
+                if (!typeManager.IsStruct(field.Type))
+                {
+                    throw std::runtime_error(
+                      std::format("Field {} with type ID {} is not a struct!", field.Name, field.Type));
+                }
                 CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, o);
                 break;
             case sol::type::thread:
@@ -121,7 +162,10 @@ void CheckContainer(const Frasy::Type::Manager&       typeManager,
             case sol::type::lightuserdata:
             case sol::type::poly:
             case sol::type::none:
-            case sol::type::lua_nil: throw std::exception();
+                throw std::runtime_error(std::format(
+                  "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
+            case sol::type::lua_nil:
+                throw std::runtime_error(std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
         }
     }
 }
@@ -131,7 +175,10 @@ void CheckArgs(sol::state&                                    lua,
                const std::vector<Frasy::Type::Struct::Field>& fields,
                sol::variadic_args&                            args)
 {
-    if (args.size() != fields.size()) { throw std::logic_error("Missing arguments!"); }
+    if (args.size() != fields.size())
+    {
+        throw std::logic_error(std::format("Missing arguments! Expected {}, got {}", args.size(), fields.size()));
+    }
     for (std::size_t i = 0; i < args.size(); ++i)
     {
         const auto& field = fields[i];
@@ -146,7 +193,11 @@ void CheckArgs(sol::state&                                    lua,
                 case sol::type::string:
                 case sol::type::number: CheckFundamental(typeManager, field, arg); break;
                 case sol::type::table:
-                    if (!typeManager.IsStruct(field.Type)) { throw std::exception(); }
+                    if (!typeManager.IsStruct(field.Type))
+                    {
+                        throw std::runtime_error(
+                          std::format("Field {} with type ID {} is not a struct!", field.Name, field.Type));
+                    }
                     CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, arg);
                     break;
                 case sol::type::thread:
@@ -155,7 +206,10 @@ void CheckArgs(sol::state&                                    lua,
                 case sol::type::lightuserdata:
                 case sol::type::poly:
                 case sol::type::none:
-                case sol::type::lua_nil: throw std::exception();
+                    throw std::runtime_error(std::format(
+                      "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
+                case sol::type::lua_nil:
+                    throw std::runtime_error(std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
             }
         }
         else { CheckContainer(typeManager, field, args[i].as<std::vector<sol::object>>()); }

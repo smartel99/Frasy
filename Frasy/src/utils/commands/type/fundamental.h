@@ -48,6 +48,29 @@ struct Fundamental
         static constexpr std::string_view name = "Fundamental";
         static type_id_t                  id;
     };
+
+    static inline constexpr std::string_view ToStr(E e)
+    {
+        switch(e)
+        {
+            case E::Void: return "void";
+            case E::Bool: return "bool";
+            case E::Int8: return "int8";
+            case E::UInt8: return "uint8";
+            case E::Int16: return "int16";
+            case E::UInt16: return "uint16";
+            case E::Int32: return "int32";
+            case E::UInt32: return "uint32";
+            case E::Int64: return "int64";
+            case E::UInt64: return "uint64";
+            case E::Float: return "float";
+            case E::Double: return "double";
+            case E::String: return "string";
+            case E::Size: return "size";
+            default:
+                return "unknown";
+        }
+    }
 };
 }    // namespace Frasy::Type
 

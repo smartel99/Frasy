@@ -18,8 +18,8 @@ local ExpectationResult = require("lua/core/framework/expectation/result")
 local Expectation       = { mandatory = false, result = nil }
 Expectation.__index     = Expectation
 
-function Expectation:new(value)
-    return setmetatable({ mandatory = false, result = ExpectationResult:new(value) }, Expectation)
+function Expectation:new(value, note)
+    return setmetatable({ mandatory = false, result = ExpectationResult:new(value, note) }, Expectation)
 end
 
 local function enforce(expectation)
@@ -93,7 +93,8 @@ function Expectation:ToBeInPercentage(expected, percentage)
     self.result.expected   = expected
     self.result.percentage = percentage
     self.result.deviation  = expected * percentage
-    self.result.pass       = expected - self.result.deviation <= self.result.value and self.result.value <= expected + self.result.deviation
+    self.result.pass       = (self.result.value >= (expected - self.result.deviation)) and 
+                             (self.result.value <= (expected + self.result.deviation))
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self

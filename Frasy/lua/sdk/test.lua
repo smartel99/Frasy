@@ -42,8 +42,8 @@ function RequirementSpecifier(func)
     return RuntimeRequirement:new(func)
 end
 
-function Expect(value)
-    return Expectation:new(value)
+function Expect(value, note)
+    return Expectation:new(value, note)
 end
 
 function Exclusive(value, func)

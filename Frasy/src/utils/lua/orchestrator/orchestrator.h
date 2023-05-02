@@ -54,31 +54,31 @@ public:
     static constexpr std::string_view lastDirectory = "last";
 
 private:
-    std::unique_ptr<sol::state> m_state;
-    std::vector<UutState>       m_uutStates;
+    std::unique_ptr<sol::state> m_state = nullptr;
+    std::vector<UutState>       m_uutStates = {};
     std::future<void>           m_running;
     Frasy::Map                  m_map;
-    bool                        m_generated;
+    bool                        m_generated = false;
     std::string                 m_environment;
     std::string                 m_testsDir;
     std::string                 m_outputDirectory = "logs";
     type_id_t                   m_testPointType   = 0;
     bool                        m_ibEnabled       = true;
 
-    std::map<std::string, Frasy::Lua::Popup*> m_popups;
-    std::unique_ptr<std::mutex>               m_popupMutex;
+    std::map<std::string, Frasy::Lua::Popup*> m_popups = {};
+    std::unique_ptr<std::mutex>               m_popupMutex = nullptr;
 
-    std::unique_ptr<std::barrier<>> m_globalSync;
+    std::unique_ptr<std::barrier<>> m_globalSync = nullptr;
 
-    std::unique_ptr<std::mutex>       m_exclusiveLock;
-    std::map<std::size_t, std::mutex> m_exclusiveLockMap;
+    std::unique_ptr<std::mutex>       m_exclusiveLock = nullptr;
+    std::map<std::size_t, std::mutex> m_exclusiveLockMap = {};
 
     std::function<void(sol::state& lua, Stage stage)> m_populateUserMethods = [](sol::state&, Stage) {};
 
 public:
     bool       Init(const std::string& environment, const std::string& tests);
     void       RenderPopups();
-    void       DoTests(const std::vector<std::string>& serials, bool regenerate = true);
+    void       DoTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
     const Map& GetMap() const { return m_map; }
     void       ToggleUut(std::size_t index);
     void       EnableIb(bool enable = true) { m_ibEnabled = enable; }
@@ -103,7 +103,7 @@ private:
     static bool LoadEnvironment(sol::state& lua, const std::string& filename);
     static bool LoadTests(sol::state& lua, const std::string& filename);
     bool        DoStep(sol::state& lua, const std::string& filename);
-    void        RunTests(const std::vector<std::string>& serials, bool regenerate);
+    void               RunTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
 
     void PopulateMap();
     void UpdateUutState(enum UutState state, bool force = false);

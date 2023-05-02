@@ -183,8 +183,7 @@ void WindowsWindow::OnUpdate()
 {
     BR_PROFILE_FUNCTION();
 
-    //    glfwPollEvents();
-    glfwWaitEvents();
+    glfwWaitEventsTimeout(0.1);
     m_context->SwapBuffers();
 }
 

@@ -34,6 +34,18 @@
 
 namespace Frasy::Lua
 {
+namespace
+{
+sol::table MakeDummyTableForFunc(sol::state& lua, const std::vector<Frasy::Actions::Value>& values)
+{
+    sol::table table = lua.create_table(values.size());
+
+    for (auto&& value : values) { table.add(sol::nil); }
+
+    return table;
+}
+}    // namespace
+
 // <editor-fold desc="Orchestrator">
 std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
 {
@@ -47,7 +59,7 @@ std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
     }
 }
 
-void Orchestrator::DoTests(const std::vector<std::string>& serials, bool regenerate)
+void Orchestrator::DoTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification)
 {
     if (IsRunning())
     {
@@ -59,7 +71,9 @@ void Orchestrator::DoTests(const std::vector<std::string>& serials, bool regener
         Brigerad::WarningDialog("Frasy", "No UUTs to test!");
         return;
     }
-    m_running = std::async(std::launch::async, [this, &serials, regenerate] { RunTests(serials, regenerate); });
+    m_running =
+      std::async(std::launch::async,
+                 [this, &serials, regenerate, skipVerification] { RunTests(serials, regenerate, skipVerification); });
 }
 
 bool Orchestrator::CreateOutputDirs()
@@ -177,7 +191,7 @@ void Orchestrator::LoadIbCommandForValidation(sol::state& lua, const Frasy::Acti
         fields.reserve(fun.Parameters.size());
         for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
         CheckArgs(lua, device.GetTypeManager(), fields, args);
-        return {};
+        return MakeDummyTableForFunc(lua, fun.Returns);
     };
 }
 
@@ -227,7 +241,7 @@ void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actio
                     std::this_thread::sleep_for(50ms);
                 }
             }
-            Lua::Deserializer deserializer{lua, fun.Returns, device.GetStructs(), device.GetEnums()};
+            Lua::Deserializer deserializer {lua, fun.Returns, device.GetStructs(), device.GetEnums()};
             return deserializer.Deserialize(response.begin(), response.end());
         }
         catch (const std::exception& e)
@@ -280,7 +294,7 @@ bool Orchestrator::DoStep(sol::state& lua, const std::string& filename)
     return result.valid();
 }
 
-void Orchestrator::RunTests(const std::vector<std::string>& serials, bool regenerate)
+void Orchestrator::RunTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification)
 {
     UpdateUutState(UutState::Waiting);
     if (!CreateOutputDirs())
@@ -295,7 +309,7 @@ void Orchestrator::RunTests(const std::vector<std::string>& serials, bool regene
         UpdateUutState(UutState::Error);
         return;
     }
-    if (!Verify(*m_state))
+    if (!skipVerification && !Verify(*m_state))
     {
         BR_LUA_ERROR("Verification failed");
         UpdateUutState(UutState::Error);
