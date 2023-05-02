@@ -12,6 +12,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
+#include <implot.h>
 
 // TEMP
 #include <glad/glad.h>
@@ -32,6 +33,7 @@ void ImGuiLayer::OnAttach()
     // Setup Dear ImGui context.
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;    // Enable keyboard control.
@@ -72,6 +74,7 @@ void ImGuiLayer::OnDetach()
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 }
 
@@ -114,6 +117,7 @@ void ImGuiLayer::OnImGuiRender()
     }
 
     if (m_showDemoWindow) { ImGui::ShowDemoWindow(&m_showDemoWindow); }
+    if (m_showPlotWindow) { ImPlot::ShowDemoWindow(&m_showDemoWindow); }
 #endif
 
     auto& window  = Application::Get().GetWindow();
@@ -134,6 +138,7 @@ void ImGuiLayer::OnImGuiRender()
 #if defined(BR_DEBUG)
         if (ImGui::Button("Open style editor")) { m_showStyleEditor = true; }
         if (ImGui::Button("Show Demo Window")) { m_showDemoWindow = true; }
+        if (ImGui::Button("Show Plot Demo Window")) { m_showPlotWindow = true; }
 #endif
 
 

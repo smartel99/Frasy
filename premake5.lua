@@ -73,6 +73,7 @@ function CommonFlags()
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImPlot}",
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.serial}/include",
@@ -89,6 +90,7 @@ function CommonFlags()
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImPlot}",
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.serial}/include",
@@ -128,6 +130,7 @@ function DefineSolution()
     IncludeDir["GLFW"] = "Brigerad/vendor/glfw/include"
     IncludeDir["Glad"] = "Brigerad/vendor/Glad/include"
     IncludeDir["ImGui"] = "Brigerad/vendor/imgui"
+    IncludeDir["ImPlot"] = "Brigerad/vendor/implot"
     IncludeDir["glm"] = "Brigerad/vendor/glm"
     IncludeDir["stb_image"] = "Brigerad/vendor/stb_image"
     IncludeDir["serial"] = "Brigerad/vendor/serial"
@@ -142,6 +145,7 @@ function DefineSolution()
     include "Brigerad/vendor/GLFW"
     include "Brigerad/vendor/Glad"
     include "Brigerad/vendor/ImGui"
+    include "Brigerad/vendor/ImPlot"
     include "Brigerad/vendor/lua"
     include "Brigerad/vendor/yaml-cpp"
     include "Brigerad/vendor/serial"
@@ -195,6 +199,7 @@ function DefineBrigerad()
         "GLFW",
         "Glad",
         "ImGui",
+        "ImPlot",
         "lua",
         "serial",
         "opengl32.lib",
@@ -248,6 +253,7 @@ function DefineFrasy()
         "GLFW",
         "Glad",
         "ImGui",
+        "ImPlot",
         "serial",
         "gtest",
         "opengl32.lib",

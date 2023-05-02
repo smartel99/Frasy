@@ -15,3 +15,6 @@
 [submodule "Brigerad/vendor/pfr"]
 	path = Brigerad/vendor/pfr
 	url = https://github.com/boostorg/pfr
+[submodule "Brigerad/vendor/implot"]
+	path = Brigerad/vendor/implot
+	url = https://github.com/smartel99/implot
