@@ -13,9 +13,7 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-return function()
+return function(output)
     local order = Orchestrator.Generate()
-    local file  = io.open("lua/order.json", "w")
-    file:write(Json.encode(order))
-    file:close()
+    Utils.save_as_json(order, output)
 end

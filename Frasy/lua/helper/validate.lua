@@ -13,8 +13,8 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-return function()
-    local file = io.open("lua/order.json", "r")
+return function(input)
+    local file = io.open(input, "r")
     Orchestrator.SetOrder(Json.decode(file:read("*all")))
     file:close()
     Orchestrator.Validate()

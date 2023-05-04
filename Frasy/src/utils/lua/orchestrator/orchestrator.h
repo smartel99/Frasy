@@ -23,6 +23,7 @@
 #include "../../map.h"
 #include "../../UutState.h"
 #include "utils/lua/popup.h"
+#include "utils/models/sequence.h"
 
 #include <barrier>
 #include <functional>
@@ -32,13 +33,15 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <utility>
 
 namespace Frasy::Lua
 {
-
 class Orchestrator
 {
 public:
+    class Interface;
+
     enum class Stage
     {
         Idle       = 0,
@@ -52,9 +55,10 @@ public:
     static constexpr std::string_view passDirectory = "pass";
     static constexpr std::string_view failDirectory = "fail";
     static constexpr std::string_view lastDirectory = "last";
+    static constexpr std::string_view orderFile     = "lua/order.json";
 
 private:
-    std::unique_ptr<sol::state> m_state = nullptr;
+    std::unique_ptr<sol::state> m_state     = nullptr;
     std::vector<UutState>       m_uutStates = {};
     std::future<void>           m_running;
     Frasy::Map                  m_map;
@@ -64,24 +68,33 @@ private:
     std::string                 m_outputDirectory = "logs";
     type_id_t                   m_testPointType   = 0;
     bool                        m_ibEnabled       = true;
+    Interface*                  m_interface;
 
-    std::map<std::string, Frasy::Lua::Popup*> m_popups = {};
+    std::map<std::string, Frasy::Lua::Popup*> m_popups     = {};
     std::unique_ptr<std::mutex>               m_popupMutex = nullptr;
 
     std::unique_ptr<std::barrier<>> m_globalSync = nullptr;
 
-    std::unique_ptr<std::mutex>       m_exclusiveLock = nullptr;
+    std::unique_ptr<std::mutex>       m_exclusiveLock    = nullptr;
     std::map<std::size_t, std::mutex> m_exclusiveLockMap = {};
 
     std::function<void(sol::state& lua, Stage stage)> m_populateUserMethods = [](sol::state&, Stage) {};
+    std::vector<Models::Sequence>                     m_sequences             = {};
+
 
 public:
+    Orchestrator();
     bool       Init(const std::string& environment, const std::string& tests);
     void       RenderPopups();
     void       DoTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
     const Map& GetMap() const { return m_map; }
     void       ToggleUut(std::size_t index);
     void       EnableIb(bool enable = true) { m_ibEnabled = enable; }
+    void       SetInterface(Interface* interface) { m_interface = interface; }
+    void       Generate();
+    bool       SetTestEnable(const std::string& sequence, const std::string& test, bool enable);
+    bool       SetSequenceEnable(const std::string& sequence, bool enable);
+
 
     [[nodiscard]] bool     IsRunning() const;
     [[nodiscard]] UutState UutState(std::size_t uut) const;
@@ -94,16 +107,16 @@ private:
     bool        CreateOutputDirs();
     void        InitLua(sol::state& lua, std::size_t uut = 0, Stage stage = Stage::Generation);
     void        ImportExclusive(sol::state& lua, Stage stage);
-    static void        ImportLog(sol::state& lua, std::size_t uut, Stage stage);
+    static void ImportLog(sol::state& lua, std::size_t uut, Stage stage);
     void        ImportPopup(sol::state& lua, std::size_t uut, Stage stage);
     void        ImportSync(sol::state& lua, Stage stage);
     void        LoadIb(sol::state& lua);
-    static void        LoadIbCommandForExecution(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
-    static void        LoadIbCommandForValidation(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
+    static void LoadIbCommandForExecution(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
+    static void LoadIbCommandForValidation(sol::state& lua, const Frasy::Actions::CommandInfo::Reply& fun);
     static bool LoadEnvironment(sol::state& lua, const std::string& filename);
     static bool LoadTests(sol::state& lua, const std::string& filename);
     bool        DoStep(sol::state& lua, const std::string& filename);
-    void               RunTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
+    void        RunTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
 
     void PopulateMap();
     void UpdateUutState(enum UutState state, bool force = false);
@@ -113,6 +126,29 @@ private:
     bool Verify(const sol::state& team);
     void Execute(const sol::state& team, const std::vector<std::string>& serials);
     void CheckResults(const std::vector<std::size_t>& devices);
+};
+
+class Orchestrator::Interface
+{
+public:
+    static Interface* GetDefault()
+    {
+        static Interface interface;
+        return &interface;
+    }
+
+    virtual void OnStarted() {}
+    virtual void OnStopped() {}
+
+    virtual void OnTestPass(const std::string& sequence, const std::string& test) {}
+    virtual void OnTestFail(const std::string& sequence, const std::string& test) {}
+    virtual void OnTestSkipped(const std::string& sequence, const std::string& test) {}
+
+    virtual void OnSequencePass(const std::string& sequence) {}
+    virtual void OnSequenceFail(const std::string& sequence) {}
+    virtual void OnSequenceSkipped(const std::string& sequence) {}
+
+    virtual void OnGenerated(const std::vector<Models::Sequence>& sequences) {}
 };
 
 }    // namespace Frasy::Lua

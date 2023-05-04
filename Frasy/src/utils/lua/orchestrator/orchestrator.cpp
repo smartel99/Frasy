@@ -24,6 +24,7 @@
 #include "../table_serializer.h"
 #include "../tag.h"
 #include "../team.h"
+#include "utils/lua/save_as_json.h"
 
 #include <Brigerad/Utils/dialogs/warning.h>
 #include <chrono>
@@ -86,6 +87,10 @@ std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
         case Stage::Idle:
         default: return "Idle";
     }
+}
+
+Orchestrator::Orchestrator() : m_interface(Interface::GetDefault())
+{
 }
 
 void Orchestrator::DoTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification)
@@ -163,6 +168,7 @@ void Orchestrator::InitLua(sol::state& lua, std::size_t uut, Stage stage)
         return sol::as_table(files);
     };
     lua["Utils"]["sleep_for"] = [](int duration) { std::this_thread::sleep_for(std::chrono::milliseconds(duration)); };
+    lua["Utils"]["save_as_json"] = [](sol::table table, const std::string& file) { SaveAsJson(table, file); };
     lua.require_file("Json", "lua/core/vendor/json.lua");
     ImportLog(lua, uut, stage);
     ImportPopup(lua, uut, stage);
@@ -356,7 +362,42 @@ bool Orchestrator::Generate(bool regenerate)
     LoadIb(lua);
     LoadEnvironment(lua, m_environment);
     LoadTests(lua, m_testsDir);
-    m_generated = DoStep(lua, "lua/core/helper/generate.lua");
+    sol::protected_function run = lua.script_file("lua/core/helper/generate.lua");
+    run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
+    auto result                 = run(std::format(orderFile));
+    if (!result.valid())
+    {
+        sol::error err = result;
+        lua["Log"]["e"](err.what());
+    }
+    else { lua["Log"]["i"]("Success"); }
+    if (result.valid())
+    {
+        using json          = nlohmann::json;
+        std::ifstream os    = std::ifstream(std::string(orderFile));
+        json          order = json::parse(os);
+        m_sequences.clear();
+        m_sequences.reserve(order["tests"].size());
+        for(auto [sequence, tests]: order["tests"].items()) {
+            Models::Sequence s;
+            s.name = sequence;
+            s.enabled = true;
+            s.tests.reserve(tests.size());
+            for (auto group: tests)
+            {
+                for (std::string test : group)
+                {
+                    Models::Test t;
+                    t.name    = test;
+                    t.enabled = true;
+                    s.tests.push_back(t);
+                }
+            }
+            m_sequences.push_back(s);
+        }
+        m_interface->OnGenerated(m_sequences);
+    }
+    m_generated = result.valid();
     return m_generated;
 }
 
@@ -374,7 +415,7 @@ bool Orchestrator::Verify(const sol::state& team)
             {
                 std::size_t leader      = team["Context"]["Team"]["players"][uut]["leader"];
                 auto        teamPlayers = team["Context"]["Team"]["teams"][leader].get<std::vector<std::size_t>>();
-                if (leader == uut) teams[leader] = Team(teamPlayers.size());
+                if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
             }
         }
         std::vector<std::thread>    threads;
@@ -516,6 +557,34 @@ void Orchestrator::ToggleUut(std::size_t index)
         UpdateUutState(state, team, true);
     }
     else { m_uutStates[index] = state; }
+}
+
+void Orchestrator::Generate()
+{
+}
+
+bool Orchestrator::SetTestEnable(const std::string& sequence, const std::string& test, bool enable)
+{
+    for (auto& s : m_sequences)
+    {
+        if (s.name == sequence)
+        {
+            for (auto& t : s.tests)
+            {
+                if (t.name == test) { return t.enabled = enable; }
+            }
+        }
+    }
+    return false;
+}
+
+bool Orchestrator::SetSequenceEnable(const std::string& sequence, bool enable)
+{
+    for (auto& s : m_sequences)
+    {
+        if (s.name == sequence) { return s.enabled = enable; }
+    }
+    return false;
 }
 
 bool Orchestrator::IsRunning() const
