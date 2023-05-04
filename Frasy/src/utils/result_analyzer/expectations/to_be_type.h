@@ -17,51 +17,32 @@
 
 #ifndef FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TYPE_H
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TYPE_H
-#include "../analytic_results.h"
-
-#include <exception>
-#include <imgui/imgui.h>
+#include "to_be_exact_base.h"
 
 namespace Frasy::Analyzers
 {
-struct ToBeTypeExpectation : public ResultAnalysisResults::Expectation
+struct ToBeTypeExpectation : public ToBeExactBase
 {
+private:
+    struct ObservedValue
+    {
+        std::string Type   = {};
+        std::string Value  = {};
+        bool        Passed = false;
+    };
+
+public:
     ToBeTypeExpectation(const std::string& expected) : Expected(expected) {}
     ~ToBeTypeExpectation() override = default;
 
-    void AddValue(const nlohmann::json& value) override
-    {
-        Total++;
-        if (value.at("pass").get<bool>()) { Passed++; }
-        Values[value]++;
-    }
     void Render() override
     {
         ImGui::BulletText("Expect: To Be Type");
-        ImGui::BulletText("Seen %zu times, passed %zu times (%0.2f%%)",
-                          Total,
-                          Passed,
-                          (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
         ImGui::BulletText("Expected type: %s", Expected.c_str());
-        // TODO
-        //        ImGui::BeginTable("ToBeType", 2);
-        //        ImGui::TableSetupColumn("Value");
-        //        ImGui::TableSetupColumn("Occurrences");
-        //        ImGui::TableHeadersRow();
-        //        for (auto&& [value, count] : Values)
-        //        {
-        //            ImGui::Text("%s", value.c_str());
-        //            ImGui::TableNextColumn();
-        //            ImGui::Text("%llu", count);
-        //            ImGui::TableNextColumn();
-        //        }
-        //        ImGui::EndTable();
+        ToBeExactBase::Render();
     }
 
-    size_t                           Total  = 0;
-    size_t                           Passed = 0;
-    std::string                      Expected;
-    std::map<nlohmann::json, size_t> Values;
+    std::string Expected {};
 };
 }    // namespace Frasy::Analyzers
 #endif    // FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TYPE_H

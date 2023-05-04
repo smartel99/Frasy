@@ -36,6 +36,35 @@ namespace Frasy::Lua
 {
 namespace
 {
+void AddDummyDataToTable(sol::table& table, const Frasy::Actions::Value& value)
+{
+    switch(value.Type)
+    {
+        case static_cast<type_id_t>(Type::Fundamental::E::Bool):
+            table.add(false);
+            break;
+        case static_cast<type_id_t>(Type::Fundamental::E::Int8):
+        case static_cast<type_id_t>(Type::Fundamental::E::UInt8):
+        case static_cast<type_id_t>(Type::Fundamental::E::Int16):
+        case static_cast<type_id_t>(Type::Fundamental::E::UInt16):
+        case static_cast<type_id_t>(Type::Fundamental::E::Int32):
+        case static_cast<type_id_t>(Type::Fundamental::E::UInt32):
+        case static_cast<type_id_t>(Type::Fundamental::E::Int64):
+        case static_cast<type_id_t>(Type::Fundamental::E::UInt64):
+            table.add(0);
+            break;
+        case static_cast<type_id_t>(Type::Fundamental::E::Float):
+        case static_cast<type_id_t>(Type::Fundamental::E::Double):
+            table.add(0.0);
+            break;
+        case static_cast<type_id_t>(Type::Fundamental::E::String):
+            table.add("");
+            break;
+        default:
+            table.add(sol::nil);
+    }
+}
+
 sol::table MakeDummyTableForFunc(sol::state& lua, const std::vector<Frasy::Actions::Value>& values)
 {
     sol::table table = lua.create_table(values.size());

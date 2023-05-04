@@ -176,7 +176,7 @@ bool ResultViewer::AreLogsNew()
                                                        { return entry.Name == currentEntry.Name; });
                                 // If the log isn't known, we need to refresh them!
                                 if (it == m_logs.end()) { return true; }
-                                return it->LastModified > entry.LastModified;
+                                return it->LastModified < entry.LastModified;
                             }))
     {
         m_logs = currentLastModifiedDate;

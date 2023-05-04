@@ -17,31 +17,24 @@
 
 #ifndef FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TRUE_H
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TRUE_H
-#include "../analytic_results.h"
-
-#include <imgui/imgui.h>
+#include "to_be_exact_base.h"
 
 namespace Frasy::Analyzers
 {
-struct ToBeTrueExpectation : public ResultAnalysisResults::Expectation
+struct ToBeTrueExpectation : public ToBeExactBase
 {
     ~ToBeTrueExpectation() override = default;
     void AddValue(const nlohmann::json& value) override
     {
-        Total++;
-        if (value.at("pass").get<bool>()) { Passed++; }
+        nlohmann::json fakeValue = value;    // Add a value field for the base class.
+        fakeValue["value"]       = value.at("pass").get<bool>();
+        ToBeExactBase::AddValue(fakeValue);
     }
     void Render() override
     {
         ImGui::BulletText("Expected: To Be True");
-        ImGui::BulletText("Seen: %zu times, Passed: %zu times (%0.2f%%)",
-                          Total,
-                          Passed,
-                          (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
+        ToBeExactBase::Render();
     }
-
-    size_t Total  = 0;
-    size_t Passed = 0;
 };
 }    // namespace Frasy::Analyzers
 #endif    // FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TRUE_H

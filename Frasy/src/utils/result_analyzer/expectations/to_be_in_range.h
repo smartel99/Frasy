@@ -17,81 +17,21 @@
 
 #ifndef FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_IN_RANGE_H
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_IN_RANGE_H
-#include "../analytic_results.h"
-
-#include <imgui/imgui.h>
-#include <implot/implot.h>
+#include "to_be_value_base.h"
 
 namespace Frasy::Analyzers
 {
-struct ToBeInRangeExpectation : public ResultAnalysisResults::Expectation
+struct ToBeInRangeExpectation : public ToBeValueBase
 {
-    ToBeInRangeExpectation(float min, float max) : Min(min), Max(max) {}
+    ToBeInRangeExpectation(float min, float max) : ToBeValueBase((min + max) / 2.0f, min, max) {}
     ~ToBeInRangeExpectation() override = default;
-
-    void AddValue(const nlohmann::json& value) override
-    {
-        Total++;
-        if (value.at("pass").get<bool>()) { Passed++; }
-        Values.push_back(value.at("value").get<float>());
-    }
 
     void Render() override
     {
-        ImGui::BulletText("Expected: To Be In Percentage.");
-        ImGui::BulletText("Seen: %zu times, Passed: %zu times (%0.2f%%)",
-                          Total,
-                          Passed,
-                          (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
+        ImGui::BulletText("Expected: To Be In Range.");
         ImGui::BulletText("Expected value: [%f, %f]", Min, Max);
-
-        if (ImGui::TreeNode("Settings"))
-        {
-            ImGui::SetNextItemWidth(200);
-            if (ImGui::RadioButton("Sqrt", Bins == ImPlotBin_Sqrt)) { Bins = ImPlotBin_Sqrt; }
-            ImGui::SameLine();
-            if (ImGui::RadioButton("Sturges", Bins == ImPlotBin_Sturges)) { Bins = ImPlotBin_Sturges; }
-            ImGui::SameLine();
-            if (ImGui::RadioButton("Rice", Bins == ImPlotBin_Rice)) { Bins = ImPlotBin_Rice; }
-            ImGui::SameLine();
-            if (ImGui::RadioButton("Scott", Bins == ImPlotBin_Scott)) { Bins = ImPlotBin_Scott; }
-            ImGui::SameLine();
-            if (ImGui::RadioButton("N Bins", Bins >= 0)) { Bins = 50; }
-            if (Bins >= 0)
-            {
-                ImGui::SameLine();
-                ImGui::SetNextItemWidth(200);
-                ImGui::SliderInt("##Bins", &Bins, 1, 100);
-            }
-            ImGui::CheckboxFlags("Horizontal", (unsigned int*)&HistogramFlags, ImPlotHistogramFlags_Horizontal);
-            ImGui::SameLine();
-            ImGui::CheckboxFlags("Density", (unsigned int*)&HistogramFlags, ImPlotHistogramFlags_Density);
-            ImGui::SameLine();
-            ImGui::CheckboxFlags("Cumulative", (unsigned int*)&HistogramFlags, ImPlotHistogramFlags_Cumulative);
-            ImGui::SameLine();
-            ImGui::CheckboxFlags("No Outliers", (unsigned int*)&HistogramFlags, ImPlotHistogramFlags_NoOutliers);
-
-            ImGui::TreePop();
-        }
-
-        if (ImPlot::BeginPlot("##Historgram"))
-        {
-            ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
-            ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-            ImPlot::PlotHistogram(
-              "Values Read", Values.data(), Values.size(), Bins, 1.0, ImPlotRange(), HistogramFlags);
-            ImPlot::EndPlot();
-        }
+        ToBeValueBase::Render();
     }
-
-    size_t             Total  = 0;
-    size_t             Passed = 0;
-    float              Min    = 0.0f;
-    float              Max    = 0.0f;
-    std::vector<float> Values;
-
-    ImPlotHistogramFlags HistogramFlags = {};
-    int                  Bins           = 50;
 };
 }    // namespace Frasy::Analyzers
 #endif    // FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_IN_RANGE_H

@@ -124,7 +124,18 @@ ResultAnalysisResults ResultAnalyzer::Analyze()
         }
         Analyzed++;
     }
-    // If we need to split by location
+
+    for (auto&& [name, location] : m_results.Locations)
+    {
+        for (auto&& [sName, sequence] : location.Sequences)
+        {
+            for (auto&& [tName, test] : sequence.Tests)
+            {
+                for (auto&& [eName, expectation] : test.Expectations) { expectation->MakeStats(); }
+            }
+        }
+    }
+
     return m_results;
 }
 

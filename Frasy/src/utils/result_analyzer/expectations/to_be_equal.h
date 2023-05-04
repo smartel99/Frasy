@@ -17,52 +17,23 @@
 
 #ifndef FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_EQUAL_H
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_EQUAL_H
-#include "../analytic_results.h"
-
-#include <imgui/imgui.h>
-#include <json.hpp>
-#include <map>
+#include "to_be_exact_base.h"
 
 namespace Frasy::Analyzers
 {
-struct ToBeEqualExpectation : public ResultAnalysisResults::Expectation
+struct ToBeEqualExpectation : public ToBeExactBase
 {
-    ToBeEqualExpectation(const nlohmann::json& expected) : Expected(expected) {}
-
-    void AddValue(const nlohmann::json& value) override
-    {
-        Total++;
-        if (value.at("pass").get<bool>()) { Passed++; }
-        Values[value.at("value")]++;
-    }
+    ToBeEqualExpectation(const nlohmann::json& expected) : Expected(expected.dump(2, ' ', true)) {}
     ~ToBeEqualExpectation() override = default;
+
     void Render() override
     {
         ImGui::BulletText("Expect: To Be Equal");
-        ImGui::BulletText("Seen %zu times, passed %zu times (%0.2f%%)",
-                          Total,
-                          Passed,
-                          (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
-        // TODO dumping every frames like that is stupid.
-        ImGui::BulletText("Expected: %s", Expected.dump(2, ' ', true).c_str());
-        ImGui::BeginTable("ToBeEqualExpectation", 2);
-        ImGui::TableSetupColumn("Value");
-        ImGui::TableSetupColumn("Occurrences");
-        ImGui::TableHeadersRow();
-        for (auto&& [value, count] : Values)
-        {
-            ImGui::Text("%s", value.dump(2, ' ', true).c_str());
-            ImGui::TableNextColumn();
-            ImGui::Text("%llu", count);
-            ImGui::TableNextColumn();
-        }
-        ImGui::EndTable();
+        ImGui::BulletText("Expected: %s", Expected.c_str());
+        ToBeExactBase::Render();
     }
 
-    size_t                           Total  = 0;
-    size_t                           Passed = 0;
-    nlohmann::json                   Expected;
-    std::map<nlohmann::json, size_t> Values = {};
+    std::string Expected;
 };
 }    // namespace Frasy::Analyzers
 #endif    // FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_EQUAL_H

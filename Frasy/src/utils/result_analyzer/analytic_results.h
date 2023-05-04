@@ -33,6 +33,7 @@ struct ResultAnalysisResults
     {
         virtual ~Expectation()                             = default;
         virtual void AddValue(const nlohmann::json& value) = 0;
+        virtual void MakeStats()                           = 0;
         virtual void Render()                              = 0;
     };
     struct Test

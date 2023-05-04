@@ -176,6 +176,7 @@ void LogWindow::RenderLoggerEntries(LogWindowOptions&               options,
         ImGui::TableHeadersRow();
         for (size_t i = loggerEntries.size(); i > 0; i--)
         {
+            if ((i - 1) >= loggerEntries.size()) { continue; }
             const LogEntry& entry = loggerEntries.at(i - 1);
             if (options.ShowLevels[entry.Level] && entry.Level >= Brigerad::Log::GetLoggerLevel(entry.LoggerName))
             {

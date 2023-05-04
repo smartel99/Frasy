@@ -23,7 +23,7 @@ return function(output)
     report.uut     = Context.uut
     report.serial  = Context.serial
 
-    file           = io.open(output .. "/" .. Context.uut .. ".json", "w")
+    file           = io.open(output .. "/" .. Context.uut .. ".json", "w+")
     file:write(Json.encode(report))
     file:close()
 end
