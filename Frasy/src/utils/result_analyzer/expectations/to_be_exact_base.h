@@ -18,6 +18,7 @@
 #ifndef FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_EXACT_BASE_H
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_EXACT_BASE_H
 #include "../analytic_results.h"
+#include "json.hpp"
 
 #include <exception>
 #include <imgui/imgui.h>
@@ -77,6 +78,23 @@ public:
             ImGui::Text("%zu", info.Seen);
         }
         ImGui::EndTable();
+    }
+
+    nlohmann::json Serialize() override
+    {
+        nlohmann::json j = {};
+        j["total"]       = Total;
+        j["passed"]      = Passed;
+        j["values"]      = {};
+        for (auto&& [name, value] : Values)
+        {
+            j["values"][name]           = {};
+            j["values"][name]["type"]   = value.Type;
+            j["values"][name]["passed"] = value.Passed;
+            j["values"][name]["seen"]   = value.Seen;
+        }
+
+        return j;
     }
 
     size_t                               Total  = 0;

@@ -31,10 +31,11 @@ struct ResultAnalysisResults
 {
     struct Expectation
     {
-        virtual ~Expectation()                             = default;
-        virtual void AddValue(const nlohmann::json& value) = 0;
-        virtual void MakeStats()                           = 0;
-        virtual void Render()                              = 0;
+        virtual ~Expectation()                                       = default;
+        virtual void           AddValue(const nlohmann::json& value) = 0;
+        virtual void           MakeStats()                           = 0;
+        virtual void           Render()                              = 0;
+        virtual nlohmann::json Serialize()                           = 0;
     };
     struct Test
     {

@@ -18,8 +18,11 @@
 
 #include "imgui.h"
 #include "utils/result_analyzer/analyzer.h"
+#include "utils/result_analyzer/result_loader_saver.h"
 
 #include <algorithm>
+#include <Brigerad/Utils/dialogs/file.h>
+#include <filesystem>
 
 namespace Frasy
 {
@@ -58,22 +61,53 @@ void ResultAnalyzer::OnImGuiRender()
             {
                 m_analyzer        = Analyzers::ResultAnalyzer {m_options};
                 m_doneGenerating  = false;
-                m_renderResults   = false;
                 m_generatorThread = std::thread(
                   [this]()
                   {
                       m_generating     = true;
-                      m_results        = m_analyzer.Analyze();
+                      m_lastResults    = m_analyzer.Analyze();
                       m_doneGenerating = true;
+                      m_hasGenerated   = true;
                   });
-                //                Analyzers::ResultAnalyzer analyzer {m_options};
-                //                m_results       = analyzer.Analyze();
-                //                m_renderResults = true;
             }
             if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Analyze all the reports with the given options."); }
             ImGui::SameLine();
             if (ImGui::Button("Show Last Report")) { m_renderResults = true; }
             if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Display the last generated analysis report."); }
+
+            if (ImGui::Button("Load Reports"))
+            {
+                BR_PROFILE_SCOPE("Loading Analysis Reports");
+                auto pathsOpt =
+                  Brigerad::Dialogs::OpenFiles("Load Reports", {}, {"*.json"}, "Log Analysis Result Files");
+                if (pathsOpt)
+                {
+                    for (auto&& path : *pathsOpt)
+                    {
+                        try
+                        {
+                            m_loadedResults[path] = Frasy::Analyzers::Load(path);
+                        }
+                        catch (std::exception& e)
+                        {
+                            BR_LOG_ERROR(s_windowName, "Unable to load '{}': {}", path, e.what());
+                        }
+                    }
+                    m_renderResults = true;
+                }
+            }
+
+            ImGui::SameLine();
+
+            if (m_hasGenerated && ImGui::Button("Save Report"))
+            {
+                BR_PROFILE_SCOPE("Saving Analysis Report");
+                auto suggestedPath = std::filesystem::current_path();
+                suggestedPath /= "report.json";
+                auto pathOpt =
+                  Brigerad::Dialogs::SaveFile("Save File", suggestedPath.string(), {"*.json"}, "Log Analysis Results");
+                if (pathOpt) { Frasy::Analyzers::Save(m_lastResults, *pathOpt); }
+            }
         }
         else { ImGui::Text("Generating... %zu/%zu", m_analyzer.Analyzed, m_analyzer.ToAnalyze); }
         if (m_doneGenerating && m_generating)
@@ -125,23 +159,60 @@ void ResultAnalyzer::RenderAnalysisResults()
 {
     if (ImGui::Begin("Results", &m_renderResults))
     {
-        if (ImGui::BeginTabBar("ResultLocationTabs"))
-        {
-            for (auto&& [locationName, locationResults] : m_results.Locations)
-            {
-                if (ImGui::BeginTabItem(locationName.c_str()))
-                {
-                    ImGui::BeginChild(locationName.c_str(), ImVec2 {0.0f, 0.0f}, false);
-                    RenderLocationAnalysisResults(locationResults);
-
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-            }
-            ImGui::EndTabBar();
-        }
+        if (m_loadedResults.empty()) { RenderSingleAnalysisResults(); }
+        else { RenderMultipleAnalysisResults(); }
     }
     ImGui::End();
+}
+
+void ResultAnalyzer::RenderSingleAnalysisResults()
+{
+    if (ImGui::BeginTabBar("ResultLocationTabs"))
+    {
+        RenderAnalysisResultsFile(m_lastResults);
+        ImGui::EndTabBar();
+    }
+}
+
+void ResultAnalyzer::RenderMultipleAnalysisResults()
+{
+    if (ImGui::BeginTabBar("ResultFileTabs"))
+    {
+        if (ImGui::BeginTabItem("Last"))
+        {
+            ImGui::BeginTabBar("ResultLocationTabs");
+            RenderAnalysisResultsFile(m_lastResults);
+            ImGui::EndTabBar();
+            ImGui::EndTabItem();
+        }
+        for (auto&& [name, result] : m_loadedResults)
+        {
+            if (ImGui::BeginTabItem(name.c_str()))
+            {
+                ImGui::BeginTabBar("ResultLocationTabs");
+                RenderAnalysisResultsFile(result);
+                ImGui::EndTabBar();
+                ImGui::EndTabItem();
+            }
+        }
+
+        ImGui::EndTabBar();
+    }
+}
+
+void ResultAnalyzer::RenderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results)
+{
+    for (auto&& [locationName, locationResults] : results.Locations)
+    {
+        if (ImGui::BeginTabItem(locationName.c_str()))
+        {
+            ImGui::BeginChild(locationName.c_str(), ImVec2 {0.0f, 0.0f}, false);
+            RenderLocationAnalysisResults(locationResults);
+
+            ImGui::EndChild();
+            ImGui::EndTabItem();
+        }
+    }
 }
 
 void ResultAnalyzer::RenderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location)

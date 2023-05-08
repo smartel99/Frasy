@@ -70,6 +70,7 @@ function CommonFlags()
     filter "*"
     includedirs {
         "Brigerad/vendor/spdlog/include",
+        "Brigerad/vendor/tinyfiledialogs",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.ImGui}",
@@ -87,6 +88,7 @@ function CommonFlags()
 
     externalincludedirs {
         "Brigerad/vendor/spdlog/include",
+        "Brigerad/vendor/tinyfiledialogs",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.ImGui}",
@@ -177,6 +179,8 @@ function DefineBrigerad()
         "%{prj.name}/vendor/glm/**.hpp",
         "%{prj.name}/vendor/glm/**.inl",
         "%{prj.name}/vendor/spdlog/include/**.h",
+        "%{prj.name}/vendor/tinyfiledialogs/tinyfiledialogs.c",
+        "%{prj.name}/vendor/tinyfiledialogs/tinyfiledialogs.h"
         -- "%{prj.name}/vendor/spdlog/src/**.cpp",
     }
 

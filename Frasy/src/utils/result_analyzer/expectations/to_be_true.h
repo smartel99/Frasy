@@ -30,10 +30,18 @@ struct ToBeTrueExpectation : public ToBeExactBase
         fakeValue["value"]       = value.at("pass").get<bool>();
         ToBeExactBase::AddValue(fakeValue);
     }
+
     void Render() override
     {
         ImGui::BulletText("Expected: To Be True");
         ToBeExactBase::Render();
+    }
+
+    nlohmann::json Serialize() override
+    {
+        auto j    = ToBeExactBase::Serialize();
+        j["type"] = "to_be_true";
+        return j;
     }
 };
 }    // namespace Frasy::Analyzers

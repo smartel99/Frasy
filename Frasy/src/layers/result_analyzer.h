@@ -22,7 +22,9 @@
 #include "utils/result_analyzer/analyzer.h"
 #include "utils/result_analyzer/options.h"
 
+#include <array>
 #include <Brigerad.h>
+#include <map>
 #include <thread>
 #include <vector>
 
@@ -43,6 +45,9 @@ private:
                                  std::string_view                   tooltip,
                                  std::vector<std::array<char, 32>>& strings);
     void        RenderAnalysisResults();
+    void        RenderSingleAnalysisResults();
+    void        RenderMultipleAnalysisResults();
+    void        RenderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results);
     void        RenderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location);
     void        RenderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence);
     void        RenderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test);
@@ -51,13 +56,15 @@ private:
     bool                         m_isVisible  = false;
     static constexpr const char* s_windowName = "Result Analyzer Options";
 
-    Analyzers::ResultOptions         m_options       = {};
-    bool                             m_renderResults = false;
-    Analyzers::ResultAnalysisResults m_results       = {};
+    Analyzers::ResultOptions                                m_options       = {};
+    bool                                                    m_renderResults = false;
+    Analyzers::ResultAnalysisResults                        m_lastResults   = {};
+    std::map<std::string, Analyzers::ResultAnalysisResults> m_loadedResults = {};
 
     Analyzers::ResultAnalyzer m_analyzer;
     bool                      m_generating     = false;
     bool                      m_doneGenerating = false;
+    bool                      m_hasGenerated   = false;
     std::thread               m_generatorThread;
 };
 }    // namespace Frasy

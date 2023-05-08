@@ -32,6 +32,13 @@ struct ToBeInRangeExpectation : public ToBeValueBase
         ImGui::BulletText("Expected value: [%f, %f]", Min, Max);
         ToBeValueBase::Render();
     }
+
+    nlohmann::json Serialize() override
+    {
+        auto j    = ToBeValueBase::Serialize();
+        j["type"] = "to_be_in_range";
+        return j;
+    }
 };
 }    // namespace Frasy::Analyzers
 #endif    // FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_IN_RANGE_H

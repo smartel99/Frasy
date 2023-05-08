@@ -49,7 +49,6 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
         FindMedian();
         FindMode();
         FindStdDev();
-        FindCpCpk();
         FindPpPpk();
 
         Range = MaxObserved - MinObserved;
@@ -110,6 +109,28 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
         }
     }
 
+    nlohmann::json Serialize() override
+    {
+        nlohmann::json j  = {};
+        j["total"]        = Total;
+        j["passed"]       = Passed;
+        j["expected"]     = Expected;
+        j["min"]          = Min;
+        j["max"]          = Max;
+        j["values"]       = Values;
+        j["min_observed"] = MinObserved;
+        j["max_observed"] = MaxObserved;
+        j["mean"]         = Mean;
+        j["median"]       = Median;
+        j["mode"]         = Mode;
+        j["range"]        = Range;
+        j["std_dev"]      = StdDev;
+        j["pp"]           = Pp;
+        j["ppk"]          = Ppk;
+
+        return j;
+    }
+
     size_t             Total    = 0;
     size_t             Passed   = 0;
     float              Expected = 0;
@@ -125,8 +146,6 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
     float Range       = 0.0f;
     float StdDev      = 0.0f;
 
-    float Cp  = 0.0f;    //!< Process Capabilities
-    float Cpk = 0.0f;
     float Pp  = 0.0f;    //!< Process Performance
     float Ppk = 0.0f;
 
@@ -189,16 +208,6 @@ private:
         StdDev = std::sqrt(StdDev / static_cast<float>(Values.size()));
     }
 
-    void FindCpCpk()
-    {
-
-
-        /**
-         * Cp = (maxTol - minTol) / 6 * StdDev
-         */
-        Cp = (Max - Min) / (6.0f * StdDev);
-    }
-
     void FindPpPpk()
     {
         /**
@@ -251,13 +260,6 @@ private:
                       "Ppk",
                       "How close the process is performing compared to its specification limits and accounting for "
                       "the natural variability of the process. Larger is better, negative is bad");
-        //        ImGui::SameLine();
-        //        ValueWithHint(Cp, "Cp", "");
-        //        ImGui::SameLine();
-        //        ValueWithHint(Cpk,
-        //                      "Cpk",
-        //                      "How close the process is performing compared to its specification limits and accounting
-        //                      for " "the natural variability of the process. Larger is better, negative is bad");
     }
 };
 }    // namespace Frasy::Analyzers

@@ -37,6 +37,14 @@ struct ToBeNearExpectation : public ToBeValueBase
         ToBeValueBase::Render();
     }
 
+    nlohmann::json Serialize() override
+    {
+        auto j         = ToBeValueBase::Serialize();
+        j["type"]      = "to_be_near";
+        j["deviation"] = Deviation;
+        return j;
+    }
+
     float Deviation = 0.0f;
 };
 }    // namespace Frasy::Analyzers

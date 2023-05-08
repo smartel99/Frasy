@@ -23,15 +23,6 @@ namespace Frasy::Analyzers
 {
 struct ToBeTypeExpectation : public ToBeExactBase
 {
-private:
-    struct ObservedValue
-    {
-        std::string Type   = {};
-        std::string Value  = {};
-        bool        Passed = false;
-    };
-
-public:
     ToBeTypeExpectation(const std::string& expected) : Expected(expected) {}
     ~ToBeTypeExpectation() override = default;
 
@@ -40,6 +31,14 @@ public:
         ImGui::BulletText("Expect: To Be Type");
         ImGui::BulletText("Expected type: %s", Expected.c_str());
         ToBeExactBase::Render();
+    }
+
+    nlohmann::json Serialize() override
+    {
+        auto j        = ToBeExactBase::Serialize();
+        j["type"]     = "to_be_type";
+        j["expected"] = Expected;
+        return j;
     }
 
     std::string Expected {};

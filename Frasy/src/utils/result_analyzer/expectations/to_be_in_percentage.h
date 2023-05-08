@@ -39,8 +39,15 @@ struct ToBeInPercentageExpectation : public ToBeValueBase
         ToBeValueBase::Render();
     }
 
-    float              Percentage = 0.0f;
-    std::vector<float> Values;
+    nlohmann::json Serialize() override
+    {
+        auto j          = ToBeValueBase::Serialize();
+        j["type"]       = "to_be_in_percentage";
+        j["percentage"] = Percentage;
+        return j;
+    }
+
+    float Percentage = 0.0f;
 };
 }    // namespace Frasy::Analyzers
 

@@ -35,6 +35,13 @@ struct ToBeFalseExpectation : public ToBeExactBase
         ImGui::BulletText("Expected: To Be False");
         ToBeExactBase::Render();
     }
+
+    nlohmann::json Serialize() override
+    {
+        nlohmann::json j = ToBeExactBase::Serialize();
+        j["type"]        = "to_be_false";
+        return j;
+    }
 };
 }    // namespace Frasy::Analyzers
 #endif    // FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_FALSE_H
