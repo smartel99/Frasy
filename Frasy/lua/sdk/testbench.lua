@@ -25,18 +25,22 @@ if Context.Testbench == nil then Context.Testbench = { commands = {} } end
 --- Example usage:
 ---     Testbench("MyCommand", function(cmd, ...) return cmd(..., "other args") end, Map.TP1, Map.TP2)
 function Testbench(command, executor, ...)
+    local args = {...}
     local tps = {}
     local ib  = 0
     local uut = Context.uut
 
     -- Get the test points for the current UUT.
-    for _, tp in ipairs({ ... }) do
+    for _, tp in ipairs(args) do
+        -- TODO: make an error message pop if the test point does not exist.
+        if tp[uut] == nil then error(string.format("UUT %d does not have the #%d provided test point", uut, _)) end
         table.insert(tps, tp[uut].tp)
         if ib ~= 0 and ib ~= tp[uut].ib then error("Requesting TP on different IB") end
         ib = tp[uut].ib
     end
 
-    if command == nil or executor == nil or #tps == 0 then error("Missing arguments") end
+    if command == nil then error("A command needs to be provided!") end
+    if executor == nil then error("An executor function needs to be provided!") end
     if ib == 0 then error("No board selected") end
     local cmd = Context.Testbench.commands[command]
     if cmd == nil then error(string.format("Unknown command: %s", command)) end

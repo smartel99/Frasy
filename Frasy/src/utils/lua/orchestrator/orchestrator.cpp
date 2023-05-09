@@ -38,11 +38,9 @@ namespace
 {
 void AddDummyDataToTable(sol::table& table, const Frasy::Actions::Value& value)
 {
-    switch(value.Type)
+    switch (value.Type)
     {
-        case static_cast<type_id_t>(Type::Fundamental::E::Bool):
-            table.add(false);
-            break;
+        case static_cast<type_id_t>(Type::Fundamental::E::Bool): table.add(false); break;
         case static_cast<type_id_t>(Type::Fundamental::E::Int8):
         case static_cast<type_id_t>(Type::Fundamental::E::UInt8):
         case static_cast<type_id_t>(Type::Fundamental::E::Int16):
@@ -50,18 +48,11 @@ void AddDummyDataToTable(sol::table& table, const Frasy::Actions::Value& value)
         case static_cast<type_id_t>(Type::Fundamental::E::Int32):
         case static_cast<type_id_t>(Type::Fundamental::E::UInt32):
         case static_cast<type_id_t>(Type::Fundamental::E::Int64):
-        case static_cast<type_id_t>(Type::Fundamental::E::UInt64):
-            table.add(0);
-            break;
+        case static_cast<type_id_t>(Type::Fundamental::E::UInt64): table.add(0); break;
         case static_cast<type_id_t>(Type::Fundamental::E::Float):
-        case static_cast<type_id_t>(Type::Fundamental::E::Double):
-            table.add(0.0);
-            break;
-        case static_cast<type_id_t>(Type::Fundamental::E::String):
-            table.add("");
-            break;
-        default:
-            table.add(sol::nil);
+        case static_cast<type_id_t>(Type::Fundamental::E::Double): table.add(0.0); break;
+        case static_cast<type_id_t>(Type::Fundamental::E::String): table.add(""); break;
+        default: table.add(sol::nil);
     }
 }
 
@@ -127,57 +118,67 @@ bool Orchestrator::CreateOutputDirs()
 }
 
 
-void Orchestrator::InitLua(sol::state& lua, std::size_t uut, Stage stage)
+bool Orchestrator::InitLua(sol::state& lua, std::size_t uut, Stage stage)
 {
-    lua.open_libraries(sol::lib::debug,
-                       sol::lib::base,
-                       sol::lib::table,
-                       sol::lib::io,
-                       sol::lib::package,
-                       sol::lib::string,
-                       sol::lib::math,
-                       sol::lib::os);
-
-    // Enums
-    lua.script_file("lua/core/framework/stage.lua");
-
-    // Variables
-    lua.script_file("lua/core/framework/context.lua");
-
-    lua["Context"]["stage"]   = lua["Stage"][stage2str(stage)];
-    lua["Context"]["uut"]     = uut;
-    lua["Context"]["version"] = "0.1.0";
-    std::atomic_thread_fence(std::memory_order_release);
-
-    // Utils
-    lua.require_file("Utils", "lua/core/utils/module.lua");
-    lua["Utils"]["dirlist"] = [](const std::string& dir)
+    try
     {
-        namespace fs = std::filesystem;
-        std::vector<std::string> files;
-        for (auto const& dir_entry : fs::directory_iterator {dir})
+        lua.open_libraries(sol::lib::debug,
+                           sol::lib::base,
+                           sol::lib::table,
+                           sol::lib::io,
+                           sol::lib::package,
+                           sol::lib::string,
+                           sol::lib::math,
+                           sol::lib::os);
+
+        // Enums
+        lua.script_file("lua/core/framework/stage.lua");
+
+        // Variables
+        lua.script_file("lua/core/framework/context.lua");
+
+        lua["Context"]["stage"]   = lua["Stage"][stage2str(stage)];
+        lua["Context"]["uut"]     = uut;
+        lua["Context"]["version"] = "0.1.0";
+        std::atomic_thread_fence(std::memory_order_release);
+
+        // Utils
+        lua.require_file("Utils", "lua/core/utils/module.lua");
+        lua["Utils"]["dirlist"] = [](const std::string& dir)
         {
-            auto file = dir_entry.path().string();
-            files.push_back(file.substr(0, file.size() - 4));
-        }
-        return sol::as_table(files);
-    };
-    lua["Utils"]["sleep_for"] = [](int duration) { std::this_thread::sleep_for(std::chrono::milliseconds(duration)); };
-    lua.require_file("Json", "lua/core/vendor/json.lua");
-    ImportLog(lua, uut, stage);
-    ImportPopup(lua, uut, stage);
-    ImportSync(lua, stage);
-    ImportExclusive(lua, stage);
-    lua.script_file("lua/core/framework/exception.lua");
+            namespace fs = std::filesystem;
+            std::vector<std::string> files;
+            for (auto const& dir_entry : fs::directory_iterator {dir})
+            {
+                auto file = dir_entry.path().string();
+                files.push_back(file.substr(0, file.size() - 4));
+            }
+            return sol::as_table(files);
+        };
+        lua["Utils"]["sleep_for"] = [](int duration)
+        { std::this_thread::sleep_for(std::chrono::milliseconds(duration)); };
+        lua.require_file("Json", "lua/core/vendor/json.lua");
+        ImportLog(lua, uut, stage);
+        ImportPopup(lua, uut, stage);
+        ImportSync(lua, stage);
+        ImportExclusive(lua, stage);
+        lua.script_file("lua/core/framework/exception.lua");
 
-    // Framework
-    lua.script_file("lua/core/sdk/environment/team.lua");
-    lua.script_file("lua/core/sdk/environment/environment.lua");
-    lua.script_file("lua/core/sdk/testbench.lua");
-    lua.script_file("lua/core/framework/orchestrator.lua");
-    lua.script_file("lua/core/sdk/test.lua");
+        // Framework
+        lua.script_file("lua/core/sdk/environment/team.lua");
+        lua.script_file("lua/core/sdk/environment/environment.lua");
+        lua.script_file("lua/core/sdk/testbench.lua");
+        lua.script_file("lua/core/framework/orchestrator.lua");
+        lua.script_file("lua/core/sdk/test.lua");
 
-    m_populateUserMethods(lua, stage);
+        m_populateUserMethods(lua, stage);
+        return true;
+    }
+    catch (std::exception& e)
+    {
+        BR_LUA_ERROR("An error occurred while loading the framework: {}", e.what());
+        return false;
+    }
 }
 
 void Orchestrator::LoadIb(sol::state& lua)
@@ -565,7 +566,7 @@ bool Orchestrator::Init(const std::string& environment, const std::string& tests
     m_generated   = false;
     m_environment = environment;
     m_testsDir    = testsDir;
-    InitLua(*m_state);
+    if (!InitLua(*m_state)) { return false; }
     if (!LoadEnvironment(*m_state, m_environment)) { return false; }
     if (!LoadTests(*m_state, m_testsDir)) { return false; }
     PopulateMap();

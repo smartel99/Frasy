@@ -92,7 +92,7 @@ public:
 
 private:
     bool        CreateOutputDirs();
-    void        InitLua(sol::state& lua, std::size_t uut = 0, Stage stage = Stage::Generation);
+    bool        InitLua(sol::state& lua, std::size_t uut = 0, Stage stage = Stage::Generation);
     void        ImportExclusive(sol::state& lua, Stage stage);
     static void        ImportLog(sol::state& lua, std::size_t uut, Stage stage);
     void        ImportPopup(sol::state& lua, std::size_t uut, Stage stage);
