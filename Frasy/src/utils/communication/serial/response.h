@@ -86,7 +86,7 @@ struct ResponsePromise
 
 private:
     static constexpr const char* s_tag     = "Promise";
-    static constexpr auto        s_timeout = std::chrono::milliseconds(1000);
+    static constexpr auto        s_timeout = std::chrono::milliseconds(5000);
 
     std::thread m_thread;
     bool        m_consumed = false;
