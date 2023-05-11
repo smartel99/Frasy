@@ -243,12 +243,12 @@ ResultViewer::OverallTestResult ResultViewer::LoadResults(const std::string& pat
     // The keys are currently hardcoded. This isn't a problem as long as we stick to the same scheme.
     // However, adding a way to configure these fields might be a good idea.
     return OverallTestResult {
-      .SerialNumber = json.at("serial").get<std::string>(),
-      .Duration     = json.at("duration").get<double>(),
-      .Date         = json.at("date").get<std::string>(),
-      .Passed       = json.at("pass").get<bool>(),
-      .Version      = json.at("version").get<std::string>(),
-      .Uut          = json.at("uut").get<int>(),
+      .SerialNumber = json.at("info").at("serial").get<std::string>(),
+      .Duration     = json.at("info").at("time").at("process").get<double>(),
+      .Date         = json.at("info").at("date").get<std::string>(),
+      .Passed       = json.at("info").at("pass").get<bool>(),
+      .Version      = json.at("info").at("version").get<std::string>(),
+      .Uut          = json.at("info").at("uut").get<int>(),
       .Sequences    = LoadSequences(json.at("sequences")),
     };
 }
@@ -258,7 +258,7 @@ std::map<std::string, ResultViewer::SequenceResult> ResultViewer::LoadSequences(
     std::map<std::string, SequenceResult> sequenceResults = {};
     for (const auto& [seqName, seqDetails] : sequences.items())
     {
-        double duration          = seqDetails.at("stop").get<double>() - seqDetails.at("start").get<double>();
+        double duration          = seqDetails.at("time").at("process").get<double>();
         sequenceResults[seqName] = SequenceResult {
           .Name     = seqName,
           .Duration = duration,
@@ -277,7 +277,7 @@ std::map<std::string, ResultViewer::TestResult> ResultViewer::LoadTests(const nl
 
     for (const auto& [testName, testDetails] : tests.items())
     {
-        double duration       = testDetails.at("stop").get<double>() - testDetails.at("start").get<double>();
+        double duration       = testDetails.at("time").at("process").get<double>();
         testResults[testName] = TestResult {
           .Name         = testName,
           .Duration     = duration,
