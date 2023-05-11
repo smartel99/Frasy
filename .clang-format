@@ -1,7 +1,7 @@
 ﻿BasedOnStyle: Mozilla
 AccessModifierOffset: -4
 
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveMacros: Consecutive
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: Consecutive

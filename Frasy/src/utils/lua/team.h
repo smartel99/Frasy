@@ -36,6 +36,7 @@ private:
     std::unique_ptr<sol::state>                    m_teamState;
     std::array<std::unique_ptr<std::barrier<>>, 3> m_bShare;
     std::array<std::unique_ptr<std::barrier<>>, 2> m_bSync;
+    std::unique_ptr<std::barrier<>>                m_wBarrier;
     std::size_t                                    m_wCount;
     std::size_t                                    m_wError;
     std::unique_ptr<std::mutex>                    m_mutex;

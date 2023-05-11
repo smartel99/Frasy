@@ -29,14 +29,12 @@ Team::Team(std::size_t teamSize)
 {
     m_teamState = std::make_unique<sol::state>();
     m_teamSize  = teamSize;
-    m_bShare[0] = std::make_unique<std::barrier<>>(m_teamSize);
-    m_bShare[1] = std::make_unique<std::barrier<>>(m_teamSize);
-    m_bShare[2] = std::make_unique<std::barrier<>>(m_teamSize);
-    m_bSync[0]  = std::make_unique<std::barrier<>>(m_teamSize);
-    m_bSync[1]  = std::make_unique<std::barrier<>>(m_teamSize);
-    m_wCount    = 0;
-    m_wError    = 0;
-    m_mutex     = std::make_unique<std::mutex>();
+    std::ranges::for_each(m_bShare, [&](auto& item) { item = std::make_unique<std::barrier<>>(m_teamSize); });
+    std::ranges::for_each(m_bSync, [&](auto& item) { item = std::make_unique<std::barrier<>>(m_teamSize); });
+    m_wBarrier = std::make_unique<std::barrier<>>(m_teamSize);
+    m_wCount   = 0;
+    m_wError   = 0;
+    m_mutex    = std::make_unique<std::mutex>();
     m_syncStates.resize(m_teamSize);
 }
 
@@ -84,7 +82,10 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
 
         m_mutex->lock();
         m_wCount = 0;
+        std::ranges::for_each(
+          m_bShare, [&](auto& item) { item = std::make_unique<std::barrier<>>(m_teamSize - m_wError); });
         m_mutex->unlock();
+        m_wBarrier->arrive_and_wait();
     };
 
     other["Team"]["__done"] = [&]()
@@ -92,6 +93,10 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
         m_mutex->lock();
         m_wCount++;
         m_mutex->unlock();
+        m_bShare[0]->arrive_and_drop();
+        m_bShare[1]->arrive_and_drop();
+        m_bShare[2]->arrive_and_drop();
+        m_wBarrier->arrive_and_wait();
     };
 
     other["Team"]["__sync"] = [&, position, is_leader](int status)
@@ -102,21 +107,17 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
         m_bSync[0]->arrive_and_wait();
         if (is_leader)
         {
-            m_bShare[0] = std::make_unique<std::barrier<>>(m_teamSize);
-            m_bShare[1] = std::make_unique<std::barrier<>>(m_teamSize);
-            m_bShare[2] = std::make_unique<std::barrier<>>(m_teamSize);
-            m_wCount    = 0;
-            m_wError    = 0;
+            std::ranges::for_each(m_bShare, [&](auto& item) { item = std::make_unique<std::barrier<>>(m_teamSize); });
+            m_wBarrier = std::make_unique<std::barrier<>>(m_teamSize);
+            m_wCount   = 0;
+            m_wError   = 0;
         }
         m_bSync[1]->arrive_and_wait();
-        if (std::any_of(m_syncStates.begin(),
-                        m_syncStates.end(),
-                        [](SyncState state) { return state == SyncState::critical_failure; }))
+        if (std::ranges::any_of(m_syncStates, [](SyncState state) { return state == SyncState::critical_failure; }))
         {
             return SyncState::critical_failure;
         }
-        if (std::any_of(
-              m_syncStates.begin(), m_syncStates.end(), [](SyncState state) { return state == SyncState::fail; }))
+        if (std::ranges::any_of(m_syncStates, [](SyncState state) { return state == SyncState::fail; }))
         {
             return SyncState::fail;
         }
@@ -128,9 +129,8 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
         m_mutex->lock();
         m_wError++;
         m_mutex->unlock();
-        m_bShare[0]->arrive_and_drop();
-        m_bShare[1]->arrive_and_drop();
-        m_bShare[2]->arrive_and_drop();
+        std::ranges::for_each(m_bShare, [](auto& b) { b->arrive_and_drop(); });
+        m_wBarrier->arrive_and_drop();
     };
 }
 

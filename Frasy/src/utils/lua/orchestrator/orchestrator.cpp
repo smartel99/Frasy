@@ -85,9 +85,9 @@ void Orchestrator::RunSolution(const std::vector<std::string>& serials, bool reg
         Brigerad::WarningDialog("Frasy", "No UUTs to test!");
         return;
     }
-    m_running =
-      std::async(std::launch::async,
-                 [this, &serials, regenerate, skipVerification] { RunTests(serials, regenerate, skipVerification); });
+    m_running = std::async(
+      std::launch::async,
+      [this, &serials, regenerate, skipVerification] { RunTests(serials, regenerate, skipVerification); });
 }
 
 const Models::Solution& Orchestrator::GetSolution()
@@ -120,14 +120,15 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
 {
     try
     {
-        lua.open_libraries(sol::lib::debug,
-                           sol::lib::base,
-                           sol::lib::table,
-                           sol::lib::io,
-                           sol::lib::package,
-                           sol::lib::string,
-                           sol::lib::math,
-                           sol::lib::os);
+        lua.open_libraries(
+          sol::lib::debug,
+          sol::lib::base,
+          sol::lib::table,
+          sol::lib::io,
+          sol::lib::package,
+          sol::lib::string,
+          sol::lib::math,
+          sol::lib::os);
 
         // Enums
         lua.script_file("lua/core/framework/stage.lua");
@@ -210,9 +211,9 @@ void Orchestrator::LoadIbCommandForValidation(sol::state_view lua, const Frasy::
 {
     using Frasy::Communication::DeviceMap;
     using Frasy::Communication::SerialDevice;
-    DeviceMap& devices                                = DeviceMap::Get();
-    lua["Context"]["Testbench"]["commands"][fun.Name] = [&](std::size_t        ib,
-                                                            sol::variadic_args args) -> std::optional<sol::table>
+    DeviceMap& devices = DeviceMap::Get();
+    lua["Context"]["Testbench"]["commands"][fun.Name] =
+      [&, lua](std::size_t ib, sol::variadic_args args) -> std::optional<sol::table>
     {
         SerialDevice&                    device = devices[ib - 1];
         std::vector<Type::Struct::Field> fields;
@@ -229,9 +230,9 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
 {
     namespace fc = Frasy::Communication;
 
-    fc::DeviceMap& devices                            = fc::DeviceMap::Get();
-    lua["Context"]["Testbench"]["commands"][fun.Name] = [&](std::size_t        ib,
-                                                            sol::variadic_args args) -> std::optional<sol::table>
+    fc::DeviceMap& devices = fc::DeviceMap::Get();
+    lua["Context"]["Testbench"]["commands"][fun.Name] =
+      [&, lua](std::size_t ib, sol::variadic_args args) mutable -> std::optional<sol::table>
     {
         try
         {
@@ -256,9 +257,10 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
                 if (resp.Header.CommandId == static_cast<fc::cmd_id_t>(CommandId::Status))
                 {
                     auto status = resp.FromPayload<Frasy::Actions::Status::Reply>();
-                    lua["Log"]["w"](std::format("Received status '{}' : {}",
-                                                Frasy::Actions::Status::ErrorCode::ToStr(status.Code),
-                                                status.Message));
+                    lua["Log"]["w"](std::format(
+                      "Received status '{}' : {}",
+                      Frasy::Actions::Status::ErrorCode::ToStr(status.Code),
+                      status.Message));
                 }
                 else if (resp.Header.CommandId == fun.Id)
                 {
@@ -321,8 +323,7 @@ void Orchestrator::RunTests(const std::vector<std::string>& serials, bool regene
         UpdateUutState(UutState::Idle);
         return;
     }
-    //    if (!RunStageGenerate(regenerate))
-    if (!RunStageGenerate(true))
+    if (!RunStageGenerate(regenerate))
     {
         BR_LUA_ERROR("Generation failed");
         UpdateUutState(UutState::Error);
@@ -437,7 +438,7 @@ bool Orchestrator::RunStageVerify(sol::state_view team)
         {
             if (m_uutStates[uut] == UutState::Disabled) { continue; }
             threads.emplace_back(
-              [&, uut]
+              [&, uut, team]
               {
                   sol::state lua;
                   InitLua(lua, uut, Stage::Validation);
@@ -482,11 +483,11 @@ bool Orchestrator::RunStageVerify(sol::state_view team)
               });
         }
         for (auto& thread : threads) { thread.join(); }
-        size_t expectedResults = std::accumulate(devices.begin(),
-                                                 devices.end(),
-                                                 size_t(0),
-                                                 [&](size_t tot, const auto& uut)
-                                                 { return tot + (m_uutStates[uut] == UutState::Disabled ? 0 : 1); });
+        size_t expectedResults = std::accumulate(
+          devices.begin(),
+          devices.end(),
+          size_t(0),
+          [&](size_t tot, const auto& uut) { return tot + (m_uutStates[uut] == UutState::Disabled ? 0 : 1); });
         if (results.size() != expectedResults)
         {
             BR_LUA_ERROR("Missing results from validation");
@@ -546,7 +547,7 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
         for (auto& uut : devices)
         {
             threads.emplace_back(
-              [&, uut]
+              [&, uut, team]
               {
                   if (m_uutStates[uut] == UutState::Disabled) { return; }
                   // states[] is not yet populated, each call will modify it
@@ -671,12 +672,14 @@ void Orchestrator::CheckResults(const std::vector<std::size_t>& devices)
             bool          passed  = data["info"]["pass"];
             std::string   serial  = data["info"]["serial"];
             m_uutStates[uut]      = passed ? UutState::Passed : UutState::Failed;
-            std::filesystem::copy(resultFile,
-                                  std::format("{}/{}/{}_{}.txt",
-                                              m_outputDirectory,
-                                              passed ? passSubdirectory : failSubdirectory,
-                                              std::chrono::system_clock::now().time_since_epoch().count(),
-                                              serial));
+            std::filesystem::copy(
+              resultFile,
+              std::format(
+                "{}/{}/{}_{}.txt",
+                m_outputDirectory,
+                passed ? passSubdirectory : failSubdirectory,
+                std::chrono::system_clock::now().time_since_epoch().count(),
+                serial));
         }
         else if (m_uutStates[uut] != UutState::Disabled)
         {
