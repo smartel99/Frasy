@@ -34,6 +34,8 @@ Team::Team(std::size_t teamSize)
     m_bShare[2] = std::make_unique<std::barrier<>>(m_teamSize);
     m_bSync[0]  = std::make_unique<std::barrier<>>(m_teamSize);
     m_bSync[1]  = std::make_unique<std::barrier<>>(m_teamSize);
+    m_wCount    = 0;
+    m_wError    = 0;
     m_mutex     = std::make_unique<std::mutex>();
     m_syncStates.resize(m_teamSize);
 }
@@ -65,7 +67,34 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
         return value;
     };
 
-    other["Team"]["__sync"] = [&, uut, position, is_leader](int status)
+    other["Team"]["__wait"] = [&](sol::function routine)
+    {
+        m_mutex->lock();
+        m_wCount++;
+        m_mutex->unlock();
+
+        bool team_is_ready = false;
+        while (!team_is_ready)
+        {
+            m_mutex->lock();
+            team_is_ready = m_wCount + m_wError == m_teamSize;
+            m_mutex->unlock();
+            routine();
+        }
+
+        m_mutex->lock();
+        m_wCount = 0;
+        m_mutex->unlock();
+    };
+
+    other["Team"]["__done"] = [&]()
+    {
+        m_mutex->lock();
+        m_wCount++;
+        m_mutex->unlock();
+    };
+
+    other["Team"]["__sync"] = [&, position, is_leader](int status)
     {
         m_mutex->lock();
         m_syncStates[position - 1] = static_cast<SyncState>(status);
@@ -76,6 +105,8 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
             m_bShare[0] = std::make_unique<std::barrier<>>(m_teamSize);
             m_bShare[1] = std::make_unique<std::barrier<>>(m_teamSize);
             m_bShare[2] = std::make_unique<std::barrier<>>(m_teamSize);
+            m_wCount    = 0;
+            m_wError    = 0;
         }
         m_bSync[1]->arrive_and_wait();
         if (std::any_of(m_syncStates.begin(),
@@ -94,6 +125,9 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
 
     other["Team"]["__fail"] = [&]
     {
+        m_mutex->lock();
+        m_wError++;
+        m_mutex->unlock();
         m_bShare[0]->arrive_and_drop();
         m_bShare[1]->arrive_and_drop();
         m_bShare[2]->arrive_and_drop();

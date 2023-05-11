@@ -43,6 +43,26 @@ function Team.Join(...)
     Context.Team.teams[leader] = { ... }
 end
 
+function Team.Wait(fun)
+    if not Team.IsLeader() then
+        TeamError("Only leader can wait for others")
+    end
+    if fun == nil then
+        TeamError("No routine provided")
+    end
+    if type(fun) ~= "function" then
+        TeamError("Argument is not a function")
+    end
+    Team.__wait(fun)
+end
+
+function Team.Done()
+    if Team.IsLeader() then
+        TeamError("Only teammate can report as done")
+    end
+    Team.__done()
+end
+
 function Team.GetLeader()
     return Context.Team.players[Context.uut].leader
 end
@@ -104,6 +124,8 @@ end
 -- C++ calls
 function Team.__tell(value) end
 function Team.__get() end
+function Team.__wait() end
+function Team.__done() end
 function Team.__sync(status) end
 function Team.__fail() end
 

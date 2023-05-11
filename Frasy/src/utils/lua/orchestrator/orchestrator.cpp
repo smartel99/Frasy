@@ -20,14 +20,14 @@
 #include "../../commands/built_in/status/reply.h"
 #include "../../communication/serial/device_map.h"
 #include "../args_checker.h"
-#include "../table_deserializer.h"
 #include "../dummy_table_deserializer.h"
+#include "../table_deserializer.h"
 #include "../table_serializer.h"
 #include "../tag.h"
 #include "../team.h"
 #include "utils/commands/type/manager/manager.h"
-#include "utils/misc/serializer.h"
 #include "utils/lua/save_as_json.h"
+#include "utils/misc/serializer.h"
 
 #include <Brigerad/Utils/dialogs/warning.h>
 #include <chrono>
@@ -614,6 +614,7 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
                   });
             }
             for (auto& thread : threads) { thread.join(); }
+            UpdateUutState(UutState::Waiting, devices);
         }
         if (hasCrashed()) { return; }
     }

@@ -85,36 +85,34 @@ void Popup::Render()
 
     auto renderInput = [&](Input* element, std::size_t index)
     {
-        ImGui::PushID(std::format("Element {}", index).c_str());
         if (!element->text.empty())
         {
             ImGui::Text("%s", element->text.c_str());
             ImGui::SameLine();
         }
         if (ImGui::InputText("##", element->vBuf, element->vBufLen)) { m_inputs[element->index] = element->vBuf; }
-        ImGui::PopID();
     };
 
     auto renderButton = [&](Button* element, std::size_t index)
     {
-        ImGui::PushID(std::format("Element {}", index).c_str());
         if (ImGui::Button(element->text.c_str()))
         {
             std::lock_guard lock {m_luaMutex};
             element->action(m_inputs);
         }
-        ImGui::PopID();
     };
 
     for (std::size_t i = 0; i < m_elements.size(); ++i)
     {
         auto& element = m_elements[i];
+        ImGui::PushID(std::format("Element {}", i).c_str());
         switch (element->kind)
         {
             case Element::Kind::Text: renderText(static_cast<Text*>(element.get())); break;
             case Element::Kind::Input: renderInput(static_cast<Input*>(element.get()), i); break;
             case Element::Kind::Button: renderButton(static_cast<Button*>(element.get()), i); break;
         }
+        ImGui::PopID();
     }
     if (ImGui::Button("Cancel")) { Consume(); }
     ImGui::End();
