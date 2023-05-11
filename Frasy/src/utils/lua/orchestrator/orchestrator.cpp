@@ -21,9 +21,12 @@
 #include "../../communication/serial/device_map.h"
 #include "../args_checker.h"
 #include "../table_deserializer.h"
+#include "../dummy_table_deserializer.h"
 #include "../table_serializer.h"
 #include "../tag.h"
 #include "../team.h"
+#include "utils/commands/type/manager/manager.h"
+#include "utils/misc/serializer.h"
 
 #include <Brigerad/Utils/dialogs/warning.h>
 #include <chrono>
@@ -34,37 +37,6 @@
 
 namespace Frasy::Lua
 {
-namespace
-{
-void AddDummyDataToTable(sol::table& table, const Frasy::Actions::Value& value)
-{
-    switch (value.Type)
-    {
-        case static_cast<type_id_t>(Type::Fundamental::E::Bool): table.add(false); break;
-        case static_cast<type_id_t>(Type::Fundamental::E::Int8):
-        case static_cast<type_id_t>(Type::Fundamental::E::UInt8):
-        case static_cast<type_id_t>(Type::Fundamental::E::Int16):
-        case static_cast<type_id_t>(Type::Fundamental::E::UInt16):
-        case static_cast<type_id_t>(Type::Fundamental::E::Int32):
-        case static_cast<type_id_t>(Type::Fundamental::E::UInt32):
-        case static_cast<type_id_t>(Type::Fundamental::E::Int64):
-        case static_cast<type_id_t>(Type::Fundamental::E::UInt64): table.add(0); break;
-        case static_cast<type_id_t>(Type::Fundamental::E::Float):
-        case static_cast<type_id_t>(Type::Fundamental::E::Double): table.add(0.0); break;
-        case static_cast<type_id_t>(Type::Fundamental::E::String): table.add(""); break;
-        default: table.add(sol::nil);
-    }
-}
-
-sol::table MakeDummyTableForFunc(sol::state& lua, const std::vector<Frasy::Actions::Value>& values)
-{
-    sol::table table = lua.create_table(values.size());
-
-    for (auto&& value : values) { table.add(sol::nil); }
-
-    return table;
-}
-}    // namespace
 
 // <editor-fold desc="Orchestrator">
 std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
@@ -221,7 +193,9 @@ void Orchestrator::LoadIbCommandForValidation(sol::state& lua, const Frasy::Acti
         fields.reserve(fun.Parameters.size());
         for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
         CheckArgs(lua, device.GetTypeManager(), fields, args);
-        return MakeDummyTableForFunc(lua, fun.Returns);
+
+        Lua::DummyDeserializer deserializer {lua, fun.Returns, device.GetStructs(), device.GetEnums()};
+        return deserializer.Deserialize();
     };
 }
 
@@ -272,7 +246,9 @@ void Orchestrator::LoadIbCommandForExecution(sol::state& lua, const Frasy::Actio
                 }
             }
             Lua::Deserializer deserializer {lua, fun.Returns, device.GetStructs(), device.GetEnums()};
-            return deserializer.Deserialize(response.begin(), response.end());
+            auto              b = response.begin();
+            auto              e = response.end();
+            return deserializer.Deserialize(b, e);
         }
         catch (const std::exception& e)
         {
