@@ -101,10 +101,10 @@ bool Orchestrator::CreateOutputDirs()
     try
     {
         fs::create_directory(m_outputDirectory);
-        fs::create_directory(std::format("{}/{}", m_outputDirectory, passDirectory));
-        fs::create_directory(std::format("{}/{}", m_outputDirectory, failDirectory));
+        fs::create_directory(std::format("{}/{}", m_outputDirectory, passSubdirectory));
+        fs::create_directory(std::format("{}/{}", m_outputDirectory, failSubdirectory));
 
-        const auto last = std::format("{}/{}", m_outputDirectory, lastDirectory);
+        const auto last = std::format("{}/{}", m_outputDirectory, lastSubdirectory);
         fs::remove_all(last);
         fs::create_directory(last);
     }
@@ -637,7 +637,7 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
                   sol::protected_function run =
                     lua.script("return function(dir) Orchestrator.CompileExecutionResults(dir) end");
                   run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                  auto result       = run(lastDirectory);
+                  auto result       = run(std::format("{}/{}", m_outputDirectory, lastSubdirectory));
                   if (!result.valid())
                   {
                       sol::error err = result;
@@ -662,19 +662,19 @@ void Orchestrator::CheckResults(const std::vector<std::size_t>& devices)
     using nlohmann::json;
     for (auto& uut : devices)
     {
-        std::string resultFile = std::format("{}/{}/{}.json", m_outputDirectory, lastDirectory, uut);
+        std::string resultFile = std::format("{}/{}/{}.json", m_outputDirectory, lastSubdirectory, uut);
         if (std::filesystem::exists(resultFile))
         {
             std::ifstream ifs {resultFile};
             std::string   content = std::string(std::istreambuf_iterator<char> {ifs}, {});
             json          data    = json::parse(content);
-            bool          passed  = data["pass"];
-            std::string   serial  = data["serial"];
+            bool          passed  = data["info"]["pass"];
+            std::string   serial  = data["info"]["serial"];
             m_uutStates[uut]      = passed ? UutState::Passed : UutState::Failed;
             std::filesystem::copy(resultFile,
                                   std::format("{}/{}/{}_{}.txt",
                                               m_outputDirectory,
-                                              passed ? passDirectory : failDirectory,
+                                              passed ? passSubdirectory : failSubdirectory,
                                               std::chrono::system_clock::now().time_since_epoch().count(),
                                               serial));
         }

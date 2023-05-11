@@ -53,10 +53,10 @@ public:
     static std::string stage2str(Stage stage);
 
 public:
-    static constexpr std::string_view passDirectory = "pass";
-    static constexpr std::string_view failDirectory = "fail";
-    static constexpr std::string_view lastDirectory = "last";
-    static constexpr std::string_view solutionFile  = "lua/solution.json";
+    static constexpr std::string_view passSubdirectory = "pass";
+    static constexpr std::string_view failSubdirectory = "fail";
+    static constexpr std::string_view lastSubdirectory = "last";
+    static constexpr std::string_view solutionFile     = "lua/solution.json";
 
 public:
     Orchestrator() = default;
