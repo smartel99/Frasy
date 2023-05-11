@@ -31,15 +31,16 @@ void TestViewer::OnImGuiRender()
     if (!m_isVisible) { return; }
     if (ImGui::Begin("Test Viewer", &m_isVisible, ImGuiWindowFlags_NoDocking))
     {
-        bool first = true;
-        for (auto& sequence : m_sequences)
+        bool                   first    = true;
+        const Models::Solution& solution = m_interface->GetSolution();
+        for (auto& [name, sequence] : solution.sequences)
         {
             if (first) { first = false; }
             else { ImGui::Separator(); }
-            RenderSequence(sequence);
+            RenderSequence(name, sequence);
         }
 
-        if (m_sequences.empty())
+        if (solution.sequences.empty())
         {
             ImGui::Text("Not loaded, is the test sequence generated?");
             if (ImGui::Button("Generate")) { m_interface->Generate(); }
@@ -48,17 +49,17 @@ void TestViewer::OnImGuiRender()
     ImGui::End();
 }
 
-void TestViewer::RenderSequence(Models::Sequence& sequence)
+void TestViewer::RenderSequence(const std::string& sName, const Models::Sequence& sequence)
 {
-    ImGui::PushID(sequence.name.c_str());
-    ImGui::BeginTable(sequence.name.c_str(), 3, ImGuiTableFlags_SizingFixedFit);
+    ImGui::PushID(sName.c_str());
+    ImGui::BeginTable(sName.c_str(), 3, ImGuiTableFlags_SizingFixedFit);
     ImGui::TableSetupColumn("##Show", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
     ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableSetupColumn("##Enabled", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
 
 
     bool        sEnabled   = sequence.enabled;
-    ListStatus& listStatus = m_listStatus[sequence.name];
+    ListStatus& listStatus = m_listStatus[sName];
     if (listStatus == ListStatus::unknown) { listStatus = sEnabled ? ListStatus::expanded : ListStatus::folded; }
 
     ImGui::TableNextRow();
@@ -68,68 +69,55 @@ void TestViewer::RenderSequence(Models::Sequence& sequence)
         listStatus = listStatus == ListStatus::expanded ? ListStatus::folded : ListStatus::expanded;
     }
     ImGui::TableNextColumn();
-    ImGui::Text("%s", sequence.name.c_str());
+    ImGui::Text("%s", sName.c_str());
     ImGui::TableNextColumn();
     if (ImGui::Checkbox("##enable", &sEnabled))
     {
-        sequence.enabled = m_interface->SetSequenceEnable(sequence.name, sEnabled);
-        listStatus       = sequence.enabled ? ListStatus::expanded : ListStatus::folded;
+        m_interface->SetSequenceEnable(sName, sEnabled);
+        listStatus = ListStatus::unknown;    // Will be recomputed next frame
     }
     if (listStatus == ListStatus::expanded)
     {
-        for (auto& test : sequence.tests)
+        for (auto& [tName, test] : sequence.tests)
         {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TableNextColumn();
-            ImGui::Text("%s", test.name.c_str());
+            ImGui::Text("%s", tName.c_str());
             ImGui::TableNextColumn();
             bool tEnabled = test.enabled;
-            if (ImGui::Checkbox("##", &tEnabled))
-            {
-                test.enabled = m_interface->SetTestEnable(sequence.name, test.name, tEnabled);
-            }
+            if (ImGui::Checkbox("##", &tEnabled)) { m_interface->SetTestEnable(sName, tName, tEnabled); }
         }
     }
     ImGui::EndTable();
     ImGui::PopID();
 }
 
-void TestViewer::OnStarted() {
-    // TODO
+TestViewer::Interface* TestViewer::Interface::GetDefault()
+{
+    static Interface interface;
+    return &interface;
 }
 
-void TestViewer::OnStopped() {
-    // TODO
+const Frasy::Models::Solution& TestViewer::Interface::GetSolution()
+{
+    static Frasy::Models::Solution solution;
+    return solution;
 }
 
-void TestViewer::OnGenerated(const std::vector<Models::Sequence>& sequences)
+void TestViewer::Interface::Generate()
 {
-    m_sequences = sequences;
+    // Default empty call
 }
-void TestViewer::OnTestPass(const std::string& sequence, const std::string& test)
+
+void TestViewer::Interface::SetSequenceEnable(const std::string& sequence, bool enable)
 {
-    // TODO
+    // Default empty call
 }
-void TestViewer::OnTestFail(const std::string& sequence, const std::string& test)
+
+void TestViewer::Interface::SetTestEnable(const std::string& sequence, const std::string& test, bool enable)
 {
-    // TODO
-}
-void TestViewer::OnTestSkipped(const std::string& sequence, const std::string& test)
-{
-    // TODO
-}
-void TestViewer::OnSequencePass(const std::string& sequence)
-{
-    // TODO
-}
-void TestViewer::OnSequenceFail(const std::string& sequence)
-{
-    // TODO
-}
-void TestViewer::OnSequenceSkipped(const std::string& sequence)
-{
-    // TODO
+    // Default empty call
 }
 
 }    // namespace Frasy

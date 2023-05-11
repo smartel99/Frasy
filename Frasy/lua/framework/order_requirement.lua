@@ -18,11 +18,12 @@ local OrderRequirement = {
     reference = nil,
     kind      = nil,
 }
+OrderRequirement.__index = OrderRequirement
 
-OrderRequirement.Kind = {
-    First = 1,
-    Last  = 2,
-    After = 3,
+OrderRequirement.Kind  = {
+    First        = 1,
+    Last         = 2,
+    After        = 3,
 }
 
 function OrderRequirement:new(parent, target, kind)

@@ -38,7 +38,7 @@ Team::Team(std::size_t teamSize)
     m_syncStates.resize(m_teamSize);
 }
 
-void Team::InitializeState(sol::state& other, std::size_t uut, std::size_t position, bool is_leader)
+void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t position, bool is_leader)
 {
     other["Team"]["__tell"] = [&](const sol::object& value)
     {
@@ -65,7 +65,7 @@ void Team::InitializeState(sol::state& other, std::size_t uut, std::size_t posit
         return value;
     };
 
-    other["Team"]["__sync"] = [&](int status)
+    other["Team"]["__sync"] = [&, uut, position, is_leader](int status)
     {
         m_mutex->lock();
         m_syncStates[position - 1] = static_cast<SyncState>(status);
@@ -141,7 +141,7 @@ T Team::Deserialize(std::size_t& cur)
     else if constexpr (std::is_enum_v<T>) { return static_cast<T>(Deserialize<std::underlying_type_t<T>>(cur)); }
 }
 
-void Team::_Store(sol::state& lua, const sol::object& o)
+void Team::_Store(sol::state_view lua, const sol::object& o)
 {
     sol::type tp = o.get_type();
     if (tp == sol::type::number)
@@ -171,7 +171,7 @@ void Team::_Store(sol::state& lua, const sol::object& o)
     }
 }
 
-void Team::Store(sol::state& lua, const sol::object& o)
+void Team::Store(sol::state_view lua, const sol::object& o)
 {
     std::size_t attempt = 3;
     while (--attempt != 0)
@@ -190,7 +190,7 @@ void Team::Store(sol::state& lua, const sol::object& o)
     if (attempt == 0) throw std::runtime_error("Failed to store value");
 }
 
-std::optional<sol::object> Team::_Load(sol::state& lua, std::size_t& cur)
+std::optional<sol::object> Team::_Load(sol::state_view lua, std::size_t& cur)
 {
     auto tp = Deserialize<sol::type>(cur);
     if (tp == sol::type::number) { return sol::make_object(lua, Deserialize<double>(cur)); }
@@ -213,7 +213,7 @@ std::optional<sol::object> Team::_Load(sol::state& lua, std::size_t& cur)
     return {};
 }
 
-std::optional<sol::object> Team::Load(sol::state& lua)
+std::optional<sol::object> Team::Load(sol::state_view lua)
 {
     std::size_t                attempt = 3;
     std::optional<sol::object> value;

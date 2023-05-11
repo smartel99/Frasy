@@ -53,7 +53,6 @@ void MainApplicationLayer::OnAttach()
     m_resultViewer   = std::make_unique<ResultViewer>();
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
     m_testViewer     = std::make_unique<TestViewer>();
-    m_orchestrator.SetInterface(m_testViewer.get());
     m_testViewer->SetInterface(this);
 
     m_logWindow->OnAttach();
@@ -139,6 +138,8 @@ void MainApplicationLayer::OnImGuiRender()
     m_resultViewer->OnImGuiRender();
     m_resultAnalyzer->OnImGuiRender();
     m_testViewer->OnImGuiRender();
+
+    m_orchestrator.RenderPopups();
 }
 
 
@@ -221,15 +222,15 @@ void MainApplicationLayer::PresetControlRoomOptions()
 
 void MainApplicationLayer::Generate()
 {
-//    m_orchestrator->Generate();
+//        m_orchestrator->Generate();
 }
-bool MainApplicationLayer::SetTestEnable(const std::string& sequence, const std::string& test, bool enable)
+void MainApplicationLayer::SetTestEnable(const std::string& sequence, const std::string& test, bool enable)
 {
-    return m_orchestrator.SetTestEnable(sequence, test, enable);
+    m_orchestrator.SetTestEnable(sequence, test, enable);
 }
-bool MainApplicationLayer::SetSequenceEnable(const std::string& sequence, bool enable)
+void MainApplicationLayer::SetSequenceEnable(const std::string& sequence, bool enable)
 {
-    return m_orchestrator.SetSequenceEnable(sequence, enable);
+    m_orchestrator.SetSequenceEnable(sequence, enable);
 }
 
 }    // namespace Frasy

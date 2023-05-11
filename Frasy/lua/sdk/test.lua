@@ -38,6 +38,12 @@ function Requires(requirement)
     end
 end
 
+function Sync()
+    local requirement = Orchestrator.GetSyncRequirement()
+    Orchestrator.AddSyncRequirement(requirement)
+    return requirement
+end
+
 function RequirementSpecifier(func)
     return RuntimeRequirement:new(func)
 end

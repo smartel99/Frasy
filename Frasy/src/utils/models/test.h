@@ -17,19 +17,22 @@
 #ifndef KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_TEST_H
 #define KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_TEST_H
 
+#include "execution_state.h"
+
 #include <string>
+#include <vector>
 
 namespace Frasy::Models
 {
 struct Test
 {
-    std::string name;
-    bool        enabled = false;
+    bool                        enabled = false;
+    std::vector<ExecutionState> state;
 
     Test()                  = default;
     Test(const Test& other) = default;
-    explicit Test(std::string name, bool enabled) : name(std::move(name)), enabled(enabled) {}
+    explicit Test(bool enabled) : enabled(enabled) {}
 };
-}
+}    // namespace Frasy::Models
 
 #endif    // KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_TEST_H

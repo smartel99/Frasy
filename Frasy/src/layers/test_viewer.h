@@ -28,7 +28,7 @@
 
 namespace Frasy
 {
-class TestViewer : public Brigerad::Layer, public Frasy::Lua::Orchestrator::Interface
+class TestViewer : public Brigerad::Layer
 {
 public:
     class Interface;
@@ -46,22 +46,10 @@ public:
     void SetInterface(Interface* interface) { m_interface = interface; }
 
 private:
-    void RenderSequence(Models::Sequence& sequence);
-
-private:
-    void OnStarted() final;
-    void OnStopped() final;
-    void OnTestPass(const std::string& sequence, const std::string& test) final;
-    void OnTestFail(const std::string& sequence, const std::string& test) final;
-    void OnTestSkipped(const std::string& sequence, const std::string& test) final;
-    void OnSequencePass(const std::string& sequence) final;
-    void OnSequenceFail(const std::string& sequence) final;
-    void OnSequenceSkipped(const std::string& sequence) final;
-    void OnGenerated(const std::vector<Models::Sequence>& sequences) final;
+    void RenderSequence(const std::string& name, const Models::Sequence& sequence);
 
 private:
     bool                                        m_isVisible = false;
-    std::vector<Models::Sequence>               m_sequences;
     std::unordered_map<std::string, ListStatus> m_listStatus;
     Interface*                                  m_interface;
 };
@@ -69,15 +57,11 @@ private:
 class TestViewer::Interface
 {
 public:
-    static Interface* GetDefault()
-    {
-        static Interface interface;
-        return &interface;
-    }
-
-    virtual void Generate() {};
-    virtual bool SetTestEnable(const std::string& sequence, const std::string& test, bool enable) { return enable; };
-    virtual bool SetSequenceEnable(const std::string& sequence, bool enable) { return enable; };
+    static Interface* GetDefault();
+    virtual const Models::Solution& GetSolution();
+    virtual void                    Generate();
+    virtual void                    SetSequenceEnable(const std::string& sequence, bool enable);
+    virtual void                    SetTestEnable(const std::string& sequence, const std::string& test, bool enable);
 };
 
 enum class TestViewer::ListStatus

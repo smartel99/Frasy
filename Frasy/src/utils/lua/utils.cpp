@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-sol::object copy(const sol::object& obj, sol::state& target)
+sol::object copy(const sol::object& obj, sol::state_view target)
 {
     sol::type tp = obj.get_type();
     if (tp == sol::type::number)

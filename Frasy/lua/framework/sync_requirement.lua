@@ -1,6 +1,6 @@
---- @file    sync.lua
+--- @file    requirement.lua
 --- @author  Paul Thomas
---- @date    3/30/2023
+--- @date    5/9/2023
 --- @brief
 ---
 --- @copyright
@@ -13,7 +13,26 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-Sync = {}
+local SyncRequirement = {
+    scope = nil,
+    kind  = nil,
+}
+SyncRequirement.__index = SyncRequirement
 
-function Sync.Global() end
-function Sync.Team() end
+SyncRequirement.Kind  = {
+    Global = 1,
+    Ib     = 2,
+}
+
+function SyncRequirement:new(scope)
+    return setmetatable({
+                            scope = scope,
+                            kind  = SyncRequirement.Kind.Global
+                        }, SyncRequirement)
+end
+
+function SyncRequirement:IB() self.kind = SyncRequirement.Kind.Ib end
+
+function SyncRequirement:IsMet() return true end
+
+return SyncRequirement

@@ -1,7 +1,7 @@
 /**
- * @file    args_checker.h
+ * @file    scope.h
  * @author  Paul Thomas
- * @date    3/27/2023
+ * @date    5/4/2023
  * @brief
  *
  * @copyright
@@ -14,24 +14,32 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
-#define COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
+#ifndef KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SCOPE_H
+#define KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SCOPE_H
 
-#include "utils/commands/type/manager/manager.h"
-#include "utils/commands/type/struct.h"
+#include <string>
 
-#include <sol/sol.hpp>
-#include <vector>
-
-namespace Frasy::Lua
+struct Scope
 {
+    enum Result
+    {
+        unknown,
+        success,
+        skipped,
+        error,
+    };
 
-void CheckArgs(sol::state_view                                lua,
-               const Frasy::Type::Manager&                    typeManager,
-               const std::vector<Frasy::Type::Struct::Field>& fields,
-               sol::variadic_args&                            args);
+    Result      result = unknown;
+    std::string sequence;
+    std::string test;
 
-}    // namespace Frasy::Lua
+    Scope() = default;
+    Scope(std::string sequence) : sequence(sequence) {}
+    Scope(std::string sequence, std::string test) : sequence(sequence), test(test) {}
 
 
-#endif    // COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
+    bool IsSequence() { return !sequence.empty() && test.empty(); }
+    bool IsTest() { return !sequence.empty() && !test.empty(); }
+};
+
+#endif    // KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SCOPE_H

@@ -66,8 +66,8 @@ protected:
 
 private:
     void Generate() override;
-    bool SetTestEnable(const std::string& sequence, const std::string& test, bool enable) override;
-    bool SetSequenceEnable(const std::string& sequence, bool enable) override;
+    void SetTestEnable(const std::string& sequence, const std::string& test, bool enable) override;
+    void SetSequenceEnable(const std::string& sequence, bool enable) override;
 
 protected:
     bool m_renderAbout = false;

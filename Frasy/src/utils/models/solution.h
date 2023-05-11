@@ -1,7 +1,7 @@
 /**
- * @file    sequence.h
+ * @file    solution.h
  * @author  Paul Thomas
- * @date    5/2/2023
+ * @date    5/4/2023
  * @brief
  *
  * @copyright
@@ -14,33 +14,30 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SEQUENCE_H
-#define KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SEQUENCE_H
-
-#include "execution_state.h"
-#include "test.h"
+#ifndef KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SOLUTION_H
+#define KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SOLUTION_H
+#include "sequence.h"
 
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace Frasy::Models
 {
-
-struct Sequence
+struct Solution
 {
-    bool                                  enabled = false;
-    std::vector<ExecutionState>           state;
-    std::unordered_map<std::string, Test> tests = {};
+    using subsequence = std::pair<std::string, std::vector<std::vector<std::string>>>;
+    using section     = std::vector<std::vector<subsequence>>;
 
-    Sequence()                      = default;
-    Sequence(const Sequence& other) = default;
-    explicit Sequence(bool enabled, const std::vector<std::string>& tests) : enabled(enabled)
-    {
-        for (const auto& test : tests) { this->tests[test] = Test {true}; }
-    }
+    std::vector<section>                      sections  = {};
+    std::unordered_map<std::string, Sequence> sequences = {};
+
+    void Clear();
+
+    void SetSequenceEnable(const std::string& sequence, bool enabled);
+    void SetTestEnable(const std::string& sequence, const std::string& test, bool enabled);
 };
-
 }    // namespace Frasy::Models
 
-#endif    // KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SEQUENCE_H
+#endif    // KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SOLUTION_H

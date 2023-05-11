@@ -78,10 +78,11 @@ void CheckFundamental(const Frasy::Type::Manager&       typeManager,
         case sol::type::lightuserdata:
         case sol::type::poly:
         case sol::type::none:
-            throw std::runtime_error(std::format(
-              "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
+            throw std::runtime_error(
+              std::format("Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
         case sol::type::lua_nil:
-            throw std::runtime_error(std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
+            throw std::runtime_error(
+              std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
     }
 }
 
@@ -124,7 +125,8 @@ void CheckTable(const Frasy::Type::Manager&                    typeManager,
                     throw std::runtime_error(std::format(
                       "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
                 case sol::type::lua_nil:
-                    throw std::runtime_error(std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
+                    throw std::runtime_error(
+                      std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
             }
         }
         else { CheckContainer(typeManager, field, o.as<std::vector<sol::object>>()); }
@@ -162,15 +164,16 @@ void CheckContainer(const Frasy::Type::Manager&       typeManager,
             case sol::type::lightuserdata:
             case sol::type::poly:
             case sol::type::none:
-                throw std::runtime_error(std::format(
-                  "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
+                throw std::runtime_error(
+                  std::format("Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
             case sol::type::lua_nil:
-                throw std::runtime_error(std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
+                throw std::runtime_error(
+                  std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
         }
     }
 }
 }    // namespace
-void CheckArgs(sol::state&                                    lua,
+void CheckArgs(sol::state_view                                lua,
                const Frasy::Type::Manager&                    typeManager,
                const std::vector<Frasy::Type::Struct::Field>& fields,
                sol::variadic_args&                            args)
@@ -209,7 +212,8 @@ void CheckArgs(sol::state&                                    lua,
                     throw std::runtime_error(std::format(
                       "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
                 case sol::type::lua_nil:
-                    throw std::runtime_error(std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
+                    throw std::runtime_error(
+                      std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
             }
         }
         else { CheckContainer(typeManager, field, args[i].as<std::vector<sol::object>>()); }
