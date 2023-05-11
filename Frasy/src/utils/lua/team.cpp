@@ -54,7 +54,7 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
         std::atomic_thread_fence(std::memory_order_release);
     };
 
-    other["Team"]["__get"] = [&]() -> std::optional<sol::object>
+    other["Team"]["__get"] = [&, other]() -> std::optional<sol::object>
     {
         m_bShare[0]->arrive_and_wait();
         m_bShare[1]->arrive_and_wait();
