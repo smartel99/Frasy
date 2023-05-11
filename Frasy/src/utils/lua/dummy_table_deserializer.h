@@ -50,7 +50,7 @@ class DummyDeserializer
     }
 
 public:
-    DummyDeserializer(sol::state&                                        lua,
+    DummyDeserializer(sol::state_view                                    lua,
                       const std::vector<Field>&                          fields,
                       const std::unordered_map<type_id_t, Type::Struct>& structs,
                       const std::unordered_map<type_id_t, Type::Enum>&   enums)
@@ -69,7 +69,7 @@ public:
     }
 
 private:
-    sol::state&                                        m_lua;
+    sol::state_view                                    m_lua;
     const std::vector<Field>&                          m_fields;
     const std::unordered_map<type_id_t, Type::Struct>& m_structs;
     const std::unordered_map<type_id_t, Type::Enum>&   m_enums;
