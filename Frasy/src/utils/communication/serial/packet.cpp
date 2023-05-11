@@ -95,7 +95,7 @@ Packet::Packet(cmd_id_t cmdId, const std::vector<uint8_t>& data, bool isResp, tr
 
 Packet::Packet(const std::vector<uint8_t>& raw)
 {
-    if (raw.size() <= s_minimumPacketSize) { throw MissingDataException(raw.data(), raw.size(), "packet"); }
+    if (raw.size() < s_minimumPacketSize) { throw MissingDataException(raw.data(), raw.size(), "entire packet"); }
     if (raw[0] != s_packetStartFlag)
     {
         throw BadDelimiterException(raw.data(), raw.size(), "packet", s_packetStartFlag);

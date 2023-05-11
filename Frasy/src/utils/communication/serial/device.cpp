@@ -111,8 +111,8 @@ void SerialDevice::CheckForPackets()
             if (eofPos != std::string::npos)
             {
                 // We got a full packet!
-                std::string raw = m_rxBuff.substr(0, eofPos);
-                m_rxBuff.erase(0, eofPos);
+                std::string raw = m_rxBuff.substr(0, eofPos + 1);
+                m_rxBuff.erase(0, eofPos+1);
                 try
                 {
                     Packet packet = Packet {{raw.begin(), raw.end()}};
