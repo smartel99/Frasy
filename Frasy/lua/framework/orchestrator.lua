@@ -93,7 +93,7 @@ function Orchestrator.RunSequence(sIndex, scope)
         sequence.result.pass = true
         local incomplete     = false
         for _, test in pairs(sequence.tests) do
-            if test.result.stop == 0 then
+            if test.result.time.stop == 0 then
                 incomplete = true
             elseif not test.result.pass then
                 sequence.result.pass = false
@@ -121,8 +121,9 @@ function Orchestrator.RunTest(scope)
     Context.Orchestrator.values[scope.sequence][scope.test] = {}
     Context.Orchestrator.scope                              = scope
     Log.d("Start Test " .. scope.test)
-    test.expectations = {}
-    test.result.start = os.clock()
+    test.expectations      = {}
+    test.result.time       = {}
+    test.result.time.start = os.clock()
     if test.result.enabled then
         local status, err = xpcall(test.func, error_handler)
         if not status then
@@ -153,7 +154,9 @@ function Orchestrator.RunTest(scope)
         test.result.skipped = true
         test.result.reason  = "Disabled"
     end
-    test.result.stop = os.clock()
+    test.result.time.stop    = os.clock()
+    test.result.time.elapsed = test.result.time.stop - test.result.time.start -- Might change in the future
+    test.result.time.process = test.result.time.stop - test.result.time.start
     Team.Sync(test.result)
     if test.result.skipped then
         Log.w(string.format("Test %s SKIPPED\r\nReason: %s", scope.test, test.result.reason))
@@ -165,6 +168,7 @@ function Orchestrator.RunTest(scope)
 end
 
 function Orchestrator.Generate()
+    Log.d("Generation")
     local sd = {} -- sequences dependencies
     local td = {} -- tests dependencies
     local ss = {} -- sequences synchronization
@@ -273,6 +277,7 @@ function Orchestrator.Generate()
 end
 
 function Orchestrator.Validate()
+    Log.d("Validation")
     for sIndex, section in ipairs(Context.Orchestrator.solution) do
         Context.Orchestrator.section = section
         for _, sequenceStage in ipairs(section) do
@@ -284,21 +289,22 @@ function Orchestrator.Validate()
 end
 
 function Orchestrator.ExecuteSection(index)
+    Log.d("Section execution : " .. tostring(index))
     local section = Context.Orchestrator.solution[index]
-    local results = {}
+    local results = { time = {} }
     if index == 1 then
         Context.Orchestrator.section         = {}
         Context.Orchestrator.section         = {}
         Context.Orchestrator.section.results = {}
-        Context.start                        = os.time()
-        results.start                        = os.clock()
+        Context.time.start                   = os.clock()
+        results.time.start                   = os.clock()
     end
     for _, sequenceStage in ipairs(section) do
         for _, sequence in ipairs(sequenceStage) do
             Orchestrator.RunSequence(index, Scope:new(sequence.name))
         end
     end
-    results.stop                                = os.clock()
+    results.time.stop                           = os.clock()
     Context.Orchestrator.section.results[index] = results
 end
 
@@ -312,9 +318,9 @@ function Orchestrator.CompileExecutionResults(outputDir)
         date     = os.date(),
         pass     = true,
         time     = {
-            start   = Context.start,
-            stop    = Context.stop,
-            elapsed = os.time() - Context.start,
+            start   = Context.time.start,
+            stop    = os.clock(),
+            elapsed = os.clock() - Context.time.start,
             process = 0,
         }
     }
@@ -338,8 +344,8 @@ function Orchestrator.CompileExecutionResults(outputDir)
             report.sequences[sName].time.stop    = time.stop
             report.sequences[sName].time.process = report.sequences[sName].time.process + time.stop - time.start
         end
-        report.info.time.process = report.info.time.process + report.sequences[sName].time.process
-        report.info.time.elapsed = report.sequences[sName].time.stop - report.sequences[sName].time.start
+        report.sequences[sName].time.elapsed = report.sequences[sName].time.stop - report.sequences[sName].time.start
+        report.info.time.process            = report.info.time.process + report.sequences[sName].time.process
     end
     Utils.save_as_json(report, string.format("%s/%s.json", outputDir, Context.uut))
 end

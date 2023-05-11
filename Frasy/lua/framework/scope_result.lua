@@ -14,14 +14,14 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 local ScopeResult = {
-    start   = 0,
-    stop    = 0,
-    pass  = false,
+    time    = { start = 0, stop = 0, elapsed = 0, process = 0 },
+    pass    = false,
     skipped = false,
 }
 
 function ScopeResult:new()
-    return setmetatable({ start = 0, stop = 0, pass = false, skipped = false }, ScopeResult)
+    return setmetatable({ time = { start = 0, stop = 0, elapsed = 0, process = 0 }, pass = false, skipped = false },
+                        ScopeResult)
 end
 
 return ScopeResult
