@@ -98,7 +98,6 @@ void SaveAsJson(sol::table table, const std::string& file)
         json          object = MakeJson(table);    // NOLINT(performance-unnecessary-value-param)
         std::ofstream o      = std::ofstream(file);
         o << object.dump(2, ' ', true);
-        std::cout << object.dump() << std::endl;
         o.close();
     }
     catch (const std::runtime_error& e)
