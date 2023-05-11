@@ -1,7 +1,7 @@
 /**
- * @file    args_checker.h
+ * @file    test.h
  * @author  Paul Thomas
- * @date    3/27/2023
+ * @date    5/2/2023
  * @brief
  *
  * @copyright
@@ -14,24 +14,25 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
-#define COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
+#ifndef KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_TEST_H
+#define KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_TEST_H
 
-#include "utils/commands/type/manager/manager.h"
-#include "utils/commands/type/struct.h"
+#include "execution_state.h"
 
-#include <sol/sol.hpp>
+#include <string>
 #include <vector>
 
-namespace Frasy::Lua
+namespace Frasy::Models
 {
+struct Test
+{
+    bool                        enabled = false;
+    std::vector<ExecutionState> state;
 
-void CheckArgs(sol::state_view                                lua,
-               const Frasy::Type::Manager&                    typeManager,
-               const std::vector<Frasy::Type::Struct::Field>& fields,
-               sol::variadic_args&                            args);
+    Test()                  = default;
+    Test(const Test& other) = default;
+    explicit Test(bool enabled) : enabled(enabled) {}
+};
+}    // namespace Frasy::Models
 
-}    // namespace Frasy::Lua
-
-
-#endif    // COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
+#endif    // KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_TEST_H

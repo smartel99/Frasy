@@ -1,7 +1,7 @@
 /**
- * @file    args_checker.h
+ * @file    solution.cpp
  * @author  Paul Thomas
- * @date    3/27/2023
+ * @date    5/7/2023
  * @brief
  *
  * @copyright
@@ -14,24 +14,30 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
-#define COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
 
-#include "utils/commands/type/manager/manager.h"
-#include "utils/commands/type/struct.h"
+#include "solution.h"
 
-#include <sol/sol.hpp>
-#include <vector>
+#include "Brigerad/Core/Log.h"
+#include "json.hpp"
 
-namespace Frasy::Lua
+#include <fstream>
+
+namespace Frasy::Models
 {
 
-void CheckArgs(sol::state_view                                lua,
-               const Frasy::Type::Manager&                    typeManager,
-               const std::vector<Frasy::Type::Struct::Field>& fields,
-               sol::variadic_args&                            args);
+void Solution::Clear()
+{
+    sections.clear();
+    sequences.clear();
+}
 
-}    // namespace Frasy::Lua
+void Solution::SetSequenceEnable(const std::string& sequence, bool enabled)
+{
+    sequences.at(sequence).enabled = enabled;
+}
 
-
-#endif    // COPY_LUA_PY_FRASY_SRC_UTILS_LUA_ARGS_CHECKER_H
+void Solution::SetTestEnable(const std::string& sequence, const std::string& test, bool enabled)
+{
+    sequences.at(sequence).tests.at(test).enabled = enabled;
+}
+}    // namespace Frasy::Models

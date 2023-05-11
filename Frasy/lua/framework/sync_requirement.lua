@@ -1,6 +1,6 @@
---- @file    validate.lua
+--- @file    requirement.lua
 --- @author  Paul Thomas
---- @date    2023-03-15
+--- @date    5/9/2023
 --- @brief
 ---
 --- @copyright
@@ -13,9 +13,26 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-return function()
-    local file = io.open("lua/order.json", "r")
-    Orchestrator.SetOrder(Json.decode(file:read("*all")))
-    file:close()
-    Orchestrator.Validate()
+local SyncRequirement = {
+    scope = nil,
+    kind  = nil,
+}
+SyncRequirement.__index = SyncRequirement
+
+SyncRequirement.Kind  = {
+    Global = 1,
+    Ib     = 2,
+}
+
+function SyncRequirement:new(scope)
+    return setmetatable({
+                            scope = scope,
+                            kind  = SyncRequirement.Kind.Global
+                        }, SyncRequirement)
 end
+
+function SyncRequirement:IB() self.kind = SyncRequirement.Kind.Ib end
+
+function SyncRequirement:IsMet() return true end
+
+return SyncRequirement

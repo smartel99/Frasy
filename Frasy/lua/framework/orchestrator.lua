@@ -18,7 +18,9 @@ local Sequence         = require("lua/core/framework/sequence")
 local Test             = require("lua/core/framework/test")
 local ScopeRequirement = require("lua/core/framework/scope_requirement/module")
 local OrderRequirement = require("lua/core/framework/order_requirement")
+local SyncRequirement  = require("lua/core/framework/sync_requirement")
 local Sort             = require("lua/core/framework/sort_utils")
+local Json             = require("lua/core/vendor/json")
 
 Orchestrator           = {}
 
@@ -26,9 +28,10 @@ if Context.Orchestrator == nil then
     Context.Orchestrator = {
         sequences          = {},
         scope              = nil,
-        order              = {},
+        solution           = {},
         values             = {},
         order_requirements = {},
+        sync_requirements  = {}
     }
 end
 
@@ -51,46 +54,65 @@ local function is_scope_enabled(scope)
     end
 end
 
-function Orchestrator.RunSequence(scope)
-    local sequence                              = Context.Orchestrator.sequences[scope.sequence]
-    Context.Orchestrator.values[scope.sequence] = {}
-    Context.Orchestrator.scope                  = scope
-    Log.d("Start sequence " .. scope.sequence)
-    sequence.result.enabled = is_scope_enabled(scope)
-    sequence.result.start   = os.clock()
-    local status, err       = xpcall(sequence.func, error_handler)
-    if not status then
-        if type(err) == "string" then error(GenericError(err)) end
-        if err.code ~= UnmetRequirement().code then error(err) end
-        sequence.result.skipped = true
-    elseif not sequence.result.enabled then
-        sequence.result.skipped = true
-    end
+function Orchestrator.RunSequence(sIndex, scope)
+    local sequence             = Context.Orchestrator.sequences[scope.sequence]
+    Context.Orchestrator.scope = scope
 
-    for _, layer in ipairs(Context.Orchestrator.order.tests[scope.sequence]) do
-        for _, test in ipairs(layer) do
-            Orchestrator.RunTest(Scope:new(scope.sequence, test))
+    local start                = os.clock()
+    if sequence.time == nil then
+        Context.Orchestrator.values[scope.sequence] = {}
+        Log.d("Start sequence " .. scope.sequence)
+        sequence.result.enabled = is_scope_enabled(scope)
+        if sequence.result.enabled then
+            local status, err = xpcall(sequence.func, error_handler)
+            if not status then
+                if type(err) == "string" then error(GenericError(err)) end
+                if err.code ~= UnmetRequirement().code then error(err) end
+                sequence.result.skipped = true
+                sequence.result.reason  = err.what
+            end
+        else
+            sequence.result.skipped = true
+            sequence.result.reason  = "Disabled"
         end
     end
 
     if not sequence.result.skipped then
+        for _, sqStage in ipairs(Context.Orchestrator.solution[sIndex]) do
+            for _, sq in ipairs(sqStage) do
+                if (sq.name == scope.sequence) then
+                    for _, tStage in ipairs(sq.tests) do
+                        for _, test in ipairs(tStage) do
+                            Orchestrator.RunTest(Scope:new(scope.sequence, test))
+                        end
+                    end
+                end
+            end
+        end
+
         sequence.result.pass = true
+        local incomplete     = false
         for _, test in pairs(sequence.tests) do
-            if not test.result.pass then
+            if test.result.stop == 0 then
+                incomplete = true
+            elseif not test.result.pass then
                 sequence.result.pass = false
             end
         end
-        Log.i(string.format(
-                "Sequence %s: %s",
-                scope.sequence, sequence.result.pass and "PASS" or "FAIL"))
-    else
-        if sequence.result.enabled then
-            Log.i(string.format("Sequence %s: DISABLED", scope.sequence))
-        else
-            Log.i(string.format("Sequence %s: SKIPPED", scope.sequence))
+        if not incomplete then
+            Log.i(string.format("Sequence %s: %s", scope.sequence, sequence.result.pass and "PASS" or "FAIL"))
         end
+    elseif sequence.time == nil then
+        Log.i(string.format("Sequence %s: SKIPPED. Reason: %s", scope.sequence, sequence.result.reason))
+    else
+        -- Nothing, we already warned that this sequence was skipped or disabled
     end
-    sequence.result.stop = os.clock()
+
+    if sequence.time == nil then
+        sequence.time = { { start = start, stop = os.clock() } }
+    else
+        table.insert(sequence.time, { start = start, stop = os.clock() })
+    end
 end
 
 function Orchestrator.RunTest(scope)
@@ -101,30 +123,35 @@ function Orchestrator.RunTest(scope)
     Log.d("Start Test " .. scope.test)
     test.expectations = {}
     test.result.start = os.clock()
-    local status, err = xpcall(test.func, error_handler)
-    if not status then
-        Team.Fail()
-        if type(err) == "string" then
-            Team.Sync(test.result)
-            error(GenericError(err))
-        elseif err.code == UnmetExpectation().code then
-            test.result.pass   = false
-            test.result.reason = err.what
-        elseif err.code == UnmetRequirement().code then
-            test.result.skipped = true
-            test.result.reason  = err.what
-        else
-            Team.Sync(test.result)
-            error(err)
-        end
-    else
-        test.result.pass = true
-        for _, expectation in ipairs(test.expectations) do
-            if expectation.pass == expectation.inverted then
+    if test.result.enabled then
+        local status, err = xpcall(test.func, error_handler)
+        if not status then
+            Team.Fail()
+            if type(err) == "string" then
+                Team.Sync(test.result)
+                error(GenericError(err))
+            elseif err.code == UnmetExpectation().code then
                 test.result.pass   = false
-                test.result.reason = "Unmet expectation"
+                test.result.reason = err.what
+            elseif err.code == UnmetRequirement().code then
+                test.result.skipped = true
+                test.result.reason  = err.what
+            else
+                Team.Sync(test.result)
+                error(err)
+            end
+        else
+            test.result.pass = true
+            for _, expectation in ipairs(test.expectations) do
+                if expectation.pass == expectation.inverted then
+                    test.result.pass   = false
+                    test.result.reason = "Unmet expectation"
+                end
             end
         end
+    else
+        test.result.skipped = true
+        test.result.reason  = "Disabled"
     end
     test.result.stop = os.clock()
     Team.Sync(test.result)
@@ -140,6 +167,8 @@ end
 function Orchestrator.Generate()
     local sd = {} -- sequences dependencies
     local td = {} -- tests dependencies
+    local ss = {} -- sequences synchronization
+    local ts = {} -- tests synchronization
     local sn = {} -- sequence names
     local tn = {} -- test names
     for sName, sequence in pairs(Context.Orchestrator.sequences) do
@@ -153,6 +182,7 @@ function Orchestrator.Generate()
             Context.Orchestrator.scope = Scope:new(sName, tName)
             test.func()
             td[sName][tName] = {}
+            ts[sName]        = {}
             table.insert(tn[sName], tName)
         end
     end
@@ -205,57 +235,122 @@ function Orchestrator.Generate()
         end
     end
 
-    Context.Orchestrator.order.sequences = Sort.SortScopes(sn, edges.first.sequence, edges.last.sequence, sd)
-    Context.Orchestrator.order.tests     = {}
+    for _, requirement in pairs(Context.Orchestrator.sync_requirements) do
+        if requirement.scope.sequence == nil then
+            error(InvalidRequirement())
+        end
+        if not Orchestrator.HasScope(requirement.scope) then
+            error(InvalidRequirement())
+        end
+        if requirement.scope.test ~= nil then
+            ss[requirement.scope.sequence]                         = 0
+            ts[requirement.scope.sequence][requirement.scope.test] = 0
+        else
+            ss[requirement.scope.sequence] = 0
+        end
+    end
+
+    local ordered     = {}
+    ordered.sequences = Sort.SortScopes(sn, edges.first.sequence, edges.last.sequence, sd)
+    ordered.tests     = {}
     for sequence, tests in pairs(tn) do
-        Context.Orchestrator.order.tests[sequence] = Sort.SortScopes(
+        ordered.tests[sequence] = Sort.SortScopes(
                 tests,
                 edges.first.tests[sequence],
                 edges.last.tests[sequence],
                 td[sequence])
     end
 
-    return Context.Orchestrator.order
+    local sectionized     = {}
+    sectionized.sequences = Sort.Sectionize(ordered.sequences, ss)
+    sectionized.tests     = {}
+    for sequence, tests in pairs(ordered.tests) do
+        sectionized.tests[sequence] = Sort.Sectionize(tests, ts[sequence])
+    end
+
+    Context.Orchestrator.solution = Sort.CombineSectionized(sectionized.sequences, sectionized.tests)
+    return Context.Orchestrator.solution
 end
 
 function Orchestrator.Validate()
-    for _, sLayer in ipairs(Context.Orchestrator.order.sequences) do
-        for _, sequence in ipairs(sLayer) do
-            Orchestrator.RunSequence(Scope:new(sequence))
-        end
-    end
-end
-
-function Orchestrator.Execute()
-    local start               = os.clock()
-    Context.Orchestrator.date = os.date()
-    for _, sLayer in ipairs(Context.Orchestrator.order.sequences) do
-        for _, sequence in ipairs(sLayer) do
-            Orchestrator.RunSequence(Scope:new(sequence))
-        end
-    end
-
-    local results = { sequences = {}, pass = true }
-    for sName, sequence in pairs(Context.Orchestrator.sequences) do
-        if not sequence.result.pass then results.pass = false end
-        results.sequences[sName]       = sequence.result
-        results.sequences[sName].tests = {}
-        for tName, test in pairs(sequence.tests) do
-            results.sequences[sName].tests[tName]              = test.result
-            results.sequences[sName].tests[tName].expectations = { }
-            for _, expectation in pairs(test.expectations) do
-                table.insert(results.sequences[sName].tests[tName].expectations, expectation)
+    for sIndex, section in ipairs(Context.Orchestrator.solution) do
+        Context.Orchestrator.section = section
+        for _, sequenceStage in ipairs(section) do
+            for _, sequence in ipairs(sequenceStage) do
+                Orchestrator.RunSequence(sIndex, Scope:new(sequence.name))
             end
         end
     end
-    local stop       = os.clock()
-    results.date     = Context.Orchestrator.date
-    results.duration = stop - start
-    return results
 end
 
-function Orchestrator.SetOrder(order)
-    Context.Orchestrator.order = order
+function Orchestrator.ExecuteSection(index)
+    local section = Context.Orchestrator.solution[index]
+    local results = {}
+    if index == 1 then
+        Context.Orchestrator.section         = {}
+        Context.Orchestrator.section         = {}
+        Context.Orchestrator.section.results = {}
+        Context.start                        = os.time()
+        results.start                        = os.clock()
+    end
+    for _, sequenceStage in ipairs(section) do
+        for _, sequence in ipairs(sequenceStage) do
+            Orchestrator.RunSequence(index, Scope:new(sequence.name))
+        end
+    end
+    results.stop                                = os.clock()
+    Context.Orchestrator.section.results[index] = results
+end
+
+function Orchestrator.CompileExecutionResults(outputDir)
+    local report     = {}
+    report.info      = {
+        version  = Context.version,
+        operator = Context.operator,
+        serial   = Context.serial,
+        uut      = Context.uut,
+        date     = os.date(),
+        pass     = true,
+        time     = {
+            start   = Context.start,
+            stop    = Context.stop,
+            elapsed = os.time() - Context.start,
+            process = 0,
+        }
+    }
+    report.sequences = {}
+    for sName, sequence in pairs(Context.Orchestrator.sequences) do
+        if not sequence.result.pass then
+            report.info.pass = false
+        end
+        report.sequences[sName]       = sequence.result
+        report.sequences[sName].tests = {}
+        for tName, test in pairs(sequence.tests) do
+            report.sequences[sName].tests[tName]              = test.result
+            report.sequences[sName].tests[tName].expectations = { }
+            for _, expectation in pairs(test.expectations) do
+                table.insert(report.sequences[sName].tests[tName].expectations, expectation)
+            end
+        end
+        report.sequences[sName].time       = { start = 0, stop = 0, elapsed = 0, process = 0 }
+        report.sequences[sName].time.start = sequence.time[1].start
+        for _, time in ipairs(sequence.time) do
+            report.sequences[sName].time.stop    = time.stop
+            report.sequences[sName].time.process = report.sequences[sName].time.process + time.stop - time.start
+        end
+        report.info.time.process = report.info.time.process + report.sequences[sName].time.process
+        report.info.time.elapsed = report.sequences[sName].time.stop - report.sequences[sName].time.start
+    end
+    Utils.save_as_json(report, string.format("%s/%s.json", outputDir, Context.uut))
+end
+
+function Orchestrator.SaveSolution(path)
+    Utils.save_as_json(Context.Orchestrator.solution, path)
+end
+
+function Orchestrator.LoadSolution(path)
+    local file                    = io.open(path, "r")
+    Context.Orchestrator.solution = Json.decode(file:read("*all"))
 end
 
 function Orchestrator.CreateSequence(name, func)
@@ -283,6 +378,11 @@ function Orchestrator.GetTestScopeRequirement(name)
         name = Context.Orchestrator.scope.test
     end
     return ScopeRequirement:new(Orchestrator, Scope:new(Context.Orchestrator.scope.sequence, name))
+end
+
+function Orchestrator.GetSyncRequirement()
+    if not Orchestrator.IsInSequence() then error(BadScope()) end
+    return SyncRequirement:new(Context.Orchestrator.scope)
 end
 
 function Orchestrator.IsInSequence() return Context.Orchestrator.scope ~= nil end
@@ -321,6 +421,11 @@ function Orchestrator.AddOrderRequirement(requirement)
     table.insert(Context.Orchestrator.order_requirements, requirement)
 end
 
+function Orchestrator.AddSyncRequirement(requirement)
+    if not Orchestrator.IsInSequence() then error(BadScope()) end
+    table.insert(Context.Orchestrator.sync_requirements, requirement)
+end
+
 function Orchestrator.AddExpectationResult(result)
     if not Orchestrator.IsInTest() then error(BadScope()) end
     local scope = Context.Orchestrator.scope
@@ -345,7 +450,8 @@ end
 
 function Orchestrator.Enable(sequence, test)
     local scope = Scope:new(sequence, test)
-    if not Orchestrator.HasScope(scope) then error(BadScope("S: %s, T: %s", tostring(sequence), tostring(test))) end
+    if not Orchestrator.HasScope(scope) then error(BadScope("S: %s, T: %s", tostring(sequence),
+                                                            tostring(test))) end
     local s = Context.Orchestrator.enable_list[sequence]
     if s == nil then s = { enabled = true } end
     if test ~= nil then s[test] = true end
@@ -354,7 +460,8 @@ end
 
 function Orchestrator.Disable(sequence, test)
     local scope = Scope:new(sequence, test)
-    if not Orchestrator.HasScope(scope) then error(BadScope("S: %s, T: %s", tostring(sequence), tostring(test))) end
+    if not Orchestrator.HasScope(scope) then error(BadScope("S: %s, T: %s", tostring(sequence),
+                                                            tostring(test))) end
     local s = Context.Orchestrator.enable_list[sequence]
     if s == nil then s = { enabled = true } end
     if test == nil then s = { enabled = false }

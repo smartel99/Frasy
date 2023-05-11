@@ -14,7 +14,7 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 --- functions used by the orchestrator to sort scopes
-local Sort  = {}
+local Sort = {}
 
 --- Add an edge requirement to our edges structure
 --- Check if the edge is valid then add it to the structure
@@ -51,7 +51,7 @@ function Sort.CheckLastIsValid(last, dependencies)
     end
 end
 
-function Sort.HasMatDependencies(requirement, scopes)
+function Sort.HasMetDependencies(requirement, scopes)
     for dep, _ in pairs(requirement) do
         for _, scope in ipairs(scopes) do
             if scope == dep then return false end
@@ -81,11 +81,11 @@ function Sort.SortScopes(scopes, first, last, requirements)
     Sort.AddEdgeToOrder(first, order)
 
     while (#scopes ~= 0) do
-        local layer = {}
+        local layer   = {}
         local removal = {}
         -- deletion safe loop
         for index, name in ipairs(scopes) do
-            if Sort.HasMatDependencies(requirements[name], scopes) then
+            if Sort.HasMetDependencies(requirements[name], scopes) then
                 table.insert(layer, name)
                 table.insert(removal, index)
             end
@@ -100,6 +100,79 @@ function Sort.SortScopes(scopes, first, last, requirements)
 
     Sort.AddEdgeToOrder(last, order)
     return order
+end
+
+function Sort.Sectionize(stages, requirements)
+    if stages == nil then return { } end
+
+    local outputSections = {}
+    local currentSection = {}
+
+    for _, stage in ipairs(stages) do
+        -- Feed current section with unsynchronized scopes
+        local currentStage = {}
+        for _, name in ipairs(stage) do
+            if requirements[name] == nil then
+                table.insert(currentStage, name)
+            end
+        end
+        if #currentStage ~= 0 then
+            table.insert(currentSection, currentStage)
+        end
+
+        -- Feed possible synchronized scopes
+        for _, name in ipairs(stage) do
+            if requirements[name] ~= nil then
+                if #currentSection ~= 0 then
+                    table.insert(outputSections, currentSection)
+                end
+                table.insert(outputSections, { { name } })
+                currentSection = {}
+            end
+        end
+    end
+
+    if #currentSection ~= 0 then
+        table.insert(outputSections, currentSection)
+    end
+
+    return outputSections
+end
+
+function Sort.CombineSectionized(sectionizedSequences, sectionizedTests)
+    local output = {}
+    for _, section in ipairs(sectionizedSequences) do
+        local currentSection = {}
+        for _, sequenceStage in ipairs(section) do
+            local currentSequenceStage = {}
+            for _, sequence in ipairs(sequenceStage) do
+                local currentSequence            = { name = sequence }
+                local sequenceTests              = sectionizedTests[sequence]
+                local sequenceHasMultipleSection = #sequenceTests > 1
+                for _, testSection in ipairs(sequenceTests) do
+                    currentSequence.tests = testSection
+                    if (sequenceHasMultipleSection) then
+                        table.insert(currentSequenceStage, currentSequence)
+                        table.insert(currentSection, currentSequenceStage)
+                        table.insert(output, currentSection)
+                        currentSequence      = { name = sequence }
+                        currentSequenceStage = {}
+                        currentSection       = {}
+                    end
+                end
+                if currentSequence.tests ~= nil then
+                    table.insert(currentSequenceStage, currentSequence)
+                end
+            end
+            if #currentSequenceStage ~= 0 then
+            table.insert(currentSection, currentSequenceStage)
+            end
+        end
+        if #currentSection ~= 0 then
+        table.insert(output, currentSection)
+        end
+    end
+    return output
 end
 
 return Sort

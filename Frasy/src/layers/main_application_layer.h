@@ -19,6 +19,8 @@
 #    include "log_window.h"
 #    include "result_analyzer.h"
 #    include "result_viewer.h"
+#    include "test_viewer.h"
+#    include "utils/lua/orchestrator/orchestrator.h"
 
 #    include <array>
 #    include <Brigerad.h>
@@ -39,7 +41,7 @@ namespace Frasy
 {
 class LogWindow;
 
-class MainApplicationLayer : public Brigerad::Layer
+class MainApplicationLayer : public Brigerad::Layer, public Frasy::TestViewer::Interface
 {
 public:
     MainApplicationLayer()           = default;
@@ -59,16 +61,24 @@ protected:
     virtual void MakeDeviceViewerVisible();
     virtual void MakeResultViewerVisible();
     virtual void MakeResultAnalyzerVisible();
+    virtual void MakeTestViewerVisible();
     void         RenderAbout();
+
+private:
+    void Generate() override;
+    void SetTestEnable(const std::string& sequence, const std::string& test, bool enable) override;
+    void SetSequenceEnable(const std::string& sequence, bool enable) override;
 
 protected:
     bool m_renderAbout = false;
     bool m_noMove      = true;
 
+
     std::unique_ptr<LogWindow>      m_logWindow      = nullptr;
     std::unique_ptr<DeviceViewer>   m_deviceViewer   = nullptr;
     std::unique_ptr<ResultViewer>   m_resultViewer   = nullptr;
     std::unique_ptr<ResultAnalyzer> m_resultAnalyzer = nullptr;
+    std::unique_ptr<TestViewer>     m_testViewer     = nullptr;
 
     Brigerad::Ref<Brigerad::Texture2D> m_run;
     Brigerad::Ref<Brigerad::Texture2D> m_runWarn;
@@ -79,6 +89,9 @@ protected:
     Brigerad::Ref<Brigerad::Texture2D> m_waiting;
     Brigerad::Ref<Brigerad::Texture2D> m_idle;
     Brigerad::Ref<Brigerad::Texture2D> m_disabled;
+
+    Frasy::Lua::Orchestrator m_orchestrator;
+    Frasy::Map               m_map;
 
 private:
     void PresetControlRoomOptions();

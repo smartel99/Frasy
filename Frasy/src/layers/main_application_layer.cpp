@@ -1,5 +1,4 @@
-﻿/**
- ******************************************************************************
+/******************************************************************************
  * @addtogroup MainApplicationLayer
  * @{
  * @file    main_application_layer.cpp
@@ -8,18 +7,15 @@
  *
  * @date 9/23/2020 9:32:55 AM
  *
- ******************************************************************************
- */
+ ******************************************************************************/
 #include "main_application_layer.h"
 
 #include "../../version.h"
-#include "frasy_interpreter.h"
 #include "log_window.h"
 #include "result_analyzer.h"
 
 #include <Brigerad/Core/File.h>
 #include <imgui/imgui.h>
-#include <implot.h>
 
 #define CREATE_TEXTURE(texture, path)                                                                         \
     do {                                                                                                      \
@@ -56,11 +52,14 @@ void MainApplicationLayer::OnAttach()
     m_deviceViewer   = std::make_unique<DeviceViewer>();
     m_resultViewer   = std::make_unique<ResultViewer>();
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
+    m_testViewer     = std::make_unique<TestViewer>();
+    m_testViewer->SetInterface(this);
 
     m_logWindow->OnAttach();
     m_deviceViewer->OnAttach();
     m_resultViewer->OnAttach();
     m_resultAnalyzer->OnAttach();
+    m_testViewer->OnAttach();
 }
 
 
@@ -71,6 +70,7 @@ void MainApplicationLayer::OnDetach()
     m_logWindow->OnDetach();
     m_deviceViewer->OnDetach();
     m_resultViewer->OnDetach();
+    m_testViewer->OnDetach();
     m_resultAnalyzer->OnDetach();
 }
 
@@ -83,9 +83,11 @@ void MainApplicationLayer::OnUpdate(Brigerad::Timestep ts)
     if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F3)) { MakeDeviceViewerVisible(); }
     if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F4)) { MakeResultViewerVisible(); }
     if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F5)) { MakeResultAnalyzerVisible(); }
+    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F6)) { MakeTestViewerVisible(); }
     m_logWindow->OnUpdate(ts);
     m_deviceViewer->OnUpdate(ts);
     m_resultViewer->OnUpdate(ts);
+    m_testViewer->OnUpdate(ts);
     m_resultAnalyzer->OnUpdate(ts);
 }
 
@@ -109,6 +111,7 @@ void MainApplicationLayer::OnImGuiRender()
             if (ImGui::MenuItem("Device Viewer", "F3")) { MakeDeviceViewerVisible(); }
             if (ImGui::MenuItem("Result Viewer", "F4")) { MakeResultViewerVisible(); }
             if (ImGui::MenuItem("Result Analyzer", "F5")) { MakeResultAnalyzerVisible(); }
+            if (ImGui::MenuItem("Test Viewer", "F6")) { MakeDeviceViewerVisible(); }
             ImGui::Separator();
             if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
             if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }
@@ -134,6 +137,9 @@ void MainApplicationLayer::OnImGuiRender()
     m_deviceViewer->OnImGuiRender();
     m_resultViewer->OnImGuiRender();
     m_resultAnalyzer->OnImGuiRender();
+    m_testViewer->OnImGuiRender();
+
+    m_orchestrator.RenderPopups();
 }
 
 
@@ -143,6 +149,7 @@ void MainApplicationLayer::OnEvent(Brigerad::Event& e)
     m_deviceViewer->OnEvent(e);
     m_resultViewer->OnEvent(e);
     m_resultAnalyzer->OnEvent(e);
+    m_resultViewer->OnEvent(e);
 }
 
 void MainApplicationLayer::RenderControlRoom()
@@ -167,6 +174,11 @@ void MainApplicationLayer::MakeResultViewerVisible()
 void MainApplicationLayer::MakeResultAnalyzerVisible()
 {
     m_resultAnalyzer->SetVisibility(true);
+}
+
+void MainApplicationLayer::MakeTestViewerVisible()
+{
+    m_testViewer->SetVisibility(true);
 }
 
 void MainApplicationLayer::RenderAbout()
@@ -206,6 +218,19 @@ void MainApplicationLayer::PresetControlRoomOptions()
     if (m_noMove) { ImGui::Begin("Control Room", nullptr, flags); }
     else { ImGui::Begin("Control Room"); }
     ImGui::End();
+}
+
+void MainApplicationLayer::Generate()
+{
+//        m_orchestrator->Generate();
+}
+void MainApplicationLayer::SetTestEnable(const std::string& sequence, const std::string& test, bool enable)
+{
+    m_orchestrator.SetTestEnable(sequence, test, enable);
+}
+void MainApplicationLayer::SetSequenceEnable(const std::string& sequence, bool enable)
+{
+    m_orchestrator.SetSequenceEnable(sequence, enable);
 }
 
 }    // namespace Frasy

@@ -18,7 +18,7 @@
 #define FRASYLUA_UTILS_H
 #include <sol/sol.hpp>
 
-sol::object copy(const sol::object& obj, sol::state& target);
+sol::object copy(const sol::object& obj, sol::state_view target);
 void        print(const sol::object& obj, int level = 0);
 
 #endif    // FRASYLUA_UTILS_H

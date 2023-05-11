@@ -43,9 +43,9 @@ private:
 public:
     Team() = default;
     explicit Team(std::size_t teamSize);
-    void InitializeState(sol::state& other, std::size_t uut, std::size_t position, bool is_leader);
-    void Store(sol::state& lua, const sol::object& o);
-    std::optional<sol::object> Load(sol::state& lua);
+    void InitializeState(sol::state_view other, std::size_t uut, std::size_t position, bool is_leader);
+    void Store(sol::state_view lua, const sol::object& o);
+    std::optional<sol::object> Load(sol::state_view lua);
 
 private:
     template<typename T>
@@ -53,8 +53,8 @@ private:
     template<typename T>
     T Deserialize(std::size_t& cur);
 
-    void                       _Store(sol::state& lua, const sol::object& o);
-    std::optional<sol::object> _Load(sol::state& lua, std::size_t& cur);
+    void                       _Store(sol::state_view lua, const sol::object& o);
+    std::optional<sol::object> _Load(sol::state_view lua, std::size_t& cur);
 };
 
 #endif    // FRASYLUA_TEAM_H
