@@ -65,8 +65,8 @@ nlohmann::json LoadJson(const std::string& path)
     }
 }
 
-std::vector<std::string> LoadMatchingFiles(const std::string&                       path,
-                                           const std::vector<std::array<char, 32>>& serialNumbers)
+std::vector<std::string> LoadMatchingFiles(
+  const std::string& path, const std::vector<std::array<char, 32>>& serialNumbers)
 {
     namespace fs = std::filesystem;
     auto numbers = [&serialNumbers]()
@@ -81,16 +81,24 @@ std::vector<std::string> LoadMatchingFiles(const std::string&                   
 
     std::vector<std::string> files = {};
 
-    for (const auto& entry : fs::recursive_directory_iterator(path))
+    try
     {
-        if (serialNumbers.empty() || std::ranges::any_of(numbers,
-                                                         [entryPath = entry.path().string()](const auto& number)
-                                                         { return entryPath.find(number) != std::string::npos; }))
+        for (const auto& entry : fs::recursive_directory_iterator(path))
         {
-            files.emplace_back(entry.path().string());
+            if (
+              serialNumbers.empty() || std::ranges::any_of(
+                                         numbers,
+                                         [entryPath = entry.path().string()](const auto& number)
+                                         { return entryPath.find(number) != std::string::npos; }))
+            {
+                files.emplace_back(entry.path().string());
+            }
         }
     }
-
+    catch (std::filesystem::filesystem_error& e)
+    {
+        BR_LOG_ERROR("Analyzer", "{}", e.what());
+    }
     return files;
 }
 
@@ -143,23 +151,26 @@ void ResultAnalyzer::AnalyzeFile(const std::string& path)
 {
     auto file = LoadJson(path);
 
-    std::string location = file.at("uut").dump();
+    const auto& info = file.at("info");
+    std::string location = info.at("uut").dump();
+
     // Check if this log is one that interests us based on its location.
-    if (m_options.Uuts.empty() ||
-        std::ranges::any_of(m_options.Uuts,
-                            [&location](const std::array<char, 32>& u)
-                            { return location.find(std::string_view(u.data())) != std::string::npos; }))
+    if (
+      m_options.Uuts.empty() || std::ranges::any_of(
+                                  m_options.Uuts,
+                                  [&location](const std::array<char, 32>& u)
+                                  { return location.find(std::string_view(u.data())) != std::string::npos; }))
     {
         // File is of interest, proceed with the analysis.
         if (m_options.Ganged) { location = "Total"; }
-        else { location = std::format("Location {}", file.at("uut").get<int>()); }
+        else { location = std::format("Location {}", info.at("uut").get<int>()); }
         auto& locationResults = m_results.Locations[location];
         locationResults.Name  = location;
         locationResults.Total++;
-        if (file.at("pass").get<bool>()) { locationResults.Passed++; }
+        if (info.at("pass").get<bool>()) { locationResults.Passed++; }
         locationResults.PassedPercent = Percent(locationResults.Passed, locationResults.Total);
 
-        locationResults.Durations.push_back(file.at("duration").get<double>());
+        locationResults.Durations.push_back(info.at("time").at("elapsed").get<double>());
         locationResults.AverageDuration =
           std::accumulate(locationResults.Durations.begin(), locationResults.Durations.end(), 0.0);
         locationResults.AverageDuration /= static_cast<double>(locationResults.Durations.size());
@@ -167,10 +178,11 @@ void ResultAnalyzer::AnalyzeFile(const std::string& path)
         auto sequences = file.at("sequences");
         for (auto [name, sequence] : sequences.items())
         {
-            if (m_options.Sequences.empty() ||
-                std::ranges::any_of(m_options.Sequences,
-                                    [&name](const auto& sequenceName)
-                                    { return std::string_view(sequenceName.data()) == name; }))
+            if (
+              m_options.Sequences.empty() ||
+              std::ranges::any_of(
+                m_options.Sequences,
+                [&name](const auto& sequenceName) { return std::string_view(sequenceName.data()) == name; }))
             {
                 BR_LOG_DEBUG("Analyzer", "Analyzing sequence '{}'...", name);
                 AnalyzeSequence(sequence, locationResults.Sequences[name]);
@@ -190,16 +202,17 @@ void ResultAnalyzer::AnalyzeSequence(const nlohmann::json& sequence, ResultAnaly
     if (sequence.at("pass").get<bool>()) { results.Passed++; }
     results.PassedPercent = Percent(results.Passed, results.Total);
 
-    results.Durations.push_back(sequence.at("stop").get<double>() - sequence.at("start").get<double>());
+    results.Durations.push_back(sequence.at("time").at("elapsed").get<double>());
     results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
     results.AverageDuration /= static_cast<double>(results.Durations.size());
 
     auto tests = sequence.at("tests");
     for (auto [name, test] : tests.items())
     {
-        if (m_options.Tests.empty() ||
-            std::ranges::any_of(m_options.Tests,
-                                [&name](const auto& testName) { return std::string_view(testName.data()) == name; }))
+        if (
+          m_options.Tests.empty() ||
+          std::ranges::any_of(
+            m_options.Tests, [&name](const auto& testName) { return std::string_view(testName.data()) == name; }))
         {
             BR_LOG_DEBUG("Analyzer", "Analyzing test '{}'...", name);
             AnalyzeTest(test, results.Tests[name]);
@@ -218,7 +231,7 @@ void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResul
     if (test.at("pass").get<bool>()) { results.Passed++; }
     results.PassedPercent = Percent(results.Passed, results.Total);
 
-    results.Durations.push_back(test.at("stop").get<double>() - test.at("start").get<double>());
+    results.Durations.push_back(test.at("time").at("elapsed").get<double>());
     results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
     results.AverageDuration /= static_cast<double>(results.Durations.size());
 
@@ -242,8 +255,8 @@ void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResul
     }
 }
 
-void ResultAnalyzer::AnalyzeExpectation(const nlohmann::json&                                expectation,
-                                        std::shared_ptr<ResultAnalysisResults::Expectation>& results)
+void ResultAnalyzer::AnalyzeExpectation(
+  const nlohmann::json& expectation, std::shared_ptr<ResultAnalysisResults::Expectation>& results)
 {
     results->AddValue(expectation);
 }
@@ -284,8 +297,8 @@ std::shared_ptr<ResultAnalysisResults::Expectation> ResultAnalyzer::MakeExpectat
     }
     if (method == "ToBeInPercentage"s)
     {
-        ToBeInPercentageExpectation* exp = new ToBeInPercentageExpectation(expectation.at("expected").get<float>(),
-                                                                           expectation.at("percentage").get<float>());
+        ToBeInPercentageExpectation* exp = new ToBeInPercentageExpectation(
+          expectation.at("expected").get<float>(), expectation.at("percentage").get<float>());
         return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
     }
     if (method == "ToBeType"s)
