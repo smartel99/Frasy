@@ -269,10 +269,9 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
                     break;
                 }
                 else { lua["Log"]["e"](std::format("Unknown command: {}", resp.Header.CommandId)); }
-                {
-                    using namespace std::chrono_literals;
-                    std::this_thread::sleep_for(50ms);
-                }
+
+                using namespace std::chrono_literals;
+                std::this_thread::sleep_for(50ms);
             }
             Lua::Deserializer deserializer {lua, fun.Returns, device.GetStructs(), device.GetEnums()};
             auto              b = response.begin();
@@ -469,9 +468,9 @@ bool Orchestrator::RunStageVerify(sol::state_view team)
                   sol::protected_function verify = lua.script("return function() Orchestrator.Validate() end");
                   verify.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
                   auto rv                        = verify();
-                  if (!rls.valid())
+                  if (!rv.valid())
                   {
-                      sol::error err = rls;
+                      sol::error err = rv;
                       lua["Log"]["e"](err.what());
                       std::lock_guard lock {mutex};
                       results[uut] = false;
