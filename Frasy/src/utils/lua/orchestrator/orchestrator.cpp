@@ -154,8 +154,9 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             }
             return sol::as_table(files);
         };
-        lua["Utils"]["sleep_for"] = [](int duration)
-        { std::this_thread::sleep_for(std::chrono::milliseconds(duration)); };
+        lua["Utils"]["sleep_for"]    = stage == Stage::Execution ? [](int duration)
+        { std::this_thread::sleep_for(std::chrono::milliseconds(duration)); }
+                                                                 : [](int duration) {};
         lua["Utils"]["save_as_json"] = [](sol::table table, const std::string& file) { SaveAsJson(table, file); };
         lua.require_file("Json", "lua/core/vendor/json.lua");
         ImportLog(lua, uut, stage);
