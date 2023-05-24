@@ -150,7 +150,7 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
     float Ppk = 0.0f;
 
     ImPlotHistogramFlags HistogramFlags = {};
-    int                  Bins           = ImPlotBin_Scott;
+    int                  Bins           = ImPlotBin_Sqrt;
 
 private:
     void FindMedian()

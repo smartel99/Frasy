@@ -26,6 +26,7 @@
 #include <chrono>
 #include <functional>
 #include <future>
+#include <stdexcept>
 #include <thread>
 #include <utility>
 
@@ -39,7 +40,20 @@ struct ResponsePromise
     explicit ResponsePromise()                         = default;
     ResponsePromise(ResponsePromise&&)                 = default;
     ResponsePromise(const ResponsePromise&)            = delete;
-    ResponsePromise& operator=(ResponsePromise&&)      = default;
+    ResponsePromise& operator=(ResponsePromise&& o)  {
+        if(m_thread.joinable())
+        {
+            // Thread is currently running, we can't override it!
+            throw std::runtime_error("Thread is already running!");
+        }
+        m_thread = std::move(o.m_thread);
+        m_consumed = o.m_consumed;
+        m_localOnCompleteCb = std::move(o.m_localOnCompleteCb);
+        m_localOnErrorCb = std::move(o.m_localOnErrorCb);
+        m_onCompleteCb = std::move(o.m_onCompleteCb);
+        m_onTimeoutCb = std::move(o.m_onTimeoutCb);
+        m_onErrorCb = std::move(o.m_onErrorCb);
+    }
     ResponsePromise& operator=(const ResponsePromise&) = delete;
     ~ResponsePromise();
 
