@@ -56,6 +56,7 @@ std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
 
 bool Orchestrator::LoadUserFiles(const std::string& environment, const std::string& testsDir)
 {
+    m_popupMutex = std::make_unique<std::mutex>();
     m_state       = std::make_unique<sol::state>();
     m_map         = {};
     m_generated   = false;
@@ -66,7 +67,6 @@ bool Orchestrator::LoadUserFiles(const std::string& environment, const std::stri
     if (!LoadTests(*m_state, m_testsDir)) { return false; }
     PopulateMap();
     m_uutStates.resize(m_map.count.uut + 1, UutState::Idle);
-    m_popupMutex = std::make_unique<std::mutex>();
 
     return true;
 }
@@ -181,6 +181,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
     }
 }
 
+// <editor-fold desc="Loading and executing">
 void Orchestrator::LoadIb(sol::state_view lua)
 {
     if (!m_ibEnabled) { return; }
@@ -739,6 +740,8 @@ void Orchestrator::SetPopulateUserMethodsCallback(std::function<void(sol::state_
 {
     m_populateUserMethods = callback;
 }
+// </editor-fold>
+
 
 // <editor-fold desc="exclusive">
 void Orchestrator::ImportExclusive(sol::state_view lua, Stage stage)
