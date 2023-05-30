@@ -35,6 +35,7 @@
 #include <filesystem>
 #include <fstream>
 #include <json.hpp>
+#include <stdexcept>
 
 namespace Frasy::Lua
 {
@@ -56,7 +57,7 @@ std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
 
 bool Orchestrator::LoadUserFiles(const std::string& environment, const std::string& testsDir)
 {
-    m_popupMutex = std::make_unique<std::mutex>();
+    m_popupMutex  = std::make_unique<std::mutex>();
     m_state       = std::make_unique<sol::state>();
     m_map         = {};
     m_generated   = false;
@@ -149,8 +150,13 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             std::vector<std::string> files;
             for (auto const& dir_entry : fs::directory_iterator {dir})
             {
-                auto file = dir_entry.path().string();
-                files.push_back(file.substr(0, file.size() - 4));
+                if (dir_entry.is_regular_file())
+                {
+                    // Just add files that we can do things with, not directories.
+                    auto file = dir_entry.path();
+                    file.replace_extension();    // Remove the extension for files
+                    files.push_back(file.string());
+                }
             }
             return sol::as_table(files);
         };
@@ -190,7 +196,8 @@ void Orchestrator::LoadIb(sol::state_view lua)
 
     DeviceMap& devices = DeviceMap::Get();
 
-    if (devices.IsScanning()) { throw std::runtime_error("Cannot load IB when DeviceMap is scanning"); }
+    if (devices.empty()) { throw std::runtime_error("No devices connected!"); }
+    else if (devices.IsScanning()) { throw std::runtime_error("Cannot load IB when DeviceMap is scanning"); }
 
     SerialDevice& device = devices.begin()->second;
     for (const auto& [_, e] : device.GetEnums())

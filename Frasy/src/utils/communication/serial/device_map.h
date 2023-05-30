@@ -77,13 +77,25 @@ public:
         return m_devices.end();
     }
 
+    [[nodiscard]] size_t size() const noexcept
+    {
+        WaitForScanComplete();
+        return m_devices.size();
+    }
+
+    [[nodiscard]] bool empty() const noexcept
+    {
+        WaitForScanComplete();
+        return m_devices.empty();
+    }
+
 private:
     void WaitForScanComplete() const { return m_scan_done.wait(false); }
 
 private:
     std::map<uint8_t, SerialDevice> m_devices;
     std::future<size_t>             m_scan_future;
-    std::atomic<bool>                m_scan_done = false;
+    std::atomic<bool>               m_scan_done = false;
 
     static constexpr const char* s_tag = "DeviceMap";
 };

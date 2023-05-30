@@ -99,7 +99,6 @@ private:
     bool m_ready   = false;
     bool m_enabled = true;
 
-    std::mutex  m_txLock;
     std::mutex  m_promiseLock;
     bool        m_shouldRun = true;
     std::thread m_rxThread;

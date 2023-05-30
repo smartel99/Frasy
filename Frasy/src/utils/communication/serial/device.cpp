@@ -72,12 +72,11 @@ ResponsePromise& SerialDevice::Transmit(Packet pkt)
     pkt.MakeTransactionId();
     pkt.ComputeCrc();
 
-    BR_LOG_TRACE(m_label, "Sending packet '{:08X}'", pkt.Header.TransactionId);
+    BR_LOG_DEBUG(m_label, "Sending packet '{:08X}'", pkt.Header.TransactionId);
     std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);
-    std::lock_guard      txLock {m_txLock};
+    std::lock_guard promiseLock {m_promiseLock};
     m_device.write(data);
     m_device.flushOutput();
-    std::lock_guard promiseLock {m_promiseLock};
     auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise {}));
     return it->second;
 }
@@ -124,7 +123,7 @@ void SerialDevice::CheckForPackets()
                             std::lock_guard lock {m_promiseLock};
                             auto&           promise = m_pending.at(packet.Header.TransactionId);
                             promise.Promise.set_value(packet);
-                            BR_LOG_TRACE(m_label, "Received response for '{:08X}'", packet.Header.TransactionId);
+                            BR_LOG_DEBUG(m_label, "Received response for '{:08X}'", packet.Header.TransactionId);
                         }
                         catch (std::out_of_range&)
                         {

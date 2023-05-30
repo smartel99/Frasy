@@ -94,15 +94,20 @@ void CheckFieldType(
         case sol::type::string:
         case sol::type::number: CheckFundamental(typeManager, field, object); break;
         case sol::type::table:
-            if (!typeManager.IsStruct(field.Type))
+            if(typeManager.IsStruct(field.Type))
             {
-                throw std::runtime_error(std::format(
-                  "Field {} with type {} (ID: {}) is not a struct!",
-                  field.Name,
-                  typeManager.GetTypeName(field.Type),
-                  field.Type));
+                CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, object);
             }
-            CheckTable(typeManager, typeManager.GetStruct(field.Type).Fields, object);
+            else if(field.Count != 1)
+            {
+                // Type is an array where all items should be the same.
+                auto args = object.as<std::vector<sol::object>>();
+                for(auto&& arg: args)
+                {
+                    CheckFieldType(typeManager, field, object);
+                }
+            }
+            
             break;
         case sol::type::thread:
         case sol::type::function:
