@@ -35,7 +35,7 @@ function ScopeRequirement:Test(name)
 end
 
 function ScopeRequirement:Value(name)
-    return nil
+    return self.orchestrator.GetValue(self.scope, name)
 end
 
 function ScopeRequirement:ToBeFirst()

@@ -56,10 +56,11 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
 
     void Render() override
     {
-        ImGui::BulletText("Seen: %zu times, Passed: %zu times (%0.2f%%)",
-                          Total,
-                          Passed,
-                          (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
+        ImGui::BulletText(
+          "Seen: %zu times, Passed: %zu times (%0.2f%%)",
+          Total,
+          Passed,
+          (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
 
         ShowStats();
 
@@ -96,9 +97,10 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
             ImGui::TreePop();
         }
 
-        if (ImPlot::BeginPlot("##Historgram"))
+        if (ImPlot::BeginPlot("##Historgram", ImVec2 {-1, 0}, ImPlotFlags_Crosshairs))
         {
-            ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+            auto xFlags = ImPlotAxisFlags_None;// | ImPlotAxisFlags_AutoFit;
+            ImPlot::SetupAxes(nullptr, nullptr, xFlags, ImPlotAxisFlags_AutoFit);
             ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
 
             ImPlot::PlotHistogram(
@@ -201,10 +203,11 @@ private:
 
     void FindStdDev()
     {
-        StdDev = std::accumulate(Values.begin(),
-                                 Values.end(),
-                                 0.0f,
-                                 [mean = Mean](float tot, float value) { return tot + std::pow(value - mean, 2.0f); });
+        StdDev = std::accumulate(
+          Values.begin(),
+          Values.end(),
+          0.0f,
+          [mean = Mean](float tot, float value) { return tot + std::pow(value - mean, 2.0f); });
         StdDev = std::sqrt(StdDev / static_cast<float>(Values.size()));
     }
 
@@ -256,10 +259,11 @@ private:
 
         ValueWithHint(Pp, "Pp", "");
         ImGui::SameLine();
-        ValueWithHint(Ppk,
-                      "Ppk",
-                      "How close the process is performing compared to its specification limits and accounting for "
-                      "the natural variability of the process. Larger is better, negative is bad");
+        ValueWithHint(
+          Ppk,
+          "Ppk",
+          "How close the process is performing compared to its specification limits and accounting for "
+          "the natural variability of the process. Larger is better, negative is bad");
     }
 };
 }    // namespace Frasy::Analyzers

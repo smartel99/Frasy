@@ -177,17 +177,41 @@ function Orchestrator.Generate()
     local tn = {} -- test names
     for sName, sequence in pairs(Context.Orchestrator.sequences) do
         Context.Orchestrator.scope = Scope:new(sName)
+        Log.d("Generating sequence " .. sName)
         sequence.func()
         sd[sName] = {}
         td[sName] = {}
         table.insert(sn, sName)
         tn[sName] = {}
+        toredo = {}
+        mustredo = false
         for tName, test in pairs(sequence.tests) do
+            Log.d("Generating test " .. tName)
             Context.Orchestrator.scope = Scope:new(sName, tName)
-            test.func()
+            local status, err = xpcall(test.func, error_handler)
+            if not status then 
+                toredo[tName] = test 
+                mustredo = true
+            end
             td[sName][tName] = {}
             ts[sName]        = {}
             table.insert(tn[sName], tName)
+        end
+
+        local retries = 0
+
+        while mustredo and retries < 10 do
+            retries = retries + 1
+            mustredo = false
+            for tName, test in pairs(toredo) do
+                Log.d("ReGenerating test " .. tName)
+                local status, err = xpcall(test.func, error_handler)
+                if not status then 
+                    mustredo = true
+                else
+                    toredo[tName] = nil
+                end
+            end
         end
     end
     Context.Orchestrator.scope = nil
@@ -363,12 +387,14 @@ function Orchestrator.CreateSequence(name, func)
     if Orchestrator.IsInSequence() then error(NestedScope()) end
     if Orchestrator.HasSequence(Scope:new(name)) then error(AlreadyDefined()) end
     Context.Orchestrator.sequences[name] = Sequence:new(func)
+    Context.Orchestrator.values[name] = {}
 end
 
 function Orchestrator.CreateTest(name, func)
     if not Orchestrator.IsInSequence() then error(BadScope()) end
     if Orchestrator.IsInTest() then error(NestedScope()) end
     Context.Orchestrator.sequences[Context.Orchestrator.scope.sequence].tests[name] = Test:new(func)
+    Context.Orchestrator.values[Context.Orchestrator.scope.sequence][name] = {}
 end
 
 function Orchestrator.GetSequenceScopeRequirement(name)

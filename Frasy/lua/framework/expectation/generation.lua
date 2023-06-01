@@ -13,10 +13,11 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
+local ExpectationResult = require("lua/core/framework/expectation/result")
 --Expectation does nothing on generation
 local Expectation   = {}
 Expectation.__index = Expectation
-function Expectation:new() return setmetatable({ }, Expectation) end
+function Expectation:new(value) return setmetatable({ result = ExpectationResult:new(value) }, Expectation) end
 function Expectation:Mandatory() return self end
 function Expectation:Not() return self end
 function Expectation:ToBeTrue() return self end
@@ -26,5 +27,5 @@ function Expectation:ToBeNear(expected, deviation) return self end
 function Expectation:ToBeInRange(min, max) return self end
 function Expectation:ToBeInPercentage(expected, percentage) return self end
 function Expectation:ToBeType(expected) return self end
-function Expectation:ExportAs(name) end
+function Expectation:ExportAs(name) Orchestrator.SetValue(Orchestrator.GetScope(), name, self.result.value) end
 return Expectation

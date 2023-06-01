@@ -104,10 +104,10 @@ void CheckFieldType(
                 auto args = object.as<std::vector<sol::object>>();
                 for(auto&& arg: args)
                 {
-                    CheckFieldType(typeManager, field, object);
+                    CheckFieldType(typeManager, field, arg);
                 }
             }
-            
+
             break;
         case sol::type::thread:
         case sol::type::function:
