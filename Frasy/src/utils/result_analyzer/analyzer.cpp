@@ -151,7 +151,7 @@ void ResultAnalyzer::AnalyzeFile(const std::string& path)
 {
     auto file = LoadJson(path);
 
-    const auto& info = file.at("info");
+    const auto& info     = file.at("info");
     std::string location = info.at("uut").dump();
 
     // Check if this log is one that interests us based on its location.
@@ -240,12 +240,12 @@ void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResul
     {
         std::string name = std::format("Expectation {}", results.Expectations.size() + 1);
         if (expectation.contains("note")) { name = expectation.at("note").get<std::string>(); }
-        if (!results.Expectations.contains(name))
-        {
-            results.Expectations[name] = std::move(MakeExpectationFromDetails(expectation));
-        }
         try
         {
+            if (!results.Expectations.contains(name))
+            {
+                results.Expectations[name] = std::move(MakeExpectationFromDetails(expectation));
+            }
             AnalyzeExpectation(expectation, results.Expectations[name]);
         }
         catch (std::exception& e)
@@ -306,6 +306,7 @@ std::shared_ptr<ResultAnalysisResults::Expectation> ResultAnalyzer::MakeExpectat
         ToBeTypeExpectation* exp = new ToBeTypeExpectation(expectation.at("expected").get<std::string>());
         return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
     }
+    if (method == "ToMatch"s) { BR_LOG_WARN("Analyzer", "ToMatch is not supported yet"); }
     throw std::runtime_error(std::format("Invalid method {}", method));
 }
 }    // namespace Frasy::Analyzers

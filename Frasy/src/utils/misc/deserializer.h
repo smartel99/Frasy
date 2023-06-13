@@ -108,7 +108,9 @@ template<typename T, typename Begin, typename End>
 bool Deserialize(Begin&& b, End&& e)
 {
     if (sizeof(bool) > std::distance(b, e)) { throw std::runtime_error("Not enough data!"); }
-    return (*b) == 0x01;
+    bool v = (*b) == 0x01;
+    b++;
+    return v;
 }
 
 template<SerializableContainer T, typename Begin, typename End>

@@ -152,10 +152,13 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             {
                 if (dir_entry.is_regular_file())
                 {
-                    // Just add files that we can do things with, not directories.
+                    // Just add lua files, not directories or other random files.
                     auto file = dir_entry.path();
-                    file.replace_extension();    // Remove the extension for files
-                    files.push_back(file.string());
+                    if (file.extension() == ".lua")
+                    {
+                        file.replace_extension();    // Remove the extension for files
+                        files.push_back(file.string());
+                    }
                 }
             }
             return sol::as_table(files);

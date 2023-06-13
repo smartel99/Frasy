@@ -110,6 +110,20 @@ function Expectation:ToBeType(expected)
     return self
 end
 
+function Expectation:ToMatch(pattern)
+    self.result.method = "ToMatch"
+    self.result.pattern = pattern
+    self.result.pass = false
+
+    for w in string.gmatch(self.result.value, pattern) do
+        self.result.pass = true
+    end
+
+    Orchestrator.AddExpectationResult(self.result)
+    enforce(self)
+    return self
+end
+
 function Expectation:ExportAs(name)
     Orchestrator.SetValue(Orchestrator.GetScope(), name, self.result.value)
 end

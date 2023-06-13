@@ -27,5 +27,6 @@ function Expectation:ToBeNear(expected, deviation) return self end
 function Expectation:ToBeInRange(min, max) return self end
 function Expectation:ToBeInPercentage(expected, percentage) return self end
 function Expectation:ToBeType(expected) return self end
+function Expectation:ToMatch(pattern) return self end
 function Expectation:ExportAs(name) Orchestrator.SetValue(Orchestrator.GetScope(), name, self.result.value) end
 return Expectation

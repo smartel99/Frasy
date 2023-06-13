@@ -30,6 +30,7 @@ function Expectation:ToBeNear() return self end
 function Expectation:ToBeInRange() return self end
 function Expectation:ToBeInPercentage() return self end
 function Expectation:ToBeType() return self end
+function Expectation:ToMatch() return self end
 function Expectation:ExportAs(name) Orchestrator.SetValue(Orchestrator.GetScope(), name, self.result.value) end
 
 return Expectation

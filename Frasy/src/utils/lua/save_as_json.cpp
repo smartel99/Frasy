@@ -19,12 +19,14 @@
 
 #include "Brigerad/Core/Log.h"
 
+#include <format>
 #include <fstream>
 #include <json.hpp>
 
 namespace Frasy::Lua
 {
-
+namespace
+{
 using json = nlohmann::json;
 
 template<typename T>
@@ -48,23 +50,24 @@ json MakeJson(sol::table table)    // NOLINT(performance-unnecessary-value-param
             else if (key_type == sol::type::string) { j = json::object(); }
             else
             {
-                throw std::runtime_error("Invalid key, not a string nor a number. Type: " +
-                                         std::to_string((int)key_type));
+                throw std::runtime_error(
+                  std::format("Invalid key, not a string nor a number. Type: {}", (int)key_type));
             }
         }
         if (key.get_type() != key_type)
         {
-            throw std::runtime_error("Key type has changed on same level. Expected: " + std::to_string((int)key_type) +
-                                     ", Got: " + std::to_string((int)key.get_type()));
+            throw std::runtime_error(std::format(
+              "Key type has changed on same level. Expected: {}, Got: {}", (int)key_type, (int)key.get_type()));
         }
         if (key_type == sol::type::number)
         {
             if (object_type == sol::type::none) { object_type = value.get_type(); }
             if (object_type != value.get_type())
             {
-                throw std::runtime_error(
-                  "Object type has changed while in an array. Expected: " + std::to_string((int)key_type) +
-                  ", Got: " + std::to_string((int)key.get_type()));
+                throw std::runtime_error(std::format(
+                  "Object type has changed while in an array. Expected: {}, Got: {}",
+                  (int)key_type,
+                  (int)key.get_type()));
             }
         }
         switch (value.get_type())
@@ -73,6 +76,8 @@ json MakeJson(sol::table table)    // NOLINT(performance-unnecessary-value-param
             case sol::type::number: AddToJson<double>(j, key, value); break;
             case sol::type::boolean: AddToJson<bool>(j, key, value); break;
             case sol::type::table:
+            case sol::type::userdata:
+            case sol::type::lightuserdata:
             {
                 if (j.is_array()) { j += MakeJson(value); }
                 else { j[key.as<std::string>()] = MakeJson(value); }
@@ -81,8 +86,6 @@ json MakeJson(sol::table table)    // NOLINT(performance-unnecessary-value-param
             case sol::type::thread:
             case sol::type::poly:
             case sol::type::function:
-            case sol::type::userdata:
-            case sol::type::lightuserdata:
             case sol::type::none:
             case sol::type::lua_nil:
                 throw std::runtime_error("Object is not jsonable. Type: " + std::to_string((int)value.get_type()));
@@ -90,6 +93,7 @@ json MakeJson(sol::table table)    // NOLINT(performance-unnecessary-value-param
     }
     return j;
 }
+}    // namespace
 
 void SaveAsJson(sol::table table, const std::string& file)
 {
