@@ -15,3 +15,9 @@ Brigerad/vendor/glm/doc
 Debug-*
 Dist-*
 Release-*
+
+# Python environment.
+.venv
+
+# Documentation build files.
+docs/build
