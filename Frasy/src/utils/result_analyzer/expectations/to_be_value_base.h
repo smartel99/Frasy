@@ -104,7 +104,7 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
             ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
 
             ImPlot::PlotHistogram(
-              "Values Read", Values.data(), Values.size(), Bins, 1.0, ImPlotRange(), HistogramFlags);
+              "Values Read", Values.data(), (int)Values.size(), Bins, 1.0, ImPlotRange(), HistogramFlags);
             ImPlot::PlotInfLines("Minimum Accepted", &Min, 1);
             ImPlot::PlotInfLines("Maximum Accepted", &Max, 1);
             ImPlot::EndPlot();

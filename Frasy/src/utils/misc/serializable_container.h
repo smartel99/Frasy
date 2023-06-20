@@ -1,6 +1,9 @@
 #ifndef SERIALIZER__SERIALIZABLE_CONTAINER_H
 #define SERIALIZER__SERIALIZABLE_CONTAINER_H
 
+#include <array>
+#include <string>
+
 namespace Frasy
 {
 using serializable_container_size_t = uint16_t;

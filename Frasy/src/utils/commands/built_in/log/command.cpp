@@ -17,6 +17,10 @@
 
 #include "command.h"
 
+#include "Brigerad.h"
+
+#include <spdlog/spdlog.h>
+
 namespace Frasy::Actions::Log
 {
 Command Make()

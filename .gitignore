@@ -9,6 +9,9 @@ CMakeLists.txt
 Brigerad/vendor/glm/doc
 *.vcxproj*
 *.sln
+Brigerad/vendor/yaml-cpp/yaml-cpp.vcxproj*
+Brigerad/vendor/implot/ImPlot.vcxproj
+Brigerad/vendor/implot/bin-int/
 
 # Build files
 .lib

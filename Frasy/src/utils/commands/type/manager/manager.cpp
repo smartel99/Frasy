@@ -92,7 +92,7 @@ const Struct& Manager::GetStruct(type_id_t id) const
     {
         return m_structs.at(id);
     }
-    catch (std::out_of_range& e)
+    catch (std::out_of_range&)
     {
         throw TypeNotFoundException();
     }
@@ -130,7 +130,7 @@ const Enum& Manager::GetEnum(type_id_t id) const
     {
         return m_enums.at(id);
     }
-    catch (std::out_of_range& e)
+    catch (std::out_of_range&)
     {
         throw TypeNotFoundException();
     }

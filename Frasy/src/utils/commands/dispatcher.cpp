@@ -16,6 +16,8 @@
  */
 #include "dispatcher.h"
 
+#include "Brigerad.h"
+
 #include "../misc/type_name.h"
 #include "utils/commands/built_in/log/command.h"
 

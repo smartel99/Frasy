@@ -130,18 +130,18 @@ public:
         requires requires { Serialize(t); }
     {
         Payload            = Serialize(t);
-        Header.PayloadSize = Payload.size();
+        Header.PayloadSize = static_cast<payload_size_t>(Payload.size());
         return *this;
     }
 
     Packet& SetPayload(std::vector<uint8_t> payload)
     {
         Payload            = std::move(payload);
-        Header.PayloadSize = Payload.size();
+        Header.PayloadSize = static_cast<payload_size_t>(Payload.size());
         return *this;
     }
 
-    void UpdatePayloadSize() { Header.PayloadSize = Payload.size(); }
+    void UpdatePayloadSize() { Header.PayloadSize = static_cast<payload_size_t>(Payload.size()); }
 
     template<typename T>
     T FromPayload() const

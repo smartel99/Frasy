@@ -28,7 +28,7 @@ Popup::Popup(std::size_t uut, sol::table builder)
 {
     bool global = builder["global"];
     m_name      = builder["name"];
-    m_routine   = builder["routine"];
+    m_routine   = builder["routine"].get<sol::function>();
     if (!global) m_name = std::format("UUT{} - {}", uut, m_name);
     auto elements = builder["elements"].get<std::vector<sol::table>>();
     for (const auto& element : elements)

@@ -25,6 +25,8 @@
 #include "expectations/to_be_true.h"
 #include "expectations/to_be_type.h"
 
+#include <Brigerad.h>
+
 #include <Brigerad/Debug/Instrumentor.h>
 #include <filesystem>
 #include <fstream>

@@ -9,6 +9,8 @@
 
 #include "../../Brigerad/Debug/Instrumentor.h"
 
+#include "Brigerad.h"
+
 #include <stb_image.h>
 
 namespace Brigerad

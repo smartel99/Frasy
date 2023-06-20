@@ -3,6 +3,8 @@
 #include "Event.h"
 #include "Brigerad/Core/KeyCodes.h"
 
+#include <sstream>
+
 namespace Brigerad
 {
 class BRIGERAD_API KeyEvent : public Event

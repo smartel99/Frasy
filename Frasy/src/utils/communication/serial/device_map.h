@@ -53,7 +53,7 @@ public:
     SerialDevice& operator[](std::size_t index)
     {
         WaitForScanComplete();
-        return m_devices.at(index);
+        return m_devices.at(static_cast<uint8_t>(index));
     }
 
     auto begin() noexcept

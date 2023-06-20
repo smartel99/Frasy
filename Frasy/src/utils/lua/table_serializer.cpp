@@ -206,7 +206,7 @@ void ParseTableContainer(const std::vector<sol::table>&    tables,
                          const std::vector<Struct::Field>& fields,
                          std::vector<uint8_t>&             output)
 {
-    auto input = Serialize<serializable_container_size_t>(tables.size());
+    auto input = Serialize<serializable_container_size_t>(static_cast<serializable_container_size_t>(tables.size()));
     output.insert(output.end(), input.begin(), input.end());
     for (const auto& table : tables) { ParseTable(table, typeManager, fields, output); }
 }

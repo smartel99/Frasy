@@ -53,6 +53,8 @@ struct ResponsePromise
         m_onCompleteCb = std::move(o.m_onCompleteCb);
         m_onTimeoutCb = std::move(o.m_onTimeoutCb);
         m_onErrorCb = std::move(o.m_onErrorCb);
+
+        return *this;
     }
     ResponsePromise& operator=(const ResponsePromise&) = delete;
     ~ResponsePromise();
