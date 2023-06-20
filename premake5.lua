@@ -23,7 +23,8 @@ function DefineWorkspace()
     configurations {
         "Debug",
         "Release",
-        "Dist"
+        "Dist",
+        "RelWithDebInfo"
     }
 
     flags {
@@ -57,7 +58,7 @@ function CommonFlags()
         "/openmp:experimental"
     }
 
-    filter { "toolset:not gcc", "toolset:not clang", "configurations:Debug" }
+    filter { "toolset:not gcc", "toolset:not clang", "configurations:Debug or RelWithDebInfo" }
     buildoptions {
         "/MTd"
     }
@@ -119,6 +120,12 @@ function CommonFlags()
     defines "BR_RELEASE"
     runtime "Release"
     optimize "on"
+    
+    filter "configurations:RelWithDebInfo"
+    defines "BR_RELEASE"
+    runtime "Release"
+    optimize "on"
+    symbols "on"
 
     filter "configurations:Dist"
     defines "BR_DIST"
