@@ -50,6 +50,7 @@ html_theme_options = {
 # Find the root path of Frasy in relation to where we are right now.
 def FindLuaDir(path):
     parts = os.path.split(path)
+    print(path)
     if parts[1] == "Frasy":
         path = os.path.join(path, "Frasy/lua/")
         print(path, os.path.isdir(path))
