@@ -10,6 +10,9 @@
 
 #include "../../Brigerad/Debug/Instrumentor.h"
 
+#include "Brigerad.h"
+
+#include <array>
 #include <fstream>
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>

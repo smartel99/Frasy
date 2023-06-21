@@ -1,4 +1,1 @@
-pushd ..\..
-call vendor\bin\premake\premake5.exe clion
-popd
-PAUSE
+call %~dp0..\..\vendor\bin\premake\premake5.exe clion

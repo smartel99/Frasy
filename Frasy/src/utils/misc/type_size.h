@@ -1,0 +1,35 @@
+/**
+ * @file    array_size.h
+ * @author  Samuel Martel
+ * @date    2022-12-08
+ * @brief
+ *
+ * @copyright
+ * This program is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+ */
+
+#ifndef FRASY_UTILS_MISC_ARRAY_SIZE_H
+#define FRASY_UTILS_MISC_ARRAY_SIZE_H
+
+#include <array>
+
+namespace Frasy
+{
+template<typename>
+struct ArraySize;
+
+template<typename T, size_t N>
+struct ArraySize<std::array<T, N>>
+{
+    static constexpr size_t value = N;
+};
+}    // namespace Frasy
+
+#endif    // FRASY_UTILS_MISC_ARRAY_SIZE_H

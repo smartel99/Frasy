@@ -1,10 +1,6 @@
-
 [submodule "Brigerad/vendor/spdlog"]
 	path = Brigerad/vendor/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "Brigerad/vendor/glm"]
-	path = Brigerad/vendor/glm
-	url = https://github.com/g-truc/glm
 [submodule "Brigerad/vendor/yaml-cpp"]
 	path = Brigerad/vendor/yaml-cpp
 	url = https://github.com/smartel99/yaml-cpp
@@ -16,3 +12,9 @@
 	url = https://github.com/TheCherno/imgui
 [submodule "Brigerad/vendor/imgui/"]
 	url = https://github.com/smartel99/imgui
+[submodule "Brigerad/vendor/pfr"]
+	path = Brigerad/vendor/pfr
+	url = https://github.com/boostorg/pfr
+[submodule "Brigerad/vendor/implot"]
+	path = Brigerad/vendor/implot
+	url = https://github.com/smartel99/implot

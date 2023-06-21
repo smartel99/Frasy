@@ -7,6 +7,8 @@
  */
 #include "OpenGLFrameBuffer.h"
 
+#include "Brigerad.h"
+
 #include <glad/glad.h>
 
 namespace Brigerad

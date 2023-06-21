@@ -1,6 +1,6 @@
 #include "Log.h"
 
-#include <spdlog/sinks/rotating_file_sink.h>
+#include "../Utils/logs/log_rotating_sanitized_file_sink.h"
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <spdlog/fmt/chrono.h>
@@ -63,7 +63,7 @@ void Log::Init()
     s_sinks->add_sink(stdSink);
 
     static constexpr size_t maxSize = 1024 * 1024 * 1;    //!< 1MB max
-    auto rotatingFileSink           = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+    auto rotatingFileSink           = std::make_shared<LogRotatingSanitizedFileSinkMt>(
       "logs/frasy/log.json", maxSize, 5, true, s_eventHandlers);
 
     // clang-format off

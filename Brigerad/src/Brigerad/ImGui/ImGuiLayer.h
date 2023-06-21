@@ -32,6 +32,7 @@ private:
 #if defined(BR_DEBUG)
     bool m_showStyleEditor = false;
     bool m_showDemoWindow = false;
+    bool m_showPlotWindow = false;
 #endif
 
     bool   m_isProfiling        = false;

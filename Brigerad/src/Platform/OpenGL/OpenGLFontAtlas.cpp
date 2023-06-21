@@ -82,7 +82,8 @@ OpenGLFontAtlas::OpenGLFontAtlas(const std::string& fontPath)
     fread(fontFile, 1, 1 << 20, fopen(fontPath.c_str(), "rb"));
 
     stbtt_fontinfo font;
-    BR_CORE_ASSERT(stbtt_InitFont(&font, fontFile, stbtt_GetFontOffsetForIndex(fontFile, 0)) != 0,
+    [[maybe_unused]] int result = stbtt_InitFont(&font, fontFile, stbtt_GetFontOffsetForIndex(fontFile, 0));
+    BR_CORE_ASSERT(result != 0,
                    "stbtt_InitFont returned 0");
 
     int textureWidth  = 8704;

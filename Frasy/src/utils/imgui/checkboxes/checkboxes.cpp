@@ -47,20 +47,19 @@ constexpr bool CheckboxHelper(Func func)
 /* Public Method Definitions */
 bool Checkbox(const std::string_view label, const std::string_view helpMessage, bool* b)
 {
-    return CheckboxHelper([&]() {
-        return ImGuiWidgetHelper(
-          label,
-          [&]() { return ImGui::Checkbox(std::format("##{}", label).c_str(), b); },
-          helpMessage);
-    });
+    return CheckboxHelper(
+      [&]()
+      {
+          return ImGuiWidgetHelper(
+            label, [&]() { return ImGui::Checkbox(std::format("##{}", label).c_str(), b); }, helpMessage);
+      });
 }
 
 bool Checkbox(const std::string_view label, bool* b)
 {
-    return CheckboxHelper([&]() {
-        return ImGuiWidgetHelper(
-          label, [&]() { return ImGui::Checkbox(std::format("##{}", label).c_str(), b); });
-    });
+    return CheckboxHelper(
+      [&]()
+      { return ImGuiWidgetHelper(label, [&]() { return ImGui::Checkbox(std::format("##{}", label).c_str(), b); }); });
 }
 
 bool CheckboxFlag(const std::string_view label,
@@ -68,21 +67,22 @@ bool CheckboxFlag(const std::string_view label,
                   unsigned int*          b,
                   const unsigned int     mask)
 {
-    return CheckboxHelper([&]() {
-        return ImGuiWidgetHelper(
-          label,
-          [&]() { return ImGui::CheckboxFlags(std::format("##{}", label).c_str(), b, mask); },
-          helpMessage);
-    });
+    return CheckboxHelper(
+      [&]()
+      {
+          return ImGuiWidgetHelper(
+            label, [&]() { return ImGui::CheckboxFlags(std::format("##{}", label).c_str(), b, mask); }, helpMessage);
+      });
 }
 
 bool CheckboxFlag(const std::string_view label, unsigned int* b, const unsigned int mask)
 {
-    return CheckboxHelper([&]() {
-        return ImGuiWidgetHelper(label, [&]() {
-            return ImGui::CheckboxFlags(std::format("##{}", label).c_str(), b, mask);
-        });
-    });
+    return CheckboxHelper(
+      [&]()
+      {
+          return ImGuiWidgetHelper(label,
+                                   [&]() { return ImGui::CheckboxFlags(std::format("##{}", label).c_str(), b, mask); });
+      });
 }
 /*****************************************************************************/
 /* Private Member Definitions */

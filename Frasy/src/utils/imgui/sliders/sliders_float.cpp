@@ -12,9 +12,8 @@
  */
 /*****************************************************************************/
 /* Includes */
-#include "../sliders.h"
-
 #include "../helpers.h"
+#include "../sliders.h"
 
 #include <format>
 
@@ -48,10 +47,8 @@ bool SliderFloat(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderFloat(
-            std::format("##{}", label).c_str(), v, min, max, format.data(), power);
-      },
+      [&]() -> bool
+      { return ImGui::SliderFloat(std::format("##{}", label).c_str(), v, min, max, format.data(), power); },
       helpMessage);
 }
 
@@ -62,10 +59,10 @@ bool SliderFloat(const std::string_view label,
                  const std::string_view format,
                  const float            power)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderFloat(
-          std::format("##{}", label).c_str(), v, min, max, format.data(), power);
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool
+      { return ImGui::SliderFloat(std::format("##{}", label).c_str(), v, min, max, format.data(), power); });
 }
 
 bool SliderFloat2(const std::string_view label,
@@ -78,10 +75,8 @@ bool SliderFloat2(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderFloat2(
-            std::format("##{}", label).c_str(), v, min, max, format.data(), power);
-      },
+      [&]() -> bool
+      { return ImGui::SliderFloat2(std::format("##{}", label).c_str(), v, min, max, format.data(), power); },
       helpMessage);
 }
 
@@ -92,10 +87,10 @@ bool SliderFloat2(const std::string_view label,
                   const std::string_view format,
                   const float            power)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderFloat2(
-          std::format("##{}", label).c_str(), v, min, max, format.data(), power);
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool
+      { return ImGui::SliderFloat2(std::format("##{}", label).c_str(), v, min, max, format.data(), power); });
 }
 
 bool SliderFloat3(const std::string_view label,
@@ -108,10 +103,8 @@ bool SliderFloat3(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderFloat3(
-            std::format("##{}", label).c_str(), v, min, max, format.data(), power);
-      },
+      [&]() -> bool
+      { return ImGui::SliderFloat3(std::format("##{}", label).c_str(), v, min, max, format.data(), power); },
       helpMessage);
 }
 
@@ -122,10 +115,10 @@ bool SliderFloat3(const std::string_view label,
                   const std::string_view format,
                   const float            power)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderFloat3(
-          std::format("##{}", label).c_str(), v, min, max, format.data(), power);
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool
+      { return ImGui::SliderFloat3(std::format("##{}", label).c_str(), v, min, max, format.data(), power); });
 }
 
 bool SliderFloat4(const std::string_view label,
@@ -138,10 +131,8 @@ bool SliderFloat4(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderFloat4(
-            std::format("##{}", label).c_str(), v, min, max, format.data(), power);
-      },
+      [&]() -> bool
+      { return ImGui::SliderFloat4(std::format("##{}", label).c_str(), v, min, max, format.data(), power); },
       helpMessage);
 }
 
@@ -152,10 +143,10 @@ bool SliderFloat4(const std::string_view label,
                   const std::string_view format,
                   const float            power)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderFloat4(
-          std::format("##{}", label).c_str(), v, min, max, format.data(), power);
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool
+      { return ImGui::SliderFloat4(std::format("##{}", label).c_str(), v, min, max, format.data(), power); });
 }
 /*****************************************************************************/
 /* Private Member Definitions */

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Brigerad/Events/Event.h"
+#include <sstream>
 
 namespace Brigerad
 {

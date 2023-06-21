@@ -11,12 +11,13 @@
  ******************************************************************************
  */
 #ifndef _ImguiTextInput
-#define _ImguiTextInput
+#    define _ImguiTextInput
 
 /*****************************************************************************/
 /* Includes */
-#include "ImGui/imgui.h"
-#include <string>
+#    include "ImGui/imgui.h"
+
+#    include <string>
 
 /*****************************************************************************/
 /* Exported defines */
@@ -58,9 +59,7 @@ struct StringInput
                                 (void*)&my_str);
     }
 
-    static bool MultilineInput(const char*         label,
-                               std::string&        my_str,
-                               ImGuiInputTextFlags flags = 0)
+    static bool MultilineInput(const char* label, std::string& my_str, ImGuiInputTextFlags flags = 0)
     {
         IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
         return ImGui::InputTextMultiline(label,

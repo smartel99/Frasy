@@ -1,0 +1,146 @@
+workspace "Demo"
+    architecture "x64"
+    startproject "Frasy"
+
+    configurations {
+        "Debug",
+        "Release",
+        "Dist"
+    }
+
+    flags {
+        "MultiProcessorCompile",
+        "LinkTimeOptimization",
+        "Color"
+    }
+
+    filter { "toolset:not gcc", "toolset:not clang" }
+    buildoptions {
+        "/wd5105",
+        "/Zc:preprocessor"
+    }
+
+outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+include "Frasy"
+
+project "Demo"
+    kind "ConsoleApp"
+
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "On"
+
+    targetdir("bin/" .. outputdir .. "/%{prj.name}")
+    objdir("bin-int/" .. outputdir .. "/%{prj.name}")
+
+    files {
+        "Frasy/Frasy/demo_mode/**.cpp",
+    }
+
+    filter "*"
+    includedirs {
+        "Frasy/Frasy/src",
+        "Frasy/Frasy/vendor",
+        "Frasy/Brigerad/src",
+        "Frasy/Brigerad/vendor",
+        "Frasy/Brigerad/vendor/spdlog/include",
+        "Frasy/%{IncludeDir.GLFW}",
+        "Frasy/%{IncludeDir.Glad}",
+        "Frasy/%{IncludeDir.ImGui}",
+        "Frasy/%{IncludeDir.glm}",
+        "Frasy/%{IncludeDir.stb_image}",
+        "Frasy/%{IncludeDir.serial}/include",
+        "Frasy/%{IncludeDir.entt}",
+        "Frasy/%{IncludeDir.lua}/src",
+        "Frasy/%{IncludeDir.sol}/include",
+        "Frasy/%{IncludeDir.yaml_cpp}",
+        "Frasy/%{IncludeDir.pfr}",
+        "Frasy/%{IncludeDir.gtest}",
+    }
+
+    externalincludedirs {
+        "Frasy/Brigerad/vendor/spdlog/include",
+        "Frasy/%{IncludeDir.GLFW}",
+        "Frasy/%{IncludeDir.Glad}",
+        "Frasy/%{IncludeDir.ImGui}",
+        "Frasy/%{IncludeDir.glm}",
+        "Frasy/%{IncludeDir.stb_image}",
+        "Frasy/%{IncludeDir.serial}/include",
+        "Frasy/%{IncludeDir.entt}",
+        "Frasy/%{IncludeDir.lua}/src",
+        "Frasy/%{IncludeDir.sol}/include",
+        "Frasy/%{IncludeDir.yaml_cpp}",
+        "Frasy/%{IncludeDir.pfr}",
+        "Frasy/%{IncludeDir.gtest}",
+    }
+
+    filter { "toolset:not gcc", "toolset:not clang" }
+    defines {
+        "_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
+        "_SILENCE_CXX20_CISO646_REMOVED_WARNING",
+        "_CRT_SECURE_NO_WARNINGS",
+    }
+    buildoptions {
+        "/wd26812",
+        "/wd5105"
+    }
+    buildoptions {
+        "/openmp:experimental"
+    }
+
+    filter { "toolset:not gcc", "toolset:not clang", "configurations:Debug" }
+    buildoptions {
+        "/MTd"
+    }
+
+    filter { "toolset:not gcc", "toolset:not clang", "configurations:not Debug" }
+    buildoptions {
+        "/MT"
+    }
+
+    externalwarnings "Off"
+
+    filter "configurations:Debug"
+    defines {
+        "BR_DEBUG",
+        "BR_ENABLE_ASSERTS",
+        "BR_PROFILE"
+    }
+    runtime "Debug"
+    symbols "on"
+
+    filter "configurations:Release"
+    defines "BR_RELEASE"
+    runtime "Release"
+    optimize "on"
+
+    filter "configurations:Dist"
+    defines "BR_DIST"
+    runtime "Release"
+    optimize "on"
+
+    filter "system:windows"
+    systemversion "latest"
+
+    defines { "BR_PLATFORM_WINDOWS" }
+
+    links {
+        "Frasy",
+        "Brigerad",
+        "GLFW",
+        "Glad",
+        "ImGui",
+        "serial",
+        "gtest",
+        "opengl32.lib",
+        "Ws2_32.lib"
+    }
+
+   postbuildcommands {
+       "{CMD_COPYDIR} Frasy/Frasy/assets bin/" .. outputdir .. "/%{prj.name}/assets",
+       "{CMD_RMDIR} bin/" .. outputdir .. "/%{prj.name}/lua",
+       "{CMD_COPYDIR} Frasy/Frasy/lua bin/" .. outputdir .. "/%{prj.name}/lua/core",
+       "{CMD_COPYDIR} Frasy/Frasy/demo_mode/lua bin/" .. outputdir .. "/%{prj.name}/lua/user",
+       "{CMD_COPYDIR} %{prj.name}/lua bin/" .. outputdir .. "/%{prj.name}/lua/user",
+   }

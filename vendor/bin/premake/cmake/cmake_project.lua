@@ -9,6 +9,7 @@
 --              Joel Linn
 --              UndefinedVertex
 --              Samuel Martel
+--              Paul Thomas
 -- Created:     2013/05/06
 -- Copyright:   (c) 2008-2020 Jason Perkins and the Premake project
 --
@@ -21,7 +22,47 @@ local cmake = p.modules.cmake
 cmake.project = {}
 local m = cmake.project
 
-local printf = function(s, ...) return print(s:format(...)) end
+local printf = function(s, ...)
+    return print(s:format(...))
+end
+
+local function split_command(s)
+    function find_char(s, c, t, init)
+        if t == nil then
+            t = {}
+        end
+        if init == nil then
+            init = 1
+        end
+        index = s:find(c, init, true)
+        if index ~= nil then
+            table.insert(t, index)
+            find_char(s, c, t, index + 1)
+        end
+        return t
+    end
+
+    results = {}
+    last = 1
+    spaces = find_char(s, " ")
+    escapes = find_char(s, "\"")
+    for i, space in ipairs(spaces) do
+        escaped = false
+        for i, v in ipairs(escapes) do
+            if (i % 2) == 0 then
+                if escapes[i - 1] < space and space < escapes[i] then
+                    escaped = true
+                end
+            end
+        end
+        if not escaped then
+            table.insert(results, s:sub(last, space - 1))
+            last = space + 1
+        end
+    end
+    table.insert(results, s:sub(last))
+    return results
+end
 
 --- Check if a file or directory exists in this path
 local function exists(file)
@@ -55,7 +96,7 @@ function m.files(prj)
     tree.traverse(tr, {
         onleaf = function(node, depth)
             _p(depth, "\"%s\"",
-               path.getrelative(prj.workspace.location, node.abspath))
+                    path.getrelative(prj.workspace.location, node.abspath))
         end
     }, true)
 end
@@ -68,10 +109,14 @@ function m.generate(prj)
 
     -- if kind is only defined for configs, promote to project
     if prj.kind == nil then
-        for cfg in project.eachconfig(prj) do prj.kind = cfg.kind end
+        for cfg in project.eachconfig(prj) do
+            prj.kind = cfg.kind
+        end
     end
 
-    if prj.kind == "Utility" then return end
+    if prj.kind == "Utility" then
+        return
+    end
 
     if prj.kind == "StaticLib" then
         _p("add_library(\"%s\" STATIC", prj.name)
@@ -131,7 +176,7 @@ function m.generate(prj)
         _p("target_compile_definitions(\"%s\" PRIVATE", prj.name)
         for _, define in ipairs(cfg.defines) do
             _p(1, "$<$<CONFIG:%s>:%s>", cmake.cfgname(cfg),
-               p.esc(define):gsub(" ", "\\ "))
+                    p.esc(define):gsub(" ", "\\ "))
         end
         _p(")")
 
@@ -146,10 +191,12 @@ function m.generate(prj)
         _p("target_link_libraries(\"%s\"", prj.name)
         -- Do not use toolset here as cmake needs to resolve dependency chains
         local uselinkgroups = isclangorgcc and cfg.linkgroups == p.ON
-        if uselinkgroups then _p(1, "-Wl,--start-group") end
+        if uselinkgroups then
+            _p(1, "-Wl,--start-group")
+        end
         for a, link in ipairs(config.getlinks(cfg, "dependencies", "object")) do
             _p(1, "$<$<CONFIG:%s>:%s>", cmake.cfgname(cfg),
-               link.linktarget.basename)
+                    link.linktarget.basename)
         end
         if uselinkgroups then
             -- System libraries don't depend on the project
@@ -159,7 +206,9 @@ function m.generate(prj)
         for _, link in ipairs(config.getlinks(cfg, "system", "fullpath")) do
             _p(1, "$<$<CONFIG:%s>:%s>", cmake.cfgname(cfg), link)
         end
-        if uselinkgroups then _p(1, "-Wl,--end-group") end
+        if uselinkgroups then
+            _p(1, "-Wl,--end-group")
+        end
         _p(")")
 
         -- setting build options
@@ -171,8 +220,8 @@ function m.generate(prj)
         if all_build_options ~= "" then
             _p("if(CMAKE_BUILD_TYPE STREQUAL %s)", cmake.cfgname(cfg))
             _p(1,
-               "set_target_properties(\"%s\" PROPERTIES COMPILE_FLAGS \"%s\")",
-               prj.name, all_build_options)
+                    "set_target_properties(\"%s\" PROPERTIES COMPILE_FLAGS \"%s\")",
+                    prj.name, all_build_options)
             _p("endif()")
         end
 
@@ -185,25 +234,25 @@ function m.generate(prj)
         if all_link_options ~= "" then
             _p("if(CMAKE_BUILD_TYPE STREQUAL %s)", cmake.cfgname(cfg))
             _p(1, "set_target_properties(\"%s\" PROPERTIES LINK_FLAGS \"%s\")",
-               prj.name, all_link_options)
+                    prj.name, all_link_options)
             _p("endif()")
         end
 
         _p("target_compile_options(\"%s\" PRIVATE", prj.name)
         for _, flag in ipairs(toolset.getcflags(cfg)) do
             _p(1, "$<$<AND:$<CONFIG:%s>,$<COMPILE_LANGUAGE:C>>:%s>",
-               cmake.cfgname(cfg), flag)
+                    cmake.cfgname(cfg), flag)
         end
         for _, flag in ipairs(toolset.getcxxflags(cfg)) do
             _p(1, "$<$<AND:$<CONFIG:%s>,$<COMPILE_LANGUAGE:CXX>>:%s>",
-               cmake.cfgname(cfg), flag)
+                    cmake.cfgname(cfg), flag)
         end
         _p(")")
 
         -- C++ standard
         -- only need to configure it specified
         if (cfg.cppdialect ~= nil and cfg.cppdialect ~= "") or cfg.cppdialect ==
-            "Default" then
+                "Default" then
             local standard = {}
             standard["C++98"] = 98
             standard["C++11"] = 11
@@ -217,7 +266,7 @@ function m.generate(prj)
             standard["gnu++20"] = 20
 
             local extentions = iif(cfg.cppdialect:find("^gnu") == nil, "NO",
-                                   "YES")
+                    "YES")
             local pic = iif(cfg.pic == "On", "True", "False")
             local lto = iif(cfg.flags.LinkTimeOptimization, "True", "False")
 
@@ -260,49 +309,69 @@ function m.generate(prj)
             end
             _p("if(CMAKE_BUILD_TYPE STREQUAL %s)", cmake.cfgname(cfg))
             _p("target_precompile_headers(\"%s\" PUBLIC %s/%s)", prj.name,
-               prj.name, pch)
+                    prj.name, pch)
             _p("endif()")
         end
 
         local getBuildCommands = function(t, cmd)
             local out = ""
             for _, v in ipairs(cfg[t]) do
-                local s, e, match = v:find("({COPY%u*})")
+                local s, e, match = v:find("({CMD_%u*})")
                 if s == nil then
                     printf("WARNING: Command '%s...' is not supported...",
-                           v:sub(1, 64))
+                            v:sub(1, 64))
                 else
                     v = v:sub(e + 2)
                     v = v:gsub("\\", "/")
                     local tmp = string.format(
-                                    "add_custom_command(TARGET %s %s\n",
-                                    prj.name, cmd)
+                            "add_custom_command(TARGET %s %s\n",
+                            prj.name, cmd)
 
                     -- Check if the file we have is a dir or a file.
-                    if match == "{COPYDIR}" then
-                        local s = v:find("/", -1, true)
-                        local dirName = v
-                        if s ~= nil then
-                            dirName = v:sub(s)
+                    if match == "{CMD_RMDIR}" then
+                        tmp = tmp .. string.format("COMMAND \"${CMAKE_COMMAND}\" -E rm -r -f \"%s/%s\"\n",
+                                cfg.project.location, v)
+                    elseif match == "{CMD_MKDIR}" then
+                        tmp = tmp .. string.format("COMMAND \"${CMAKE_COMMAND}\" -E make_directory \"%s/%s\"\n",
+                                cfg.project.location, v)
+                    elseif match == "{CMD_COPYDIR}" then
+                        local parameters = split_command(v)
+                        local source = parameters[1]
+                        local destination = parameters[2]
+                        if destination == nil then
+                            destination = source
                         end
                         tmp = tmp .. string.format(
-                                  "COMMAND \"${CMAKE_COMMAND}\" -E copy_directory \"%s/%s\" \"%s/%s\"\n",
-                                  cfg.project.location, v,
-                                  cfg.buildtarget.directory, dirName)
-                    elseif match == "{COPYFILE}" then
+                                "COMMAND \"${CMAKE_COMMAND}\" -E copy_directory \"%s/%s\" \"%s/%s\"\n",
+                                cfg.project.location, source,
+                                cfg.project.location, destination)
+                    elseif match == "{CMD_COPYFILE}" then
+                        local parameters = split_command(v)
+                        local source = parameters[1]
+                        local destination = parameters[2]
+                        local file = parameters[3]
+                        if destination == nil then
+                            destination = source
+                        end
+                        if file == nil then
+                            error("File can't be empty!")
+                        end
                         tmp = tmp ..
-                                  string.format(
-                                      "COMMAND \"${CMAKE_COMMAND}\" -E copy \"%s/%s\" \"%s\"\n",
-                                      cfg.project.location, v,
-                                      cfg.buildtarget.directory)
+                                string.format(
+                                        "COMMAND \"${CMAKE_COMMAND}\" -E copy \"%s/%s/%s\" \"%s/%s/%s\"\n",
+                                        cfg.project.location, source, file,
+                                        cfg.project.location, destination, file)
                     else
                         printf("WARNING: Command '%s...' is not supported...",
-                               match)
+                                match)
+                        tmp = nil
                     end
-                    out = out .. tmp ..
-                              string.format(
-                                  "COMMENT \"Copied '%s' to target directory\"\n)\n\n",
-                                  v)
+                    if tmp ~= nil then
+                        out = out .. tmp .. ")\n"
+                    end
+                    --string.format(
+                    --       "COMMENT \"Copied '%s' to target directory\"\n)\n\n",
+                    --       v)
                 end
             end
 
@@ -311,14 +380,14 @@ function m.generate(prj)
 
         -- Pre build commands.
         local preBuildCommands = getBuildCommands("prebuildcommands",
-                                                  "PRE_BUILD")
+                "PRE_BUILD")
 
         -- Pre link commands.
         local preLinkCommands = getBuildCommands("prelinkcommands", "PRE_LINK")
 
         -- Post build commands.
         local postBuildCommands = getBuildCommands("postbuildcommands",
-                                                   "POST_BUILD")
+                "POST_BUILD")
 
         if preBuildCommands ~= "" then
             _p("if(CMAKE_BUILD_TYPE STREQUAL %s)", cmake.cfgname(cfg))

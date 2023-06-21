@@ -12,8 +12,8 @@
  */
 /*****************************************************************************/
 /* Includes */
-#include "../sliders.h"
 #include "../helpers.h"
+#include "../sliders.h"
 
 #include <format>
 
@@ -46,21 +46,16 @@ bool SliderAngle(const std::string_view label,
 {
     return ImGuiWidgetHelper(
       label,
-      [&]() -> bool {
-          return ImGui::SliderAngle(std::format("##{}", label).c_str(), v, min, max, format.data());
-      },
+      [&]() -> bool { return ImGui::SliderAngle(std::format("##{}", label).c_str(), v, min, max, format.data()); },
       helpMessage);
 }
 
-bool SliderAngle(const std::string_view label,
-                 float*                 v,
-                 const float            min,
-                 const float            max,
-                 const std::string_view format)
+bool SliderAngle(
+  const std::string_view label, float* v, const float min, const float max, const std::string_view format)
 {
-    return ImGuiWidgetHelper(label, [&]() -> bool {
-        return ImGui::SliderAngle(std::format("##{}", label).c_str(), v, min, max, format.data());
-    });
+    return ImGuiWidgetHelper(
+      label,
+      [&]() -> bool { return ImGui::SliderAngle(std::format("##{}", label).c_str(), v, min, max, format.data()); });
 }
 /*****************************************************************************/
 /* Private Member Definitions */

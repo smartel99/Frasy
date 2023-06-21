@@ -1,15 +1,26 @@
 .vscode
 .idea
 .vs
-/bin
-/bin-int
+bin
+bin-int
 cmake-build*
 *.cmake
 CMakeLists.txt
 Brigerad/vendor/glm/doc
+*.vcxproj*
+*.sln
+Brigerad/vendor/yaml-cpp/yaml-cpp.vcxproj*
+Brigerad/vendor/implot/ImPlot.vcxproj
+Brigerad/vendor/implot/bin-int/
 
 # Build files
 .lib
 Debug-*
 Dist-*
 Release-*
+
+# Python environment.
+.venv
+
+# Documentation build files.
+docs/build

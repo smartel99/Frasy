@@ -18,10 +18,9 @@
 #ifndef FRASY_UTILS_LOG_WINDOW_OPTIONS_H
 #define FRASY_UTILS_LOG_WINDOW_OPTIONS_H
 
-#include "../internal_config.h"
-#include "log_entry.h"
-
+#include "../config.h"
 #include "imgui.h"
+#include "log_entry.h"
 #include "spdlog/common.h"
 
 #include <array>
@@ -38,18 +37,16 @@ struct LogWindowOptions
 
     bool CombineLoggers = false;
 
-    std::array<bool, spdlog::level::n_levels> ShowLevels = {
-      true, true, true, true, true, true, true};
+    std::array<bool, spdlog::level::n_levels> ShowLevels = {true, true, true, true, true, true, true};
 
-    bool                                 ShowTimeStamp      = true;
-    bool                                 ShowLogSource      = true;
-    bool                                 ShowSourceLocation = true;
-    LogEntry::SourceLocationRenderStyles SourceLocationRenderStyle =
-      LogEntry::SourceLocationRenderStyle_All;
+    bool                                 ShowTimeStamp             = true;
+    bool                                 ShowLogSource             = true;
+    bool                                 ShowSourceLocation        = true;
+    LogEntry::SourceLocationRenderStyles SourceLocationRenderStyle = LogEntry::SourceLocationRenderStyle_All;
 
 
     LogWindowOptions() noexcept = default;
-    explicit LogWindowOptions(const InternalConfig& cfg) noexcept
+    explicit LogWindowOptions(const Config& cfg) noexcept
     {
 #define LOAD_FIELD(v) v = cfg.GetField<decltype(v)>(#v, this->v)
         LOAD_FIELD(EntriesToShow);
@@ -61,11 +58,26 @@ struct LogWindowOptions
         LOAD_FIELD(ShowSourceLocation);
         LOAD_FIELD(SourceLocationRenderStyle);
 #undef LOAD_FIELD
+
+        // Load the configured logger levels.
+        auto loggers = cfg.GetField("Loggers");
+        for (auto&& logger : loggers)
+        {
+            try
+            {
+                std::string name  = logger.key();
+                auto        level = static_cast<spdlog::level::level_enum>(logger.value().get<int>());
+                Brigerad::Log::SetLoggerLevel(name, level);
+            }
+            catch (...)
+            {
+            }
+        }
     }
 
-    [[nodiscard]] InternalConfig Serialize() const noexcept
+    [[nodiscard]] Config Serialize() const noexcept
     {
-        InternalConfig cfg = {};
+        Config cfg = {};
 
 #define SET_FIELD(v) cfg.SetField(#v, v)
         SET_FIELD(EntriesToShow);
@@ -77,6 +89,16 @@ struct LogWindowOptions
         SET_FIELD(ShowSourceLocation);
         SET_FIELD(SourceLocationRenderStyle);
 #undef SET_FIELD
+
+        // Save the overriden log levels, if any.
+        std::map<std::string, int> loggerLevels;
+        const auto&                loggers = Brigerad::Log::GetLoggers();
+        for (auto&& [name, ptr] : loggers)
+        {
+            if (ptr->level() != Brigerad::Log::s_defaultLevel) { loggerLevels[name] = ptr->level(); }
+        }
+        cfg.SetField("Loggers", loggerLevels);
+
         return cfg;
     }
 };
