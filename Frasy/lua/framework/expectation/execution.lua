@@ -136,7 +136,7 @@ end
 function Expectation:ToBeLesserOrEqual(max)
     self.result.method = "ToBeLesserOrEqual"
     self.result.max = max
-    self.result.pass = (self.result.value < max)
+    self.result.pass = (self.result.value <= max)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
 
