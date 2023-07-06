@@ -111,7 +111,7 @@ void MainApplicationLayer::OnImGuiRender()
             if (ImGui::MenuItem("Device Viewer", "F3")) { MakeDeviceViewerVisible(); }
             if (ImGui::MenuItem("Result Viewer", "F4")) { MakeResultViewerVisible(); }
             if (ImGui::MenuItem("Result Analyzer", "F5")) { MakeResultAnalyzerVisible(); }
-            if (ImGui::MenuItem("Test Viewer", "F6")) { MakeDeviceViewerVisible(); }
+            if (ImGui::MenuItem("Test Viewer", "F6")) { MakeTestViewerVisible(); }
             ImGui::Separator();
             if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
             if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }

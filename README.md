@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/frasy/badge/?version=latest)](https://frasy.readthedocs.io/en/latest/?badge=latest)
+
 # Frasy - Generic Automated Hardware Testing Software
 
 ![logo](doc/assets/img/frasy_logo_light.svg#gh-dark-mode-only)

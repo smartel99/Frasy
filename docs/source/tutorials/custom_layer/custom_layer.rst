@@ -1,3 +1,5 @@
+.. _custom_layer:
+
 Creating Your Own Layer
 =======================
 

@@ -58,8 +58,8 @@ def FindLuaDir(path):
     else:
         return FindLuaDir(parts[0])
 
-# lua_source_path = ["../Frasy/lua/"]
-lua_source_path = [FindLuaDir(os.getcwd())]
+lua_source_path = ["../Frasy/lua/"]
+# lua_source_path = [FindLuaDir(os.getcwd())]
 lua_source_encoding = "utf8"
 lua_source_comment_prefix = "---"
 lua_source_use_emmy_lua_syntax = True
