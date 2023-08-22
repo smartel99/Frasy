@@ -54,11 +54,30 @@ std::string Orchestrator::stage2str(Frasy::Lua::Orchestrator::Stage stage)
 }
 
 // <editor-fold desc="Test related">
+namespace
+{
+int OnPanic(lua_State* lua)
+{    // Get the error message from the top of the stack.
+    std::string msg;
+    if (lua_isstring(lua, -1)) { msg = lua_tostring(lua, -1); }
+    else { msg = "[No message provided]"; }
+    BR_LUA_CRITICAL("An error occurred:");
+    BR_LUA_ERROR("{}\n\r", msg);
+    luaL_traceback(lua, lua, nullptr, 0);
+    msg = lua_tostring(lua, -1);
+    BR_LUA_ERROR("{}\n\r", msg);
+//    luaL_dostring(lua, "Log.Error(debug.traceback())");
+
+    return 0;
+}
+}    // namespace
+
 
 bool Orchestrator::LoadUserFiles(const std::string& environment, const std::string& testsDir)
 {
-    m_popupMutex  = std::make_unique<std::mutex>();
-    m_state       = std::make_unique<sol::state>();
+    m_popupMutex = std::make_unique<std::mutex>();
+    m_state      = std::make_unique<sol::state>();
+    m_state->set_panic(&OnPanic);
     m_map         = {};
     m_generated   = false;
     m_environment = environment;
