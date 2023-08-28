@@ -204,7 +204,7 @@ function Orchestrator.Generate()
                                 Log.d("Generating test " .. tName)
                                 Context.Orchestrator.scope = Scope:new(sName, tName)
                                 local _, err               = xpcall(test.func, error_handler)
-                                if err ~= nil then
+                                if err == nil then
                                     td[sName][tName] = {}
                                     ts[sName]        = {}
                                     table.insert(tn[sName], tName)
@@ -216,25 +216,25 @@ function Orchestrator.Generate()
                                 end
                             end
                         end
-                        if not hasProgressOnTests then
+                        if hasProgressOnTests == false then
                             error(GenerationError("Stuck on tests generation"))
                         end
                     end
                 end, error_handler)
-                if err ~= nil then
+                if err == nil then
+                    hasProgressOnSequences    = true
+                    completedSequences[sName] = 0
+                else
                     if type(err) == "string" or err.code ~= GenerationError().code then
                         error(err)
                     else
                         Log.d(err.what)
                         hasFailedSequences = true
                     end
-                else
-                    hasProgressOnSequences = true
-                    completedSequences[sName] = 0
                 end
             end
         end
-        if not hasProgressOnSequences then
+        if hasProgressOnSequences == false then
             error(GenerationError("Stuck on sequence generation"))
         end
     end
