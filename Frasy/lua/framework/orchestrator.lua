@@ -169,49 +169,73 @@ end
 
 function Orchestrator.Generate()
     Log.d("Generation")
-    local sd = {} -- sequences dependencies
-    local td = {} -- tests dependencies
-    local ss = {} -- sequences synchronization
-    local ts = {} -- tests synchronization
-    local sn = {} -- sequence names
-    local tn = {} -- test names
-    for sName, sequence in pairs(Context.Orchestrator.sequences) do
-        Context.Orchestrator.scope = Scope:new(sName)
-        Log.d("Generating sequence " .. sName)
-        sequence.func()
-        sd[sName] = {}
-        td[sName] = {}
-        table.insert(sn, sName)
-        tn[sName] = {}
-        toredo = {}
-        mustredo = false
-        for tName, test in pairs(sequence.tests) do
-            Log.d("Generating test " .. tName)
-            Context.Orchestrator.scope = Scope:new(sName, tName)
-            local status, err = xpcall(test.func, error_handler)
-            if not status then 
-                toredo[tName] = test 
-                mustredo = true
-            end
-            td[sName][tName] = {}
-            ts[sName]        = {}
-            table.insert(tn[sName], tName)
-        end
-
-        local retries = 0
-
-        while mustredo and retries < 10 do
-            retries = retries + 1
-            mustredo = false
-            for tName, test in pairs(toredo) do
-                Log.d("ReGenerating test " .. tName)
-                local status, err = xpcall(test.func, error_handler)
-                if not status then 
-                    mustredo = true
+    local sd                 = {} -- sequences dependencies
+    local td                 = {} -- tests dependencies
+    local ss                 = {} -- sequences synchronization
+    local ts                 = {} -- tests synchronization
+    local sn                 = {} -- sequence names
+    local tn                 = {} -- test names
+    local hasFailedSequences = true
+    local completedSequences = {}
+    while hasFailedSequences do
+        hasFailedSequences           = false
+        local hasProgressOnSequences = false
+        for sName, sequence in pairs(Context.Orchestrator.sequences) do
+            if completedSequences[sName] ~= nil then
+                Log.d("Sequence " .. sName .. " already generated, skipping")
+            else
+                Context.Orchestrator.scope = Scope:new(sName)
+                Log.d("Generating sequence " .. sName)
+                sequence.func()
+                sd[sName] = {}
+                td[sName] = {}
+                table.insert(sn, sName)
+                tn[sName]    = {}
+                local _, err = xpcall(function()
+                    local hasFailedTests = true
+                    local completedTests = {}
+                    while hasFailedTests do
+                        hasFailedTests           = false
+                        local hasProgressOnTests = false
+                        for tName, test in pairs(sequence.tests) do
+                            if completedTests[tName] ~= nil then
+                                Log.d("Test " .. tName .. " already generated, skipping")
+                            else
+                                Log.d("Generating test " .. tName)
+                                Context.Orchestrator.scope = Scope:new(sName, tName)
+                                local _, err               = xpcall(test.func, error_handler)
+                                if err ~= nil then
+                                    td[sName][tName] = {}
+                                    ts[sName]        = {}
+                                    table.insert(tn[sName], tName)
+                                    completedTests[sName] = 0
+                                    hasProgressOnTests    = true
+                                else
+                                    Log.d(err.what)
+                                    hasFailedTests = true
+                                end
+                            end
+                        end
+                        if not hasProgressOnTests then
+                            error(GenerationError("Stuck on tests generation"))
+                        end
+                    end
+                end, error_handler)
+                if err ~= nil then
+                    if type(err) == "string" or err.code ~= GenerationError().code then
+                        error(err)
+                    else
+                        Log.d(err.what)
+                        hasFailedSequences = true
+                    end
                 else
-                    toredo[tName] = nil
+                    hasProgressOnSequences = true
+                    completedSequences[sName] = 0
                 end
             end
+        end
+        if not hasProgressOnSequences then
+            error(GenerationError("Stuck on sequence generation"))
         end
     end
     Context.Orchestrator.scope = nil
@@ -369,7 +393,7 @@ function Orchestrator.CompileExecutionResults(outputDir)
             report.sequences[sName].time.process = report.sequences[sName].time.process + time.stop - time.start
         end
         report.sequences[sName].time.elapsed = report.sequences[sName].time.stop - report.sequences[sName].time.start
-        report.info.time.process            = report.info.time.process + report.sequences[sName].time.process
+        report.info.time.process             = report.info.time.process + report.sequences[sName].time.process
     end
     Utils.save_as_json(report, string.format("%s/%s.json", outputDir, Context.uut))
 end
@@ -387,14 +411,14 @@ function Orchestrator.CreateSequence(name, func)
     if Orchestrator.IsInSequence() then error(NestedScope()) end
     if Orchestrator.HasSequence(Scope:new(name)) then error(AlreadyDefined()) end
     Context.Orchestrator.sequences[name] = Sequence:new(func)
-    Context.Orchestrator.values[name] = {}
+    Context.Orchestrator.values[name]    = {}
 end
 
 function Orchestrator.CreateTest(name, func)
     if not Orchestrator.IsInSequence() then error(BadScope()) end
     if Orchestrator.IsInTest() then error(NestedScope()) end
     Context.Orchestrator.sequences[Context.Orchestrator.scope.sequence].tests[name] = Test:new(func)
-    Context.Orchestrator.values[Context.Orchestrator.scope.sequence][name] = {}
+    Context.Orchestrator.values[Context.Orchestrator.scope.sequence][name]          = {}
 end
 
 function Orchestrator.GetSequenceScopeRequirement(name)
