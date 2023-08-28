@@ -439,7 +439,7 @@ function Orchestrator.HasValue(scope, name)
 end
 
 function Orchestrator.SetValue(scope, name, value)
-    if Orchestrator.HasValue(scope, name) then error(AlreadyDefined()) end
+    if Orchestrator.HasValue(scope, name) and Context.stage ~= Stage.Generation then error(AlreadyDefined()) end
     Context.Orchestrator.values[scope.sequence][scope.test][name] = value
 end
 
