@@ -208,7 +208,7 @@ function Orchestrator.Generate()
                                     td[sName][tName] = {}
                                     ts[sName]        = {}
                                     table.insert(tn[sName], tName)
-                                    completedTests[sName] = 0
+                                    completedTests[tName] = 0
                                     hasProgressOnTests    = true
                                 else
                                     Log.d(err.what)
