@@ -21,7 +21,7 @@ function utils.tostring(t, lvl)
     for _ = 1, (lvl - 1) do str = str .. "    " end
     if lvl ~= 0 then str = str .. "|--- " end
 
-    if type(t) == "table" then
+    if type(t) == "table" or type(t) == "userdata" then
         for k, v in pairs(t) do
             str = str .. k .. ":\r\n" .. utils.tostring(v, lvl + 1)
         end

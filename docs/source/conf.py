@@ -2,6 +2,7 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+import os
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -46,7 +47,19 @@ html_theme_options = {
 
 
 # -- Lua configuration
+# Find the root path of Frasy in relation to where we are right now.
+def FindLuaDir(path):
+    parts = os.path.split(path)
+    print(path)
+    if parts[1] == "Frasy":
+        path = os.path.join(path, "Frasy/lua/")
+        print(path, os.path.isdir(path))
+        return path
+    else:
+        return FindLuaDir(parts[0])
+
 lua_source_path = ["../Frasy/lua/"]
+# lua_source_path = [FindLuaDir(os.getcwd())]
 lua_source_encoding = "utf8"
 lua_source_comment_prefix = "---"
 lua_source_use_emmy_lua_syntax = True

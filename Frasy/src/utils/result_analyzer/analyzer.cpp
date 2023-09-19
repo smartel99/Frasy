@@ -19,14 +19,17 @@
 #include "analytic_results.h"
 #include "expectations/to_be_equal.h"
 #include "expectations/to_be_false.h"
+#include "expectations/to_be_greater.h"
+#include "expectations/to_be_greater_or_equal.h"
 #include "expectations/to_be_in_percentage.h"
 #include "expectations/to_be_in_range.h"
+#include "expectations/to_be_lesser.h"
+#include "expectations/to_be_lesser_or_equal.h"
 #include "expectations/to_be_near.h"
 #include "expectations/to_be_true.h"
 #include "expectations/to_be_type.h"
 
 #include <Brigerad.h>
-
 #include <Brigerad/Debug/Instrumentor.h>
 #include <filesystem>
 #include <fstream>
@@ -301,6 +304,26 @@ std::shared_ptr<ResultAnalysisResults::Expectation> ResultAnalyzer::MakeExpectat
     {
         ToBeInPercentageExpectation* exp = new ToBeInPercentageExpectation(
           expectation.at("expected").get<float>(), expectation.at("percentage").get<float>());
+        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    }
+    if(method == "ToBeGreater"s)
+    {
+        ToBeGreaterExpectation* exp = new ToBeGreaterExpectation(expectation.at("min").get<float>());
+        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    }
+    if(method == "ToBeGreaterOrEqual"s)
+    {
+        ToBeGreaterOrEqualExpectation* exp = new ToBeGreaterOrEqualExpectation(expectation.at("min").get<float>());
+        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    }
+    if(method == "ToBeLesser"s)
+    {
+        ToBeLesserExpectation* exp = new ToBeLesserExpectation(expectation.at("max").get<float>());
+        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    }
+    if(method == "ToBeLesserOrEqual"s)
+    {
+        ToBeLesserOrEqualExpectation* exp = new ToBeLesserOrEqualExpectation(expectation.at("max").get<float>());
         return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
     }
     if (method == "ToBeType"s)

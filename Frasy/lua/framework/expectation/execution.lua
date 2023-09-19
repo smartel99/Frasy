@@ -12,14 +12,15 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-
 local ExpectationResult = require("lua/core/framework/expectation/result")
-local Expectation       = { mandatory = false, result = nil }
-Expectation.__index     = Expectation
+local Expectation = {mandatory = false, result = nil}
+Expectation.__index = Expectation
 
 function Expectation:new(value, note)
-    return setmetatable({ mandatory = false, result = ExpectationResult:new(value, note) }, Expectation)
+    return setmetatable({
+        mandatory = false,
+        result = ExpectationResult:new(value, note)
+    }, Expectation)
 end
 
 local function enforce(expectation)
@@ -40,27 +41,27 @@ function Expectation:Not()
 end
 
 function Expectation:ToBeTrue()
-    self.result.method   = "ToBeTrue"
+    self.result.method = "ToBeTrue"
     self.result.expected = true
-    self.result.pass     = self.result.value == self.result.expected
+    self.result.pass = self.result.value == self.result.expected
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToBeFalse()
-    self.result.method   = "ToBeFalse"
+    self.result.method = "ToBeFalse"
     self.result.expected = false
-    self.result.pass     = self.result.value == self.result.expected
+    self.result.pass = self.result.value == self.result.expected
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToBeEqual(expected)
-    self.result.method   = "ToBeEqual"
+    self.result.method = "ToBeEqual"
     self.result.expected = expected
-    self.result.pass     = self.result.value == self.result.expected
+    self.result.pass = self.result.value == self.result.expected
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
@@ -68,10 +69,11 @@ end
 
 -- TODO handle negatives
 function Expectation:ToBeNear(expected, deviation)
-    self.result.parameters.method    = "ToBeNear"
-    self.result.parameters.expected  = expected
+    self.result.parameters.method = "ToBeNear"
+    self.result.parameters.expected = expected
     self.result.parameters.deviation = deviation
-    self.result.pass                 = expected - deviation <= self.result.value and self.result.value <= expected + deviation
+    self.result.pass = expected - deviation <= self.result.value and
+                           self.result.value <= expected + deviation
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
@@ -79,9 +81,9 @@ end
 
 function Expectation:ToBeInRange(min, max)
     self.result.method = "ToBeInRange"
-    self.result.min    = min
-    self.result.max    = max
-    self.result.pass   = min <= self.result.value and self.result.value <= max
+    self.result.min = min
+    self.result.max = max
+    self.result.pass = min <= self.result.value and self.result.value <= max
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
@@ -89,22 +91,63 @@ end
 
 -- TODO handle negatives
 function Expectation:ToBeInPercentage(expected, percentage)
-    self.result.method     = "ToBeInPercentage"
-    self.result.expected   = expected
+    self.result.method = "ToBeInPercentage"
+    self.result.expected = expected
     self.result.percentage = percentage
-    self.result.deviation  = expected * percentage
-    self.result.pass       = (self.result.value >= (expected - self.result.deviation)) and 
-                             (self.result.value <= (expected + self.result.deviation))
+    self.result.deviation = expected * percentage
+    self.result.pass =
+        (self.result.value >= (expected - self.result.deviation)) and
+            (self.result.value <= (expected + self.result.deviation))
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
+function Expectation:ToBeGreater(min)
+    self.result.method = "ToBeGreater"
+    self.result.min = min
+    self.result.pass = (self.result.value > min)
+    Orchestrator.AddExpectationResult(self.result)
+    enforce(self)
+
+    return self
+end
+
+function Expectation:ToBeGreaterOrEqual(min)
+    self.result.method = "ToBeGreaterOrEqual"
+    self.result.min = min
+    self.result.pass = (self.result.value >= min)
+    Orchestrator.AddExpectationResult(self.result)
+    enforce(self)
+
+    return self
+end
+
+function Expectation:ToBeLesser(max)
+    self.result.method = "ToBeLesser"
+    self.result.max = max
+    self.result.pass = (self.result.value < max)
+    Orchestrator.AddExpectationResult(self.result)
+    enforce(self)
+
+    return self
+end
+
+function Expectation:ToBeLesserOrEqual(max)
+    self.result.method = "ToBeLesserOrEqual"
+    self.result.max = max
+    self.result.pass = (self.result.value <= max)
+    Orchestrator.AddExpectationResult(self.result)
+    enforce(self)
+
+    return self
+end
+
 function Expectation:ToBeType(expected)
-    self.result.method   = "ToBeType"
+    self.result.method = "ToBeType"
     self.result.expected = expected
-    self.result.type     = type(self.result.value)
-    self.result.pass     = self.result.type == expected
+    self.result.type = type(self.result.value)
+    self.result.pass = self.result.type == expected
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self

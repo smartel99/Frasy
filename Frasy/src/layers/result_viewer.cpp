@@ -306,6 +306,10 @@ std::vector<ResultViewer::ExpectationDetails> ResultViewer::LoadExpectations(con
 
 std::string ResultViewer::MakeStringFromJson(const std::string& key, const nlohmann::json& value)
 {
+    if(value.is_number_float())
+    {
+        return std::format("{}: {:0.6f}", key, value.get<float>());
+    }
     return std::format("{}: {}", key, value.dump(4, true));
 }
 

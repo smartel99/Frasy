@@ -81,7 +81,7 @@ void CheckFundamental(
               std::format("Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
         case sol::type::lua_nil:
             throw std::runtime_error(
-              std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
+              std::format("Cannot assign 'nil' to field '{}' (type id: {})", field.Name, field.Type));
     }
 }
 
@@ -119,7 +119,7 @@ void CheckFieldType(
               "Received type cannot be assigned to field {} (type id: {})", field.Name, field.Type));
         case sol::type::lua_nil:
             throw std::runtime_error(
-              std::format("Cannot assign nil to field {} (type id: {})", field.Name, field.Type));
+              std::format("Cannot assign 'nil' to field '{}' (type id: {})", field.Name, field.Type));
     }
 }
 
@@ -168,7 +168,7 @@ void CheckArgs(
 {
     if (args.size() != fields.size())
     {
-        throw std::logic_error(std::format("Missing arguments! Expected {}, got {}", args.size(), fields.size()));
+        throw std::logic_error(std::format("Missing arguments! Expected {}, got {}", fields.size(), args.size()));
     }
     for (std::size_t i = 0; i < args.size(); ++i)
     {

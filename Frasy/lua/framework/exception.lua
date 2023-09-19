@@ -25,7 +25,8 @@ local exceptions        = {
     "MapperError", -- 9
     "TeamError", -- 10
     "WorkerError", -- 11
-    "GenericError", -- 12
+    "GenerationError", -- 12
+    "GenericError", -- 13
 }
 
 local exceptions_values = {}
@@ -54,6 +55,7 @@ function InvalidStage(what) return populationException(exceptions_values.Invalid
 function MapperError(what) return populationException(exceptions_values.MapperError, what) end
 function TeamError(what) return populationException(exceptions_values.TeamError, what) end
 function WorkerError(what) return populationException(exceptions_values.WorkerError, what) end
+function GenerationError(what) return populationException(exceptions_values.GenerationError, what) end
 function GenericError(what)
     return {
         code = exceptions_values.GenericError.code,

@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/frasy/badge/?version=latest)](https://frasy.readthedocs.io/en/latest/?badge=latest)
+
 # Frasy - Generic Automated Hardware Testing Software
 
 ![logo](doc/assets/img/frasy_logo_light.svg#gh-dark-mode-only)
@@ -50,3 +52,8 @@ Alternatively, invoke Premake directly.
 
 By default, Frasy builds the demonstration mode. The sources for this demo mode can be found [here](Frasy/src/demo_mode).
 To provide your own source code, use the `--src_loc` flag when generating the project files.
+
+## FAQ
+
+### Why is the main branch called Morwenn?
+Because [Morwenn](https://github.com/Morwenn).
