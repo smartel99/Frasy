@@ -71,6 +71,7 @@ ResponsePromise& SerialDevice::Transmit(Packet pkt)
     // our own modified packet, so they will not be "surprised"
     pkt.MakeTransactionId();
     pkt.ComputeCrc();
+    BR_ASSERT(pkt.IsCrcValid(), "Pkt CRC not valid!");
 
     BR_LOG_DEBUG(m_label, "Sending packet '{:08X}'", pkt.Header.TransactionId);
     std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);

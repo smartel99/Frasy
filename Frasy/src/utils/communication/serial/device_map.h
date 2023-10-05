@@ -56,6 +56,12 @@ public:
         return m_devices.at(static_cast<uint8_t>(index));
     }
 
+    [[nodiscard]] bool contains(std::size_t index) const
+    {
+        WaitForScanComplete();
+        return m_devices.contains(index);
+    }
+
     auto begin() noexcept
     {
         WaitForScanComplete();

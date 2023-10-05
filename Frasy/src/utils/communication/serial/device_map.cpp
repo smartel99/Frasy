@@ -26,30 +26,35 @@ namespace Frasy::Communication
 void DeviceMap::ScanForDevices()
 {
     if (IsScanning()) { return; }
-    m_scan_future = std::async(std::launch::async,
-                               [this]()
-                               {
-                                   m_scan_done = false;
+    m_scan_future = std::async(
+      std::launch::async,
+      [this]()
+      {
+          m_scan_done = false;
 
-                                   BR_LOG_INFO(s_tag, "Closing {} serial devices...", m_devices.size());
-                                   m_devices.clear();
+          BR_LOG_INFO(s_tag, "Closing {} serial devices...", m_devices.size());
+          m_devices.clear();
 
-                                   BR_LOG_INFO(s_tag, "Scanning for instrumentation cards...");
+          BR_LOG_INFO(s_tag, "Scanning for instrumentation cards...");
 
-                                   std::vector<Communication::DeviceInfo> devices =
-                                     Communication::EnumerateInstrumentationCards();
-                                   BR_LOG_INFO(s_tag, "{} devices found!", devices.size());
+          std::vector<Communication::DeviceInfo> devices = Communication::EnumerateInstrumentationCards();
+          BR_LOG_INFO(s_tag, "{} devices found!", devices.size());
 
-                                   for (auto&& device : devices)
-                                   {
-                                       m_devices[device.Info.Id] = std::move(SerialDevice(device));
-                                   }
+          for (auto&& device : devices)
+          {
+              m_devices[device.Info.Id] = std::move(SerialDevice(device));
+              // TODO Card identification is slow, it should be done concurrently.
+              // Open and identify the device concurrently, since that process is very long.
+              //              m_devices[device.Info.Id] = std::move(SerialDevice(device, false));
+              //              workers.emplace_back([](SerialDevice& dev) { dev.Open(); },
+              //              std::ref(m_devices[device.Info.Id]));
+          }
 
-                                   m_scan_done = true;
-                                   m_scan_done.notify_all();
+          m_scan_done = true;
+          m_scan_done.notify_all();
 
-                                   return m_devices.size();
-                               });
+          return m_devices.size();
+      });
     if (!m_scan_future.valid()) { BR_LOG_INFO(s_tag, "Failed to start scan task"); }
 }
 

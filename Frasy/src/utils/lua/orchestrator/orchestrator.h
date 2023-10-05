@@ -19,6 +19,7 @@
 
 #include "../../commands/type/struct.h"
 #include "../../communication/serial/device.h"
+#include "../../communication/serial/device_map.h"
 #include "../../concepts.h"
 #include "../../map.h"
 #include "../../UutState.h"
@@ -150,6 +151,13 @@ private:
     bool RunStageVerify(sol::state_view team);
     void RunStageExecute(sol::state_view team, const std::vector<std::string>& serials);
     void CheckResults(const std::vector<std::size_t>& devices);
+
+    [[nodiscard]] static inline Frasy::Communication::SerialDevice& GetDevForIb(std::size_t ib)
+    {
+        Communication::DeviceMap& deviceMap = Communication::DeviceMap::Get();
+        if (!deviceMap.contains(ib)) { throw std::runtime_error(std::format("No IB with ID '{}' found!", ib)); }
+        return deviceMap[ib];
+    }
 
 private:
     std::unique_ptr<sol::state>  m_state     = nullptr;

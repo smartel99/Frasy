@@ -29,10 +29,8 @@
 
 namespace Frasy
 {
-int x[100];
 void MainApplicationLayer::OnAttach()
 {
-    x[100] = 5;
     BR_PROFILE_FUNCTION();
     // Create a white texture to use if the texture files don't exist.
     const auto placeholderTexture = Brigerad::Texture2D::Create(1, 1);
@@ -154,35 +152,6 @@ void MainApplicationLayer::OnEvent(Brigerad::Event& e)
     m_resultViewer->OnEvent(e);
 }
 
-void MainApplicationLayer::RenderControlRoom()
-{
-}
-
-void MainApplicationLayer::MakeLogWindowVisible()
-{
-    m_logWindow->SetVisibility(true);
-}
-
-void MainApplicationLayer::MakeDeviceViewerVisible()
-{
-    m_deviceViewer->SetVisibility(true);
-}
-
-void MainApplicationLayer::MakeResultViewerVisible()
-{
-    m_resultViewer->SetVisibility(true);
-}
-
-void MainApplicationLayer::MakeResultAnalyzerVisible()
-{
-    m_resultAnalyzer->SetVisibility(true);
-}
-
-void MainApplicationLayer::MakeTestViewerVisible()
-{
-    m_testViewer->SetVisibility(true);
-}
-
 void MainApplicationLayer::RenderAbout()
 {
     ImGui::Begin("About", &m_renderAbout);
@@ -213,7 +182,6 @@ void MainApplicationLayer::PresetControlRoomOptions()
     }
     else { flags |= ImGuiWindowFlags_NoBringToFrontOnFocus; }
 
-    auto size = ImGui::GetContentRegionAvail();
     ImGui::SetNextWindowPos(ImGui::GetWindowContentRegionMin(), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImGui::GetWindowContentRegionMax(), ImGuiCond_Always);
 

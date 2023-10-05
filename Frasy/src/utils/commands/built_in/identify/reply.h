@@ -62,11 +62,13 @@ struct Info
     explicit Info(const Reply& reply)
     {
         Uuid    = fmt::format("{:08X}", fmt::join(reply.Uuid, ""));
+        Id      = reply.Id;
         Version = std::string {reply.Version.begin(), reply.Version.end()};
         PrjName = std::string {reply.PrjName.begin(), reply.PrjName.end()};
-        Built   = fmt::format("{} - {}",
-                            std::string {reply.BuildDate.begin(), reply.BuildDate.end()}.c_str(),
-                            std::string {reply.BuildTime.begin(), reply.BuildTime.end()}.c_str());
+        Built   = fmt::format(
+          "{} - {}",
+          std::string {reply.BuildDate.begin(), reply.BuildDate.end()}.c_str(),
+          std::string {reply.BuildTime.begin(), reply.BuildTime.end()}.c_str());
     }
 };    // namespace Frasy::Actions::Identify
 

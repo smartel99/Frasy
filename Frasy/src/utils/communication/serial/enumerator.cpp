@@ -16,9 +16,11 @@
  */
 #include "enumerator.h"
 
+#include "exceptions.h"
 #include "packet.h"
 
 #include <Brigerad/Core/Log.h>
+#include <future>
 #include <optional>
 #include <serial/serial.h>
 
@@ -36,27 +38,53 @@ std::vector<DeviceInfo> EnumerateInstrumentationCards()
 
     BR_LOG_DEBUG(s_tag, "Found {} serial devices", ports.size());
 
+    std::vector<std::future<std::pair<serial::PortInfo, std::optional<Actions::Identify::Info>>>> workers;
+
     for (auto&& port : ports)
     {
-        auto info = IdentifyPort(port);
-        if (info) { devices.emplace_back(DeviceInfo {port.port, *info}); }
+        workers.push_back(std::async(
+          std::launch::async,
+          [](const serial::PortInfo& portInfo) -> std::pair<serial::PortInfo, std::optional<Actions::Identify::Info>>
+          {
+              static constexpr size_t s_maxAttempts = 5;
+              size_t                  attempts      = s_maxAttempts;
+              do {
+                  auto info = IdentifyPort(portInfo);
+                  if (info) { return std::make_pair(portInfo, info); }
+              } while (attempts-- != 0);
+              return std::make_pair(portInfo, std::nullopt);
+          },
+          port));
     }
+
+    for (auto&& worker : workers)
+    {
+        auto [portInfo, boardInfo] = worker.get();
+        if (boardInfo) { devices.emplace_back(DeviceInfo {portInfo.port, *boardInfo}); }
+    }
+
+    //    for (auto&& port : ports)
+    //    {
+    //        auto info = IdentifyPort(port);
+    //        if (info) { devices.emplace_back(DeviceInfo {port.port, *info}); }
+    //    }
 
     return devices;
 }
 
 std::optional<Actions::Identify::Info> IdentifyPort(const serial::PortInfo& info)
 {
-    BR_LOG_DEBUG(s_tag,
-                 "Attempting to identify device on port '{}' (des: {}, id: {})",
-                 info.port,
-                 info.description,
-                 info.hardware_id);
+    BR_LOG_DEBUG(
+      s_tag,
+      "Attempting to identify device on port '{}' (des: {}, id: {})",
+      info.port,
+      info.description,
+      info.hardware_id);
 
     Packet pkt;
     pkt.Header.CommandId = static_cast<cmd_id_t>(Actions::CommandId::Identify);
 
-    std::string packetEnd = std::string(1, Packet::s_packetEndFlag);
+    static std::string packetEnd = std::string(1, Packet::s_packetEndFlag);
     try
     {
         serial::Serial port = serial::Serial(info.port, 460800, serial::Timeout::simpleTimeout(500));
@@ -67,9 +95,15 @@ std::optional<Actions::Identify::Info> IdentifyPort(const serial::PortInfo& info
         port.close();    // We must close serial because it will be reopened later by SerialDevice
         return Actions::Identify::Info(Packet({resp.begin(), resp.end()}).FromPayload<Actions::Identify::Reply>());
     }
+    catch (Frasy::Communication::BasePacketException& e)
+    {
+        // Device on the com port is (probably) supported, but there was an error with the packet.
+        BR_LOG_ERROR(s_tag, "While identifying {}: {}", info.port, e.what());
+    }
     catch (std::exception& e)
     {
-        BR_LOG_ERROR(s_tag, "While identifying {}: {}", info.port, e.what());
+        // Error with the com port itself.
+        BR_LOG_WARN(s_tag, "While identifying {}: {}", info.port, e.what());
     }
 
     return {};

@@ -55,14 +55,15 @@ public:
     void OnEvent(Brigerad::Event& e) override;
 
 protected:
-    virtual void RenderControlRoom();
+    virtual void RenderControlRoom() {}
 
-    virtual void MakeLogWindowVisible();
-    virtual void MakeDeviceViewerVisible();
-    virtual void MakeResultViewerVisible();
-    virtual void MakeResultAnalyzerVisible();
-    virtual void MakeTestViewerVisible();
-    void         RenderAbout();
+    virtual void MakeLogWindowVisible() { m_logWindow->SetVisibility(true); }
+    virtual void MakeDeviceViewerVisible() { m_deviceViewer->SetVisibility(true); }
+    virtual void MakeResultViewerVisible() { m_resultViewer->SetVisibility(true); }
+    virtual void MakeResultAnalyzerVisible() { m_resultAnalyzer->SetVisibility(true); }
+    virtual void MakeTestViewerVisible() { m_testViewer->SetVisibility(true); }
+
+    void RenderAbout();
 
 private:
     void Generate() override;

@@ -13,23 +13,10 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
+local lu = require("lua/core/vendor/luaunit")
+
 local utils = {}
 function utils.tostring(t, lvl)
-    if type(lvl) == "nil" then lvl = 0 end
-
-    local str = ""
-    for _ = 1, (lvl - 1) do str = str .. "    " end
-    if lvl ~= 0 then str = str .. "|--- " end
-
-    if type(t) == "table" or type(t) == "userdata" then
-        for k, v in pairs(t) do
-            str = str .. k .. ":\r\n" .. utils.tostring(v, lvl + 1)
-        end
-    else
-        if type(t) == "string" then t = "\"" .. t .. "\"" end
-        str = str .. tostring(t) .. "\r\n"
-    end
-
-    return str
+    return lu.prettystr(t)
 end
 return utils.tostring

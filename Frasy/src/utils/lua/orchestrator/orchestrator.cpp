@@ -66,7 +66,7 @@ int OnPanic(lua_State* lua)
     luaL_traceback(lua, lua, nullptr, 0);
     msg = lua_tostring(lua, -1);
     BR_LUA_ERROR("{}\n\r", msg);
-//    luaL_dostring(lua, "Log.Error(debug.traceback())");
+    //    luaL_dostring(lua, "Log.Error(debug.traceback())");
 
     return 0;
 }
@@ -200,6 +200,10 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua.script_file("lua/core/sdk/test.lua");
 
         m_populateUserMethods(lua, stage);
+
+        // Debug functionalities.
+        lua.do_file("lua/core/helper/debug.lua");
+
         return true;
     }
     catch (std::exception& e)
@@ -246,7 +250,7 @@ void Orchestrator::LoadIbCommandForValidation(sol::state_view lua, const Frasy::
     lua["Context"]["Testbench"]["commands"][fun.Name] =
       [&, lua](std::size_t ib, sol::variadic_args args) -> std::optional<sol::table>
     {
-        SerialDevice&                    device = devices[ib - 1];
+        SerialDevice&                    device = GetDevForIb(ib);
         std::vector<Type::Struct::Field> fields;
         fields.reserve(fun.Parameters.size());
         for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
@@ -259,16 +263,16 @@ void Orchestrator::LoadIbCommandForValidation(sol::state_view lua, const Frasy::
 
 void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::Actions::CommandInfo::Reply& fun)
 {
-    namespace fc = Frasy::Communication;
-
-    fc::DeviceMap& devices = fc::DeviceMap::Get();
+    using Frasy::Communication::DeviceMap;
+    using Frasy::Communication::SerialDevice;
+    DeviceMap& devices = DeviceMap::Get();
     lua["Context"]["Testbench"]["commands"][fun.Name] =
       [&, lua](std::size_t ib, sol::variadic_args args) mutable -> std::optional<sol::table>
     {
         try
         {
-            fc::SerialDevice&                device = devices[ib - 1];
-            fc::Packet                       packet;
+            SerialDevice&                    device = GetDevForIb(ib);
+            Communication::Packet            packet;
             sol::table                       table = lua.create_table();
             std::vector<Type::Struct::Field> fields;
             fields.reserve(fun.Parameters.size());
@@ -277,7 +281,7 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
             Lua::ParseTable(table, device.GetTypeManager(), fields, packet.Payload);
 
             packet.Header.CommandId     = fun.Id;
-            packet.Header.TransactionId = fc::AUTOMATIC_TRANSACTION_ID;
+            packet.Header.TransactionId = Communication::AUTOMATIC_TRANSACTION_ID;
             packet.UpdatePayloadSize();
             std::size_t          tries = 10;
             std::vector<uint8_t> response;
@@ -285,7 +289,7 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
             {
                 auto resp = device.Transmit(packet).Collect();
                 using Frasy::Actions::CommandId;
-                if (resp.Header.CommandId == static_cast<fc::cmd_id_t>(CommandId::Status))
+                if (resp.Header.CommandId == static_cast<Actions::cmd_id_t>(CommandId::Status))
                 {
                     auto status = resp.FromPayload<Frasy::Actions::Status::Reply>();
                     lua["Log"]["w"](std::format(
@@ -534,7 +538,11 @@ bool Orchestrator::RunStageVerify(sol::state_view team)
 
 void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::string>& serials)
 {
-    bool        hasTeam  = team["Team"]["HasTeam"]();
+    bool hasTeam = team["Team"]["HasTeam"]();
+    /**
+     * A stage is a team (or a group of teams).
+     * This contains a list of all the stages, as per defined by the user's environment file.
+     */
     auto        stages   = team["Context"]["Worker"]["stages"].get<std::vector<sol::object>>();
     std::size_t uutCount = team["Context"]["Map"]["count"]["uut"].get<std::size_t>();
 
@@ -614,6 +622,7 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
     }
     if (hasCrashed()) { return; }
 
+    // Execute the tests.
     for (std::size_t is = 1; is <= m_solution.sections.size(); ++is)
     {
         for (sol::object& stage : stages)

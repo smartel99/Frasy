@@ -12,72 +12,48 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
 Team = {}
 if Context.Team == nil then
-    Context.Team = {
-        players = {},
-        teams   = {},
-        hasTeam = false,
-    }
+    Context.Team = {players = {}, teams = {}, hasTeam = false}
 end
 
-Team.Status = {
-    pass             = 0,
-    fail             = 1,
-    critical_failure = 2,
-}
+Team.Status = {pass = 0, fail = 1, critical_failure = 2}
 
 --- Create a new team
 --- @vararg number the UUT to join the team. Provided in order, first is leader
 function Team.Join(...)
     Context.Team.hasTeam = true
     local leader
-    for index, uut in ipairs({ ... }) do
+    for index, uut in ipairs({...}) do
         if index == 1 then leader = uut end
         if Context.Team.players[uut] ~= nil then
-            TeamError(string.format("Player %d is already in team %d", uut, leader))
+            TeamError(string.format("Player %d is already in team %d", uut,
+                                    leader))
         end
-        Context.Team.players[uut] = { leader = leader, position = index }
+        Context.Team.players[uut] = {leader = leader, position = index}
     end
-    Context.Team.teams[leader] = { ... }
+    Context.Team.teams[leader] = {...}
 end
 
 function Team.Wait(fun)
-    if not Team.IsLeader() then
-        TeamError("Only leader can wait for others")
-    end
-    if fun == nil then
-        TeamError("No routine provided")
-    end
-    if type(fun) ~= "function" then
-        TeamError("Argument is not a function")
-    end
+    if not Team.IsLeader() then TeamError("Only leader can wait for others") end
+    if fun == nil then TeamError("No routine provided") end
+    if type(fun) ~= "function" then TeamError("Argument is not a function") end
     Team.__wait(fun)
 end
 
 function Team.Done()
-    if Team.IsLeader() then
-        TeamError("Only teammate can report as done")
-    end
+    if Team.IsLeader() then TeamError("Only teammate can report as done") end
     Team.__done()
 end
 
-function Team.GetLeader()
-    return Context.Team.players[Context.uut].leader
-end
+function Team.GetLeader() return Context.Team.players[Context.uut].leader end
 
-function Team.IsLeader()
-    return Context.Team.players[Context.uut].position == 1
-end
+function Team.IsLeader() return Context.Team.players[Context.uut].position == 1 end
 
-function Team.Position()
-    return Context.Team.players[Context.uut].position
-end
+function Team.Position() return Context.Team.players[Context.uut].position end
 
-function Team.Tell(value)
-    Team.__tell(value)
-end
+function Team.Tell(value) Team.__tell(value) end
 
 function Team.Get()
     local result = Team.__get()
@@ -98,10 +74,10 @@ function Team.Sync(result)
         team_status = Team.__sync(status)
         if team_status ~= status then
             if team_status == Team.Status.fail then
-                result.pass   = false
+                result.pass = false
                 result.reason = "Teammate failure"
             elseif team_status == Team.Status.critical_failure then
-                result.pass   = false
+                result.pass = false
                 result.reason = "Teammate critical failure"
                 error(TeamError("Teammate critical failure"))
             else
@@ -111,15 +87,9 @@ function Team.Sync(result)
     end
 end
 
-function Team.Fail()
-    if (Team.HasTeam()) then
-        Team.__fail()
-    end
-end
+function Team.Fail() if (Team.HasTeam()) then Team.__fail() end end
 
-function Team.HasTeam()
-    return Context.Team.hasTeam
-end
+function Team.HasTeam() return Context.Team.hasTeam end
 
 -- C++ calls
 function Team.__tell(value) end
@@ -142,22 +112,22 @@ function team.validate()
         playersCount = playersCount + 1
     end
     if playersCount ~= Context.Map.count.uut then
-        error(TeamError(string.format(
-                "Expected %d players, got %d",
-                Context.Map.count.uut, playersCount)))
+        error(TeamError(string.format("Expected %d players, got %d",
+                                      Context.Map.count.uut, playersCount)))
     end
 
-    for leader, players in ipairs(Context.Team.teams) do
-        local teamIb = Context.Map.uut[leader].ib
-        for uut, info in pairs(players) do
-            local playerIb = Context.Map.uut[uut].ib
-            if playerIb ~= teamIb then
-                error(TeamError(string.format(
-                        "IB missmatch. Team %d IB is %d, Player %d IB is %d",
-                        leader, teamIb, uut, playerIb)))
-            end
-        end
-    end
+    -- What does this even do? This prevents UUTs of *different* teams to be on different IBs...
+    -- for leader, players in ipairs(Context.Team.teams) do
+    --     local teamIb = Context.Map.uut[leader].ib
+    --     for uut, info in pairs(players) do
+    --         local playerIb = Context.Map.uut[uut].ib
+    --         if playerIb ~= teamIb then
+    --             error(TeamError(string.format(
+    --                     "IB missmatch. Team %d IB is %d, Player %d IB is %d",
+    --                     leader, teamIb, uut, playerIb)))
+    --         end
+    --     end
+    -- end
 
     Log.d("Team OK!")
 end

@@ -12,12 +12,22 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
 return function(error)
     local level = 2
     if not (type(error) == "string") then
         level = 2
         error = error.what
     end
-    return tostring(debug.traceback(error, level))
+
+    local traceback = debug.traceback(error, level)
+
+    -- local what = "flnrStu"
+    -- local info = debug.getinfo(level, what)
+    -- while type(info) == "table" do
+    --     Log.d("Level " .. level .. ":\n" .. Utils.tostring(info))
+    --     level = level + 1
+    --     info = debug.getinfo(level, what)
+    -- end
+
+    return traceback
 end
