@@ -12,10 +12,11 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
 Context = {
     version = "0.0.0",
-    uut     = 0,
-    stage   = Stage.Idle,
-    time    = { start = 0, stop = 0, elapsed = 0, process = 0 },
+    uut = 0,
+    stage = Stage.Idle,
+    operator = "",
+    serial = "",
+    time = {start = 0, stop = 0, elapsed = 0, process = 0},
 }

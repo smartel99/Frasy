@@ -12,8 +12,11 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-if Context.Testbench == nil then Context.Testbench = { commands = {} } end
+--- @class Testbench
+--- @field private commands table List of all the commands supported by the instrumentation board.
+--- @field private ibUsed table List of the instrumentation boards that were accessed during the test.
+if Context.Testbench == nil then Context.Testbench =
+    {commands = {}, ibUsed = {}} end
 
 --- Request the testbench to execute a command
 --- Allows testbench to know on which board to run a command
@@ -27,29 +30,43 @@ if Context.Testbench == nil then Context.Testbench = { commands = {} } end
 function Testbench(command, executor, ...)
     local args = {...}
     local tps = {}
-    local ib  = 0
+    local ib = 0
     local uut = Context.uut
 
     -- Get the test points for the current UUT.
     for _, tp in ipairs(args) do
         -- TODO: make an error message pop if the test point does not exist.
-        if tp[uut] == nil then error(string.format("UUT %d does not have the #%d provided test point", uut, _)) end
+        if tp[uut] == nil then
+            error(string.format(
+                      "UUT %d does not have the #%d provided test point", uut, _))
+        end
         table.insert(tps, tp[uut].tp)
-        if ib ~= 0 and ib ~= tp[uut].ib then error("Requesting TP on different IB") end
+        if ib ~= 0 and ib ~= tp[uut].ib then
+            error("Requesting TP on different IB")
+        end
         ib = tp[uut].ib
     end
 
     if command == nil then error("A command needs to be provided!") end
-    if executor == nil then error("An executor function needs to be provided!") end
+    if executor == nil then
+        error("An executor function needs to be provided!")
+    end
     if ib == 0 then error("No board selected") end
     local cmd = Context.Testbench.commands[command]
     if cmd == nil then error(string.format("Unknown command: %s", command)) end
 
+    -- Remember than we've used this instrumentation board for the logs.
+    if Context.Testbench.ibUsed[ib] == nil then
+        Context.Testbench.ibUsed[ib] = true
+    end
+
     return executor(function(...)
-        local args   = { ... }
+        local args = {...}
         local result = cmd(ib, table.unpack(args))
-        if type(result) == "table" then return table.unpack(result)
-        else return result
+        if type(result) == "table" then
+            return table.unpack(result)
+        else
+            return result
         end
     end, table.unpack(tps))
 end

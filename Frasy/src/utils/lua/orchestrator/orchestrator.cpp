@@ -159,6 +159,26 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["Context"]["stage"]   = lua["Stage"][stage2str(stage)];
         lua["Context"]["uut"]     = uut;
         lua["Context"]["version"] = "0.1.0";
+
+        // TODO Add information from instrumentation card to context.
+        auto& devices = Communication::DeviceMap::Get();
+        if (!devices.IsScanning())
+        {
+            // We would block the thread if the devices are currently being scanned.
+            lua["Context"]["ibs"] = lua.create_table(0, devices.size());
+            for (auto&& [id, info] : devices)
+            {
+                const auto& deviceInfo = info.GetInfo();
+
+                lua["Context"]["ibs"][id]       = lua.create_table(0, 5);
+                lua["Context"]["ibs"][id]["Uuid"]    = deviceInfo.Uuid;
+                lua["Context"]["ibs"][id]["Id"]      = deviceInfo.Id;
+                lua["Context"]["ibs"][id]["Version"] = deviceInfo.Version;
+                lua["Context"]["ibs"][id]["PrjName"] = deviceInfo.PrjName;
+                lua["Context"]["ibs"][id]["Built"]   = deviceInfo.Built;
+            }
+        }
+
         std::atomic_thread_fence(std::memory_order_release);
 
         // Utils
