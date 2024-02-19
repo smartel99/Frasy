@@ -170,12 +170,19 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             {
                 const auto& deviceInfo = info.GetInfo();
 
-                lua["Context"]["ibs"][id]       = lua.create_table(0, 5);
-                lua["Context"]["ibs"][id]["Uuid"]    = deviceInfo.Uuid;
-                lua["Context"]["ibs"][id]["Id"]      = deviceInfo.Id;
-                lua["Context"]["ibs"][id]["Version"] = deviceInfo.Version;
-                lua["Context"]["ibs"][id]["PrjName"] = deviceInfo.PrjName;
-                lua["Context"]["ibs"][id]["Built"]   = deviceInfo.Built;
+                lua["Context"]["ibs"][id]         = lua.create_table(0, 5);
+                lua["Context"]["ibs"][id]["Uuid"] = deviceInfo.Uuid;
+                lua["Context"]["ibs"][id]["Id"]   = deviceInfo.Id;
+
+                auto trim = [](std::string_view s)
+                {
+                    size_t pos = s.find_last_not_of('\u0000');
+                    return s.substr(0, pos + 1);
+                };
+
+                lua["Context"]["ibs"][id]["Version"] = trim(deviceInfo.Version);
+                lua["Context"]["ibs"][id]["PrjName"] = trim(deviceInfo.PrjName);
+                lua["Context"]["ibs"][id]["Built"]   = trim(deviceInfo.Built);
             }
         }
 

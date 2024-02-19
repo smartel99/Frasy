@@ -385,7 +385,6 @@ function Orchestrator.CompileExecutionResults(outputDir)
 
     for ib, _ in pairs(Context.Testbench.ibUsed) do
         local ibInfo = Context.ibs[ib]
-        Log.i(string.format("%d:\n%s", ib, Utils.tostring(ibInfo)))
         table.insert(report.info.ib, ibInfo)
     end
 
