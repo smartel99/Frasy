@@ -259,6 +259,7 @@ function m.generate(prj)
             standard["C++14"] = 14
             standard["C++17"] = 17
             standard["C++20"] = 20
+            standard["C++latest"] = 23
             standard["gnu++98"] = 98
             standard["gnu++11"] = 11
             standard["gnu++14"] = 14

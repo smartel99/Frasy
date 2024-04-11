@@ -10,8 +10,8 @@
  *
  ******************************************************************************
  */
-#ifndef _Layer
-#    define _Layer
+#ifndef BRIGERAD_CORE_LAYER_H
+#    define BRIGERAD_CORE_LAYER_H
 
 /*****************************************************************************/
 /* Includes */
@@ -21,8 +21,7 @@
 
 #    include <string>
 
-namespace Brigerad
-{
+namespace Brigerad {
 /*****************************************************************************/
 /* Exported defines */
 
@@ -31,8 +30,7 @@ namespace Brigerad
 
 /*****************************************************************************/
 /* Exported types */
-class BRIGERAD_API Layer
-{
+class BRIGERAD_API Layer {
 public:
     Layer(const std::string& name = "Layer");
     virtual ~Layer();
@@ -58,7 +56,7 @@ protected:
 
 }    // namespace Brigerad
 /* Have a wonderful day :) */
-#endif /* _Layer */
+#endif /* BRIGERAD_CORE_LAYER_H */
 /**
  * @}
  */

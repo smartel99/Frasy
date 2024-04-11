@@ -11,16 +11,15 @@
  ******************************************************************************
  */
 
-#include "Brigerad.h"
-#include "Brigerad/Core/EntryPoint.h"
-#include "frasy_interpreter.h"
 #include "layers/my_main_application_layer.h"
+#include <Brigerad.h>
+#include <Brigerad/Core/EntryPoint.h>
+#include <frasy_interpreter.h>
 
 #include <string>
 
 
-class MyFrasyInterpreter : public Frasy::FrasyInterpreter
-{
+class MyFrasyInterpreter : public Frasy::FrasyInterpreter {
 public:
     MyFrasyInterpreter() : FrasyInterpreter("Frasy - Demo Mode") { PushLayer(new MyMainApplicationLayer()); }
 };

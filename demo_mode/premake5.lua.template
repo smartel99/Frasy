@@ -22,13 +22,13 @@ workspace "Demo"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-include "Frasy"
+-- include "Frasy"
 
 project "Demo"
     kind "ConsoleApp"
 
     language "C++"
-    cppdialect "C++20"
+    cppdialect "C++latest"
     staticruntime "On"
 
     targetdir("bin/" .. outputdir .. "/%{prj.name}")

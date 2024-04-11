@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿#ifndef BRIGERAD_H
+#define BRIGERAD_H
 
 // For use by Brigerad applications.
 
@@ -30,3 +31,5 @@
 #include "Brigerad/Renderer/FrameBuffer.h"
 
 #include "Brigerad/Renderer/OrthographicCamera.h"
+
+#endif

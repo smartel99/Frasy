@@ -37,14 +37,17 @@
 
 /*****************************************************************************/
 /* Exported types */
-namespace Frasy
-{
+namespace Frasy {
 class LogWindow;
 
-class MainApplicationLayer : public Brigerad::Layer, public Frasy::TestViewer::Interface
-{
+class MainApplicationLayer : public Brigerad::Layer, public Frasy::TestViewer::Interface {
 public:
-    MainApplicationLayer()           = default;
+    MainApplicationLayer()                                       = default;
+    MainApplicationLayer(const MainApplicationLayer&)            = delete;
+    MainApplicationLayer& operator=(const MainApplicationLayer&) = delete;
+    MainApplicationLayer(MainApplicationLayer&&)                 = delete;
+    MainApplicationLayer& operator=(MainApplicationLayer&&)      = delete;
+
     ~MainApplicationLayer() override = default;
 
     void OnAttach() override;

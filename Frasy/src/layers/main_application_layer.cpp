@@ -29,10 +29,8 @@
 
 namespace Frasy
 {
-int x[100];
 void MainApplicationLayer::OnAttach()
 {
-    x[100] = 5;
     BR_PROFILE_FUNCTION();
     // Create a white texture to use if the texture files don't exist.
     const auto placeholderTexture = Brigerad::Texture2D::Create(1, 1);

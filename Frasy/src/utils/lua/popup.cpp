@@ -22,21 +22,18 @@
 #include <format>
 #include <imgui.h>
 
-namespace Frasy::Lua
-{
+namespace Frasy::Lua {
 Popup::Popup(std::size_t uut, sol::table builder)
 {
     bool global = builder["global"];
-    m_name      = builder["name"];
+    m_name      = builder["name"].operator std::string();
     m_routine   = builder["routine"].get<sol::function>();
-    if (!global) m_name = std::format("UUT{} - {}", uut, m_name);
+    if (!global) { m_name = std::format("UUT{} - {}", uut, m_name); }
     auto elements = builder["elements"].get<std::vector<sol::table>>();
-    for (const auto& element : elements)
-    {
+    for (const auto& element : elements) {
         auto kind = element["kind"].get<Popup::Element::Kind>();
         auto text = element["value"].get<std::string>();
-        switch (kind)
-        {
+        switch (kind) {
             case Popup::Element::Kind::Text: m_elements.push_back(std::make_unique<Text>(text)); break;
             case Popup::Element::Kind::Input:
                 m_elements.push_back(std::make_unique<Input>(text, m_inputs.size()));
@@ -53,21 +50,22 @@ std::string Popup::GetName(std::size_t uut, sol::table builder)
 {
     bool        global = builder["global"];
     std::string name   = builder["name"];
-    if (!global) name = std::format("UUT{} - {}", uut, name);
+    if (!global) { name = std::format("UUT{} - {}", uut, name); }
     return name;
 }
 
 void Popup::Routine(bool once)
 {
     using namespace std::chrono_literals;
-    if (once) m_consumed = true;
+    if (once) { m_consumed = true; }
     do {
-        if (m_routine)
-        {
+        if (m_routine) {
             std::lock_guard lock {m_luaMutex};
-            (*m_routine)(m_inputs);
+                            (*m_routine)(m_inputs);
         }
-        else { std::this_thread::sleep_for(10ms); }
+        else {
+            std::this_thread::sleep_for(10ms);
+        }
     } while (!m_consumed);
 }
 
@@ -83,31 +81,25 @@ void Popup::Render()
 
     auto renderText = [](Text* element) { ImGui::Text("%s", element->text.c_str()); };
 
-    auto renderInput = [&](Input* element, std::size_t index)
-    {
-        if (!element->text.empty())
-        {
+    auto renderInput = [&](Input* element, std::size_t index) {
+        if (!element->text.empty()) {
             ImGui::Text("%s", element->text.c_str());
             ImGui::SameLine();
         }
         if (ImGui::InputText("##", element->vBuf, element->vBufLen)) { m_inputs[element->index] = element->vBuf; }
     };
 
-    auto renderButton = [&](Button* element, std::size_t index)
-    {
-        if (ImGui::Button(element->text.c_str()))
-        {
+    auto renderButton = [&](Button* element, std::size_t index) {
+        if (ImGui::Button(element->text.c_str())) {
             std::lock_guard lock {m_luaMutex};
             element->action(m_inputs);
         }
     };
 
-    for (std::size_t i = 0; i < m_elements.size(); ++i)
-    {
+    for (std::size_t i = 0; i < m_elements.size(); ++i) {
         auto& element = m_elements[i];
         ImGui::PushID(std::format("Element {}", i).c_str());
-        switch (element->kind)
-        {
+        switch (element->kind) {
             case Element::Kind::Text: renderText(static_cast<Text*>(element.get())); break;
             case Element::Kind::Input: renderInput(static_cast<Input*>(element.get()), i); break;
             case Element::Kind::Button: renderButton(static_cast<Button*>(element.get()), i); break;
