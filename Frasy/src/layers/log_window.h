@@ -40,9 +40,9 @@ public:
 
     [[nodiscard]] const LogWindowOptions& GetLogOptions() const noexcept { return m_options; }
 
-    void OnAttach() override;
-    void OnDetach() override;
-    void OnImGuiRender() override;
+    void onAttach() override;
+    void onDetach() override;
+    void onImGuiRender() override;
 
     void SetVisibility(bool visibility) noexcept;
 

@@ -32,7 +32,7 @@ Config::Config(const std::string& path) : m_path(path)
     j.close();
 }
 
-Config Config::Load(const std::string& path)
+Config Config::load(const std::string& path)
 {
     return Config(path);
 }

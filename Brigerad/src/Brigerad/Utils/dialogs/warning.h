@@ -30,7 +30,7 @@ void WarningDialogImpl(std::string_view title, const std::string& msg);
 }
 
 template<typename... Args>
-void WarningDialog(std::string_view title, std::string_view msg, Args&&... args)
+void warningDialog(std::string_view title, std::string_view msg, Args&&... args)
 {
     std::string fmtMessage = std::vformat(msg, std::make_format_args(args...));
     Details::WarningDialogImpl(title, fmtMessage);

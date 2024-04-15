@@ -29,7 +29,7 @@
 
 namespace Frasy
 {
-void MainApplicationLayer::OnAttach()
+void MainApplicationLayer::onAttach()
 {
     BR_PROFILE_FUNCTION();
     // Create a white texture to use if the texture files don't exist.
@@ -55,44 +55,44 @@ void MainApplicationLayer::OnAttach()
     m_testViewer     = std::make_unique<TestViewer>();
     m_testViewer->SetInterface(this);
 
-    m_logWindow->OnAttach();
-    m_deviceViewer->OnAttach();
-    m_resultViewer->OnAttach();
-    m_resultAnalyzer->OnAttach();
-    m_testViewer->OnAttach();
+    m_logWindow->onAttach();
+    m_deviceViewer->onAttach();
+    m_resultViewer->onAttach();
+    m_resultAnalyzer->onAttach();
+    m_testViewer->onAttach();
 }
 
 
-void MainApplicationLayer::OnDetach()
+void MainApplicationLayer::onDetach()
 {
     BR_PROFILE_FUNCTION();
 
-    m_logWindow->OnDetach();
-    m_deviceViewer->OnDetach();
-    m_resultViewer->OnDetach();
-    m_testViewer->OnDetach();
-    m_resultAnalyzer->OnDetach();
+    m_logWindow->onDetach();
+    m_deviceViewer->onDetach();
+    m_resultViewer->onDetach();
+    m_testViewer->onDetach();
+    m_resultAnalyzer->onDetach();
 }
 
 
-void MainApplicationLayer::OnUpdate(Brigerad::Timestep ts)
+void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
 {
     BR_PROFILE_FUNCTION();
 
-    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F2)) { MakeLogWindowVisible(); }
-    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F3)) { MakeDeviceViewerVisible(); }
-    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F4)) { MakeResultViewerVisible(); }
-    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F5)) { MakeResultAnalyzerVisible(); }
-    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F6)) { MakeTestViewerVisible(); }
-    m_logWindow->OnUpdate(ts);
-    m_deviceViewer->OnUpdate(ts);
-    m_resultViewer->OnUpdate(ts);
-    m_testViewer->OnUpdate(ts);
-    m_resultAnalyzer->OnUpdate(ts);
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F2)) { makeLogWindowVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F3)) { MakeDeviceViewerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F4)) { MakeResultViewerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F5)) { MakeResultAnalyzerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F6)) { MakeTestViewerVisible(); }
+    m_logWindow->onUpdate(ts);
+    m_deviceViewer->onUpdate(ts);
+    m_resultViewer->onUpdate(ts);
+    m_testViewer->onUpdate(ts);
+    m_resultAnalyzer->onUpdate(ts);
 }
 
 
-void MainApplicationLayer::OnImGuiRender()
+void MainApplicationLayer::onImGuiRender()
 {
     BR_PROFILE_FUNCTION();
     if (ImGui::BeginMenuBar())
@@ -107,7 +107,7 @@ void MainApplicationLayer::OnImGuiRender()
 
         if (ImGui::BeginMenu("View"))
         {
-            if (ImGui::MenuItem("Logger", "F2")) { MakeLogWindowVisible(); }
+            if (ImGui::MenuItem("Logger", "F2")) { makeLogWindowVisible(); }
             if (ImGui::MenuItem("Device Viewer", "F3")) { MakeDeviceViewerVisible(); }
             if (ImGui::MenuItem("Result Viewer", "F4")) { MakeResultViewerVisible(); }
             if (ImGui::MenuItem("Result Analyzer", "F5")) { MakeResultAnalyzerVisible(); }
@@ -131,13 +131,13 @@ void MainApplicationLayer::OnImGuiRender()
     }
 
     PresetControlRoomOptions();
-    RenderControlRoom();
+    renderControlRoom();
 
-    m_logWindow->OnImGuiRender();
-    m_deviceViewer->OnImGuiRender();
-    m_resultViewer->OnImGuiRender();
-    m_resultAnalyzer->OnImGuiRender();
-    m_testViewer->OnImGuiRender();
+    m_logWindow->onImGuiRender();
+    m_deviceViewer->onImGuiRender();
+    m_resultViewer->onImGuiRender();
+    m_resultAnalyzer->onImGuiRender();
+    m_testViewer->onImGuiRender();
 
     m_orchestrator.RenderPopups();
 }
@@ -152,23 +152,23 @@ void MainApplicationLayer::OnEvent(Brigerad::Event& e)
     m_resultViewer->OnEvent(e);
 }
 
-void MainApplicationLayer::RenderControlRoom()
+void MainApplicationLayer::renderControlRoom()
 {
 }
 
-void MainApplicationLayer::MakeLogWindowVisible()
+void MainApplicationLayer::makeLogWindowVisible()
 {
     m_logWindow->SetVisibility(true);
 }
 
 void MainApplicationLayer::MakeDeviceViewerVisible()
 {
-    m_deviceViewer->SetVisibility(true);
+    m_deviceViewer->setVisibility(true);
 }
 
 void MainApplicationLayer::MakeResultViewerVisible()
 {
-    m_resultViewer->SetVisibility(true);
+    m_resultViewer->setVisibility(true);
 }
 
 void MainApplicationLayer::MakeResultAnalyzerVisible()

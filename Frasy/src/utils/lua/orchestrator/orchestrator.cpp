@@ -73,7 +73,7 @@ int OnPanic(lua_State* lua)
 }    // namespace
 
 
-bool Orchestrator::LoadUserFiles(const std::string& environment, const std::string& testsDir)
+bool Orchestrator::loadUserFiles(const std::string& environment, const std::string& testsDir)
 {
     m_popupMutex = std::make_unique<std::mutex>();
     m_state      = std::make_unique<sol::state>();
@@ -95,14 +95,14 @@ bool Orchestrator::LoadUserFiles(const std::string& environment, const std::stri
 
 void Orchestrator::RunSolution(const std::vector<std::string>& serials, bool regenerate, bool skipVerification)
 {
-    if (IsRunning())
+    if (isRunning())
     {
-        Brigerad::WarningDialog("Frasy", "Test is already running!");
+        Brigerad::warningDialog("Frasy", "Test is already running!");
         return;
     }
     if (m_map.count.uut == 0)
     {
-        Brigerad::WarningDialog("Frasy", "No UUTs to test!");
+        Brigerad::warningDialog("Frasy", "No UUTs to test!");
         return;
     }
     m_running = std::async(
@@ -219,10 +219,10 @@ void Orchestrator::LoadIb(sol::state_view lua)
     DeviceMap& devices = DeviceMap::Get();
 
     if (devices.empty()) { throw std::runtime_error("No devices connected!"); }
-    else if (devices.IsScanning()) { throw std::runtime_error("Cannot load IB when DeviceMap is scanning"); }
+    else if (devices.isScanning()) { throw std::runtime_error("Cannot load IB when DeviceMap is scanning"); }
 
     SerialDevice& device = devices.begin()->second;
-    for (const auto& [_, e] : device.GetEnums())
+    for (const auto& [_, e] : device.getEnums())
     {
         lua.create_named_table(e.Name);
         for (const auto& field : e.Fields) { lua[e.Name][field.Name] = field.Value; }
@@ -231,7 +231,7 @@ void Orchestrator::LoadIb(sol::state_view lua)
     bool isExecution = lua["Context"]["stage"].get<int>() == lua["Stage"]["Execution"].get<int>();
 
     BR_LUA_DEBUG("Loading commands");
-    for (const auto& [id, fun] : device.GetCommands())
+    for (const auto& [id, fun] : device.getCommands())
     {
         if (isExecution) { LoadIbCommandForExecution(lua, fun); }
         else { LoadIbCommandForValidation(lua, fun); }
@@ -252,7 +252,7 @@ void Orchestrator::LoadIbCommandForValidation(sol::state_view lua, const Frasy::
         for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
         CheckArgs(lua, device.GetTypeManager(), fields, args);
 
-        Lua::DummyDeserializer deserializer {lua, fun.Returns, device.GetStructs(), device.GetEnums()};
+        Lua::DummyDeserializer deserializer {lua, fun.Returns, device.getStructs(), device.getEnums()};
         return deserializer.Deserialize();
     };
 }
@@ -283,7 +283,7 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
             std::vector<uint8_t> response;
             while (tries-- != 0)
             {
-                auto resp = device.Transmit(packet).Collect();
+                auto resp = device.transmit(packet).Collect();
                 using Frasy::Actions::CommandId;
                 if (resp.Header.CommandId == static_cast<fc::cmd_id_t>(CommandId::Status))
                 {
@@ -303,7 +303,7 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
                 using namespace std::chrono_literals;
                 std::this_thread::sleep_for(50ms);
             }
-            Lua::Deserializer deserializer {lua, fun.Returns, device.GetStructs(), device.GetEnums()};
+            Lua::Deserializer deserializer {lua, fun.Returns, device.getStructs(), device.getEnums()};
             auto              b = response.begin();
             auto              e = response.end();
             return deserializer.Deserialize(b, e);
@@ -721,7 +721,7 @@ void Orchestrator::CheckResults(const std::vector<std::size_t>& devices)
 
 void Orchestrator::ToggleUut(std::size_t index)
 {
-    if (IsRunning()) { return; }
+    if (isRunning()) { return; }
     auto state   = m_uutStates[index] == UutState::Disabled ? UutState::Idle : UutState::Disabled;
     bool hasTeam = (*m_state)["Team"]["HasTeam"]();
     if (hasTeam)
@@ -735,9 +735,9 @@ void Orchestrator::ToggleUut(std::size_t index)
 
 void Orchestrator::Generate()
 {
-    if (IsRunning())
+    if (isRunning())
     {
-        Brigerad::WarningDialog("Frasy", "Orchestrator is busy");
+        Brigerad::warningDialog("Frasy", "Orchestrator is busy");
         return;
     }
 
@@ -754,7 +754,7 @@ void Orchestrator::SetSequenceEnable(const std::string& sequence, bool enable)
     m_solution.SetSequenceEnable(sequence, enable);
 }
 
-bool Orchestrator::IsRunning() const
+bool Orchestrator::isRunning() const
 {
     using namespace std::chrono_literals;
     return m_running.valid() && m_running.wait_for(10us) == std::future_status::timeout;
@@ -765,7 +765,7 @@ bool Orchestrator::IsRunning() const
     return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
 }
 
-void Orchestrator::SetPopulateUserMethodsCallback(std::function<void(sol::state_view, Stage)> callback)
+void Orchestrator::setPopulateUserMethodsCallback(std::function<void(sol::state_view, Stage)> callback)
 {
     m_populateUserMethods = callback;
 }

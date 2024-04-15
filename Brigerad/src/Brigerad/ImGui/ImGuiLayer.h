@@ -13,10 +13,10 @@ public:
     ImGuiLayer();
     ~ImGuiLayer() override;
 
-    virtual void OnAttach() override;
-    virtual void OnDetach() override;
+    virtual void onAttach() override;
+    virtual void onDetach() override;
     virtual void OnEvent(Event& event) override;
-    virtual void OnImGuiRender() override;
+    virtual void onImGuiRender() override;
 
     void        Begin();
     void        End();

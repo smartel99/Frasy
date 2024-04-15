@@ -25,7 +25,7 @@ ResultViewer::ResultViewer() noexcept : m_logs(LoadLogs(true))
 {
 }
 
-void ResultViewer::OnImGuiRender()
+void ResultViewer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
 
@@ -105,7 +105,7 @@ void ResultViewer::RenderLog(const OverallTestResult& log)
 void ResultViewer::RenderSequence(const ResultViewer::SequenceResult& sequence)
 {
     ImGui::Text("Name: %s - %s", sequence.Name.c_str(), sequence.Passed ? "PASSED" : "FAILED");
-    ImGui::Text("Skipped: %s, Enabled: %s", sequence.Skipped ? "True" : "False", sequence.Enabled ? "True" : "False");
+    ImGui::Text("Skipped: %s, enabled: %s", sequence.Skipped ? "True" : "False", sequence.Enabled ? "True" : "False");
     ImGui::Text("Duration: %0.3f seconds", sequence.Duration);
 
     for (auto&& [testName, test] : sequence.Tests)
@@ -123,7 +123,7 @@ void ResultViewer::RenderSequence(const ResultViewer::SequenceResult& sequence)
 void ResultViewer::RenderTest(const ResultViewer::TestResult& test)
 {
     ImGui::Text("Name: %s - %s", test.Name.c_str(), test.Passed ? "PASSED" : "FAILED");
-    ImGui::Text("Skipped: %s, Enabled: %s", test.Skipped ? "True" : "False", test.Enabled ? "True" : "False");
+    ImGui::Text("Skipped: %s, enabled: %s", test.Skipped ? "True" : "False", test.Enabled ? "True" : "False");
     ImGui::Text("Duration: %0.3f seconds", test.Duration);
 
     if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed, ImGuiCond_Always); }
@@ -156,7 +156,7 @@ void ResultViewer::RenderExpectation(const ResultViewer::ExpectationDetails& exp
     for (const auto& [key, value] : expectation) { ImGui::TextWrapped("%s", MakeStringFromJson(key, value).c_str()); }
 }
 
-void ResultViewer::SetVisibility(bool visibility)
+void ResultViewer::setVisibility(bool visibility)
 {
     m_isVisible = visibility;
     ImGui::SetWindowFocus(s_windowName);

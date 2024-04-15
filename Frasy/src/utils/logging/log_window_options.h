@@ -48,7 +48,7 @@ struct LogWindowOptions
     LogWindowOptions() noexcept = default;
     explicit LogWindowOptions(const Config& cfg) noexcept
     {
-#define LOAD_FIELD(v) v = cfg.GetField<decltype(v)>(#v, this->v)
+#define LOAD_FIELD(v) v = cfg.getField<decltype(v)>(#v, this->v)
         LOAD_FIELD(EntriesToShow);
         LOAD_FIELD(AutoScroll);
         LOAD_FIELD(CombineLoggers);
@@ -60,7 +60,7 @@ struct LogWindowOptions
 #undef LOAD_FIELD
 
         // Load the configured logger levels.
-        auto loggers = cfg.GetField("Loggers");
+        auto loggers = cfg.getField("Loggers");
         for (auto&& logger : loggers)
         {
             try
@@ -79,7 +79,7 @@ struct LogWindowOptions
     {
         Config cfg = {};
 
-#define SET_FIELD(v) cfg.SetField(#v, v)
+#define SET_FIELD(v) cfg.setField(#v, v)
         SET_FIELD(EntriesToShow);
         SET_FIELD(AutoScroll);
         SET_FIELD(CombineLoggers);
@@ -97,7 +97,7 @@ struct LogWindowOptions
         {
             if (ptr->level() != Brigerad::Log::s_defaultLevel) { loggerLevels[name] = ptr->level(); }
         }
-        cfg.SetField("Loggers", loggerLevels);
+        cfg.setField("Loggers", loggerLevels);
 
         return cfg;
     }

@@ -28,13 +28,13 @@ namespace Frasy
 {
 LogWindow::LogWindow() noexcept
 {
-    Config cfg = FrasyInterpreter::Get().GetConfig().GetField("LogWindow");
+    Config cfg = FrasyInterpreter::Get().getConfig().getField("LogWindow");
     m_options  = LogWindowOptions(cfg);
 
     m_renderLoggersFunc = m_options.CombineLoggers ? &RenderCombinedLoggers : &RenderSeparateLoggers;
 }
 
-void LogWindow::OnAttach()
+void LogWindow::onAttach()
 {
     BR_PROFILE_FUNCTION();
 
@@ -44,16 +44,16 @@ void LogWindow::OnAttach()
     Brigerad::Log::AddSink(m_sink);
 }
 
-void LogWindow::OnDetach()
+void LogWindow::onDetach()
 {
     BR_PROFILE_FUNCTION();
 
-    FrasyInterpreter::Get().GetConfig().SetField("LogWindow", m_options.Serialize());
+    FrasyInterpreter::Get().getConfig().setField("LogWindow", m_options.Serialize());
 
     Brigerad::Log::RemoveSink(m_sink);
 }
 
-void LogWindow::OnImGuiRender()
+void LogWindow::onImGuiRender()
 {
     BR_PROFILE_FUNCTION();
 

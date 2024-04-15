@@ -40,40 +40,40 @@ std::optional<std::string> SaveFile(const std::string&              title       
 
 /**
  * Displays a dialog window that prompts the user to select a file to open.
- * @param title Title of the dialog window. Defaults to "Open File"
+ * @param title Title of the dialog window. Defaults to "open File"
  * @param defaultPathAndFile Path and filename with which the dialog window first appears.
  *                           Defaults to the current working directory and no filename.
  * @param filters List of filters to be used by the dialog. They usually take the form of ".extension", but can be any string.
  * @param filterDescription String displayed by the dialog to describe the filters.
  * @return The path of the file that the user has selected, or nothing if the user clicked on cancel.
  */
-std::optional<std::string> OpenFile(const std::string&              title              = "Open File",
+std::optional<std::string> OpenFile(const std::string&              title              = "open File",
                                     const std::string&              defaultPathAndFile = {},
                                     const std::vector<std::string>& filters            = {},
                                     const std::string&              filterDescription  = {});
 
 /**
  * Displays a dialog window that prompts the user to select one or more files to open.
- * @param title Title of the dialog window. Defaults to "Open Files".
+ * @param title Title of the dialog window. Defaults to "open Files".
  * @param defaultPathAndFile Path and filename with which the dialog window first appears.
  *                           Defaults to the current working directory and no filename.
  * @param filters List of filters to be used by the dialog. They usually take the form of ".extension", but can be any string.
  * @param filterDescription String displayed by the dialog to describe the filters.
  * @return A list of the paths selected by the user, or nothing if the user clicked on cancel.
  */
-std::optional<std::vector<std::string>> OpenFiles(const std::string&              title              = "Open Files",
+std::optional<std::vector<std::string>> OpenFiles(const std::string&              title              = "open Files",
                                                   const std::string&              defaultPathAndFile = {},
                                                   const std::vector<std::string>& filters            = {},
                                                   const std::string&              filterDescription  = {});
 
 /**
  * Displays a dialog window that prompts the user to select a directory to open.
- * @param title Title of the dialog window. Defaults to "Open Directory".
+ * @param title Title of the dialog window. Defaults to "open Directory".
  * @param defaultPathAndFile Path and filename with which the dialog window first appears.
  *                           Defaults to the current working directory and no filename.
  * @return The path of the directory that the user has selected, or nothing if the user clicked on cancel.
  */
-std::optional<std::string> OpenFolder(const std::string&              title              = "Open Directory",
+std::optional<std::string> OpenFolder(const std::string&              title              = "open Directory",
                                       const std::string&              defaultPathAndFile = {});
 
 }    // namespace Brigerad::Dialogs

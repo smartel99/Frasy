@@ -40,7 +40,7 @@ public:
     TestViewer();
     ~TestViewer() override = default;
 
-    void OnImGuiRender() override;
+    void onImGuiRender() override;
 
     void SetVisibility(bool visibility) { m_isVisible = visibility; }
     void SetInterface(Interface* interface) { m_interface = interface; }

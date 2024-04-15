@@ -36,65 +36,63 @@
 #include <thread>
 #include <vector>
 
-namespace Frasy::Communication
-{
+namespace Frasy::Communication {
 /**
  * Handles background reception of data from the serial device, as well as the transmission.
  *
  * Received packets are forwarded to the
  */
-class SerialDevice
-{
+class SerialDevice {
 public:
     SerialDevice() noexcept = default;
     SerialDevice(SerialDevice&& o) noexcept { *this = std::move(o); }
     explicit SerialDevice(DeviceInfo info, bool open = true);
-    ~SerialDevice() { Close(); }
+    ~SerialDevice() { close(); }
 
     SerialDevice& operator=(SerialDevice&& o) noexcept;
 
-    void               Open();
-    void               Close();
-    void               Reset();
-    [[nodiscard]] bool GetLog() const;
-    void               SetLog(bool enable);
+    void               open();
+    void               close();
+    void               reset();
+    [[nodiscard]] bool getLog() const;
+    void               setLog(bool enable);
 
-    [[nodiscard]] const Actions::Identify::Info& GetInfo() const noexcept { return m_info; }
-    [[nodiscard]] const std::unordered_map<cmd_id_t, Actions::CommandInfo::Reply>& GetCommands() const noexcept
+    [[nodiscard]] const Actions::Identify::Info& getInfo() const noexcept { return m_info; }
+    [[nodiscard]] const std::unordered_map<cmd_id_t, Actions::CommandInfo::Reply>& getCommands() const noexcept
     {
         return m_commands;
     }
-    [[nodiscard]] const std::unordered_map<type_id_t, Type::Struct>& GetStructs() const noexcept
+    [[nodiscard]] const std::unordered_map<type_id_t, Type::Struct>& getStructs() const noexcept
     {
         return m_typeManager.GetStructs();
     }
-    [[nodiscard]] const std::unordered_map<type_id_t, Type::Enum>& GetEnums() const noexcept
+    [[nodiscard]] const std::unordered_map<type_id_t, Type::Enum>& getEnums() const noexcept
     {
         return m_typeManager.GetEnums();
     }
     [[nodiscard]] const Type::Manager& GetTypeManager() const noexcept { return m_typeManager; }
 
 
-    [[nodiscard]] bool        IsOpen() const noexcept { return m_device.isOpen(); }
-    [[nodiscard]] std::string GetPort() const noexcept { return m_device.getPort(); }
-    [[nodiscard]] bool        Ready() const noexcept { return m_ready; }
-    [[nodiscard]] bool        Enabled() const noexcept { return m_enabled; }
+    [[nodiscard]] bool        isOpen() const noexcept { return m_device.isOpen(); }
+    [[nodiscard]] std::string getPort() const noexcept { return m_device.getPort(); }
+    [[nodiscard]] bool        ready() const noexcept { return m_ready; }
+    [[nodiscard]] bool        enabled() const noexcept { return m_enabled; }
 
-    ResponsePromise& Transmit(Packet pkt);
+    ResponsePromise& transmit(Packet pkt);
 
-    [[nodiscard]] std::vector<trs_id_t> GetPendingTransactions();
+    [[nodiscard]] std::vector<trs_id_t> getPendingTransactions();
 
 private:
-    void CheckForPackets();
-    void GetCapabilities();
-    void CleanerTask();
+    void checkForPackets();
+    void getCapabilities();
+    void cleanerTask();
 
 private:
     std::string    m_label;
-    serial::Serial m_device = {};    //!< The physical communication interface.
+    serial::Serial m_device;    //!< The physical communication interface.
 
-    std::thread m_cleanerThread;
-    bool        m_cleanerRun = false;
+    std::thread   m_cleanerThread;
+    volatile bool m_cleanerRun = false;
 
     bool m_ready   = false;
     bool m_enabled = true;
@@ -102,11 +100,11 @@ private:
     std::mutex  m_promiseLock;
     bool        m_shouldRun = true;
     std::thread m_rxThread;
-    std::string m_rxBuff = {};    //!< Buffer where the received data go.
+    std::string m_rxBuff;    //!< Buffer where the received data go.
 
-    Actions::Identify::Info                                   m_info     = {};
-    std::unordered_map<cmd_id_t, Actions::CommandInfo::Reply> m_commands = {};
-    bool                                                      m_log      = false;
+    Actions::Identify::Info                                   m_info;
+    std::unordered_map<cmd_id_t, Actions::CommandInfo::Reply> m_commands;
+    bool                                                      m_log = false;
     Frasy::Type::Manager                                      m_typeManager;
 
     std::unordered_map<trs_id_t, ResponsePromise> m_pending;
@@ -114,7 +112,7 @@ private:
     void                                          GetDeviceEnums();
     void                                          GetDeviceStructs();
 
-    inline static constexpr size_t s_maxAttempts = 5;
+    static constexpr size_t s_maxAttempts = 5;
 };
 }    // namespace Frasy::Communication
 

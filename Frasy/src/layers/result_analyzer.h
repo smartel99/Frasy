@@ -36,7 +36,7 @@ public:
     ResultAnalyzer() noexcept;
     ~ResultAnalyzer() override = default;
 
-    void OnImGuiRender() override;
+    void onImGuiRender() override;
 
     void SetVisibility(bool visibility);
 

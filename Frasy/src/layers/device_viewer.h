@@ -24,26 +24,24 @@
 #include <atomic>
 #include <Brigerad.h>
 
-namespace Frasy
-{
-class DeviceViewer : public Brigerad::Layer
-{
+namespace Frasy {
+class DeviceViewer : public Brigerad::Layer {
 public:
     DeviceViewer() noexcept;
     ~DeviceViewer() override = default;
 
-    void OnImGuiRender() override;
+    void onImGuiRender() override;
 
-    void SetVisibility(bool visibility);
+    void setVisibility(bool visibility);
 
 private:
-    void        RenderDeviceList();
-    static void RenderDeviceCommands(const std::unordered_map<Actions::cmd_id_t, Actions::CommandInfo::Reply>& commands,
+    void        renderDeviceList();
+    static void renderDeviceCommands(const std::unordered_map<Actions::cmd_id_t, Actions::CommandInfo::Reply>& commands,
                                      const Type::Manager&                                                      manager);
-    static void RenderDeviceEnums(const std::unordered_map<Actions::cmd_id_t, Type::Enum>& enums);
-    static void RenderDeviceStructs(const std::unordered_map<Actions::cmd_id_t, Type::Struct>& structs,
+    static void renderDeviceEnums(const std::unordered_map<Actions::cmd_id_t, Type::Enum>& enums);
+    static void renderDeviceStructs(const std::unordered_map<Actions::cmd_id_t, Type::Struct>& structs,
                                     const Type::Manager&                                       manager);
-    static void RenderCommandValues(std::string_view                   name,
+    static void renderCommandValues(std::string_view                   name,
                                     const std::vector<Actions::Value>& values,
                                     const Type::Manager&               manager);
 

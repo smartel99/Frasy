@@ -170,7 +170,7 @@ void ScriptEngine::OnDestroyed(const LuaScriptEntity* entity)
 void ScriptEngine::OnUpdate(const LuaScriptEntity* entity, float ts)
 {
     auto& lua = *s_data.LuaState;
-    LUA_CALL(entity->GetName(), "OnUpdate", ts);
+    LUA_CALL(entity->GetName(), "onUpdate", ts);
 }
 
 void ScriptEngine::OnRender(const LuaScriptEntity* entity)

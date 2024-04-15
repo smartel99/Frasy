@@ -51,7 +51,7 @@ public:
         s_instance                               = this;
         m_internalConfig                         = Frasy::Config(cfgPath);
         static constexpr const char* s_usrCfgKey = "UserConfigPath";
-        std::string                  userCfgPath = m_internalConfig.GetField<std::string>(s_usrCfgKey);
+        std::string                  userCfgPath = m_internalConfig.getField<std::string>(s_usrCfgKey);
         if (!userCfgPath.empty()) { m_userConfig = Frasy::Config(userCfgPath); }
         else { BR_CORE_ERROR("'{}' not found in {}!", s_usrCfgKey, cfgPath); }
     }
@@ -66,7 +66,7 @@ public:
 
     static FrasyInterpreter& Get() { return *s_instance; }
 
-    virtual Config&                   GetConfig() { return m_internalConfig; }
+    virtual Config&                   getConfig() { return m_internalConfig; }
     virtual Config&                   GetUserConfig() { return m_userConfig; }
     virtual Communication::DeviceMap& GetDevices() { return m_deviceMap; }
 

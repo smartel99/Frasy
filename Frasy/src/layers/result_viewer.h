@@ -72,9 +72,9 @@ public:
     ResultViewer() noexcept;
     ~ResultViewer() override = default;
 
-    void OnImGuiRender() override;
+    void onImGuiRender() override;
 
-    void SetVisibility(bool visibility);
+    void setVisibility(bool visibility);
 
 private:
     void        RenderLog(const OverallTestResult& log);

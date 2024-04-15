@@ -129,7 +129,7 @@ public:
 
     /**
      * Creates a Serial object and opens the port if a port is specified,
-     * otherwise it remains closed until Serial::Open is called.
+     * otherwise it remains closed until Serial::open is called.
      *
      * \param port std::string containing the address of the serial port,
      *        which would be something like 'COM1' on Windows and '/dev/ttyS0'
@@ -195,7 +195,7 @@ public:
      */
     bool IsOpen() const { return m_port.isOpen(); }
 
-    /** Close the serial port. */
+    /** close the serial port. */
     void Close() { m_port.close(); }
 
     /** Return the number of characters in the buffer */

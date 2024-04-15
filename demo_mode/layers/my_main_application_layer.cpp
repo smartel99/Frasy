@@ -20,37 +20,36 @@
 #include <frasy_interpreter.h>
 #include <imgui.h>
 
-#include <exception>
 #include <filesystem>
 #include <regex>
 
 
-void MyMainApplicationLayer::OnAttach()
+void MyMainApplicationLayer::onAttach()
 {
-    MainApplicationLayer::OnAttach();
-    LoadProducts();
-    m_orchestrator.SetPopulateUserMethodsCallback([&](sol::state_view lua, Frasy::Lua::Orchestrator::Stage stage) {});
+    MainApplicationLayer::onAttach();
+    loadProducts();
+    m_orchestrator.setPopulateUserMethodsCallback([&](sol::state_view lua, Frasy::Lua::Orchestrator::Stage stage) {});
 }
 
-void MyMainApplicationLayer::OnDetach()
+void MyMainApplicationLayer::onDetach()
 {
-    MainApplicationLayer::OnDetach();
+    MainApplicationLayer::onDetach();
 
     // TODO Save the currently selected product.
 }
 
-void MyMainApplicationLayer::OnUpdate(Brigerad::Timestep ts)
+void MyMainApplicationLayer::onUpdate(Brigerad::Timestep ts)
 {
-    MainApplicationLayer::OnUpdate(ts);
-    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F9)) { LoadProducts(); }
-    if (Brigerad::Input::IsKeyPressed(Brigerad::KeyCode::F10)) { m_skipVerification = !m_skipVerification; }
+    MainApplicationLayer::onUpdate(ts);
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F9)) { loadProducts(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F10)) { m_skipVerification = !m_skipVerification; }
 }
 
-void MyMainApplicationLayer::RenderControlRoom()
+void MyMainApplicationLayer::renderControlRoom()
 {
     if (m_activeProduct.empty() || m_map.count.uut == 0 || m_map.count.ib == 0 || m_map.count.teams == 0) {
         ImGui::Begin("Control Room");
-        if (ImGui::Button("Reload")) { LoadProducts(); }
+        if (ImGui::Button("Reload")) { loadProducts(); }
         ImGui::End();
         return;
     }
@@ -58,25 +57,25 @@ void MyMainApplicationLayer::RenderControlRoom()
         if (ImGui::BeginCombo("Product", m_activeProduct.c_str())) {
             for (auto&& [env, testPath, name, modified] : m_products) {
                 if (ImGui::Selectable(name.c_str(), name == m_activeProduct)) {
-                    MakeOrchestrator(name, env, testPath);
+                    makeOrchestrator(name, env, testPath);
                     Frasy::Config cfg;
-                    cfg.SetField("LastProduct", m_activeProduct);
-                    Frasy::FrasyInterpreter::Get().GetConfig().SetField("Kongsberg", cfg);
+                    cfg.setField("LastProduct", m_activeProduct);
+                    Frasy::FrasyInterpreter::Get().getConfig().setField("Demo", cfg);
                 }
             }
             ImGui::EndCombo();
         }
 
         uint64_t texture {};
-        if (Frasy::Communication::DeviceMap::Get().IsScanning()) { texture = m_waiting->GetRenderID(); }
-        else if (m_orchestrator.IsRunning()) {
-            texture = m_testing->GetRenderID();
+        if (Frasy::Communication::DeviceMap::Get().isScanning()) { texture = m_waiting->getRenderId(); }
+        else if (m_orchestrator.isRunning()) {
+            texture = m_testing->getRenderId();
         }
         else if (m_skipVerification) {
-            texture = m_runWarn->GetRenderID();
+            texture = m_runWarn->getRenderId();
         }
         else {
-            texture = m_run->GetRenderID();
+            texture = m_run->getRenderId();
         }
 
         ImGui::BeginTable("Launcher", 2);
@@ -88,8 +87,8 @@ void MyMainApplicationLayer::RenderControlRoom()
         static const ImVec2 buttonUv1  = ImVec2 {1.0f, 0.0f};
 
         if (ImGui::ImageButton(reinterpret_cast<void*>(texture), buttonSize, buttonUv0, buttonUv1)) {
-            m_resultViewer->SetVisibility(false);    // Close the result viewer while we run the test.
-            DoTests();
+            m_resultViewer->setVisibility(false);    // Close the result viewer while we run the test.
+            doTests();
             m_testJustFinished = false;
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) { ImGui::OpenPopup("Stress Test"); }
@@ -110,10 +109,10 @@ void MyMainApplicationLayer::RenderControlRoom()
         ImGui::EndTable();
     }
 
-    if (!m_testJustFinished && !m_orchestrator.IsRunning()) {
+    if (!m_testJustFinished && !m_orchestrator.isRunning()) {
         if (m_repeatCount != 0) {
             m_repeatCount--;
-            DoTests();
+            doTests();
         }
         else {
             // If we just finished the test, check if any UUT have failed.
@@ -126,7 +125,7 @@ void MyMainApplicationLayer::RenderControlRoom()
                         });
                     });
                 })) {
-                m_resultViewer->SetVisibility(true);
+                m_resultViewer->setVisibility(true);
             }
         }
     }
@@ -150,13 +149,13 @@ void MyMainApplicationLayer::RenderControlRoom()
                     auto     state = m_orchestrator.GetUutState(uut);
                     uint64_t texture {};
                     switch (state) {
-                        case Frasy::UutState::Disabled: texture = m_disabled->GetRenderID(); break;
-                        case Frasy::UutState::Idle: texture = m_idle->GetRenderID(); break;
-                        case Frasy::UutState::Waiting: texture = m_waiting->GetRenderID(); break;
-                        case Frasy::UutState::Running: texture = m_testing->GetRenderID(); break;
-                        case Frasy::UutState::Passed: texture = m_pass->GetRenderID(); break;
-                        case Frasy::UutState::Failed: texture = m_fail->GetRenderID(); break;
-                        case Frasy::UutState::Error: texture = m_error->GetRenderID(); break;
+                        case Frasy::UutState::Disabled: texture = m_disabled->getRenderId(); break;
+                        case Frasy::UutState::Idle: texture = m_idle->getRenderId(); break;
+                        case Frasy::UutState::Waiting: texture = m_waiting->getRenderId(); break;
+                        case Frasy::UutState::Running: texture = m_testing->getRenderId(); break;
+                        case Frasy::UutState::Passed: texture = m_pass->getRenderId(); break;
+                        case Frasy::UutState::Failed: texture = m_fail->getRenderId(); break;
+                        case Frasy::UutState::Error: texture = m_error->getRenderId(); break;
                     }
                     if (ImGui::ImageButton(
                           reinterpret_cast<void*>(texture), buttonSize, buttonUv0, buttonUv1)) {
@@ -173,15 +172,15 @@ void MyMainApplicationLayer::RenderControlRoom()
     ImGui::End();
 }
 
-void MyMainApplicationLayer::DoTests()
+void MyMainApplicationLayer::doTests()
 {
-    if (!GetSerials()) { return; }
-    bool shouldRegenerate = ShouldRegenerate();
-    if (shouldRegenerate) { BR_LOG_INFO("Frasy", "Regenerating sequences..."); }
-    m_orchestrator.RunSolution(m_serials, shouldRegenerate, m_skipVerification);
+    if (!getSerials()) { return; }
+    bool shouldRegen = shouldRegenerate();
+    if (shouldRegen) { BR_LOG_INFO("Frasy", "Regenerating sequences..."); }
+    m_orchestrator.RunSolution(m_serials, shouldRegen, m_skipVerification);
 }
 
-bool MyMainApplicationLayer::GetSerials()
+bool MyMainApplicationLayer::getSerials()
 {
     m_serials.clear();
     std::regex  snRe("(.+)([0-9A-F]{3})$");
@@ -195,25 +194,25 @@ bool MyMainApplicationLayer::GetSerials()
         snStart  = std::stoi(matches[2], nullptr, 10);
     }
     else {
-        Brigerad::WarningDialog("Frasy", "Top left serial number is not valid!");
+        Brigerad::warningDialog("Frasy", "Top left serial number is not valid!");
         return false;
     }
 
     if (std::regex_search(&m_serialNumberBottomRight[0], matches, snRe)) {
         if (snPrefix != matches[1]) {
-            Brigerad::WarningDialog("Frasy", "The format of the serial numbers do not match!");
+            Brigerad::warningDialog("Frasy", "The format of the serial numbers do not match!");
             return false;
         }
         snEnd = std::stoi(matches[2], nullptr, 10);
     }
     else {
-        Brigerad::WarningDialog("Frasy", "Bottom right serial number is not valid!");
+        Brigerad::warningDialog("Frasy", "Bottom right serial number is not valid!");
         return false;
     }
 
-    const auto& map = m_orchestrator.GetMap();
+    const auto& map = m_orchestrator.getMap();
     if (snEnd - snStart != map.count.uut - 1) {
-        Brigerad::WarningDialog("Frasy", "Unable to verify serial numbers. Have you scanned the right UUTs?");
+        Brigerad::warningDialog("Frasy", "Unable to verify serial numbers. Have you scanned the right UUTs?");
         return false;
     }
 
@@ -225,7 +224,7 @@ bool MyMainApplicationLayer::GetSerials()
     return true;
 }
 
-std::vector<MyMainApplicationLayer::ProductInfo> MyMainApplicationLayer::DetectProducts()
+std::vector<MyMainApplicationLayer::ProductInfo> MyMainApplicationLayer::detectProducts()
 {
     namespace fs = std::filesystem;
     std::vector<ProductInfo> products;
@@ -248,55 +247,55 @@ std::vector<MyMainApplicationLayer::ProductInfo> MyMainApplicationLayer::DetectP
                       envPath.string(),
                       entry.path().string(),
                       product,
-                      GetProductFileModificationTimes(entry.path().string()),
+                      getProductFileModificationTimes(entry.path().string()),
                     });
                 }
             }
         }
     }
     catch (fs::filesystem_error& e) {
-        BR_LOG_ERROR("Kongsberg", "Unable to identify products: {}", e.what());
+        BR_LOG_ERROR("Demo", "Unable to identify products: {}", e.what());
     }
 
     return products;
 }
 
-bool MyMainApplicationLayer::ShouldRegenerate()
+bool MyMainApplicationLayer::shouldRegenerate()
 {
     auto it = std::find_if(
-      m_products.begin(), m_products.end(), [&](const auto& item) { return item.Name == m_activeProduct; });
+      m_products.begin(), m_products.end(), [&](const auto& item) { return item.name == m_activeProduct; });
 
-    auto currentModifiedTimes = GetProductFileModificationTimes(it->TestPath);
+    auto currentModifiedTimes = getProductFileModificationTimes(it->testPath);
     if (std::ranges::any_of(currentModifiedTimes,
                             [&it](const std::pair<std::string, std::filesystem::file_time_type>& entry) {
-                                return entry.second < it->LastModifiedTimes[entry.first];
+                                return entry.second < it->lastModifiedTimes[entry.first];
                             })) {
         // One or more files have been modified.
-        it->LastModifiedTimes = currentModifiedTimes;
+        it->lastModifiedTimes = currentModifiedTimes;
         return true;
     }
     return false;
 }
 
-void MyMainApplicationLayer::LoadProducts()
+void MyMainApplicationLayer::loadProducts()
 {
-    m_products = DetectProducts();
+    m_products = detectProducts();
 
     if (m_products.empty()) { Brigerad::FatalErrorDialog("Error", "No products found!"); }
 
     // Re-select the previously selected products, if it still exists.
-    Frasy::Config cfg         = Frasy::FrasyInterpreter::Get().GetConfig().GetField("Kongsberg");
-    auto   lastProduct = cfg.GetField<std::string>("LastProduct");
+    Frasy::Config cfg         = Frasy::FrasyInterpreter::Get().getConfig().getField("Demo");
+    auto   lastProduct = cfg.getField<std::string>("LastProduct");
     auto          it =
-      std::find_if(m_products.begin(), m_products.end(), [&](const auto& item) { return item.Name == lastProduct; });
-    if (it != m_products.end()) { MakeOrchestrator(it->Name, it->EnvironmentPath, it->TestPath); }
+      std::find_if(m_products.begin(), m_products.end(), [&](const auto& item) { return item.name == lastProduct; });
+    if (it != m_products.end()) { makeOrchestrator(it->name, it->environmentPath, it->testPath); }
     else {
         const auto& [envPath, testPath, name, modified] = m_products.front();
-        MakeOrchestrator(name, envPath, testPath);
+        makeOrchestrator(name, envPath, testPath);
     }
 }
 
-std::map<std::string, std::filesystem::file_time_type> MyMainApplicationLayer::GetProductFileModificationTimes(
+std::map<std::string, std::filesystem::file_time_type> MyMainApplicationLayer::getProductFileModificationTimes(
   const std::string& path)
 {
     std::map<std::string, std::filesystem::file_time_type> times = {};

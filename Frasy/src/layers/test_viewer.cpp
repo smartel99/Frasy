@@ -26,7 +26,7 @@ TestViewer::TestViewer() : m_interface(Interface::GetDefault())
 {
 }
 
-void TestViewer::OnImGuiRender()
+void TestViewer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
     if (ImGui::Begin("Test Viewer", &m_isVisible, ImGuiWindowFlags_NoDocking))
@@ -55,7 +55,7 @@ void TestViewer::RenderSequence(const std::string& sName, const Models::Sequence
     ImGui::BeginTable(sName.c_str(), 3, ImGuiTableFlags_SizingFixedFit);
     ImGui::TableSetupColumn("##Show", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
     ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableSetupColumn("##Enabled", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
+    ImGui::TableSetupColumn("##enabled", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
 
 
     bool        sEnabled   = sequence.enabled;

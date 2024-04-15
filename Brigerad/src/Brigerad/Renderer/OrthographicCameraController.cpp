@@ -23,22 +23,22 @@ void OrthographicCameraController::OnUpdate(Timestep ts)
     float ds = (m_cameraTranslationSpeed * ts);
     float dr = (m_cameraRotationSpeed * ts);
     // Down.
-    if (Input::IsKeyPressed(BR_KEY_S)) { m_cameraPosition.y += ds; }
+    if (Input::isKeyPressed(BR_KEY_S)) { m_cameraPosition.y += ds; }
     // Up.
-    if (Input::IsKeyPressed(BR_KEY_W)) { m_cameraPosition.y -= ds; }
+    if (Input::isKeyPressed(BR_KEY_W)) { m_cameraPosition.y -= ds; }
 
     // Right.
-    if (Input::IsKeyPressed(BR_KEY_D)) { m_cameraPosition.x -= ds; }
+    if (Input::isKeyPressed(BR_KEY_D)) { m_cameraPosition.x -= ds; }
     // Left.
-    if (Input::IsKeyPressed(BR_KEY_A)) { m_cameraPosition.x += ds; }
+    if (Input::isKeyPressed(BR_KEY_A)) { m_cameraPosition.x += ds; }
 
     if (m_allowRotation == true)
     {
         using namespace Brigerad;
         // Tilt CCW.
-        if (Input::IsKeyPressed(BR_KEY_Q)) { m_cameraRotation += dr; }
+        if (Input::isKeyPressed(BR_KEY_Q)) { m_cameraRotation += dr; }
         // Tilt CW.
-        if (Input::IsKeyPressed(BR_KEY_E)) { m_cameraRotation -= dr; }
+        if (Input::isKeyPressed(BR_KEY_E)) { m_cameraRotation -= dr; }
 
         m_camera.SetRotation(m_cameraRotation);
     }

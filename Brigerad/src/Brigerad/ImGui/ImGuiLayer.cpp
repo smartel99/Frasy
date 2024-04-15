@@ -26,7 +26,7 @@ ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer")
 
 ImGuiLayer::~ImGuiLayer() = default;
 
-void ImGuiLayer::OnAttach()
+void ImGuiLayer::onAttach()
 {
     BR_PROFILE_FUNCTION();
 
@@ -68,7 +68,7 @@ void ImGuiLayer::OnAttach()
     ImGui_ImplOpenGL3_Init("#version 410");
 }
 
-void ImGuiLayer::OnDetach()
+void ImGuiLayer::onDetach()
 {
     BR_PROFILE_FUNCTION();
 
@@ -88,7 +88,7 @@ void ImGuiLayer::OnEvent(Event& event)
     }
 }
 
-void ImGuiLayer::OnImGuiRender()
+void ImGuiLayer::onImGuiRender()
 {
     BR_PROFILE_FUNCTION();
 
@@ -133,10 +133,10 @@ void ImGuiLayer::OnImGuiRender()
             BR_CORE_INFO("Set VSync to {0}", isVSync);
         }
 
-        if (ImGui::Button("Open metric window")) { m_showMetricWindow = true; }
+        if (ImGui::Button("open metric window")) { m_showMetricWindow = true; }
 
 #if defined(BR_DEBUG)
-        if (ImGui::Button("Open style editor")) { m_showStyleEditor = true; }
+        if (ImGui::Button("open style editor")) { m_showStyleEditor = true; }
         if (ImGui::Button("Show Demo Window")) { m_showDemoWindow = true; }
         if (ImGui::Button("Show Plot Demo Window")) { m_showPlotWindow = true; }
 #endif

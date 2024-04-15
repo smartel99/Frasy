@@ -35,7 +35,7 @@ SerialDevice::SerialDevice(DeviceInfo info, bool open)
            serial::flowcontrol_software),
   m_info(info.Info)
 {
-    if (open) { Open(); }
+    if (open) { this->open(); }
 }
 
 SerialDevice& SerialDevice::operator=(SerialDevice&& o) noexcept
@@ -44,7 +44,7 @@ SerialDevice& SerialDevice::operator=(SerialDevice&& o) noexcept
     if (o.m_device.isOpen())
     {
         reopen = true;
-        o.Close();
+        o.close();
     }
 
     m_label       = std::move(o.m_label);
@@ -60,11 +60,11 @@ SerialDevice& SerialDevice::operator=(SerialDevice&& o) noexcept
     m_device.setTimeout(timeout);
     m_device.setBaudrate(460800);
     m_device.setPort(o.m_device.getPort());
-    if (reopen) { Open(); }
+    if (reopen) { open(); }
     return *this;
 }
 
-ResponsePromise& SerialDevice::Transmit(Packet pkt)
+ResponsePromise& SerialDevice::transmit(Packet pkt)
 {
     // pkt MUST be a copy. We might modify it here in order to set a proper Transaction ID and compute its CRC
     // The user has the right to use the same commands as below in order to generate a packet that will match
@@ -81,7 +81,7 @@ ResponsePromise& SerialDevice::Transmit(Packet pkt)
     return it->second;
 }
 
-[[nodiscard]] std::vector<trs_id_t> SerialDevice::GetPendingTransactions()
+[[nodiscard]] std::vector<trs_id_t> SerialDevice::getPendingTransactions()
 {
     std::vector<trs_id_t> ids;
     ids.reserve(m_pending.size());
@@ -91,10 +91,10 @@ ResponsePromise& SerialDevice::Transmit(Packet pkt)
     return ids;
 }
 
-void SerialDevice::CheckForPackets()
+void SerialDevice::checkForPackets()
 {
     // Check if we received a full packet somewhere.
-    size_t sofPos;
+    size_t sofPos = 0;
     do {
         sofPos = m_rxBuff.find(Packet::s_packetStartFlag);
         if (sofPos != std::string::npos)
@@ -139,7 +139,7 @@ void SerialDevice::CheckForPackets()
                     else
                     {
                         auto dispatcher = Commands::CommandManager::Get().MakeDispatcher(
-                          Commands::CommandEvent {[this](const Packet& pkt) { Transmit(pkt); }, this->m_label, packet});
+                          Commands::CommandEvent {[this](const Packet& pkt) { transmit(pkt); }, this->m_label, packet});
                         dispatcher.Dispatch();
                     }
                 }
@@ -152,10 +152,10 @@ void SerialDevice::CheckForPackets()
     } while (sofPos != std::string::npos);
 }
 
-void SerialDevice::Open()
+void SerialDevice::open()
 {
     // If already open, re-open.
-    if (m_device.isOpen()) { Close(); }
+    if (m_device.isOpen()) { close(); }
 
     try
     {
@@ -167,7 +167,7 @@ void SerialDevice::Open()
         return;
     }
 
-    m_cleanerThread = std::thread([this] { CleanerTask(); });
+    m_cleanerThread = std::thread([this] { cleanerTask(); });
 
     m_shouldRun = true;
     std::barrier rxReady {2};
@@ -191,16 +191,16 @@ void SerialDevice::Open()
                   if (m_shouldRun) { BR_LOG_ERROR(m_label, "An error occurred in the listener thread: {}", e.what()); }
                   break;
               }
-              if (!read.empty() && read.back() == Packet::s_packetEndFlag) { CheckForPackets(); }
+              if (!read.empty() && read.back() == Packet::s_packetEndFlag) { checkForPackets(); }
           }
           BR_LOG_INFO(m_label, "RX listener terminated on '{}'", m_device.getPort());
       });
     rxReady.arrive_and_wait();
 
-    GetCapabilities();
+    getCapabilities();
 }
 
-void SerialDevice::Close()
+void SerialDevice::close()
 {
     // If already closed, don't do anything.
     if (m_device.isOpen())
@@ -222,27 +222,27 @@ void SerialDevice::Close()
     }
 }
 
-void SerialDevice::Reset()
+void SerialDevice::reset()
 {
-    Transmit(Packet::Request(Actions::CommandId::Reset)).OnTimeout([]() {}).Async();
+    transmit(Packet::Request(Actions::CommandId::Reset)).OnTimeout([]() {}).Async();
 }
 
-bool SerialDevice::GetLog() const
+bool SerialDevice::getLog() const
 {
     return m_log;
 }
 
-void SerialDevice::SetLog(bool enable)
+void SerialDevice::setLog(bool enable)
 {
-    Transmit(Packet::Request(Actions::CommandId::Log).MakePayload(enable))
-      .OnComplete([&](const Packet& packet) { m_log = enable; })
+    transmit(Packet::Request(Actions::CommandId::Log).MakePayload(enable))
+      .OnComplete([&]([[maybe_unused]] const Packet& packet) { m_log = enable; })
       .Await();
 }
 
-void SerialDevice::GetCapabilities()
+void SerialDevice::getCapabilities()
 {
     namespace fa = Frasy::Actions;
-    Transmit(Packet::Request(fa::CommandId::Identify))
+    transmit(Packet::Request(fa::CommandId::Identify))
       .OnComplete([&](const Packet& packet) { m_info = fa::Identify::Info(packet.FromPayload<fa::Identify::Reply>()); })
       .Await();
 
@@ -299,19 +299,19 @@ void SerialDevice::GetCapabilities()
 
 void SerialDevice::GetDeviceStructs()
 {
-    auto structIds = Transmit(Packet::Request(Actions::CommandId::StructsList)).Collect<std::vector<Type::BasicInfo>>();
+    auto structIds = transmit(Packet::Request(Actions::CommandId::StructsList)).Collect<std::vector<Type::BasicInfo>>();
     for (const auto& info : structIds)
     {
         BR_LOG_DEBUG(m_label, "Getting information for '{}'...", info.name);
         for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
         {
-            Packet resp = Transmit(Packet::Request(Actions::CommandId::StructInfo).MakePayload(info.id)).Collect();
+            Packet resp = transmit(Packet::Request(Actions::CommandId::StructInfo).MakePayload(info.id)).Collect();
             if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::StructInfo))
             {
                 m_typeManager.AddStruct(info.id, resp.FromPayload<Type::Struct>());
                 break;
             }
-            else if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+            if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
             {
                 auto [message, code] = resp.FromPayload<Actions::Status::Reply>();
                 BR_LOG_ERROR(m_label, "Device returned an error: ({}) {}", static_cast<size_t>(code), message);
@@ -323,19 +323,19 @@ void SerialDevice::GetDeviceStructs()
 
 void SerialDevice::GetDeviceEnums()
 {
-    auto enumIds = Transmit(Packet::Request(Actions::CommandId::EnumsList)).Collect<std::vector<Type::BasicInfo>>();
+    auto enumIds = transmit(Packet::Request(Actions::CommandId::EnumsList)).Collect<std::vector<Type::BasicInfo>>();
     for (const auto& info : enumIds)
     {
         BR_LOG_DEBUG(m_label, "Getting information for '{}'...", info.name);
         for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
         {
-            Packet resp = Transmit(Packet::Request(Actions::CommandId::EnumInfo).MakePayload(info.id)).Collect();
+            Packet resp = transmit(Packet::Request(Actions::CommandId::EnumInfo).MakePayload(info.id)).Collect();
             if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::EnumInfo))
             {
                 m_typeManager.AddEnum(info.id, resp.FromPayload<Type::Enum>());
                 break;
             }
-            else if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+            if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
             {
                 auto [message, code] = resp.FromPayload<Actions::Status::Reply>();
                 BR_LOG_ERROR(m_label, "Device returned an error: ({}) {}", static_cast<size_t>(code), message);
@@ -347,21 +347,21 @@ void SerialDevice::GetDeviceEnums()
 
 void SerialDevice::GetDeviceCommands()
 {
-    auto cmdNames = Transmit(Packet::Request(Actions::CommandId::CommandsList)).Collect<std::vector<std::string>>();
+    auto cmdNames = transmit(Packet::Request(Actions::CommandId::CommandsList)).Collect<std::vector<std::string>>();
 
     for (const auto& name : cmdNames)
     {
         BR_LOG_DEBUG(m_label, "Getting information for '{}'...", name);
         for (size_t attempt = 0; attempt < s_maxAttempts; attempt++)
         {
-            Packet resp = Transmit(Packet::Request(Actions::CommandId::CommandInfo).MakePayload(name)).Collect();
+            Packet resp = transmit(Packet::Request(Actions::CommandId::CommandInfo).MakePayload(name)).Collect();
             if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::CommandInfo))
             {
                 auto info           = resp.FromPayload<Actions::CommandInfo::Reply>();
                 m_commands[info.Id] = info;
                 break;
             }
-            else if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
+            if (resp.Header.CommandId == static_cast<cmd_id_t>(Actions::CommandId::Status))
             {
                 auto [message, code] = resp.FromPayload<Actions::Status::Reply>();
                 BR_LOG_ERROR(m_label, "Device returned an error: ({}) {}", static_cast<size_t>(code), message);
@@ -371,7 +371,7 @@ void SerialDevice::GetDeviceCommands()
     }
 }
 
-void SerialDevice::CleanerTask()
+void SerialDevice::cleanerTask()
 {
     m_cleanerRun = true;
     while (m_cleanerRun)

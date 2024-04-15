@@ -67,7 +67,7 @@ public:
      * @param testDir path the folder containing the test files
      * @return true if the orchestrator successfully loaded the files, false otherwise
      */
-    bool LoadUserFiles(const std::string& environment, const std::string& testsDir);
+    bool loadUserFiles(const std::string& environment, const std::string& testsDir);
 
     /**
      * Async request to generate the solution
@@ -103,7 +103,7 @@ public:
      * Will generate if no solution was computed
      * Will validate then execute the solution at each run
      * Request will be ignored if a solution is already being run
-     * Use IsRunning() to know if a solution is already being run
+     * Use isRunning() to know if a solution is already being run
      * Use UutState() to know the state of the UUT
      * @param serials list of UUT serial, must match the number of UUTs
      * @param regenerate if true, will force the generation of the solution
@@ -123,11 +123,11 @@ public:
      */
     void RenderPopups();
 
-    const Map& GetMap() const { return m_map; }
+    const Map& getMap() const { return m_map; }
 
-    [[nodiscard]] bool     IsRunning() const;
+    [[nodiscard]] bool     isRunning() const;
     [[nodiscard]] UutState GetUutState(std::size_t uut) const;
-    void                   SetPopulateUserMethodsCallback(std::function<void(sol::state_view, Stage)> callback);
+    void                   setPopulateUserMethodsCallback(std::function<void(sol::state_view, Stage)> callback);
 
 private:
     bool        CreateOutputDirs();

@@ -35,62 +35,62 @@ public:
         return instance;
     }
 
-    void ScanForDevices();
-    bool IsScanning();
+    void scanForDevices();
+    bool isScanning();
 
-    const Actions::Identify::Info& GetDeviceInfo(uint8_t deviceId) const
+    const Actions::Identify::Info& getDeviceInfo(uint8_t deviceId) const
     {
-        WaitForScanComplete();
-        return m_devices.at(deviceId).GetInfo();
+        waitForScanComplete();
+        return m_devices.at(deviceId).getInfo();
     }
 
-    ResponsePromise& Transmit(uint8_t deviceId, const Packet& pkt)
+    ResponsePromise& transmit(uint8_t deviceId, const Packet& pkt)
     {
-        WaitForScanComplete();
-        return m_devices.at(deviceId).Transmit(pkt);
+        waitForScanComplete();
+        return m_devices.at(deviceId).transmit(pkt);
     }
 
     SerialDevice& operator[](std::size_t index)
     {
-        WaitForScanComplete();
+        waitForScanComplete();
         return m_devices.at(static_cast<uint8_t>(index));
     }
 
     auto begin() noexcept
     {
-        WaitForScanComplete();
+        waitForScanComplete();
         return m_devices.begin();
     }
     auto end() noexcept
     {
-        WaitForScanComplete();
+        waitForScanComplete();
         return m_devices.end();
     }
     auto begin() const noexcept
     {
-        WaitForScanComplete();
+        waitForScanComplete();
         return m_devices.begin();
     }
     auto end() const noexcept
     {
-        WaitForScanComplete();
+        waitForScanComplete();
         return m_devices.end();
     }
 
     [[nodiscard]] size_t size() const noexcept
     {
-        WaitForScanComplete();
+        waitForScanComplete();
         return m_devices.size();
     }
 
     [[nodiscard]] bool empty() const noexcept
     {
-        WaitForScanComplete();
+        waitForScanComplete();
         return m_devices.empty();
     }
 
 private:
-    void WaitForScanComplete() const { return m_scan_done.wait(false); }
+    void waitForScanComplete() const { return m_scan_done.wait(false); }
 
 private:
     std::map<uint8_t, SerialDevice> m_devices;

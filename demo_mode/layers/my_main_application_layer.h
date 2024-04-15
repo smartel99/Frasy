@@ -28,10 +28,10 @@
 
 class MyMainApplicationLayer final : public Frasy::MainApplicationLayer {
     struct ProductInfo {
-        std::string                                            EnvironmentPath;
-        std::string                                            TestPath;
-        std::string                                            Name;
-        std::map<std::string, std::filesystem::file_time_type> LastModifiedTimes;
+        std::string                                            environmentPath;
+        std::string                                            testPath;
+        std::string                                            name;
+        std::map<std::string, std::filesystem::file_time_type> lastModifiedTimes;
     };
 
 public:
@@ -43,45 +43,45 @@ public:
 
     ~MyMainApplicationLayer() override = default;
 
-    void OnAttach() override;
-    void OnDetach() override;
+    void onAttach() override;
+    void onDetach() override;
 
-    void OnUpdate(Brigerad::Timestep ts) override;
+    void onUpdate(Brigerad::Timestep ts) override;
 
 protected:
-    void RenderControlRoom() override;
+    void renderControlRoom() override;
 
 private:
-    void DoTests();
-    bool GetSerials();
+    void doTests();
+    bool getSerials();
 
-    void MakeOrchestrator(const std::string& name, const std::string& envPath, const std::string& testPath)
+    void makeOrchestrator(const std::string& name, const std::string& envPath, const std::string& testPath)
     {
-        if (m_orchestrator.LoadUserFiles(envPath, testPath)) {
+        if (m_orchestrator.loadUserFiles(envPath, testPath)) {
             m_activeProduct = name;
-            m_map           = m_orchestrator.GetMap();
+            m_map           = m_orchestrator.getMap();
         }
         else {
-            Brigerad::WarningDialog("Frasy", "Unable to initialize orchestrator!");
-            MakeLogWindowVisible();
+            Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");
+            makeLogWindowVisible();
             BR_LOG_ERROR("APP", "Unable to initialize orchestrator!");
             m_map = {};
         }
     }
 
-    void LoadProducts();
-    bool ShouldRegenerate();
+    void loadProducts();
+    bool shouldRegenerate();
 
-    static std::vector<ProductInfo> DetectProducts();
+    static std::vector<ProductInfo> detectProducts();
 
-    static std::map<std::string, std::filesystem::file_time_type> GetProductFileModificationTimes(
+    static std::map<std::string, std::filesystem::file_time_type> getProductFileModificationTimes(
       const std::string& path);
 
-    ProductInfo& GetActiveProduct()
+    ProductInfo& getActiveProduct()
     {
         auto it =
           std::find_if(m_products.begin(), m_products.end(), [active = m_activeProduct](const ProductInfo& product) {
-              return product.Name == active;
+              return product.name == active;
           });
         BR_ASSERT(it != m_products.end(), "Active product ('{}') not found!", m_activeProduct);
         return *it;

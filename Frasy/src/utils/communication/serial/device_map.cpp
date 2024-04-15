@@ -23,9 +23,9 @@
 
 namespace Frasy::Communication
 {
-void DeviceMap::ScanForDevices()
+void DeviceMap::scanForDevices()
 {
-    if (IsScanning()) { return; }
+    if (isScanning()) { return; }
     m_scan_future = std::async(std::launch::async,
                                [this]()
                                {
@@ -53,7 +53,7 @@ void DeviceMap::ScanForDevices()
     if (!m_scan_future.valid()) { BR_LOG_INFO(s_tag, "Failed to start scan task"); }
 }
 
-bool DeviceMap::IsScanning()
+bool DeviceMap::isScanning()
 {
     using namespace std::chrono_literals;
     return m_scan_future.valid() && m_scan_future.wait_for(50us) == std::future_status::timeout;

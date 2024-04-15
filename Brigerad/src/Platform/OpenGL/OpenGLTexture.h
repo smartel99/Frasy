@@ -14,7 +14,7 @@ public:
     virtual uint32_t GetWidth() const override { return m_width; }
     virtual uint32_t GetHeight() const override { return m_height; }
 
-    virtual uint32_t GetRenderID() const override { return m_rendererID; }
+    virtual uint32_t getRenderId() const override { return m_rendererID; }
 
 
     virtual uint32_t           GetFormat() const override { return m_dataFormat; }

@@ -35,13 +35,13 @@ public:
     Layer(const std::string& name = "Layer");
     virtual ~Layer();
 
-    virtual void OnAttach() {}
+    virtual void onAttach() {}
 
-    virtual void OnDetach() {}
+    virtual void onDetach() {}
 
-    virtual void OnUpdate(Timestep timestep) {}
+    virtual void onUpdate(Brigerad::Timestep timestep) {}
 
-    virtual void OnImGuiRender() {}
+    virtual void onImGuiRender() {}
 
     virtual void OnEvent(Event& event) {}
 

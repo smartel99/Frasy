@@ -30,7 +30,7 @@ ResultAnalyzer::ResultAnalyzer() noexcept
 {
 }
 
-void ResultAnalyzer::OnImGuiRender()
+void ResultAnalyzer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
 
@@ -75,11 +75,11 @@ void ResultAnalyzer::OnImGuiRender()
             if (ImGui::Button("Show Last Report")) { m_renderResults = true; }
             if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Display the last generated analysis report."); }
 
-            if (ImGui::Button("Load Reports"))
+            if (ImGui::Button("load Reports"))
             {
                 BR_PROFILE_SCOPE("Loading Analysis Reports");
                 auto pathsOpt =
-                  Brigerad::Dialogs::OpenFiles("Load Reports", {}, {"*.json"}, "Log Analysis Result Files");
+                  Brigerad::Dialogs::OpenFiles("load Reports", {}, {"*.json"}, "Log Analysis Result Files");
                 if (pathsOpt)
                 {
                     for (auto&& path : *pathsOpt)
@@ -245,7 +245,7 @@ void ResultAnalyzer::RenderLocationAnalysisResults(const Analyzers::ResultAnalys
 void ResultAnalyzer::RenderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence)
 {
     ImGui::BulletText("Analyzed %zu times", sequence.Total);
-    ImGui::BulletText("Enabled %zu times (%0.2f%%), Passed %zu times (%0.2f%%), Skipped %zu times (%0.2f%%)",
+    ImGui::BulletText("enabled %zu times (%0.2f%%), Passed %zu times (%0.2f%%), Skipped %zu times (%0.2f%%)",
                       sequence.Enabled,
                       sequence.EnabledPercent,
                       sequence.Passed,
@@ -278,7 +278,7 @@ void ResultAnalyzer::RenderSequenceAnalysisResults(const Analyzers::ResultAnalys
 void ResultAnalyzer::RenderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test)
 {
     ImGui::BulletText("Analyzed %zu times", test.Total);
-    ImGui::BulletText("Enabled %zu times (%0.2f%%), Passed %zu times (%0.2f%%), Skipped %zu times (%0.2f%%)",
+    ImGui::BulletText("enabled %zu times (%0.2f%%), Passed %zu times (%0.2f%%), Skipped %zu times (%0.2f%%)",
                       test.Enabled,
                       test.EnabledPercent,
                       test.Passed,

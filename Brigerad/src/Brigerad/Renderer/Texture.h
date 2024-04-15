@@ -16,7 +16,7 @@ public:
     [[nodiscard]] virtual uint32_t           GetFormat() const   = 0;
     [[nodiscard]] virtual const std::string& GetFilePath() const = 0;
 
-    [[nodiscard]] virtual uint32_t GetRenderID() const = 0;
+    [[nodiscard]] virtual uint32_t getRenderId() const = 0;
 
     virtual void SetData(void* data, uint32_t size) = 0;
 

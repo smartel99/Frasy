@@ -61,11 +61,11 @@ sol::table FromPacket(sol::state& lua, const Communication::SerialDevice& device
     table["id"]      = packet.Header.CommandId;
     table["payload"] = lua.create_table();
 
-    if (!device.GetCommands().contains(packet.Header.CommandId))
+    if (!device.getCommands().contains(packet.Header.CommandId))
     {
         BR_LOG_ERROR(s_tag.data(), "Unknown command {}", packet.Header.CommandId);
     }
-    else { const auto& command = device.GetCommands().at(static_cast<Actions::cmd_id_t>(packet.Header.CommandId)); }
+    else { const auto& command = device.getCommands().at(static_cast<Actions::cmd_id_t>(packet.Header.CommandId)); }
     return table;
 }
 }    // namespace Frasy::Lua

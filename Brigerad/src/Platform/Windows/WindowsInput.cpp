@@ -14,7 +14,7 @@
 namespace Brigerad
 {
 
-bool Input::IsKeyPressed(KeyCode keycode)
+bool Input::isKeyPressed(KeyCode keycode)
 {
     auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
     auto state  = glfwGetKey(window, int(keycode));

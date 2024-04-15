@@ -5,7 +5,7 @@ function Sequence(name, func)
         name = name,
         tests = {},
         LoadTests = func,
-        DoTests = function(self)
+        doTests = function(self)
             for i, test in ipairs(self.tests) do test:Run() end
         end,
         GetTestTable = function(self, testName)
@@ -25,7 +25,7 @@ function Sequence(name, func)
     }
 
     sequence:LoadTests()
-    
+
     return sequence
 end
 

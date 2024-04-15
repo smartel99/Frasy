@@ -10,7 +10,7 @@ class BRIGERAD_API Input
 {
 public:
     // Public API, static interface.
-    static bool IsKeyPressed(KeyCode keycode);
+    static bool isKeyPressed(KeyCode keycode);
 
     static bool                    IsMouseButtonPressed(MouseCode button);
     static float                   GetMouseX();

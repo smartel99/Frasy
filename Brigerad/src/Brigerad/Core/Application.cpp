@@ -53,7 +53,7 @@ Application::Application(const std::string& name)
 
     // Add the ImGui layer to the layer stack as an overlay (on top of everything).
     m_layerStack.PushOverlay(m_imguiLayer);
-    m_imguiLayer->OnAttach();
+    m_imguiLayer->onAttach();
 }
 
 /**
@@ -91,15 +91,17 @@ void Application::Run()
         {
             {
                 // Update all Application Layers.
-                BR_PROFILE_SCOPE("Layer Stack OnUpdate");
-                for (Layer* layer : m_layerStack) { layer->OnUpdate(timestep); }
+                BR_PROFILE_SCOPE("Layer Stack onUpdate");
+                for (Layer* layer : m_layerStack) {
+                    layer->onUpdate(timestep); }
             }
 
             // Render all ImGui Layers.
             m_imguiLayer->Begin();
             {
-                BR_PROFILE_SCOPE("LayerStack OnImGuiRender");
-                for (Layer* layer : m_layerStack) { layer->OnImGuiRender(); }
+                BR_PROFILE_SCOPE("LayerStack onImGuiRender");
+                for (Layer* layer : m_layerStack) {
+                    layer->onImGuiRender(); }
             }
             m_imguiLayer->End();
         }
@@ -112,7 +114,8 @@ void Application::Run()
         m_postFrameTasks.clear();
     }
 
-    for (auto&& layer : m_layerStack) { layer->OnDetach(); }
+    for (auto&& layer : m_layerStack) {
+        layer->onDetach(); }
 }
 
 /**
@@ -163,7 +166,7 @@ void Application::PushLayer(Layer* layer)
         // Push the new layer to the stack.
         m_layerStack.PushLayer(layer);
         // Initialize the layer.
-        layer->OnAttach();
+        layer->onAttach();
     };
 
     m_postFrameTasks.push_back(task);
@@ -184,7 +187,7 @@ void Application::PushOverlay(Layer* layer)
         // Push the new layer to the stack.
         m_layerStack.PushOverlay(layer);
         // Initialize the layer.
-        layer->OnAttach();
+        layer->onAttach();
     };
 
     m_postFrameTasks.push_back(task);
@@ -200,7 +203,7 @@ void Application::PopLayer(Layer* layer)
         // Pop the layer from the stack.
         m_layerStack.PopLayer(layer);
         // De-initialize the layer.
-        layer->OnDetach();
+        layer->onDetach();
     };
 
     m_postFrameTasks.push_back(task);

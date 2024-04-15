@@ -50,17 +50,17 @@ public:
 
     ~MainApplicationLayer() override = default;
 
-    void OnAttach() override;
-    void OnDetach() override;
+    void onAttach() override;
+    void onDetach() override;
 
-    void OnUpdate(Brigerad::Timestep ts) override;
-    void OnImGuiRender() final;
+    void onUpdate(Brigerad::Timestep ts) override;
+    void onImGuiRender() final;
     void OnEvent(Brigerad::Event& e) override;
 
 protected:
-    virtual void RenderControlRoom();
+    virtual void renderControlRoom();
 
-    virtual void MakeLogWindowVisible();
+    virtual void makeLogWindowVisible();
     virtual void MakeDeviceViewerVisible();
     virtual void MakeResultViewerVisible();
     virtual void MakeResultAnalyzerVisible();
