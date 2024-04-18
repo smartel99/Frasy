@@ -103,16 +103,16 @@ struct GenericCommand
     static auto MakeCommand(Ts&&... ts)
         requires(std::same_as<Ts, payload_type> && ...)
     {
-        auto impl = [](const std::vector<uint8_t>& data) { return Communication::Packet(id, data, false, true); };
+        auto impl = [](const std::vector<uint8_t>& data) { return Serial::Packet(id, data, false, true); };
         static_assert(sizeof...(Ts) <= 1, "Only one payload allowed!");
         if constexpr (sizeof...(Ts) == 0) { return impl({}); }
         else { return impl(Serialize(ts...)); }
     }
 
 
-    static bool IsPacketForMe(const Communication::Packet& pkt) { return id == pkt.Header.CommandId; }
+    static bool IsPacketForMe(const Serial::Packet& pkt) { return id == pkt.Header.CommandId; }
 
-    static response_type GetResponse(const Communication::Packet& pkt)
+    static response_type GetResponse(const Serial::Packet& pkt)
     {
         if constexpr (std::same_as<response_type, void>) { return; }
         else

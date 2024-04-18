@@ -21,9 +21,9 @@
 
 namespace Frasy::Lua
 {
-Communication::Packet ToPacket(const Actions::Command& command, const sol::variadic_args& args)
+Serial::Packet ToPacket(const Actions::Command& command, const sol::variadic_args& args)
 {
-    Communication::Packet packet;
+    Serial::Packet packet;
     if (command.Parameters.size() != args.size())
     {
         BR_LOG_ERROR(
@@ -55,17 +55,17 @@ Communication::Packet ToPacket(const Actions::Command& command, const sol::varia
 }
 
 
-sol::table FromPacket(sol::state& lua, const Communication::SerialDevice& device, const Communication::Packet& packet)
+sol::table FromPacket(sol::state& lua, const Serial::Device& device, const Serial::Packet& packet)
 {
     sol::table table = lua.create_table();
     table["id"]      = packet.Header.CommandId;
     table["payload"] = lua.create_table();
 
-    if (!device.getCommands().contains(packet.Header.CommandId))
-    {
-        BR_LOG_ERROR(s_tag.data(), "Unknown command {}", packet.Header.CommandId);
-    }
-    else { const auto& command = device.getCommands().at(static_cast<Actions::cmd_id_t>(packet.Header.CommandId)); }
+//    if (!device.getCommands().contains(packet.Header.CommandId))
+//    {
+//        BR_LOG_ERROR(s_tag.data(), "Unknown command {}", packet.Header.CommandId);
+//    }
+//    else { const auto& command = device.getCommands().at(static_cast<Actions::cmd_id_t>(packet.Header.CommandId)); }
     return table;
 }
 }    // namespace Frasy::Lua

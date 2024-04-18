@@ -33,9 +33,9 @@ struct ToBeTypeExpectation : public ToBeExactBase
         ToBeExactBase::Render();
     }
 
-    nlohmann::json Serialize() override
+    nlohmann::json serialize() override
     {
-        auto j        = ToBeExactBase::Serialize();
+        auto j        = ToBeExactBase::serialize();
         j["type"]     = "to_be_type";
         j["expected"] = Expected;
         return j;

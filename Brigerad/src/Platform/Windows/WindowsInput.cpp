@@ -16,7 +16,7 @@ namespace Brigerad
 
 bool Input::isKeyPressed(KeyCode keycode)
 {
-    auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+    auto window = static_cast<GLFWwindow*>(Application::Get().getWindow().GetNativeWindow());
     auto state  = glfwGetKey(window, int(keycode));
 
     return (state == GLFW_PRESS || state == GLFW_REPEAT);
@@ -24,7 +24,7 @@ bool Input::isKeyPressed(KeyCode keycode)
 
 bool Input::IsMouseButtonPressed(MouseCode button)
 {
-    auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+    auto window = static_cast<GLFWwindow*>(Application::Get().getWindow().GetNativeWindow());
     auto state  = glfwGetMouseButton(window, int(button));
 
     return state == GLFW_PRESS;
@@ -32,7 +32,7 @@ bool Input::IsMouseButtonPressed(MouseCode button)
 
 std::pair<float, float> Input::GetMousePos()
 {
-    auto   window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+    auto   window = static_cast<GLFWwindow*>(Application::Get().getWindow().GetNativeWindow());
     double xPos, yPos;
     glfwGetCursorPos(window, &xPos, &yPos);
 

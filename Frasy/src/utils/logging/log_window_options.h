@@ -71,11 +71,12 @@ struct LogWindowOptions
             }
             catch (...)
             {
+                DebugBreak();
             }
         }
     }
 
-    [[nodiscard]] Config Serialize() const noexcept
+    [[nodiscard]] Config serialize() const noexcept
     {
         Config cfg = {};
 
@@ -91,11 +92,11 @@ struct LogWindowOptions
 #undef SET_FIELD
 
         // Save the overriden log levels, if any.
-        std::map<std::string, int> loggerLevels;
+        Config loggerLevels;
         const auto&                loggers = Brigerad::Log::GetLoggers();
         for (auto&& [name, ptr] : loggers)
         {
-            if (ptr->level() != Brigerad::Log::s_defaultLevel) { loggerLevels[name] = ptr->level(); }
+            if (ptr->level() != Brigerad::Log::s_defaultLevel) { loggerLevels.setField(name,ptr->level()); }
         }
         cfg.setField("Loggers", loggerLevels);
 

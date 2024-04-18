@@ -111,7 +111,7 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
         }
     }
 
-    nlohmann::json Serialize() override
+    nlohmann::json serialize() override
     {
         nlohmann::json j  = {};
         j["total"]        = Total;

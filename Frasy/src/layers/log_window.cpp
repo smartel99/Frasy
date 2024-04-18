@@ -48,7 +48,7 @@ void LogWindow::onDetach()
 {
     BR_PROFILE_FUNCTION();
 
-    FrasyInterpreter::Get().getConfig().setField("LogWindow", m_options.Serialize());
+    FrasyInterpreter::Get().getConfig().setField("LogWindow", m_options.serialize());
 
     Brigerad::Log::RemoveSink(m_sink);
 }

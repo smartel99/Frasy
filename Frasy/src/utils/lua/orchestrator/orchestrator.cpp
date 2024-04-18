@@ -213,53 +213,41 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
 void Orchestrator::LoadIb(sol::state_view lua)
 {
     if (!m_ibEnabled) { return; }
-    using Frasy::Communication::DeviceMap;
-    using Frasy::Communication::SerialDevice;
+    using Frasy::Serial::DeviceMap;
+    using Frasy::Serial::DeviceMap;
 
     DeviceMap& devices = DeviceMap::Get();
 
     if (devices.empty()) { throw std::runtime_error("No devices connected!"); }
     else if (devices.isScanning()) { throw std::runtime_error("Cannot load IB when DeviceMap is scanning"); }
 
-    SerialDevice& device = devices.begin()->second;
-    for (const auto& [_, e] : device.getEnums())
-    {
-        lua.create_named_table(e.Name);
-        for (const auto& field : e.Fields) { lua[e.Name][field.Name] = field.Value; }
-    }
-
     bool isExecution = lua["Context"]["stage"].get<int>() == lua["Stage"]["Execution"].get<int>();
 
     BR_LUA_DEBUG("Loading commands");
-    for (const auto& [id, fun] : device.getCommands())
-    {
-        if (isExecution) { LoadIbCommandForExecution(lua, fun); }
-        else { LoadIbCommandForValidation(lua, fun); }
-    }
 }
 
 void Orchestrator::LoadIbCommandForValidation(sol::state_view lua, const Frasy::Actions::CommandInfo::Reply& fun)
 {
-    using Frasy::Communication::DeviceMap;
-    using Frasy::Communication::SerialDevice;
+    using Frasy::Serial::DeviceMap;
+    using Frasy::Serial::DeviceMap;
     DeviceMap& devices = DeviceMap::Get();
-    lua["Context"]["Testbench"]["commands"][fun.Name] =
-      [&, lua](std::size_t ib, sol::variadic_args args) -> std::optional<sol::table>
-    {
-        SerialDevice&                    device = devices[ib - 1];
-        std::vector<Type::Struct::Field> fields;
-        fields.reserve(fun.Parameters.size());
-        for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
-        CheckArgs(lua, device.GetTypeManager(), fields, args);
-
-        Lua::DummyDeserializer deserializer {lua, fun.Returns, device.getStructs(), device.getEnums()};
-        return deserializer.Deserialize();
-    };
+//    lua["Context"]["Testbench"]["commands"][fun.Name] =
+//      [&, lua](std::size_t ib, sol::variadic_args args) -> std::optional<sol::table>
+//    {
+//        SerialDevice&                    device = devices[ib - 1];
+//        std::vector<Type::Struct::Field> fields;
+//        fields.reserve(fun.Parameters.size());
+//        for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
+//        CheckArgs(lua, device.GetTypeManager(), fields, args);
+//
+//        Lua::DummyDeserializer deserializer {lua, fun.Returns, device.getStructs(), device.getEnums()};
+//        return deserializer.Deserialize();
+//    };
 }
 
 void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::Actions::CommandInfo::Reply& fun)
 {
-    namespace fc = Frasy::Communication;
+    namespace fc = Frasy::Serial;
 
     fc::DeviceMap& devices = fc::DeviceMap::Get();
     lua["Context"]["Testbench"]["commands"][fun.Name] =
@@ -267,14 +255,14 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
     {
         try
         {
-            fc::SerialDevice&                device = devices[ib - 1];
+            fc::Device&                device = devices[ib - 1];
             fc::Packet                       packet;
             sol::table                       table = lua.create_table();
             std::vector<Type::Struct::Field> fields;
             fields.reserve(fun.Parameters.size());
             for (const auto& value : fun.Parameters) { fields.push_back({value.Name, value.Type, value.Count}); }
-            Lua::ArgsToTable(table, device.GetTypeManager(), fields, args);
-            Lua::ParseTable(table, device.GetTypeManager(), fields, packet.Payload);
+//            Lua::ArgsToTable(table, device.GetTypeManager(), fields, args);
+//            Lua::ParseTable(table, device.GetTypeManager(), fields, packet.Payload);
 
             packet.Header.CommandId     = fun.Id;
             packet.Header.TransactionId = fc::AUTOMATIC_TRANSACTION_ID;
@@ -303,10 +291,10 @@ void Orchestrator::LoadIbCommandForExecution(sol::state_view lua, const Frasy::A
                 using namespace std::chrono_literals;
                 std::this_thread::sleep_for(50ms);
             }
-            Lua::Deserializer deserializer {lua, fun.Returns, device.getStructs(), device.getEnums()};
-            auto              b = response.begin();
-            auto              e = response.end();
-            return deserializer.Deserialize(b, e);
+//            Lua::Deserializer deserializer {lua, fun.Returns, device.getStructs(), device.getEnums()};
+//            auto              b = response.begin();
+//            auto              e = response.end();
+//            return deserializer.Deserialize(b, e);
         }
         catch (const std::exception& e)
         {

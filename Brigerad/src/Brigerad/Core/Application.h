@@ -24,22 +24,22 @@ public:
     Application(const std::string& name = "Brigerad Engine");
     virtual ~Application();
 
-    void Run();
+    void run();
 
-    void OnEvent(Event& e);
+    void onEvent(Event& e);
 
-    void PushLayer(Layer* layer);
-    void PushOverlay(Layer* layer);
+    void pushLayer(Layer* layer);
+    void pushOverlay(Layer* layer);
 
-    void PopLayer(Layer* layer);
+    void popLayer(Layer* layer);
 
-    void Close();
+    void close();
 
-    inline Window& GetWindow() { return *m_window; }
+    Window& getWindow() { return *m_window; }
 
-    inline ImGuiLayer* GetImGuiLayer() { return m_imguiLayer; }
+    ImGuiLayer* getImGuiLayer() { return m_imguiLayer; }
 
-    inline void QueuePostFrameTask(const std::function<void()>& fn)
+    void queuePostFrameTask(const std::function<void()>& fn)
     {
         if (fn)
         {
@@ -47,12 +47,12 @@ public:
         }
     }
 
-    inline static Application& Get() { return *s_instance; }
+    static Application& Get() { return *s_instance; }
 
 private:
-    bool OnWindowClose(WindowCloseEvent& e);
-    bool OnWindowResize(WindowResizeEvent& e);
-    bool OnKeyPressed(KeyPressedEvent& e);
+    bool onWindowClose(WindowCloseEvent& e);
+    bool onWindowResize(WindowResizeEvent& e);
+    bool onKeyPressed(KeyPressedEvent& e);
 
 private:
     Scope<Window> m_window;

@@ -197,7 +197,9 @@ private:
 /**
  * @brief Measure the execution time of the current scope.
  */
-#    define BR_PROFILE_SCOPE(name) ::Brigerad::InstrumentationTimer timer##__LINE__(name)
+#define BR_PROFILE_SCOPE_NAME_HELPER(line) timer##line
+#define BR_PROFILE_SCOPE_NAME(line)    BR_PROFILE_SCOPE_NAME_HELPER(line)
+#    define BR_PROFILE_SCOPE(name) ::Brigerad::InstrumentationTimer BR_PROFILE_SCOPE_NAME(__LINE__)(name)
 /**
  * @brief Measure the execution time of the current function.
  */

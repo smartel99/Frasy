@@ -67,10 +67,7 @@ void MyMainApplicationLayer::renderControlRoom()
         }
 
         uint64_t texture {};
-        if (Frasy::Communication::DeviceMap::Get().isScanning()) { texture = m_waiting->getRenderId(); }
-        else if (m_orchestrator.isRunning()) {
-            texture = m_testing->getRenderId();
-        }
+        if (m_orchestrator.isRunning()) { texture = m_testing->getRenderId(); }
         else if (m_skipVerification) {
             texture = m_runWarn->getRenderId();
         }
@@ -157,8 +154,7 @@ void MyMainApplicationLayer::renderControlRoom()
                         case Frasy::UutState::Failed: texture = m_fail->getRenderId(); break;
                         case Frasy::UutState::Error: texture = m_error->getRenderId(); break;
                     }
-                    if (ImGui::ImageButton(
-                          reinterpret_cast<void*>(texture), buttonSize, buttonUv0, buttonUv1)) {
+                    if (ImGui::ImageButton(reinterpret_cast<void*>(texture), buttonSize, buttonUv0, buttonUv1)) {
                         m_orchestrator.ToggleUut(uut);
                     }
                     ImGui::PopID();
@@ -186,8 +182,8 @@ bool MyMainApplicationLayer::getSerials()
     std::regex  snRe("(.+)([0-9A-F]{3})$");
     std::cmatch matches;
     std::string snPrefix;
-    int         snStart{};
-    int         snEnd{};
+    int         snStart {};
+    int         snEnd {};
 
     if (std::regex_search(&m_serialNumberTopLeft[0], matches, snRe)) {
         snPrefix = matches[1];
@@ -285,7 +281,7 @@ void MyMainApplicationLayer::loadProducts()
 
     // Re-select the previously selected products, if it still exists.
     Frasy::Config cfg         = Frasy::FrasyInterpreter::Get().getConfig().getField("Demo");
-    auto   lastProduct = cfg.getField<std::string>("LastProduct");
+    auto          lastProduct = cfg.getField<std::string>("LastProduct");
     auto          it =
       std::find_if(m_products.begin(), m_products.end(), [&](const auto& item) { return item.name == lastProduct; });
     if (it != m_products.end()) { makeOrchestrator(it->name, it->environmentPath, it->testPath); }

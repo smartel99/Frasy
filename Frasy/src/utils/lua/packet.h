@@ -24,9 +24,9 @@
 
 namespace Frasy::Lua
 {
-Communication::Packet ToPacket(const Actions::Command& command, const sol::variadic_args& args);
+Serial::Packet ToPacket(const Actions::Command& command, const sol::variadic_args& args);
 
-sol::table FromPacket(sol::state& lua, const Communication::SerialDevice& device, const Communication::Packet& packet);
+sol::table FromPacket(sol::state& lua, const Serial::Device& device, const Serial::Packet& packet);
 }    // namespace Frasy::Lua
 
 #endif    // COPY_LUA_PY_FRASY_SRC_UTILS_LUA_PACKET_H

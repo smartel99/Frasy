@@ -26,7 +26,7 @@ Config::Config(const std::string& path) : m_path(path)
     {
         BR_APP_ERROR("An error occurred while parsing the internal config: {}", e.what());
         m_config = "{}"_json;
-        Save(m_path, *this);
+        save(m_path, *this);
     }
 
     j.close();
@@ -37,7 +37,7 @@ Config Config::load(const std::string& path)
     return Config(path);
 }
 
-void Config::Save(const std::string& path, const Config& cfg)
+void Config::save(const std::string& path, const Config& cfg)
 {
     BR_PROFILE_FUNCTION();
     std::fstream file(path, std::ios::out);

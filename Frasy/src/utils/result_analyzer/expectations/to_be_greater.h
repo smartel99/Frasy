@@ -19,10 +19,8 @@
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_GREATER_H
 #include "to_be_value_base.h"
 
-namespace Frasy::Analyzers
-{
-struct ToBeGreaterExpectation : public ToBeValueBase
-{
+namespace Frasy::Analyzers {
+struct ToBeGreaterExpectation : public ToBeValueBase {
     /** TODO Either do the rendering here, or find a way to not have to specify the expected, min and max values as the
      * same thing lmao.
      */
@@ -36,9 +34,9 @@ struct ToBeGreaterExpectation : public ToBeValueBase
         ToBeValueBase::Render();
     }
 
-    nlohmann::json Serialize() override
+    nlohmann::json serialize() override
     {
-        auto j    = ToBeValueBase::Serialize();
+        auto j    = ToBeValueBase::serialize();
         j["type"] = "to_be_greater";
         return j;
     }

@@ -21,37 +21,8 @@
 #include <Brigerad/Core/Log.h>
 #include <future>
 
-namespace Frasy::Communication
+namespace Frasy::Serial
 {
-void DeviceMap::scanForDevices()
-{
-    if (isScanning()) { return; }
-    m_scan_future = std::async(std::launch::async,
-                               [this]()
-                               {
-                                   m_scan_done = false;
-
-                                   BR_LOG_INFO(s_tag, "Closing {} serial devices...", m_devices.size());
-                                   m_devices.clear();
-
-                                   BR_LOG_INFO(s_tag, "Scanning for instrumentation cards...");
-
-                                   std::vector<Communication::DeviceInfo> devices =
-                                     Communication::EnumerateInstrumentationCards();
-                                   BR_LOG_INFO(s_tag, "{} devices found!", devices.size());
-
-                                   for (auto&& device : devices)
-                                   {
-                                       m_devices[device.Info.Id] = std::move(SerialDevice(device));
-                                   }
-
-                                   m_scan_done = true;
-                                   m_scan_done.notify_all();
-
-                                   return m_devices.size();
-                               });
-    if (!m_scan_future.valid()) { BR_LOG_INFO(s_tag, "Failed to start scan task"); }
-}
 
 bool DeviceMap::isScanning()
 {

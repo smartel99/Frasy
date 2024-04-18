@@ -19,8 +19,7 @@
 
 #include <utility>
 
-namespace Frasy::Communication
-{
+namespace Frasy::Serial {
 
 ResponsePromise::~ResponsePromise()
 {

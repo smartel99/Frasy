@@ -261,7 +261,7 @@ nlohmann::json SaveTest(const ResultAnalysisResults::Test& test)
     j["durations"]        = test.Durations;
     j["average_duration"] = test.AverageDuration;
     j["expectations"]     = {};
-    for (auto&& [name, expectation] : test.Expectations) { j["expectations"][name] = expectation->Serialize(); }
+    for (auto&& [name, expectation] : test.Expectations) { j["expectations"][name] = expectation->serialize(); }
 
     return j;
 }

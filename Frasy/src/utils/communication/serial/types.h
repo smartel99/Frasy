@@ -21,8 +21,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace Frasy::Communication
-{
+namespace Frasy::Serial {
 using trs_id_t       = std::uint32_t;
 using cmd_id_t       = std::uint16_t;
 using payload_size_t = std::uint16_t;

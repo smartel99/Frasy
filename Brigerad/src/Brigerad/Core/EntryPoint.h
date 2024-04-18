@@ -19,7 +19,7 @@ int main(int argc, char** argv)
     auto app = Brigerad::CreateApplication();
     BR_PROFILE_END_SESSION();
 
-    app->Run();
+    app->run();
 
     BR_PROFILE_BEGIN_SESSION("Shutdown", "BrigeradProfile-Shutdown.json");
     delete app;

@@ -12,10 +12,22 @@
       true,
       true
     ],
+    "Loggers": {
+      "SlCan": 2
+    },
     "ShowLogSource": true,
     "ShowSourceLocation": true,
     "ShowTimeStamp": true,
     "SourceLocationRenderStyle": 4
   },
-  "UserConfigPath": "usr_config.json"
+  "UserConfigPath": "usr_config.json",
+  "communication": {
+    "usbWhitelist": [
+      {
+        "vid": 1155,
+        "pid": 42180,
+        "mi": 0
+      }
+    ]
+  }
 }

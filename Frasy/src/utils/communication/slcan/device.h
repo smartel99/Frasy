@@ -1,7 +1,7 @@
 /**
  * @file    device.h
  * @author  Samuel Martel
- * @date    2022-12-08
+ * @date    2024-04-16
  * @brief
  *
  * @copyright
@@ -15,29 +15,27 @@
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef FRASY_UTILS_COMM_SERIAL_DEVICE_H
-#define FRASY_UTILS_COMM_SERIAL_DEVICE_H
 
-#include "../../commands/dispatcher.h"
-#include "../../commands/event.h"
-#include "enumerator.h"
-#include "exceptions.h"
-#include "response.h"
+#ifndef FRASY_SRC_UTILS_COMMUNICATION_SLCAN_DEVICE_H
+#define FRASY_SRC_UTILS_COMMUNICATION_SLCAN_DEVICE_H
+#include "packet.h"
 
-#include <Brigerad/Core/Log.h>
-#include <Brigerad/Core/Time.h>
+#include <serial/serial.h>
+
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <mutex>
-#include <serial/serial.h>
+#include <queue>
+#include <span>
 #include <thread>
-#include <vector>
 
-namespace Frasy::Serial {
-/**
- * Handles background reception of data from the serial device, as well as the transmission.
- *
- * Received packets are forwarded to the
- */
+namespace Frasy {
+class DeviceViewer;
+}
+
+namespace Frasy::SlCan {
 class Device {
 public:
     Device() noexcept = default;
@@ -49,40 +47,33 @@ public:
 
     void open();
     void close();
-    void reset();
 
     [[nodiscard]] bool        isOpen() const noexcept { return m_device.isOpen(); }
     [[nodiscard]] std::string getPort() const noexcept { return m_device.getPort(); }
     [[nodiscard]] bool        ready() const noexcept { return m_ready; }
     [[nodiscard]] bool        enabled() const noexcept { return m_enabled; }
 
-    ResponsePromise& transmit(Packet pkt);
-
-    [[nodiscard]] std::vector<trs_id_t> getPendingTransactions();
-
-private:
-    void checkForPackets();
-    void cleanerTask();
+    size_t transmit(const Packet& pkt);
+    Packet receive();
 
 private:
     std::string    m_label;
     serial::Serial m_device;    //!< The physical communication interface.
 
-    std::thread   m_cleanerThread;
-    volatile bool m_cleanerRun = false;
-
     bool m_ready   = false;
     bool m_enabled = true;
 
-    std::mutex    m_promiseLock;
-    volatile bool m_shouldRun = true;
-    std::thread   m_rxThread;
-    std::string   m_rxBuff;    //!< Buffer where the received data go.
+    std::jthread m_rxThread;
 
-    std::unordered_map<trs_id_t, ResponsePromise> m_pending;
+    std::mutex              m_lock;
+    std::condition_variable m_cv;
+    std::queue<Packet>      m_queue;
 
-    static constexpr size_t s_maxAttempts = 5;
+
+    // Things used by the device viewer for monitoring purposes.
+    friend class ::Frasy::DeviceViewer;
+    std::function<void(const Packet&)> m_monitorFunc = [](const Packet&) {};
 };
-}  // namespace Frasy::Serial
+}    // namespace Frasy::SlCan
 
-#endif    // FRASY_UTILS_COMM_SERIAL_DEVICE_H
+#endif    // FRASY_SRC_UTILS_COMMUNICATION_SLCAN_DEVICE_H

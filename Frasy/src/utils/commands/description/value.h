@@ -130,7 +130,7 @@ using Type::Fundamental;
 struct Value::Manager
 {
 
-    static Communication::cmd_id_t    id;
+    static Serial::cmd_id_t    id;
     static constexpr std::string_view name        = "Value";
     static constexpr std::string_view description = "Define a value passed by or returned from a command";
 

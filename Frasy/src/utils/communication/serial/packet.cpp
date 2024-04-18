@@ -20,8 +20,7 @@
 #include "utils/misc/char_conv.h"
 #include "utils/misc/serializer.h"
 
-namespace Frasy::Communication
-{
+namespace Frasy::Serial {
 PacketHeader::PacketHeader(trs_id_t trsId, cmd_id_t cmdId, PacketModifiers mods, payload_size_t payloadSize)
 : TransactionId(trsId), CommandId(cmdId), Modifiers(mods), PayloadSize(payloadSize)
 {

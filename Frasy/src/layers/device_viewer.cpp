@@ -19,240 +19,290 @@
 #include "utils/communication/serial/device_map.h"
 #include "utils/communication/serial/enumerator.h"
 
+#include "frasy_interpreter.h"
+
+#include <algorithm>
+#include <charconv>
+#include <regex>
+#include <string>
+#include <vector>
+
 namespace Frasy {
-DeviceViewer::DeviceViewer() noexcept : m_deviceMap(Communication::DeviceMap::Get())
+
+void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions::WhitelistItem& item)
 {
-    m_deviceMap.scanForDevices();
+    j = nlohmann::json {{"vid", item.vid}, {"pid", item.pid}};
+    if (item.rev.has_value()) { j["rev"] = *item.rev; }
+    if (item.mi.has_value()) { j["mi"] = *item.mi; }
+}
+void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions::WhitelistItem& item)
+{
+    if (j.contains("vid")) { j["vid"].get_to(item.vid); }
+    if (j.contains("pid")) { j["pid"].get_to(item.pid); }
+    if (j.contains("rev")) { item.rev = j["rev"].get<int>(); }
+    if (j.contains("mi")) { item.mi = j["mi"].get<int>(); }
+}
+
+void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions& options)
+{
+    j = nlohmann::json {{"lastDevice", options.lastDevice}, {"usbWhitelist", options.usbWhitelist}};
+}
+void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& options)
+{
+    if (j.contains("lastDevice")) { j["lastDevice"].get_to(options.lastDevice); }
+    if (j.contains("usbWhitelist")) { j["usbWhitelist"].get_to(options.usbWhitelist); }
+}
+
+DeviceViewer::DeviceViewer(SlCan::Device& device) noexcept : m_device(device)
+{
+    m_device.m_monitorFunc = [this](const SlCan::Packet& pkt) {
+        m_pktCount++;
+
+        // To make sure we don't use infinite ram at one point.
+        // TODO remove this!!!
+        while (m_device.m_queue.size() >= 100'000) {
+            m_device.m_queue.pop();
+        }
+
+        m_packetsRxInCurrentSecond++;
+        m_bytesRxInCurrentSecond += pkt.sizeOfSerialPacket();
+        if (!m_isVisible) { return; }
+        if (!SlCan::commandIsTransmit(pkt.command)) { return; }
+
+        m_networkState[pkt.data.packetData.id] = pkt.data.packetData;
+    };
+
+    m_resetter = std::jthread([this](std::stop_token stopToken) {
+        using namespace std::chrono_literals;
+
+        while (!stopToken.stop_requested()) {
+            m_packetsRxInLastSecond    = (m_packetsRxInLastSecond + m_packetsRxInCurrentSecond) / 2;
+            m_packetsRxInCurrentSecond = 0;
+
+            m_kilobytesRxInLastSecond =
+              (m_kilobytesRxInLastSecond + static_cast<float>(m_bytesRxInCurrentSecond) / 1024.0f) / 2.0f;
+            m_bytesRxInCurrentSecond = 0;
+            std::this_thread::sleep_for(1s);
+        }
+    });
+}
+
+bool DeviceViewer::DeviceViewerOptions::WhitelistItem::operator==(const std::string& rhs) const
+{
+    WhitelistItem other {};
+    std::regex    search("(VID_|PID_|REV_|MI_)([a-f]|[A-F]|[0-9])\\w+");
+
+    auto matchBegin = std::sregex_iterator(rhs.begin(), rhs.end(), search);
+    auto matchEnd   = std::sregex_iterator();
+
+    for (std::sregex_iterator i = matchBegin; i != matchEnd; ++i) {
+        std::smatch match     = *i;
+        std::string match_str = match.str();
+
+        size_t delim = match_str.find('_');
+        auto   word  = match_str.substr(0, delim);
+        auto   num   = match_str.substr(delim + 1);
+
+        int val = {};
+        std::from_chars(num.data(), num.data() + num.size(), val, 16);
+
+        if (word == "VID") { other.vid = val; }
+        else if (word == "PID") {
+            other.pid = val;
+        }
+        else if (word == "REV") {
+            other.rev = val;
+        }
+        else if (word == "MI") {
+            other.mi = val;
+        }
+    }
+
+    return *this == other;
+}
+
+void DeviceViewer::onAttach()
+{
+    m_options = FrasyInterpreter::Get().getConfig().getField<DeviceViewerOptions>("communication");
+
+    // Load the last device from the config, try to open it.
+    if (!m_options.lastDevice.empty()) { m_device = SlCan::Device(m_options.lastDevice); }
+    // If fails: get a list of the connected devices, search for a whitelisted VID/PID pair.
+    // If found, open the first one found.
+    // Otherwise, do nothing, display combo box with the ports and let the user choose.
+    if (!m_device.isOpen()) {
+        m_ports = serial::list_ports();
+        auto it = std::find_if(
+          m_ports.begin(),
+          m_ports.end(),
+          [&usbWhitelist = m_options.usbWhitelist](const serial::PortInfo& info) -> bool {
+              return std::any_of(usbWhitelist.begin(),
+                                 usbWhitelist.end(),
+                                 [&vidPid = info.hardware_id](const DeviceViewerOptions::WhitelistItem& item) -> bool {
+                                     return item == vidPid;
+                                 });
+          });
+
+        if (it != m_ports.end()) {
+            BR_APP_INFO("Found whitelisted device on port {} ({})!", it->port, it->hardware_id);
+            m_device = SlCan::Device(it->port);
+            if (m_device.isOpen()) { m_options.lastDevice = it->port; }
+        }
+    }
+}
+
+void DeviceViewer::onDetach()
+{
+    // Save the currently opened device, if one exists.
+    FrasyInterpreter::Get().getConfig().setField("communication", m_options);
 }
 
 void DeviceViewer::onImGuiRender()
 {
+    if (ImGui::BeginMainMenuBar()) {
+        ImGui::BeginHorizontal("menuBarSpan", ImVec2 {ImGui::GetContentRegionAvail().x, 0.0f});
+        ImGui::Spring(1);
+        ImGui::Separator();
+
+        static constexpr ImVec4 s_connectedColor    = {40, 255, 0, 255};
+        static constexpr ImVec4 s_disconnectedColor = {255, 0, 0, 255};
+        ImVec4                  color               = m_device.isOpen() ? s_connectedColor : s_disconnectedColor;
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        if (m_device.isOpen()) { ImGui::Text("Connected (%s)  ", m_device.getPort().c_str()); }
+        else {
+            ImGui::Text("Disconnected  ");
+        }
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemClicked()) { setVisibility(true); }
+
+        auto renderNetworkUsage = [](float usage) {
+            auto progressColor = ImVec4 {1.0f, 1.0f, 0, 1.0f};
+
+            // Under 50% usage, remove red to make it greener.
+            // Above 50% usage, remove green to make it more red.
+            if (usage <= 0.5f) { progressColor.x -= (0.5f - usage) * 2.0f; }
+            else {
+                // Will be in range (0.5, 1.0], bring into [0.0, 0.5] range.
+                progressColor.y -= (usage - 0.5f) * 2.0f;
+            }
+
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, progressColor);
+            ImGui::ProgressBar(usage, ImVec2 {50.0f, 0.0f}, "");
+            ImGui::PopStyleColor();
+        };
+
+        // Combine both Rx and Tx into one bar, then expand in the pop up.
+        renderNetworkUsage((m_kilobytesRxInLastSecond + m_kilobytesTxInLastSecond) / 300.0f);
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Addresses: %zu", m_networkState.size());
+            ImGui::Text("Packets Pending: %zu", m_device.m_queue.size());
+            ImGui::Text("Packets Received: %zu", m_pktCount);
+            ImGui::Text("Rx: %zu pkt/s (%0.3f kB/s)", m_packetsRxInLastSecond, m_kilobytesRxInLastSecond);
+            ImGui::SameLine();
+            renderNetworkUsage(m_kilobytesRxInLastSecond / 150.0f);
+            ImGui::Text("Tx: %zu pkt/s (%0.3f kB/s)", m_packetsTxInLastSecond, m_kilobytesTxInLastSecond);
+            ImGui::SameLine();
+            renderNetworkUsage(m_kilobytesTxInLastSecond / 150.0f);
+            ImGui::EndTooltip();
+        }
+        ImGui::EndHorizontal();
+        ImGui::EndMainMenuBar();
+    }
+
     if (!m_isVisible) { return; }
 
     if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
-        if (ImGui::Button("Rescan")) {
-            if (!m_deviceMap.isScanning()) { m_deviceMap.scanForDevices(); }
-            else {
-                BR_APP_WARN("Scan already in progress!");
-            }
+
+        if (m_device.isOpen()) {
+            ImGui::Text("Connected to: %s", m_device.getPort().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Close")) { m_device.close(); }
         }
-
+        else {
+            if (ImGui::Button("Open")) { m_device.open(); }
+        }
         ImGui::Separator();
-
-        if (!m_deviceMap.isScanning()) { renderDeviceList(); }
+        ImGui::Text("Network State: %zu addresses, %zu pending packets (%zu total), %zu pkt/s, %0.3f kB/s",
+                    m_networkState.size(),
+                    m_device.m_queue.size(),
+                    m_pktCount,
+                    m_packetsRxInLastSecond,
+                    m_kilobytesRxInLastSecond);
+        ImGui::SameLine();
+        if (ImGui::Button("Clear")) {
+            m_networkState.clear();
+            m_pktCount = 0;
+        }
+        renderNetworkState();
     }
     ImGui::End();
 }
 
 void DeviceViewer::setVisibility(bool visibility)
 {
-    m_isVisible = true;
+    m_isVisible = visibility;
     ImGui::SetWindowFocus(s_windowName);
 }
 
-void DeviceViewer::renderDeviceList()
+void DeviceViewer::refreshPorts()
 {
-    for (auto&& [id, device] : m_deviceMap) {
-        std::string port  = device.getPort();
-        std::string label = fmt::format("{} - {}", id, port);
+    m_ports = serial::list_ports();
+}
 
-        bool isOpen = device.isOpen();
+void DeviceViewer::renderNetworkState()
+{
+    BR_PROFILE_FUNCTION();
 
-        // If device is open, display it as a nice lil' green.
-        auto TreeNodeOpen = [isOpen, &label]() -> bool {
-            if (isOpen) { ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0AB002); }
-            bool open = ImGui::TreeNode(label.c_str());
-            if (isOpen) { ImGui::PopStyleColor(); }
-            return open;
-        };
+    static ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders | ImGuiTableFlags_Sortable |
+                                        ImGuiTableFlags_ScrollY | ImGuiTableFlags_SortMulti |
+                                        ImGuiTableFlags_SortTristate;
 
-        if (TreeNodeOpen()) {
-            const Frasy::Actions::Identify::Info& devInfo = device.getInfo();
-            ImGui::PushID(devInfo.Uuid.c_str());
-            if (isOpen) {
-                const auto& col = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
-                ImGui::PushStyleColor(ImGuiCol_Button, col);
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, col);
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, col);
-            }
-            if (ImGui::Button("open") && !isOpen) { device.open(); }
-            if (isOpen) { ImGui::PopStyleColor(3); }
-
-            if (ImGui::TreeNode("Information")) {
-                ImGui::BulletText("ID: %d", id);
-                ImGui::BulletText("Port: %s", port.c_str());
-                ImGui::BulletText("UUID: %s", devInfo.Uuid.c_str());
-                ImGui::BulletText("Loaded Firmware: %s - %s", devInfo.PrjName.c_str(), devInfo.Version.c_str());
-                ImGui::BulletText("Built: %s", devInfo.Built.c_str());
-
-                if (ImGui::TreeNode("Features")) {
-                    if (ImGui::TreeNode("Commands")) {
-                        renderDeviceCommands(device.getCommands(), device.GetTypeManager());
-                        ImGui::TreePop();
-                    }
-
-                    if (ImGui::TreeNode("Enums")) {
-                        renderDeviceEnums(device.getEnums());
-                        ImGui::TreePop();
-                    }
-
-                    if (ImGui::TreeNode("Structures")) {
-                        renderDeviceStructs(device.getStructs(), device.GetTypeManager());
-                        ImGui::TreePop();
-                    }
-
-                    ImGui::TreePop();
-                }
-
-                ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("Options")) {
-                bool shouldLog = device.getLog();
-                if (ImGui::Checkbox("Log", &shouldLog)) { device.setLog(shouldLog); }
-                if (ImGui::Button("reset")) { device.reset(); }
-                if (ImGui::Button("Update")) { BR_APP_WARN("Instrumentation card update not implemented"); }
-                ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("Pending Transactions")) {
-                for (auto&& transId : device.getPendingTransactions()) {
-                    ImGui::BulletText("%08X", transId);
-                }
-                ImGui::TreePop();
-            }
-            ImGui::PopID();
-
-            ImGui::TreePop();
+    float maxY = ImGui::GetContentRegionAvail().y;
+    if (ImGui::BeginTable("entries", 5, tableFlags, ImVec2 {0.0f, maxY})) {
+        ImGui::TableSetupColumn("Id", ImGuiTableColumnFlags_DefaultSort);
+        ImGui::TableSetupColumn("IsExt");
+        ImGui::TableSetupColumn("IsRTR");
+        ImGui::TableSetupColumn("DLC");
+        ImGui::TableSetupColumn("Data");
+        ImGui::TableHeadersRow();
+        for (const auto& [id, packet] : m_networkState) {
+            ImGui::TableNextRow();
+            renderNetworkPacket(packet);
         }
-
-        ImGui::Separator();
+        ImGui::EndTable();
     }
 }
 
-void DeviceViewer::renderDeviceCommands(
-  const std::unordered_map<Actions::cmd_id_t, Actions::CommandInfo::Reply>& commands, const Type::Manager& manager)
+void DeviceViewer::renderNetworkPacket(const SlCan::CanPacket& packet)
 {
-    if (commands.empty()) { ImGui::Text("No commands supported"); }
-    else {
-        ImGui::Text("%zu supported commands", commands.size());
-        for (const auto& [_, command] : commands) {
-            if (ImGui::TreeNode(command.Name.c_str())) {
-                ImGui::BulletText("ID: %d", command.Id);
-                if (!command.Alias.empty()) { ImGui::BulletText("Alias: %s", command.Alias.c_str()); }
-                ImGui::Bullet();
-                ImGui::SameLine();
-                ImGui::TextWrapped("Help: %s", command.Help.c_str());
+    BR_PROFILE_FUNCTION();
 
-                if (command.Parameters.empty()) { ImGui::BulletText("No Parameters"); }
-                else {
-                    renderCommandValues("Parameters", command.Parameters, manager);
-                }
-                if (command.Returns.empty()) { ImGui::BulletText("No Returned Values"); }
-                else {
-                    renderCommandValues("Returned", command.Returns, manager);
-                }
-
-                ImGui::TreePop();
-            }
+    static auto renderColumn = [](size_t columnId, const char* fmt, const auto& data) {
+        if (ImGui::TableSetColumnIndex(static_cast<int>(columnId))) {
+            float wrapPos = ImGui::GetContentRegionMax().x;
+            ImGui::PushTextWrapPos(wrapPos);
+            ImGui::TextWrapped(fmt, data);
+            ImGui::PopTextWrapPos();
         }
-    }
-}
+    };
+    auto formatData = [](const uint8_t* data, size_t len) -> std::string {
+        return fmt::format("{:#02x}", fmt::join(std::span {data, len}, ", "));
+    };
 
-void DeviceViewer::renderDeviceEnums(const std::unordered_map<Actions::cmd_id_t, Type::Enum>& enums)
-{
-    if (enums.empty()) { ImGui::Text("No enums defined"); }
-    else {
-        ImGui::Text("%zu defined enums", enums.size());
-        for (const auto& [id, e] : enums) {
-            if (ImGui::TreeNode(e.Name.c_str())) {
-                ImGui::BulletText("ID: %d", static_cast<int>(id));
-                ImGui::BulletText("Size of each fields: %d bytes", e.UnderlyingSize);
-                ImGui::Bullet();
-                ImGui::SameLine();
-                ImGui::TextWrapped("Description: %s",
-                                   e.Description.empty() ? "<none provided>" : e.Description.c_str());
+    ImGui::BeginGroup();
+    // Use the pointer location as a unique ID.
+    ImGui::PushID(static_cast<int>(packet.id));
 
-                if (e.Fields.empty()) { ImGui::BulletText("No fields"); }
-                else {
-                    std::string fieldsLabel = std::format("Fields ({} fields defined)", e.Fields.size());
-                    if (ImGui::TreeNode(fieldsLabel.c_str())) {
-                        for (const auto& field : e.Fields) {
-                            ImGui::BulletText("%s: %d", field.Name.c_str(), field.Value);
-                            if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%s", field.Description.c_str()); }
-                        }
-                        ImGui::TreePop();
-                    }
-                }
-                ImGui::TreePop();
-            }
-        }
-    }
-}
+    renderColumn(0, "%#08x", packet.id);
+    renderColumn(1, "%c", packet.isExtended ? 'Y' : 'N');
+    renderColumn(2, "%c", packet.isRemote ? 'Y' : 'N');
+    renderColumn(3, "%d", packet.dataLen);
+    renderColumn(4, "%s", packet.isRemote ? &" "[0] : formatData(&packet.data[0], packet.dataLen).c_str());
 
-void DeviceViewer::renderDeviceStructs(const std::unordered_map<Actions::cmd_id_t, Type::Struct>& structs,
-                                       const Type::Manager&                                       manager)
-{
-    if (structs.empty()) { ImGui::Text("No structs defined"); }
-    else {
-        ImGui::Text("%zu defined structs", structs.size());
-        for (const auto& [id, s] : structs) {
-            if (ImGui::TreeNode(s.Name.c_str())) {
-                ImGui::BulletText("ID: %d", static_cast<int>(id));
-
-                ImGui::Bullet();
-                ImGui::SameLine();
-                ImGui::TextWrapped("Description: %s",
-                                   s.Description.empty() ? "<none provided>" : s.Description.c_str());
-
-                if (s.Fields.empty()) { ImGui::BulletText("No fields"); }
-                else {
-                    std::string fieldsLabel = std::format("Fields ({} fields defined)", s.Fields.size());
-                    if (ImGui::TreeNode(fieldsLabel.c_str())) {
-                        for (const auto& field : s.Fields) {
-                            std::string fieldType    = manager.GetTypeName(field.Type);
-                            std::string fieldTypeStr = fieldType;
-                            if (field.Count == 0) { fieldTypeStr = std::format("Vector of {}", fieldType); }
-                            else if (field.Count != 1) {
-                                fieldTypeStr = std::format("{}[{}]", fieldType, field.Count);
-                            }
-                            ImGui::BulletText("%s: %s", field.Name.c_str(), fieldTypeStr.c_str());
-                            if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%s", field.Description.c_str()); }
-                        }
-                        ImGui::TreePop();
-                    }
-                }
-                ImGui::TreePop();
-            }
-        }
-    }
-}
-
-void DeviceViewer::renderCommandValues(std::string_view                   name,
-                                       const std::vector<Actions::Value>& values,
-                                       const Type::Manager&               manager)
-{
-    if (ImGui::TreeNode(name.data())) {
-        for (auto&& value : values) {
-            if (ImGui::TreeNode(value.Name.c_str())) {
-                std::string typeName = manager.GetTypeName(value.Type);
-                std::string type     = typeName;
-                if (value.Count == 0) { type = std::format("vector of {}", typeName); }
-                else if (value.Count != 1) {
-                    type = std::format("{}[{}]", typeName, value.Count);
-                }
-                ImGui::BulletText("Type: %s", type.c_str());
-                if (!value.Min.empty()) { ImGui::BulletText("Min: %s", value.Min.c_str()); }
-                if (!value.Max.empty()) { ImGui::BulletText("Max: %s", value.Max.c_str()); }
-                ImGui::Bullet();
-                ImGui::SameLine();
-                ImGui::TextWrapped("Help: %s", value.Help.empty() ? "<unavailable>" : value.Help.c_str());
-
-                ImGui::TreePop();
-            }
-        }
-        ImGui::TreePop();
-    }
+    ImGui::PopID();
+    ImGui::EndGroup();
 }
 
 }    // namespace Frasy

@@ -33,14 +33,14 @@ struct ToBeEqualExpectation : public ToBeExactBase
         ToBeExactBase::Render();
     }
 
-    nlohmann::json Serialize() override
+    nlohmann::json serialize() override
     {
-        nlohmann::json j = ToBeExactBase::Serialize();
+        nlohmann::json j = ToBeExactBase::serialize();
         j["type"]        = "to_be_exact";
         j["expected"]    = Expected;
         return j;
     }
-    
+
     std::string Expected;
 };
 }    // namespace Frasy::Analyzers

@@ -44,12 +44,12 @@ namespace Frasy::Commands
 {
 struct CommandEvent
 {
-    using RespondFunc = std::function<void(const Communication::Packet&)>;
+    using RespondFunc = std::function<void(const Serial::Packet&)>;
     RespondFunc           Respond;
     std::string           Source;
-    Communication::Packet Pkt;
+    Serial::Packet Pkt;
 
-    explicit CommandEvent(RespondFunc f, std::string src, Communication::Packet pkt)
+    explicit CommandEvent(RespondFunc f, std::string src, Serial::Packet pkt)
     : Respond(std::move(f)), Source(std::move(src)), Pkt(std::move(pkt))
     {
     }

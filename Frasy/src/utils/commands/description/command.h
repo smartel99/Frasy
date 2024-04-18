@@ -31,7 +31,7 @@ namespace Frasy::Actions
  * Structure describing a command supported by an instrumentation board.
  */
 
-using Communication::cmd_id_t;
+using Serial::cmd_id_t;
 class Command
 {
 public:

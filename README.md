@@ -30,7 +30,7 @@ Tests can be individually controlled from within the software, and their behavio
 
 When opening Frasy for the first time, the user will be prompted to select the files that contain the sequences of test. This will be remembered so that they are automatically loaded on start up in the future.
 
-Sequences and tests can be enabled and disabled through the test explorer, which is also used to display the progression of the sequence. The user then only has to click on the "Run" button.
+Sequences and tests can be enabled and disabled through the test explorer, which is also used to display the progression of the sequence. The user then only has to click on the "run" button.
 
 ## Documentation
 The API reference documentation can be found [here](doc/API/).
@@ -57,3 +57,13 @@ To provide your own source code, use the `--src_loc` flag when generating the pr
 
 ### Why is the main branch called Morwenn?
 Because [Morwenn](https://github.com/Morwenn).
+
+### TODOs
+
+- Automatic (re) connection to a USB device.
+  - When the currently connected USB device disconnects, then reconnects, Frasy should automatically re-establish the connection.
+  - When there are currently no USB device, and that a device with a VID/PID pair registered in the config is detected, automatically connect to it.
+  - Current state: 
+    - Connection is handled in Frasy/utils/communication/device, layer in Frasy/layers/device_viewer.*
+    - Device notification hooks are setup with [Win32](https://learn.microsoft.com/en-us/windows/win32/devio/registering-for-device-notification) in Brigerad/src/Platform/Windows/WindowsWindow.*. They however are not working (no change is detected.)
+    - The message handler should dispatch UsbConnected and UsbDisconnected events, with information on what the device is. (dispatch through Brigerad::Application::onEvent).

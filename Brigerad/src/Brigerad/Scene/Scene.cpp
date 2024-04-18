@@ -79,7 +79,7 @@ void DrawImGuiButton(Entity& entity, const std::function<bool(T&)>& func)
         {
             button.state = ImGuiButtonState::Released;
             ImGuiButtonReleasedEvent e(entity);
-            Application::Get().OnEvent(e);
+            Application::Get().onEvent(e);
         }
         // If the button if clicked on:
         else if (ImGui::IsMouseDown(0) && ImGui::IsItemHovered())
@@ -88,7 +88,7 @@ void DrawImGuiButton(Entity& entity, const std::function<bool(T&)>& func)
             {
                 button.state = ImGuiButtonState::Pressed;
                 ImGuiButtonPressedEvent e(entity);
-                Application::Get().OnEvent(e);
+                Application::Get().onEvent(e);
             }
         }
         else { button.state = ImGuiButtonState::Inactive; }

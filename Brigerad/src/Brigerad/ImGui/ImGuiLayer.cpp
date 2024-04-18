@@ -61,7 +61,7 @@ void ImGuiLayer::onAttach()
     }
 
     Application& app    = Application::Get();
-    GLFWwindow*  window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+    GLFWwindow*  window = static_cast<GLFWwindow*>(app.getWindow().GetNativeWindow());
 
     // Setup Platform/Renderer bindings.
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -120,7 +120,7 @@ void ImGuiLayer::onImGuiRender()
     if (m_showPlotWindow) { ImPlot::ShowDemoWindow(&m_showDemoWindow); }
 #endif
 
-    auto& window  = Application::Get().GetWindow();
+    auto& window  = Application::Get().getWindow();
     bool  isVSync = window.IsVSync();
     if (ImGui::Begin("Settings", &m_open))
     {
@@ -225,7 +225,7 @@ void ImGuiLayer::End()
 
     ImGuiIO&     io  = ImGui::GetIO();
     Application& app = Application::Get();
-    io.DisplaySize   = ImVec2(float(app.GetWindow().GetWidth()), float(app.GetWindow().GetHeight()));
+    io.DisplaySize   = ImVec2(float(app.getWindow().GetWidth()), float(app.getWindow().GetHeight()));
 
     // End viewport.
     ImGui::End();

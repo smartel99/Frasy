@@ -17,18 +17,16 @@
 #include <Brigerad/Core/File.h>
 #include <imgui/imgui.h>
 
-#define CREATE_TEXTURE(texture, path)                                                                         \
-    do {                                                                                                      \
-        if (Brigerad::File::CheckIfPathExists(path) == true) { texture = Brigerad::Texture2D::Create(path); } \
-        else                                                                                                  \
-        {                                                                                                     \
-            BR_CORE_ERROR("Unable to open '{}'!", path);                                                      \
-            texture = placeholderTexture;                                                                     \
-        }                                                                                                     \
+#define CREATE_TEXTURE(texture, path)                                                                                  \
+    do {                                                                                                               \
+        if (Brigerad::File::CheckIfPathExists(path) == true) { texture = Brigerad::Texture2D::Create(path); }          \
+        else {                                                                                                         \
+            BR_CORE_ERROR("Unable to open '{}'!", path);                                                               \
+            texture = placeholderTexture;                                                                              \
+        }                                                                                                              \
     } while (0)
 
-namespace Frasy
-{
+namespace Frasy {
 void MainApplicationLayer::onAttach()
 {
     BR_PROFILE_FUNCTION();
@@ -49,7 +47,7 @@ void MainApplicationLayer::onAttach()
     CREATE_TEXTURE(m_disabled, "assets/textures/disabled.png");
 
     m_logWindow      = std::make_unique<LogWindow>();
-    m_deviceViewer   = std::make_unique<DeviceViewer>();
+    m_deviceViewer   = std::make_unique<DeviceViewer>(m_device);
     m_resultViewer   = std::make_unique<ResultViewer>();
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
     m_testViewer     = std::make_unique<TestViewer>();
@@ -80,10 +78,10 @@ void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
     BR_PROFILE_FUNCTION();
 
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F2)) { makeLogWindowVisible(); }
-    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F3)) { MakeDeviceViewerVisible(); }
-    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F4)) { MakeResultViewerVisible(); }
-    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F5)) { MakeResultAnalyzerVisible(); }
-    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F6)) { MakeTestViewerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F3)) { makeDeviceViewerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F4)) { makeResultViewerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F5)) { makeResultAnalyzerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F6)) { makeTestViewerVisible(); }
     m_logWindow->onUpdate(ts);
     m_deviceViewer->onUpdate(ts);
     m_resultViewer->onUpdate(ts);
@@ -95,39 +93,35 @@ void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
 void MainApplicationLayer::onImGuiRender()
 {
     BR_PROFILE_FUNCTION();
-    if (ImGui::BeginMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
             //            ImGui::Separator();
 
-            if (ImGui::MenuItem("Exit")) { Brigerad::Application::Get().Close(); }
+            if (ImGui::MenuItem("Exit")) { Brigerad::Application::Get().close(); }
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("View"))
-        {
+        if (ImGui::BeginMenu("View")) {
             if (ImGui::MenuItem("Logger", "F2")) { makeLogWindowVisible(); }
-            if (ImGui::MenuItem("Device Viewer", "F3")) { MakeDeviceViewerVisible(); }
-            if (ImGui::MenuItem("Result Viewer", "F4")) { MakeResultViewerVisible(); }
-            if (ImGui::MenuItem("Result Analyzer", "F5")) { MakeResultAnalyzerVisible(); }
-            if (ImGui::MenuItem("Test Viewer", "F6")) { MakeTestViewerVisible(); }
+            if (ImGui::MenuItem("Device Viewer", "F3")) { makeDeviceViewerVisible(); }
+            if (ImGui::MenuItem("Result Viewer", "F4")) { makeResultViewerVisible(); }
+            if (ImGui::MenuItem("Result Analyzer", "F5")) { makeResultAnalyzerVisible(); }
+            if (ImGui::MenuItem("Test Viewer", "F6")) { makeTestViewerVisible(); }
             ImGui::Separator();
             if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
             if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("?"))
-        {
+        if (ImGui::BeginMenu("?")) {
             if (ImGui::MenuItem("About")) { m_renderAbout = true; }
 
             ImGui::EndMenu();
         }
 
-        ImGui::EndMenuBar();
+        ImGui::EndMainMenuBar();
 
-        if (m_renderAbout) { RenderAbout(); }
+        if (m_renderAbout) { renderAbout(); }
     }
 
     PresetControlRoomOptions();
@@ -161,27 +155,27 @@ void MainApplicationLayer::makeLogWindowVisible()
     m_logWindow->SetVisibility(true);
 }
 
-void MainApplicationLayer::MakeDeviceViewerVisible()
+void MainApplicationLayer::makeDeviceViewerVisible()
 {
     m_deviceViewer->setVisibility(true);
 }
 
-void MainApplicationLayer::MakeResultViewerVisible()
+void MainApplicationLayer::makeResultViewerVisible()
 {
     m_resultViewer->setVisibility(true);
 }
 
-void MainApplicationLayer::MakeResultAnalyzerVisible()
+void MainApplicationLayer::makeResultAnalyzerVisible()
 {
     m_resultAnalyzer->SetVisibility(true);
 }
 
-void MainApplicationLayer::MakeTestViewerVisible()
+void MainApplicationLayer::makeTestViewerVisible()
 {
     m_testViewer->SetVisibility(true);
 }
 
-void MainApplicationLayer::RenderAbout()
+void MainApplicationLayer::renderAbout()
 {
     ImGui::Begin("About", &m_renderAbout);
 
@@ -204,31 +198,34 @@ void MainApplicationLayer::PresetControlRoomOptions()
 
     // Put in front of main window for first initialization
     static bool isInFrontOfBg = false;
-    if (!isInFrontOfBg)
-    {
+    if (!isInFrontOfBg) {
         ImGui::SetNextWindowFocus();
         isInFrontOfBg = true;
     }
-    else { flags |= ImGuiWindowFlags_NoBringToFrontOnFocus; }
+    else {
+        flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    }
 
     auto size = ImGui::GetContentRegionAvail();
     ImGui::SetNextWindowPos(ImGui::GetWindowContentRegionMin(), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImGui::GetWindowContentRegionMax(), ImGuiCond_Always);
 
     if (m_noMove) { ImGui::Begin("Control Room", nullptr, flags); }
-    else { ImGui::Begin("Control Room"); }
+    else {
+        ImGui::Begin("Control Room");
+    }
     ImGui::End();
 }
 
-void MainApplicationLayer::Generate()
+void MainApplicationLayer::generate()
 {
-//        m_orchestrator->Generate();
+    //    m_orchestrator->Generate();
 }
-void MainApplicationLayer::SetTestEnable(const std::string& sequence, const std::string& test, bool enable)
+void MainApplicationLayer::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
 {
     m_orchestrator.SetTestEnable(sequence, test, enable);
 }
-void MainApplicationLayer::SetSequenceEnable(const std::string& sequence, bool enable)
+void MainApplicationLayer::setSequenceEnable(const std::string& sequence, bool enable)
 {
     m_orchestrator.SetSequenceEnable(sequence, enable);
 }

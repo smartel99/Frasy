@@ -23,8 +23,7 @@
 #include <string>
 #include <vector>
 
-namespace Frasy::Communication
-{
+namespace Frasy::Serial {
 struct DeviceInfo
 {
     std::string             ComPort;

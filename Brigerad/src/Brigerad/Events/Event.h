@@ -5,8 +5,7 @@
 #include <iostream>
 #include <string>
 
-namespace Brigerad
-{
+namespace Brigerad {
 // Events in Brigerad are currently blocking, meaning when an event occurs,
 // it immediately gets dispatched and must be dealt with right then and there.
 // For the future, a better strategy might be to buffer events in an event
@@ -16,8 +15,7 @@ namespace Brigerad
  * @enum    EventType
  * @brief   Lists all possible types of Event for Brigerad.
  */
-enum class EventType
-{
+enum class EventType {
     None = 0,
     // Window Events. (The window on the screen, not OS events)
     WindowClose,
@@ -41,10 +39,12 @@ enum class EventType
     // ImGui Events.
     ImGuiButtonPressed,
     ImGuiButtonReleased,
+    // USB Events.
+    UsbConnected,
+    UsbDisconnected,
 };
 
-enum EventCategory
-{
+enum EventCategory {
     None                     = 0,
     EventCategoryApplication = BIT(0),
     EventCategoryInput       = BIT(1),
@@ -52,30 +52,30 @@ enum EventCategory
     EventCategoryMouse       = BIT(3),
     EventCategoryMouseButton = BIT(4),
     EventCategoryImGui       = BIT(5),
+    EventCategoryUsb         = BIT(6),
 };
 
-#define EVENT_CLASS_TYPE(type)                                                                     \
-    static EventType GetStaticType()                                                               \
-    {                                                                                              \
-        return type;                                                                               \
-    }                                                                                              \
-    virtual EventType GetEventType() const override                                                \
-    {                                                                                              \
-        return GetStaticType();                                                                    \
-    }                                                                                              \
-    virtual const char* GetName() const override                                                   \
-    {                                                                                              \
-        return #type;                                                                              \
+#define EVENT_CLASS_TYPE(type)                                                                                         \
+    static EventType GetStaticType()                                                                                   \
+    {                                                                                                                  \
+        return type;                                                                                                   \
+    }                                                                                                                  \
+    virtual EventType GetEventType() const override                                                                    \
+    {                                                                                                                  \
+        return GetStaticType();                                                                                        \
+    }                                                                                                                  \
+    virtual const char* GetName() const override                                                                       \
+    {                                                                                                                  \
+        return #type;                                                                                                  \
     }
 
-#define EVENT_CLASS_CATEGORY(category)                                                             \
-    virtual int GetCategoryFlags() const override                                                  \
-    {                                                                                              \
-        return category;                                                                           \
+#define EVENT_CLASS_CATEGORY(category)                                                                                 \
+    virtual int GetCategoryFlags() const override                                                                      \
+    {                                                                                                                  \
+        return category;                                                                                               \
     }
 
-class BRIGERAD_API Event
-{
+class BRIGERAD_API Event {
     friend class EventDispatcher;
 
 public:
@@ -91,19 +91,18 @@ public:
 
 // enum type 'Brigerad::EventCategory' is unscoped...
 #pragma warning(disable : 26812)
-    inline bool IsInCategory(EventCategory category)
+    bool IsInCategory(EventCategory category)
 #pragma warning(default : 26812)
     {
-        return GetCategoryFlags() & category;
+        return (GetCategoryFlags() & category) != 0;
     }
 
-    inline bool Handled() { return m_handled; }
+    bool Handled() { return m_handled; }
 
     bool m_handled = false;
 };
 
-class EventDispatcher
-{
+class EventDispatcher {
     template<typename T>
     using EventFn = std::function<bool(T&)>;
 
@@ -113,8 +112,7 @@ public:
     template<typename T>
     bool Dispatch(EventFn<T> func)
     {
-        if (m_event.GetEventType() == T::GetStaticType())
-        {
+        if (m_event.GetEventType() == T::GetStaticType()) {
             m_event.m_handled = func(*(T*)&m_event);
             return true;
         }

@@ -24,7 +24,7 @@
 #include <atomic>
 #include <map>
 
-namespace Frasy::Communication
+namespace Frasy::Serial
 {
 class DeviceMap
 {
@@ -35,14 +35,7 @@ public:
         return instance;
     }
 
-    void scanForDevices();
     bool isScanning();
-
-    const Actions::Identify::Info& getDeviceInfo(uint8_t deviceId) const
-    {
-        waitForScanComplete();
-        return m_devices.at(deviceId).getInfo();
-    }
 
     ResponsePromise& transmit(uint8_t deviceId, const Packet& pkt)
     {
@@ -50,7 +43,7 @@ public:
         return m_devices.at(deviceId).transmit(pkt);
     }
 
-    SerialDevice& operator[](std::size_t index)
+    Device& operator[](std::size_t index)
     {
         waitForScanComplete();
         return m_devices.at(static_cast<uint8_t>(index));
@@ -90,10 +83,12 @@ public:
     }
 
 private:
-    void waitForScanComplete() const { return m_scan_done.wait(false); }
+    void waitForScanComplete() const {
+        throw std::exception(); // Device map shouldn't be used like this anymore.
+        return m_scan_done.wait(false); }
 
 private:
-    std::map<uint8_t, SerialDevice> m_devices;
+    std::map<uint8_t, Device> m_devices;
     std::future<size_t>             m_scan_future;
     std::atomic<bool>               m_scan_done = false;
 

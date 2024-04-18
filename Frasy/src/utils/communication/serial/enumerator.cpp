@@ -22,8 +22,7 @@
 #include <optional>
 #include <serial/serial.h>
 
-namespace Frasy::Communication
-{
+namespace Frasy::Serial {
 
 static constexpr const char* s_tag = "Enumerator";
 

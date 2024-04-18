@@ -32,8 +32,7 @@
 #include <string_view>
 #include <vector>
 
-namespace Frasy::Communication
-{
+namespace Frasy::Serial {
 
 struct PacketHeader
 {

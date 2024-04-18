@@ -31,8 +31,7 @@
 #include <utility>
 
 
-namespace Frasy::Communication
-{
+namespace Frasy::Serial {
 struct ResponsePromise
 {
     std::promise<Packet> Promise;
@@ -69,13 +68,13 @@ struct ResponsePromise
 
     bool IsConsumed() const { return m_consumed; }
 
-    /// Run the promise in asynchronous mode
+    /// run the promise in asynchronous mode
     void Async();
 
-    /// Run the promise in synchronous mode
+    /// run the promise in synchronous mode
     void Await();
 
-    /// Run the promise in synchronous mode
+    /// run the promise in synchronous mode
     /// Immediately collect and convert the response
     template<typename T = Packet>
     T Collect()

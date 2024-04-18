@@ -39,7 +39,7 @@ void ArgsToTable(sol::table&                       table,
                  const std::vector<Struct::Field>& fields,
                  const sol::variadic_args&         args);
 
-/// Serialize a table to a byte array
+/// serialize a table to a byte array
 /// Used to populate a message payload
 /// @param table the table to serialize
 /// @param typeManager the type manager related to the instrumentation board we converse with

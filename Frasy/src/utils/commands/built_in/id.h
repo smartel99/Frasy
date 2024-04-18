@@ -22,7 +22,7 @@
 
 namespace Frasy::Actions
 {
-using Frasy::Communication::cmd_id_t;
+using Frasy::Serial::cmd_id_t;
 
 enum class CommandId : cmd_id_t
 {

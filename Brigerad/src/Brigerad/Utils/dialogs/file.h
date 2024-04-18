@@ -26,14 +26,14 @@ namespace Brigerad::Dialogs
 {
 /**
  * Displays a dialog window that prompts the user to select a file name to save a file.
- * @param title Title of the dialog window. Defaults to "Save File"
+ * @param title Title of the dialog window. Defaults to "save File"
  * @param defaultPathAndFile Path and filename with which the dialog window first appears.
  *                           Defaults to the current working directory and no filename.
  * @param filters List of filters to be used by the dialog. They usually take the form of "*.extension", but can be any string.
  * @param description String displayed by the dialog to describe the filters.
  * @return The path of the file that the user has selected, or nothing if the user clicked on cancel.
  */
-std::optional<std::string> SaveFile(const std::string&              title              = "Save File",
+std::optional<std::string> SaveFile(const std::string&              title              = "save File",
                                     const std::string&              defaultPathAndFile = {},
                                     const std::vector<std::string>& filters            = {},
                                     const std::string&              description        = {});

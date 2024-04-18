@@ -20611,7 +20611,7 @@ class basic_json
     /*!
     @brief serialize to stream
 
-    Serialize the given JSON value @a j to the output stream @a o. The JSON
+    serialize the given JSON value @a j to the output stream @a o. The JSON
     value will be serialized using the @ref dump member function.
 
     - The indentation of the output can be controlled with the member variable

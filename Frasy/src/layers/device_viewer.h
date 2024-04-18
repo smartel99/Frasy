@@ -18,38 +18,77 @@
 #ifndef FRASY_LAYERS_DEVICE_VIEWER_H
 #define FRASY_LAYERS_DEVICE_VIEWER_H
 
-#include "utils/communication/serial/device_map.h"
-#include "utils/communication/serial/enumerator.h"
+#include "utils/communication/slcan/device.h"
+#include "utils/config.h"
 
-#include <atomic>
 #include <Brigerad.h>
+#include <optional>
+#include <unordered_map>
 
 namespace Frasy {
 class DeviceViewer : public Brigerad::Layer {
+    struct DeviceViewerOptions {
+        struct WhitelistItem {
+            int                vid = 0;
+            int                pid = 0;
+            std::optional<int> rev;
+            std::optional<int> mi;
+
+            bool operator==(const WhitelistItem& rhs) const
+            {
+                return vid == rhs.vid && pid == rhs.pid && (!rev.has_value() || rev == rhs.rev) &&
+                       (!mi.has_value() || mi == rhs.mi);
+            }
+            bool operator==(const std::string& rhs) const;
+        };
+
+        std::string                lastDevice;
+        std::vector<WhitelistItem> usbWhitelist;
+    };
+    friend void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions& options);
+    friend void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions::WhitelistItem& item);
+    friend void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions::WhitelistItem& item);
+    friend void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& options);
+
+
 public:
-    DeviceViewer() noexcept;
+    DeviceViewer(SlCan::Device& device) noexcept;
     ~DeviceViewer() override = default;
+
+    void onAttach() override;
+    void onDetach() override;
 
     void onImGuiRender() override;
 
     void setVisibility(bool visibility);
 
 private:
-    void        renderDeviceList();
-    static void renderDeviceCommands(const std::unordered_map<Actions::cmd_id_t, Actions::CommandInfo::Reply>& commands,
-                                     const Type::Manager&                                                      manager);
-    static void renderDeviceEnums(const std::unordered_map<Actions::cmd_id_t, Type::Enum>& enums);
-    static void renderDeviceStructs(const std::unordered_map<Actions::cmd_id_t, Type::Struct>& structs,
-                                    const Type::Manager&                                       manager);
-    static void renderCommandValues(std::string_view                   name,
-                                    const std::vector<Actions::Value>& values,
-                                    const Type::Manager&               manager);
+    void refreshPorts();
+
+    void renderNetworkState();
+    void renderNetworkPacket(const SlCan::CanPacket& packet);
 
 private:
-    bool m_isVisible = false;
+    bool                m_isVisible = false;
+    DeviceViewerOptions m_options;
 
-    Communication::DeviceMap& m_deviceMap;
-    std::future<size_t>       m_scanResult;
+    SlCan::Device&                m_device;
+    std::vector<serial::PortInfo> m_ports;
+
+    std::unordered_map<decltype(std::declval<SlCan::CanPacket>().id), SlCan::CanPacket> m_networkState;
+
+    std::jthread m_resetter;
+    size_t       m_pktCount               = 0;
+    size_t       m_packetsRxInLastSecond  = 0;
+    size_t       m_packetsRxInCurrentSecond = 0;
+
+    float  m_kilobytesRxInLastSecond = 0;
+    size_t m_bytesRxInCurrentSecond  = 0;
+
+    size_t m_packetsTxInLastSecond = 0;
+    size_t m_packetsTxInCurrentSecond = 0;
+    float m_kilobytesTxInLastSecond = 0;
+    size_t m_bytesTxInCurrentSecond = 0;
 
     static constexpr const char* s_windowName = "Devices";
 };

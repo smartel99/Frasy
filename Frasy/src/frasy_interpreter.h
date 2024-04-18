@@ -58,8 +58,8 @@ public:
 
     ~FrasyInterpreter() override
     {
-        m_internalConfig.Save();
-        m_userConfig.Save();
+        m_internalConfig.save();
+        m_userConfig.save();
 
         s_instance = nullptr;
     }
@@ -68,7 +68,7 @@ public:
 
     virtual Config&                   getConfig() { return m_internalConfig; }
     virtual Config&                   GetUserConfig() { return m_userConfig; }
-    virtual Communication::DeviceMap& GetDevices() { return m_deviceMap; }
+    virtual Serial::DeviceMap& GetDevices() { return m_deviceMap; }
 
 
 protected:
@@ -77,7 +77,7 @@ protected:
     Config m_internalConfig;
     Config m_userConfig;
 
-    Communication::DeviceMap m_deviceMap;
+    Serial::DeviceMap m_deviceMap;
 };
 }    // namespace Frasy
 

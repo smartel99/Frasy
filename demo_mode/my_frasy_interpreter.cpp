@@ -21,7 +21,7 @@
 
 class MyFrasyInterpreter : public Frasy::FrasyInterpreter {
 public:
-    MyFrasyInterpreter() : FrasyInterpreter("Frasy - Demo Mode") { PushLayer(new MyMainApplicationLayer()); }
+    MyFrasyInterpreter() : FrasyInterpreter("Frasy - Demo Mode") { pushLayer(new MyMainApplicationLayer()); }
 };
 
 

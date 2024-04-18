@@ -59,9 +59,9 @@ class TestViewer::Interface
 public:
     static Interface* GetDefault();
     virtual const Models::Solution& GetSolution();
-    virtual void                    Generate();
-    virtual void                    SetSequenceEnable(const std::string& sequence, bool enable);
-    virtual void                    SetTestEnable(const std::string& sequence, const std::string& test, bool enable);
+    virtual void                    generate();
+    virtual void                    setSequenceEnable(const std::string& sequence, bool enable);
+    virtual void                    setTestEnable(const std::string& sequence, const std::string& test, bool enable);
 };
 
 enum class TestViewer::ListStatus

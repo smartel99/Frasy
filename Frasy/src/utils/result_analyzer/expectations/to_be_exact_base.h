@@ -80,7 +80,7 @@ public:
         ImGui::EndTable();
     }
 
-    nlohmann::json Serialize() override
+    nlohmann::json serialize() override
     {
         nlohmann::json j = {};
         j["total"]       = Total;

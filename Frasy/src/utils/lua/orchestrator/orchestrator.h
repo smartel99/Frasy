@@ -22,6 +22,7 @@
 #include "../../concepts.h"
 #include "../../map.h"
 #include "../../UutState.h"
+#include "utils/commands/built_in/command_info/reply.h"
 #include "utils/lua/popup.h"
 #include "utils/models/sequence.h"
 #include "utils/models/solution.h"
@@ -162,11 +163,11 @@ private:
     std::string                  m_outputDirectory = "logs";
     bool                         m_ibEnabled       = true;
 
-    std::map<std::string, Frasy::Lua::Popup*> m_popups     = {};
+    std::map<std::string, Frasy::Lua::Popup*> m_popups;
     std::unique_ptr<std::mutex>               m_popupMutex = nullptr;
 
     std::unique_ptr<std::mutex>       m_exclusiveLock    = nullptr;
-    std::map<std::size_t, std::mutex> m_exclusiveLockMap = {};
+    std::map<std::size_t, std::mutex> m_exclusiveLockMap;
 
     std::function<void(sol::state_view lua, Stage stage)> m_populateUserMethods = [](sol::state_view, Stage) {};
     Models::Solution                                      m_solution            = {};

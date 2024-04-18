@@ -57,7 +57,7 @@ void ResultAnalyzer::onImGuiRender()
 
         if (!m_generating)
         {
-            if (ImGui::Button("Generate"))
+            if (ImGui::Button("generate"))
             {
                 m_analyzer        = Analyzers::ResultAnalyzer {m_options};
                 m_doneGenerating  = false;
@@ -99,13 +99,13 @@ void ResultAnalyzer::onImGuiRender()
 
             ImGui::SameLine();
 
-            if (m_hasGenerated && ImGui::Button("Save Report"))
+            if (m_hasGenerated && ImGui::Button("save Report"))
             {
                 BR_PROFILE_SCOPE("Saving Analysis Report");
                 auto suggestedPath = std::filesystem::current_path();
                 suggestedPath /= "report.json";
                 auto pathOpt =
-                  Brigerad::Dialogs::SaveFile("Save File", suggestedPath.string(), {"*.json"}, "Log Analysis Results");
+                  Brigerad::Dialogs::SaveFile("save File", suggestedPath.string(), {"*.json"}, "Log Analysis Results");
                 if (pathOpt) { Frasy::Analyzers::Save(m_lastResults, *pathOpt); }
             }
         }

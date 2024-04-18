@@ -33,9 +33,9 @@ struct ToBeGreaterOrEqualExpectation : public ToBeValueBase
         ToBeValueBase::Render();
     }
 
-    nlohmann::json Serialize() override
+    nlohmann::json serialize() override
     {
-        auto j    = ToBeValueBase::Serialize();
+        auto j    = ToBeValueBase::serialize();
         j["type"] = "to_be_greater_or_equal";
         return j;
     }

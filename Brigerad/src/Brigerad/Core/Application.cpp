@@ -5,7 +5,7 @@
  * @version 0.1
  * @date    2020-05-14
  *
- * @copyright Copyright (c) 2020
+ * @copyright Copyright (c) 2024
  *
  */
 #include "Application.h"
@@ -40,7 +40,7 @@ Application::Application(const std::string& name)
     // Create the window for the application.
     m_window = Scope<Window>(Window::Create(WindowProps(name)));
     // Bind the Application's events to the window's.
-    m_window->SetEventCallback([this](Event& e) { OnEvent(e); });
+    m_window->SetEventCallback([this](Event& e) { onEvent(e); });
 
     // Initialize the rendering pipeline.
     Renderer::Init();
@@ -71,7 +71,7 @@ Application::~Application()
  * @param   None
  * @retval  None
  */
-void Application::Run()
+void Application::run()
 {
     BR_PROFILE_FUNCTION();
 
@@ -124,16 +124,16 @@ void Application::Run()
  *
  * @param   e The event to be dispatched.
  */
-void Application::OnEvent(Event& e)
+void Application::onEvent(Event& e)
 {
     BR_PROFILE_FUNCTION();
 
     // Creates a dispatch context with the event.
     EventDispatcher dispatcher(e);
     // Dispatch it to the proper handling function in the Application, if the type matches.
-    dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
-    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return OnWindowResize(e); });
-    dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& e) { return OnKeyPressed(e); });
+    dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return onWindowClose(e); });
+    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return onWindowResize(e); });
+    dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& e) { return onKeyPressed(e); });
 
 
     // For each layers in the layer stack, from the last one to the first:
@@ -157,11 +157,11 @@ void Application::OnEvent(Event& e)
  * @param   layer A pointer to the layer
  * @retval  None
  */
-void Application::PushLayer(Layer* layer)
+void Application::pushLayer(Layer* layer)
 {
     BR_PROFILE_FUNCTION();
 
-    std::function<void()> task = [=]()
+    std::function<void()> task = [this, layer]()
     {
         // Push the new layer to the stack.
         m_layerStack.PushLayer(layer);
@@ -178,11 +178,11 @@ void Application::PushLayer(Layer* layer)
  * @param   layer A pointer to the layer
  * @retval  None
  */
-void Application::PushOverlay(Layer* layer)
+void Application::pushOverlay(Layer* layer)
 {
     BR_PROFILE_FUNCTION();
 
-    std::function<void()> task = [=]()
+    std::function<void()> task = [this, layer]()
     {
         // Push the new layer to the stack.
         m_layerStack.PushOverlay(layer);
@@ -193,12 +193,12 @@ void Application::PushOverlay(Layer* layer)
     m_postFrameTasks.push_back(task);
 }
 
-void Application::PopLayer(Layer* layer)
+void Application::popLayer(Layer* layer)
 {
     BR_PROFILE_FUNCTION();
-    BR_CORE_ASSERT(layer != nullptr, "Layer is NULL in Application::PopLayer");
+    BR_CORE_ASSERT(layer != nullptr, "Layer is NULL in Application::popLayer");
 
-    std::function<void()> task = [=]()
+    std::function<void()> task = [this, layer]()
     {
         // Pop the layer from the stack.
         m_layerStack.PopLayer(layer);
@@ -209,7 +209,7 @@ void Application::PopLayer(Layer* layer)
     m_postFrameTasks.push_back(task);
 }
 
-void Application::Close()
+void Application::close()
 {
     m_running = false;
 }
@@ -221,7 +221,7 @@ void Application::Close()
  * @param   e The event
  * @retval  Always return true
  */
-bool Application::OnWindowClose(WindowCloseEvent& e)
+bool Application::onWindowClose(WindowCloseEvent& e)
 {
     m_running = false;
     return true;
@@ -234,7 +234,7 @@ bool Application::OnWindowClose(WindowCloseEvent& e)
  * @retval  true
  * @retval  false
  */
-bool Application::OnWindowResize(WindowResizeEvent& e)
+bool Application::onWindowResize(WindowResizeEvent& e)
 {
     BR_PROFILE_FUNCTION();
 
@@ -250,7 +250,7 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
     return false;
 }
 
-bool Application::OnKeyPressed(KeyPressedEvent& e)
+bool Application::onKeyPressed(KeyPressedEvent& e)
 {
     BR_PROFILE_FUNCTION();
 
@@ -259,7 +259,7 @@ bool Application::OnKeyPressed(KeyPressedEvent& e)
         m_imguiLayer->ToggleIsVisible();
         return true;
     }
-    else { return false; }
+    return false;
 }
 
 }    // namespace Brigerad

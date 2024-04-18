@@ -40,8 +40,8 @@ public:
     Config(const std::string& key, const config_t& config) : m_path(key), m_config(config) {}
 
     static Config load(const std::string& path);
-    static void   Save(const std::string& path, const Config& cfg);
-    void          Save() const { Save(m_path, *this); }
+    static void   save(const std::string& path, const Config& cfg);
+    void          save() const { save(m_path, *this); }
 
     template<class T>
     void setField(const std::string& key, const T& val)

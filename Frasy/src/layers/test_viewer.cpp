@@ -43,7 +43,7 @@ void TestViewer::onImGuiRender()
         if (solution.sequences.empty())
         {
             ImGui::Text("Not loaded, is the test sequence generated?");
-            if (ImGui::Button("Generate")) { m_interface->Generate(); }
+            if (ImGui::Button("generate")) { m_interface->generate(); }
         }
     }
     ImGui::End();
@@ -73,7 +73,7 @@ void TestViewer::RenderSequence(const std::string& sName, const Models::Sequence
     ImGui::TableNextColumn();
     if (ImGui::Checkbox("##enable", &sEnabled))
     {
-        m_interface->SetSequenceEnable(sName, sEnabled);
+        m_interface->setSequenceEnable(sName, sEnabled);
         listStatus = ListStatus::unknown;    // Will be recomputed next frame
     }
     if (listStatus == ListStatus::expanded)
@@ -86,7 +86,7 @@ void TestViewer::RenderSequence(const std::string& sName, const Models::Sequence
             ImGui::Text("%s", tName.c_str());
             ImGui::TableNextColumn();
             bool tEnabled = test.enabled;
-            if (ImGui::Checkbox("##", &tEnabled)) { m_interface->SetTestEnable(sName, tName, tEnabled); }
+            if (ImGui::Checkbox("##", &tEnabled)) { m_interface->setTestEnable(sName, tName, tEnabled); }
         }
     }
     ImGui::EndTable();
@@ -105,17 +105,17 @@ const Frasy::Models::Solution& TestViewer::Interface::GetSolution()
     return solution;
 }
 
-void TestViewer::Interface::Generate()
+void TestViewer::Interface::generate()
 {
     // Default empty call
 }
 
-void TestViewer::Interface::SetSequenceEnable(const std::string& sequence, bool enable)
+void TestViewer::Interface::setSequenceEnable(const std::string& sequence, bool enable)
 {
     // Default empty call
 }
 
-void TestViewer::Interface::SetTestEnable(const std::string& sequence, const std::string& test, bool enable)
+void TestViewer::Interface::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
 {
     // Default empty call
 }

@@ -20,6 +20,8 @@
 #    include "result_analyzer.h"
 #    include "result_viewer.h"
 #    include "test_viewer.h"
+#    include "utils/communication/serial/device.h"
+#    include "utils/communication/slcan/device.h"
 #    include "utils/lua/orchestrator/orchestrator.h"
 
 #    include <array>
@@ -61,21 +63,20 @@ protected:
     virtual void renderControlRoom();
 
     virtual void makeLogWindowVisible();
-    virtual void MakeDeviceViewerVisible();
-    virtual void MakeResultViewerVisible();
-    virtual void MakeResultAnalyzerVisible();
-    virtual void MakeTestViewerVisible();
-    void         RenderAbout();
+    virtual void makeDeviceViewerVisible();
+    virtual void makeResultViewerVisible();
+    virtual void makeResultAnalyzerVisible();
+    virtual void makeTestViewerVisible();
+    void         renderAbout();
 
 private:
-    void Generate() override;
-    void SetTestEnable(const std::string& sequence, const std::string& test, bool enable) override;
-    void SetSequenceEnable(const std::string& sequence, bool enable) override;
+    void generate() override;
+    void setTestEnable(const std::string& sequence, const std::string& test, bool enable) override;
+    void setSequenceEnable(const std::string& sequence, bool enable) override;
 
 protected:
     bool m_renderAbout = false;
     bool m_noMove      = true;
-
 
     std::unique_ptr<LogWindow>      m_logWindow      = nullptr;
     std::unique_ptr<DeviceViewer>   m_deviceViewer   = nullptr;
@@ -95,6 +96,8 @@ protected:
 
     Frasy::Lua::Orchestrator m_orchestrator;
     Frasy::Map               m_map;
+
+    SlCan::Device m_device;
 
 private:
     void PresetControlRoomOptions();
