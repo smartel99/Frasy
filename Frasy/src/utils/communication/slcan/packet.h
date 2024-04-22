@@ -24,6 +24,8 @@
 #include "enums/commands.h"
 #include "enums/modes.h"
 
+#include "platform/windows/can_open/CO_driver_target.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -51,7 +53,7 @@ struct Packet {
         CanPacket      packetData;        // Active when command == Command::Transmit*
     } data {.bitrate = BitRates::bInvalid};
 
-    Packet() = default;
+             Packet() = default;
     explicit Packet(BitRates bitRates) : command(Command::SetBitRate), data {.bitrate = bitRates} {}
     explicit Packet(Modes mode) : command(Command::SetMode), data {.mode = mode} {}
     explicit Packet(AutoRetransmit autoRetransmit)
@@ -83,10 +85,11 @@ struct Packet {
         return pkt;
     }
 
-    Packet(const uint8_t* data, size_t len);                                         // Serial -> CAN
-    Packet(uint32_t id, bool extended);                                              // X -> CAN/Serial
-    Packet(uint32_t id, bool extended, const uint8_t* data, size_t len);             // X -> CAN/Serial
-    Packet(const CanPacket& header);    // CAN -> Serial
+             Packet(const uint8_t* data, size_t len);                                // Serial -> CAN
+             Packet(uint32_t id, bool extended);                                     // X -> CAN/Serial
+             Packet(uint32_t id, bool extended, const uint8_t* data, size_t len);    // X -> CAN/Serial
+    explicit Packet(const CanPacket& header);                                        // CAN -> Serial
+    explicit Packet(const CO_CANtx_t& packet);
 
     /**
      * Translates the CAN packet in SLCAN format.
@@ -94,8 +97,9 @@ struct Packet {
      * @param outBuffLen Size of the output buffer.
      * @return Number of bytes written to outBuff. -1 on error.
      */
-    [[nodiscard]] int8_t                               toSerial(uint8_t* outBuff, size_t outBuffLen) const;
+    [[nodiscard]] int8_t                   toSerial(uint8_t* outBuff, size_t outBuffLen) const;
     [[nodiscard]] std::optional<CanPacket> toCanPacket() const;
+    [[nodiscard]] std::optional<CO_CANrxMsg_t> toCOCanRxMsg() const;
 
     [[nodiscard]] size_t sizeOfSerialPacket() const;
 };

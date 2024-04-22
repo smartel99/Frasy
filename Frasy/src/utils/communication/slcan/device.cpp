@@ -41,8 +41,8 @@ Device& Device::operator=(Device&& o) noexcept
     }
 
     m_label = std::move(o.m_label);
-    m_ready = o.m_ready;
     m_queue = std::move(o.m_queue);
+    m_muted = o.m_muted.load();
 
     serial::Timeout timeout = serial::Timeout::simpleTimeout(serial::Timeout::max());
     m_device.setTimeout(timeout);
@@ -59,17 +59,23 @@ size_t Device::transmit(const Packet& pkt)
     uint8_t buff[Packet::s_mtu] = {};
     auto    size                = pkt.toSerial(&buff[0], sizeof(buff));
     if (size != -1) {
-        auto written = m_device.write(&buff[0], size);
-        m_device.flushOutput();
-        return written;
+        try {
+            auto written = m_device.write(&buff[0], size);
+            m_device.flushOutput();
+            return written;
+        }
+        catch (std::exception& e) {
+            BR_LOG_ERROR(m_label, "While transmitting on '{}': {}", m_device.getPort(), e.what());
+            return 0;
+        }
     }
     return 0;
 }
 
 Packet Device::receive()
 {
-    std::unique_lock<std::mutex> lk {m_lock};
-    m_cv.wait(lk, [this] { return !m_queue.empty(); });
+    std::unique_lock lk {m_lock};
+    m_cv.wait(lk, [this] { return !m_muted && !m_queue.empty(); });
 
     auto front = m_queue.front();
     m_queue.pop();
@@ -95,8 +101,8 @@ void Device::open()
             std::string read;
             try {
                 read.clear();
-                size_t len = m_device.readline(read,Packet::s_mtu, "\r");
-                if (read.empty()) { continue; }
+                [[maybe_unused]] size_t len = m_device.readline(read, Packet::s_mtu, "\r");
+                if (m_muted || read.empty()) { continue; }
                 BR_LOG_TRACE(m_label, "RX: {}", read);
                 std::unique_lock lock {m_lock};
                 const auto&      packet = m_queue.emplace(reinterpret_cast<const uint8_t*>(read.data()), read.size());

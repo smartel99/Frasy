@@ -18,3 +18,6 @@
 [submodule "Brigerad/vendor/implot"]
 	path = Brigerad/vendor/implot
 	url = https://github.com/smartel99/implot
+[submodule "Frasy/vendor/CANopenNode"]
+	path = Frasy/vendor/CANopenNode
+	url = https://github.com/smartel99/CANopenNode

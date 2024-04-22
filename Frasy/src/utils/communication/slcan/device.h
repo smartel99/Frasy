@@ -38,30 +38,42 @@ class DeviceViewer;
 namespace Frasy::SlCan {
 class Device {
 public:
-    Device() noexcept = default;
-    Device(Device&& o) noexcept { *this = std::move(o); }
+             Device() noexcept = default;
+             Device(Device&& o) noexcept { *this = std::move(o); }
+             Device(const Device&) = delete;
     explicit Device(const std::string& port, bool open = true);
-    ~Device() { close(); }
+    ~        Device() { close(); }
 
     Device& operator=(Device&& o) noexcept;
+    Device& operator=(const Device&) = delete;
 
     void open();
     void close();
 
     [[nodiscard]] bool        isOpen() const noexcept { return m_device.isOpen(); }
     [[nodiscard]] std::string getPort() const noexcept { return m_device.getPort(); }
-    [[nodiscard]] bool        ready() const noexcept { return m_ready; }
-    [[nodiscard]] bool        enabled() const noexcept { return m_enabled; }
 
+    /**
+     * Effectively mutes the reception of CAN messages on the port.
+     *
+     * In practice, this just results in every single packets not being queued.
+     */
+    void mute() { m_muted = true; }
+    void unmute() { m_muted = false; }
+
+    /**
+     *
+     * @param pkt Packet to be sent.
+     * @return Number of bytes written, 0 on error.
+     */
     size_t transmit(const Packet& pkt);
     Packet receive();
+
+    [[nodiscard]] size_t available() const { return m_queue.size(); }
 
 private:
     std::string    m_label;
     serial::Serial m_device;    //!< The physical communication interface.
-
-    bool m_ready   = false;
-    bool m_enabled = true;
 
     std::jthread m_rxThread;
 
@@ -69,9 +81,10 @@ private:
     std::condition_variable m_cv;
     std::queue<Packet>      m_queue;
 
+    std::atomic_bool m_muted = false;
 
     // Things used by the device viewer for monitoring purposes.
-    friend class ::Frasy::DeviceViewer;
+    friend class DeviceViewer;
     std::function<void(const Packet&)> m_monitorFunc = [](const Packet&) {};
 };
 }    // namespace Frasy::SlCan

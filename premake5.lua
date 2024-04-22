@@ -55,6 +55,44 @@ end
 -- Include directories relative to root folder (solution folder)
 IncludeDir = {}
 
+function CANopenIncludes()
+    includedirs {
+        "Frasy/vendor/CANopenNode",
+        "Frasy/vendor/CANopenNode/301",
+        "Frasy/vendor/CANopenNode/303",
+        "Frasy/vendor/CANopenNode/304",
+        "Frasy/vendor/CANopenNode/305",
+        "Frasy/vendor/CANopenNode/309",
+        "Frasy/vendor/CANopenNode/extra",
+        "Frasy/vendor/CANopenNode/storage",
+    }
+
+    externalincludedirs {
+        "Frasy/vendor/CANopenNode",
+        "Frasy/vendor/CANopenNode/301",
+        "Frasy/vendor/CANopenNode/303",
+        "Frasy/vendor/CANopenNode/304",
+        "Frasy/vendor/CANopenNode/305",
+        "Frasy/vendor/CANopenNode/309",
+        "Frasy/vendor/CANopenNode/extra",
+        "Frasy/vendor/CANopenNode/storage",
+    }
+
+    filter "system:windows"
+        includedirs {
+            "Frasy/src/platform/windows/can_open"
+        }
+
+        externalincludedirs {
+            "Frasy/src/platform/windows/can_open"
+        }
+
+    filter "*"
+        defines {
+            "CO_MULTIPLE_OD"
+        }
+end
+
 function CommonFlags()
     filter { "toolset:not gcc", "toolset:not clang" }
     defines {
@@ -117,6 +155,8 @@ function CommonFlags()
         "%{IncludeDir.gtest}",
     }
 
+    CANopenIncludes()
+
     externalwarnings "Off"
 
     filter "configurations:Debug"
@@ -161,6 +201,7 @@ function DefineSolution()
     IncludeDir["yaml_cpp"] = "Brigerad/vendor/yaml-cpp/include"
     IncludeDir["gtest"] =  "Brigerad/vendor/googletest/googletest/include"
     IncludeDir["pfr"] =  "Brigerad/vendor/pfr/include"
+    IncludeDir["CANopen"] = "Frasy/vendor/"
 
     group "Dependencies"
     include "Brigerad/vendor/GLFW"
@@ -180,6 +221,7 @@ function DefineSolution()
 
     filter { "options:demo-mode" }
         DefineDemoMode()
+    filter ""
 end
 
 function DefineBrigerad()
@@ -252,11 +294,19 @@ function DefineFrasy()
     objdir("bin-int/" .. outputdir .. "/%{prj.name}")
 
     files {
-        "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
-        "%{prj.name}/vendor/**.h",
         "%{prj.name}/vendor/**.cpp",
-        "%{prj.name}/vendor/**.c",
+    }
+
+    files {
+        "%{prj.name}/vendor/CANopenNode/CANopen.c",
+        "%{prj.name}/vendor/CANopenNode/301/**.c",
+        "%{prj.name}/vendor/CANopenNode/303/**.c",
+        "%{prj.name}/vendor/CANopenNode/304/**.c",
+        "%{prj.name}/vendor/CANopenNode/305/**.c",
+        "%{prj.name}/vendor/CANopenNode/309/**.c",
+        "%{prj.name}/vendor/CANopenNode/extra/**.c",
+        "%{prj.name}/vendor/CANopenNode/storage/CO_storage.c",
     }
 
     removefiles { "%{prj.name}/test/**.h", "%{prj.name}/test/**.cpp" }
@@ -268,12 +318,21 @@ function DefineFrasy()
         "%{prj.name}/vendor"
     }
 
+    CANopenIncludes()
+
     CommonFlags()
 
     filter "system:windows"
     systemversion "latest"
 
-    defines { "BR_PLATFORM_WINDOWS" }
+    files {
+        "Frasy/src/platform/windows/can_open/**.c",
+        "Frasy/src/platform/windows/can_open/**.cpp",
+    }
+
+    defines {
+        "BR_PLATFORM_WINDOWS"
+    }
 
     links {
         "Brigerad",
@@ -342,6 +401,8 @@ function DefineDemoMode()
         "%{IncludeDir.pfr}",
         "%{IncludeDir.gtest}",
     }
+
+    CANopenIncludes()
 
     filter "system:windows"
     systemversion "latest"

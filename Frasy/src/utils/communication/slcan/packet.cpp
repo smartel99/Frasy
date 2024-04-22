@@ -187,6 +187,23 @@ Packet::Packet(const CanPacket& header)
     std::copy(&header.data[0], &header.data[header.dataLen], &data.packetData.data[0]);
 }
 
+Packet::Packet(const CO_CANtx_t& packet)
+: command(Command::TransmitDataFrame),
+  data {
+    .packetData =
+      {
+        .id         = packet.ident,
+        .isExtended = false,
+        .isRemote   = false,
+        .dataLen    = packet.DLC,
+        .data       = {},
+      },
+  }
+{
+    assert(packet.DLC <= 8 && "DLC can't be more than 8!");
+    std::copy(&packet.data[0], &packet.data[packet.DLC], &data.packetData.data[0]);
+}
+
 int8_t Packet::toSerial(uint8_t* outBuff, size_t outBuffLen) const
 {
     if (outBuffLen < sizeOfSerialPacket()) {
@@ -268,6 +285,20 @@ std::optional<CanPacket> Packet::toCanPacket() const
       .data       = {},
     };
     std::copy(&data.packetData.data[0], &data.packetData.data[data.packetData.dataLen], &packet.data[0]);
+    return packet;
+}
+
+std::optional<CO_CANrxMsg_t> Packet::toCOCanRxMsg() const
+{
+    if (!commandIsTransmit(command)) { return std::nullopt; }
+
+    auto packet = CO_CANrxMsg_t {
+      .ident = data.packetData.id,
+      .DLC   = data.packetData.dataLen,
+      .data  = {},
+    };
+    std::copy(&data.packetData.data[0], &data.packetData.data[data.packetData.dataLen], &packet.data[0]);
+
     return packet;
 }
 
