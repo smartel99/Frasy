@@ -295,6 +295,7 @@ function DefineFrasy()
 
     files {
         "%{prj.name}/src/**.cpp",
+        "%{prj.name}/src/utils/communication/can_open/OD.c",
         "%{prj.name}/vendor/**.cpp",
     }
 

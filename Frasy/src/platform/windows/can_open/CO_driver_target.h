@@ -65,8 +65,8 @@ extern "C" {
 
 #ifndef CO_CONFIG_HB_CONS
 #    define CO_CONFIG_HB_CONS                                                                                          \
-        (CO_CONFIG_HB_CONS_ENABLE | CO_CONFIG_HB_CONS_CALLBACK_CHANGE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE |           \
-         CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+        (CO_CONFIG_HB_CONS_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT |             \
+         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_HB_CONS_CALLBACK_MULTI)
 #endif
 
 #ifndef CO_CONFIG_EM
@@ -124,11 +124,20 @@ extern "C" {
          CO_CONFIG_FIFO_ASCII_COMMANDS | CO_CONFIG_FIFO_ASCII_DATATYPES)
 #endif
 
+#ifndef CO_CONFIG_PDO
+#    define CO_CONFIG_PDO                                                                                              \
+        (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE | CO_CONFIG_RPDO_TIMERS_ENABLE | CO_CONFIG_TPDO_TIMERS_ENABLE | \
+         CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_PDO_OD_IO_ACCESS | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE |              \
+         CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_FLAG_CALLBACK_PRE)
+#endif
+
+#if defined(BR_DEBUG) && !defined(CO_CONFIG_DEBUG)
+#    define CO_CONFIG_DEBUG CO_CONFIG_DEBUG_COMMON | CO_CONFIG_DEBUG_SDO_CLIENT | CO_CONFIG_DEBUG_SDO_SERVER
+#endif
 
 /* Print debug info from some internal parts of the stack */
 #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_COMMON
-#    include <stdio.h>
-#    include <syslog.h>
+#include "utils/communication/can_open/CO_error.h"
 #    define CO_DEBUG_COMMON(msg) log_printf(LOG_DEBUG, DBG_CO_DEBUG, msg);
 #endif
 
@@ -309,8 +318,8 @@ typedef struct {
 #    else
 
 /* (un)lock critical section in CO_CANsend() - unused */
-#        define CO_LOCK_CAN_SEND(CAN_MODULE)
-#        define CO_UNLOCK_CAN_SEND(CAN_MODULE)
+int  CO_LOCK_CAN_SEND(CO_CANmodule_t* CANmodule);
+void CO_UNLOCK_CAN_SEND(CO_CANmodule_t* CANmodule);
 
 /* (un)lock critical section in CO_errorReport() or CO_errorReset() */
 int  CO_LOCK_EMCY(CO_CANmodule_t* CANmodule);
@@ -321,10 +330,21 @@ int  CO_LOCK_OD(CO_CANmodule_t* CANmodule);
 void CO_UNLOCK_OD(CO_CANmodule_t* CANmodule);
 
 /* Synchronization between CAN receive and message processing threads. */
-#        define CO_MemoryBarrier()                                                                                     \
-            {                                                                                                          \
-                __sync_synchronize();                                                                                  \
-            }
+#        if defined(__GNUC__)
+#            define CO_MemoryBarrier()                                                                                 \
+                {                                                                                                      \
+                    __sync_synchronize();                                                                              \
+                }
+#        elif defined(_MSC_VER)
+// TODO No clue if _ReadWriteBarrier is the proper version of __sync_synchronize on MSVC.
+// TODO _ReadWriteBarrier is marked as deprecated on MSDN, we should use the right solution.
+#            define CO_MemoryBarrier()                                                                                 \
+                {                                                                                                      \
+                    _ReadWriteBarrier();                                                                               \
+                }
+#        else
+#            error "Unsupported Compiler"
+#        endif
 #    endif /* CO_SINGLE_THREAD */
 
 #    define CO_FLAG_READ(rxNew) ((rxNew) != NULL)

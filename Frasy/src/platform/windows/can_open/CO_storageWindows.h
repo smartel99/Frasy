@@ -1,8 +1,8 @@
 /**
- * CANopen data storage object for Linux
+ * CANopen data storage object for Windows
  *
- * @file        CO_storageLinux.h
- * @ingroup     CO_storageLinux
+ * @file        CO_storageWindows.h
+ * @ingroup     CO_storageWindows
  * @author      Janez Paternoster
  * @copyright   2021 Janez Paternoster
  *
@@ -23,8 +23,8 @@
  * limitations under the License.
  */
 
-#ifndef CO_STORAGE_LINUX_H
-#define CO_STORAGE_LINUX_H
+#ifndef CO_STORAGE_WINDOWS_H
+#define CO_STORAGE_WINDOWS_H
 
 #include "storage/CO_storage.h"
 
@@ -35,8 +35,8 @@ extern "C" {
 #endif
 
 /**
- * @defgroup CO_storageLinux Data storage with Linux
- * Data initialize, store and restore functions with Linux.
+ * @defgroup CO_storageWindows Data storage with Windows
+ * Data initialize, store and restore functions with Windows.
  *
  * @ingroup CO_socketCAN
  * @{
@@ -46,7 +46,7 @@ extern "C" {
 
 
 /**
- * Initialize data storage object (Linux specific)
+ * Initialize data storage object (Windows specific)
  *
  * This function should be called by application after the program startup,
  * before @ref CO_CANopenInit(). This function initializes storage object,
@@ -71,7 +71,7 @@ extern "C" {
  * @return CO_ERROR_NO, CO_ERROR_DATA_CORRUPT if data can not be initialized,
  * CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY.
  */
-CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
+CO_ReturnError_t CO_storageWindows_init(CO_storage_t *storage,
                                       CO_CANmodule_t *CANmodule,
                                       OD_entry_t *OD_1010_StoreParameters,
                                       OD_entry_t *OD_1011_RestoreDefaultParam,
@@ -94,10 +94,10 @@ CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
  * @return 0 on success or bit mask from subIndexOD values, where data was not
  * able to be saved.
  */
-uint32_t CO_storageLinux_auto_process(CO_storage_t *storage,
+uint32_t CO_storageWindows_auto_process(CO_storage_t *storage,
                                       bool_t closeFiles);
 
-/** @} */ /* CO_storageLinux */
+/** @} */ /* CO_storageWindows */
 
 #ifdef __cplusplus
 }
@@ -105,4 +105,4 @@ uint32_t CO_storageLinux_auto_process(CO_storage_t *storage,
 
 #endif /* (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE */
 
-#endif /* CO_STORAGE_LINUX_H */
+#endif /* CO_STORAGE_WINDOWS_H */

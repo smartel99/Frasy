@@ -19,9 +19,9 @@
 #include <Brigerad.h>
 
 namespace Frasy::SlCan {
-Device::Device(const std::string& port, bool open)
+Device::Device(std::string_view port, bool open)
 : m_label("SlCan"),
-  m_device(port,
+  m_device(std::string{port},
            921600,
            serial::Timeout::simpleTimeout(serial::Timeout::max()),
            serial::eightbits,

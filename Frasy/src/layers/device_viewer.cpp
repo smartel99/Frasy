@@ -53,21 +53,15 @@ void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& optio
     if (j.contains("usbWhitelist")) { j["usbWhitelist"].get_to(options.usbWhitelist); }
 }
 
-DeviceViewer::DeviceViewer(SlCan::Device& device) noexcept : m_device(device)
+DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOpen)
 {
-    m_device.m_monitorFunc = [this](const SlCan::Packet& pkt) {
+    m_canOpen.m_device.m_monitorFunc = [this](const SlCan::Packet& pkt) {
         m_pktCount++;
-
-        // To make sure we don't use infinite ram at one point.
-        // TODO remove this!!!
-        while (m_device.m_queue.size() >= 100'000) {
-            m_device.m_queue.pop();
-        }
 
         m_packetsRxInCurrentSecond++;
         m_bytesRxInCurrentSecond += pkt.sizeOfSerialPacket();
         if (!m_isVisible) { return; }
-        if (!SlCan::commandIsTransmit(pkt.command)) { return; }
+        if (!commandIsTransmit(pkt.command)) { return; }
 
         m_networkState[pkt.data.packetData.id] = pkt.data.packetData;
     };
@@ -124,29 +118,35 @@ bool DeviceViewer::DeviceViewerOptions::WhitelistItem::operator==(const std::str
 void DeviceViewer::onAttach()
 {
     m_options = FrasyInterpreter::Get().getConfig().getField<DeviceViewerOptions>("communication");
+    m_ports   = serial::list_ports();
 
     // Load the last device from the config, try to open it.
-    if (!m_options.lastDevice.empty()) { m_device = SlCan::Device(m_options.lastDevice); }
+    if (!m_options.lastDevice.empty() &&
+        std::ranges::any_of(m_ports, [&last = m_options.lastDevice](const auto& port) { return port.port == last; })) {
+        m_canOpen.open(m_options.lastDevice);
+        m_selectedPort = &std::ranges::find_if(m_ports, [&selected = m_options.lastDevice](const auto& port) {
+                              return port.port == selected;
+                          })->port;
+    }
     // If fails: get a list of the connected devices, search for a whitelisted VID/PID pair.
     // If found, open the first one found.
     // Otherwise, do nothing, display combo box with the ports and let the user choose.
-    if (!m_device.isOpen()) {
-        m_ports = serial::list_ports();
-        auto it = std::find_if(
-          m_ports.begin(),
-          m_ports.end(),
-          [&usbWhitelist = m_options.usbWhitelist](const serial::PortInfo& info) -> bool {
-              return std::any_of(usbWhitelist.begin(),
-                                 usbWhitelist.end(),
-                                 [&vidPid = info.hardware_id](const DeviceViewerOptions::WhitelistItem& item) -> bool {
-                                     return item == vidPid;
-                                 });
+    if (!m_canOpen.isOpen()) {
+        auto it =
+          std::ranges::find_if(m_ports, [&usbWhitelist = m_options.usbWhitelist](const serial::PortInfo& info) -> bool {
+              return std::ranges::any_of(
+                usbWhitelist, [&vidPid = info.hardware_id](const DeviceViewerOptions::WhitelistItem& item) -> bool {
+                    return item == vidPid;
+                });
           });
 
         if (it != m_ports.end()) {
             BR_APP_INFO("Found whitelisted device on port {} ({})!", it->port, it->hardware_id);
-            m_device = SlCan::Device(it->port);
-            if (m_device.isOpen()) { m_options.lastDevice = it->port; }
+            m_canOpen.open(it->port);
+            if (m_canOpen.isOpen()) {
+                m_options.lastDevice = it->port;
+                m_selectedPort       = &it->port;
+            }
         }
     }
 }
@@ -166,9 +166,9 @@ void DeviceViewer::onImGuiRender()
 
         static constexpr ImVec4 s_connectedColor    = {40, 255, 0, 255};
         static constexpr ImVec4 s_disconnectedColor = {255, 0, 0, 255};
-        ImVec4                  color               = m_device.isOpen() ? s_connectedColor : s_disconnectedColor;
+        ImVec4                  color               = m_canOpen.isOpen() ? s_connectedColor : s_disconnectedColor;
         ImGui::PushStyleColor(ImGuiCol_Text, color);
-        if (m_device.isOpen()) { ImGui::Text("Connected (%s)  ", m_device.getPort().c_str()); }
+        if (m_canOpen.isOpen()) { ImGui::Text("Connected (%s)  ", m_canOpen.m_device.getPort().c_str()); }
         else {
             ImGui::Text("Disconnected  ");
         }
@@ -197,7 +197,7 @@ void DeviceViewer::onImGuiRender()
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::Text("Addresses: %zu", m_networkState.size());
-            ImGui::Text("Packets Pending: %zu", m_device.m_queue.size());
+            ImGui::Text("Packets Pending: %zu", m_canOpen.m_device.m_queue.size());
             ImGui::Text("Packets Received: %zu", m_pktCount);
             ImGui::Text("Rx: %zu pkt/s (%0.3f kB/s)", m_packetsRxInLastSecond, m_kilobytesRxInLastSecond);
             ImGui::SameLine();
@@ -215,18 +215,46 @@ void DeviceViewer::onImGuiRender()
 
     if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
 
-        if (m_device.isOpen()) {
-            ImGui::Text("Connected to: %s", m_device.getPort().c_str());
+        if (m_canOpen.isOpen()) {
+            ImGui::Text("Connected to: %s", m_canOpen.m_device.getPort().c_str());
             ImGui::SameLine();
-            if (ImGui::Button("Close")) { m_device.close(); }
+            if (ImGui::Button("Close")) { m_canOpen.close(); }
         }
         else {
-            if (ImGui::Button("Open")) { m_device.open(); }
+            if (ImGui::BeginCombo("Port", m_selectedPort != nullptr ? m_selectedPort->c_str() : "")) {
+                for (auto&& port : m_ports) {
+                    if (ImGui::Selectable(port.port.c_str(), &port.port == m_selectedPort)) {
+                        m_selectedPort = &port.port;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Refresh")) {
+                std::string selectedPort = m_selectedPort == nullptr ? "" : *m_selectedPort;
+                refreshPorts();
+                if (m_selectedPort != nullptr) {
+                    auto it = std::ranges::find_if(
+                      m_ports, [&selectedPort](const auto& port) { return port.port == selectedPort; });
+                    if (it != m_ports.end()) { m_selectedPort = &it->port; }
+                }
+            }
+
+            if (m_selectedPort == nullptr) {
+                const auto& disabled = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, disabled);
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, disabled);
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, disabled);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Open") && m_selectedPort != nullptr) { m_canOpen.open(*m_selectedPort); }
+
+            if (m_selectedPort == nullptr) { ImGui::PopStyleColor(3); }
         }
         ImGui::Separator();
         ImGui::Text("Network State: %zu addresses, %zu pending packets (%zu total), %zu pkt/s, %0.3f kB/s",
                     m_networkState.size(),
-                    m_device.m_queue.size(),
+                    m_canOpen.m_device.m_queue.size(),
                     m_pktCount,
                     m_packetsRxInLastSecond,
                     m_kilobytesRxInLastSecond);
@@ -267,7 +295,7 @@ void DeviceViewer::renderNetworkState()
         ImGui::TableSetupColumn("DLC");
         ImGui::TableSetupColumn("Data");
         ImGui::TableHeadersRow();
-        for (const auto& [id, packet] : m_networkState) {
+        for (const auto& packet : m_networkState | std::views::values) {
             ImGui::TableNextRow();
             renderNetworkPacket(packet);
         }

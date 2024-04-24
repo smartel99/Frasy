@@ -24,12 +24,10 @@
 
 #include <condition_variable>
 #include <cstddef>
-#include <cstdint>
+#include <string_view>
 #include <functional>
 #include <mutex>
 #include <queue>
-#include <span>
-#include <thread>
 
 namespace Frasy {
 class DeviceViewer;
@@ -41,7 +39,7 @@ public:
              Device() noexcept = default;
              Device(Device&& o) noexcept { *this = std::move(o); }
              Device(const Device&) = delete;
-    explicit Device(const std::string& port, bool open = true);
+    explicit Device(std::string_view port, bool open = true);
     ~        Device() { close(); }
 
     Device& operator=(Device&& o) noexcept;

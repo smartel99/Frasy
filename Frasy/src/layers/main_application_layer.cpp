@@ -47,7 +47,7 @@ void MainApplicationLayer::onAttach()
     CREATE_TEXTURE(m_disabled, "assets/textures/disabled.png");
 
     m_logWindow      = std::make_unique<LogWindow>();
-    m_deviceViewer   = std::make_unique<DeviceViewer>(m_device);
+    m_deviceViewer   = std::make_unique<DeviceViewer>(m_canOpen);
     m_resultViewer   = std::make_unique<ResultViewer>();
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
     m_testViewer     = std::make_unique<TestViewer>();

@@ -58,6 +58,7 @@ class TestViewer::Interface
 {
 public:
     static Interface* GetDefault();
+    virtual ~Interface() = default;
     virtual const Models::Solution& GetSolution();
     virtual void                    generate();
     virtual void                    setSequenceEnable(const std::string& sequence, bool enable);

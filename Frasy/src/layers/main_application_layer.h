@@ -20,11 +20,9 @@
 #    include "result_analyzer.h"
 #    include "result_viewer.h"
 #    include "test_viewer.h"
-#    include "utils/communication/serial/device.h"
-#    include "utils/communication/slcan/device.h"
+#    include "utils/communication/can_open/can_open.h"
 #    include "utils/lua/orchestrator/orchestrator.h"
 
-#    include <array>
 #    include <Brigerad.h>
 #    include <Brigerad/Renderer/Texture.h>
 
@@ -42,13 +40,13 @@
 namespace Frasy {
 class LogWindow;
 
-class MainApplicationLayer : public Brigerad::Layer, public Frasy::TestViewer::Interface {
+class MainApplicationLayer : public Brigerad::Layer, public TestViewer::Interface {
 public:
-    MainApplicationLayer()                                       = default;
-    MainApplicationLayer(const MainApplicationLayer&)            = delete;
-    MainApplicationLayer& operator=(const MainApplicationLayer&) = delete;
-    MainApplicationLayer(MainApplicationLayer&&)                 = delete;
-    MainApplicationLayer& operator=(MainApplicationLayer&&)      = delete;
+                          MainApplicationLayer()                            = default;
+                          MainApplicationLayer(const MainApplicationLayer&) = delete;
+    MainApplicationLayer& operator=(const MainApplicationLayer&)            = delete;
+                          MainApplicationLayer(MainApplicationLayer&&)      = delete;
+    MainApplicationLayer& operator=(MainApplicationLayer&&)                 = delete;
 
     ~MainApplicationLayer() override = default;
 
@@ -94,10 +92,10 @@ protected:
     Brigerad::Ref<Brigerad::Texture2D> m_idle;
     Brigerad::Ref<Brigerad::Texture2D> m_disabled;
 
-    Frasy::Lua::Orchestrator m_orchestrator;
-    Frasy::Map               m_map;
+    Lua::Orchestrator m_orchestrator;
+    Map               m_map;
 
-    SlCan::Device m_device;
+    CanOpen::CanOpen m_canOpen;
 
 private:
     void PresetControlRoomOptions();

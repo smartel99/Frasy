@@ -32,7 +32,8 @@
 #include <mutex>
 
 #include "301/CO_driver.h"
-#include "CO_error.h"
+
+#include "utils/communication/can_open/CO_error.h"
 
 extern "C" {
 
@@ -40,9 +41,21 @@ extern "C" {
 #define FLAG_RTR   0x8000    //!< RTR flag, par of identifier.
 
 #ifndef CO_SINGLE_THREAD
+std::mutex CO_SEND_mutex;
 std::mutex CO_EMCY_mutex;
 std::mutex CO_OD_mutex;
-int        CO_LOCK_EMCY([[maybe_unused]] CO_CANmodule_t* CANmodule)
+
+int CO_LOCK_CAN_SEND(CO_CANmodule_t* CANmodule)
+{
+    CO_SEND_mutex.lock();
+    return 0;    // Always assume success.
+}
+void CO_UNLOCK_CAN_SEND(CO_CANmodule_t* CANmodule)
+{
+    CO_SEND_mutex.unlock();
+}
+
+int CO_LOCK_EMCY([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
     CO_EMCY_mutex.lock();
     return 0;    // Always assume success.
@@ -152,7 +165,7 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t*           CANmodule,
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t* CANmodule)
 {
-    if (CANmodule == nullptr) { return; }
+    if (CANmodule == nullptr || CANmodule->interface == nullptr) { return; }
 
     CANmodule->CANnormal = false;
     auto* interface      = static_cast<Frasy::SlCan::Device*>(CANmodule->interface);
@@ -235,7 +248,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
     }
 
     auto packet = Frasy::SlCan::Packet {*buffer};
-    CO_LOCK_CAN_SEND();
+    CO_LOCK_CAN_SEND(CANmodule);
     size_t written = interface->transmit(packet);
     if (errno == 0 && written != packet.sizeOfSerialPacket()) {
         /* success */
@@ -252,7 +265,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
         }
         err = CO_ERROR_TX_BUSY;
     }
-    CO_UNLOCK_CAN_SEND();
+    CO_UNLOCK_CAN_SEND(CANmodule);
 
     return err;
 }
@@ -306,9 +319,9 @@ void CO_CANpollReceive(CO_CANmodule_t* canModule)
 
         // Message has been received. Search rxArray from CANmodule for the same CAN-ID.
         auto* rcvMsgObj = &canModule->rxArray[0];
-        bool matched = false;
-        for(size_t index = 0; index < canModule->rxSize;index++) {
-            if(((packet.ident ^rcvMsgObj->ident)&rcvMsgObj->mask)==0) {
+        bool  matched   = false;
+        for (size_t index = 0; index < canModule->rxSize; index++) {
+            if (((packet.ident ^ rcvMsgObj->ident) & rcvMsgObj->mask) == 0) {
                 // Received message matches this "filter".
                 matched = true;
                 break;
@@ -316,7 +329,7 @@ void CO_CANpollReceive(CO_CANmodule_t* canModule)
             rcvMsgObj++;
         }
 
-        if(matched && (rcvMsgObj != nullptr && rcvMsgObj->CANrx_callback != nullptr)) {
+        if (matched && (rcvMsgObj != nullptr && rcvMsgObj->CANrx_callback != nullptr)) {
             // Call specific function for that "filter", it will do the processing.
             rcvMsgObj->CANrx_callback(rcvMsgObj->object, &packet);
         }

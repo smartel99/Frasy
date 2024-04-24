@@ -28,10 +28,6 @@
 #ifndef CO_ERROR_H
 #define CO_ERROR_H
 
-#include <errno.h>
-#include <stdint.h>
-#include <string.h>
-
 #if __has_include("CO_error_custom.h")
 #    include "CO_error_custom.h"
 #else

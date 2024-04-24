@@ -18,7 +18,7 @@
 #ifndef FRASY_LAYERS_DEVICE_VIEWER_H
 #define FRASY_LAYERS_DEVICE_VIEWER_H
 
-#include "utils/communication/slcan/device.h"
+#include "utils/communication/can_open/can_open.h"
 #include "utils/config.h"
 
 #include <Brigerad.h>
@@ -50,9 +50,8 @@ class DeviceViewer : public Brigerad::Layer {
     friend void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions::WhitelistItem& item);
     friend void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& options);
 
-
 public:
-    DeviceViewer(SlCan::Device& device) noexcept;
+     DeviceViewer(CanOpen::CanOpen& canOpen) noexcept;
     ~DeviceViewer() override = default;
 
     void onAttach() override;
@@ -72,23 +71,24 @@ private:
     bool                m_isVisible = false;
     DeviceViewerOptions m_options;
 
-    SlCan::Device&                m_device;
+    CanOpen::CanOpen&             m_canOpen;
+    std::string* m_selectedPort = nullptr;
     std::vector<serial::PortInfo> m_ports;
 
     std::unordered_map<decltype(std::declval<SlCan::CanPacket>().id), SlCan::CanPacket> m_networkState;
 
     std::jthread m_resetter;
-    size_t       m_pktCount               = 0;
-    size_t       m_packetsRxInLastSecond  = 0;
+    size_t       m_pktCount                 = 0;
+    size_t       m_packetsRxInLastSecond    = 0;
     size_t       m_packetsRxInCurrentSecond = 0;
 
     float  m_kilobytesRxInLastSecond = 0;
     size_t m_bytesRxInCurrentSecond  = 0;
 
-    size_t m_packetsTxInLastSecond = 0;
+    size_t m_packetsTxInLastSecond    = 0;
     size_t m_packetsTxInCurrentSecond = 0;
-    float m_kilobytesTxInLastSecond = 0;
-    size_t m_bytesTxInCurrentSecond = 0;
+    float  m_kilobytesTxInLastSecond  = 0;
+    size_t m_bytesTxInCurrentSecond   = 0;
 
     static constexpr const char* s_windowName = "Devices";
 };
