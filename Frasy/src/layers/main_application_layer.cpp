@@ -48,6 +48,7 @@ void MainApplicationLayer::onAttach()
 
     m_logWindow      = std::make_unique<LogWindow>();
     m_deviceViewer   = std::make_unique<DeviceViewer>(m_canOpen);
+    m_canOpenViewer  = std::make_unique<CanOpenViewer>(m_canOpen);
     m_resultViewer   = std::make_unique<ResultViewer>();
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
     m_testViewer     = std::make_unique<TestViewer>();
@@ -55,6 +56,7 @@ void MainApplicationLayer::onAttach()
 
     m_logWindow->onAttach();
     m_deviceViewer->onAttach();
+    m_canOpenViewer->onAttach();
     m_resultViewer->onAttach();
     m_resultAnalyzer->onAttach();
     m_testViewer->onAttach();
@@ -67,6 +69,7 @@ void MainApplicationLayer::onDetach()
 
     m_logWindow->onDetach();
     m_deviceViewer->onDetach();
+    m_canOpenViewer->onDetach();
     m_resultViewer->onDetach();
     m_testViewer->onDetach();
     m_resultAnalyzer->onDetach();
@@ -82,8 +85,10 @@ void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F4)) { makeResultViewerVisible(); }
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F5)) { makeResultAnalyzerVisible(); }
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F6)) { makeTestViewerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F7)) { makeCanOpenViewerVisible(); }
     m_logWindow->onUpdate(ts);
     m_deviceViewer->onUpdate(ts);
+    m_canOpenViewer->onUpdate(ts);
     m_resultViewer->onUpdate(ts);
     m_testViewer->onUpdate(ts);
     m_resultAnalyzer->onUpdate(ts);
@@ -107,6 +112,7 @@ void MainApplicationLayer::onImGuiRender()
             if (ImGui::MenuItem("Result Viewer", "F4")) { makeResultViewerVisible(); }
             if (ImGui::MenuItem("Result Analyzer", "F5")) { makeResultAnalyzerVisible(); }
             if (ImGui::MenuItem("Test Viewer", "F6")) { makeTestViewerVisible(); }
+            if (ImGui::MenuItem("CANopen Viewer", "F7")) { makeCanOpenViewerVisible(); }
             ImGui::Separator();
             if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
             if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }
@@ -129,6 +135,7 @@ void MainApplicationLayer::onImGuiRender()
 
     m_logWindow->onImGuiRender();
     m_deviceViewer->onImGuiRender();
+    m_canOpenViewer->onImGuiRender();
     m_resultViewer->onImGuiRender();
     m_resultAnalyzer->onImGuiRender();
     m_testViewer->onImGuiRender();
@@ -141,13 +148,10 @@ void MainApplicationLayer::OnEvent(Brigerad::Event& e)
 {
     m_logWindow->OnEvent(e);
     m_deviceViewer->OnEvent(e);
+    m_canOpenViewer->OnEvent(e);
     m_resultViewer->OnEvent(e);
     m_resultAnalyzer->OnEvent(e);
     m_resultViewer->OnEvent(e);
-}
-
-void MainApplicationLayer::renderControlRoom()
-{
 }
 
 void MainApplicationLayer::makeLogWindowVisible()
@@ -158,6 +162,11 @@ void MainApplicationLayer::makeLogWindowVisible()
 void MainApplicationLayer::makeDeviceViewerVisible()
 {
     m_deviceViewer->setVisibility(true);
+}
+
+void MainApplicationLayer::makeCanOpenViewerVisible()
+{
+    m_canOpenViewer->setVisibility(true);
 }
 
 void MainApplicationLayer::makeResultViewerVisible()

@@ -15,6 +15,7 @@
 
 /*****************************************************************************/
 /* Includes */
+#    include "can_open_viewer.h"
 #    include "device_viewer.h"
 #    include "log_window.h"
 #    include "result_analyzer.h"
@@ -42,11 +43,11 @@ class LogWindow;
 
 class MainApplicationLayer : public Brigerad::Layer, public TestViewer::Interface {
 public:
-                          MainApplicationLayer()                            = default;
-                          MainApplicationLayer(const MainApplicationLayer&) = delete;
-    MainApplicationLayer& operator=(const MainApplicationLayer&)            = delete;
-                          MainApplicationLayer(MainApplicationLayer&&)      = delete;
-    MainApplicationLayer& operator=(MainApplicationLayer&&)                 = delete;
+    MainApplicationLayer()                                       = default;
+    MainApplicationLayer(const MainApplicationLayer&)            = delete;
+    MainApplicationLayer& operator=(const MainApplicationLayer&) = delete;
+    MainApplicationLayer(MainApplicationLayer&&)                 = delete;
+    MainApplicationLayer& operator=(MainApplicationLayer&&)      = delete;
 
     ~MainApplicationLayer() override = default;
 
@@ -58,10 +59,11 @@ public:
     void OnEvent(Brigerad::Event& e) override;
 
 protected:
-    virtual void renderControlRoom();
+    virtual void renderControlRoom() {}
 
     virtual void makeLogWindowVisible();
     virtual void makeDeviceViewerVisible();
+    virtual void makeCanOpenViewerVisible();
     virtual void makeResultViewerVisible();
     virtual void makeResultAnalyzerVisible();
     virtual void makeTestViewerVisible();
@@ -78,6 +80,7 @@ protected:
 
     std::unique_ptr<LogWindow>      m_logWindow      = nullptr;
     std::unique_ptr<DeviceViewer>   m_deviceViewer   = nullptr;
+    std::unique_ptr<CanOpenViewer>  m_canOpenViewer  = nullptr;
     std::unique_ptr<ResultViewer>   m_resultViewer   = nullptr;
     std::unique_ptr<ResultAnalyzer> m_resultAnalyzer = nullptr;
     std::unique_ptr<TestViewer>     m_testViewer     = nullptr;

@@ -74,6 +74,24 @@ std::string_view canOpenNmtStateToStr(CO_NMT_internalState_t state)
         default: return "Unknown"sv;
     }
 }
+
+std::string_view canOpenLssMasterReturnToStr(CO_LSSmaster_return_t val)
+{
+    using namespace std::string_view_literals;
+    switch (val) {
+        case CO_LSSmaster_SCAN_FINISHED: return "Scan Finished"sv;
+        case CO_LSSmaster_WAIT_SLAVE: return "Wait Slave"sv;
+        case CO_LSSmaster_OK: return "OK"sv;
+        case CO_LSSmaster_TIMEOUT: return "Timeout"sv;
+        case CO_LSSmaster_ILLEGAL_ARGUMENT: return "Illegal Argument"sv;
+        case CO_LSSmaster_INVALID_STATE: return "Invalid State"sv;
+        case CO_LSSmaster_SCAN_NOACK: return "No ACK from scan"sv;
+        case CO_LSSmaster_SCAN_FAILED: return "Scan Failed"sv;
+        case CO_LSSmaster_OK_ILLEGAL_ARGUMENT: return "OK - Illegal Argument"sv;
+        case CO_LSSmaster_OK_MANUFACTURER: return "OK - Manufacturer"sv;
+        default: return "Unknown"sv;
+    }
+}
 }    // namespace
 
 
@@ -83,7 +101,8 @@ void CanOpen::open(std::string_view port)
     m_tag  = fmt::format("{} {}", s_tag, port);
     m_port = port;
 
-    m_coThread = std::jthread([this] { canOpenTask(m_stopSource.get_token()); });
+    m_stopSource = {};
+    m_coThread   = std::jthread([this] { canOpenTask(m_stopSource.get_token()); });
 }
 
 void CanOpen::close()
@@ -91,6 +110,49 @@ void CanOpen::close()
     if (!isOpen()) { return; }
     if (m_stopSource.stop_possible()) { m_stopSource.request_stop(); }
     if (m_coThread.joinable()) { m_coThread.join(); }
+}
+
+void CanOpen::scanForDevices()
+{
+    BR_PROFILE_FUNCTION();
+    using std::chrono::duration_cast;
+    using std::chrono::microseconds;
+    using std::chrono::milliseconds;
+    using std::chrono::steady_clock;
+    auto start = steady_clock::now();
+    BR_LOG_INFO(m_tag, "Starting scan...");
+
+    // No nodes must be selected at first.
+    if (auto res = CO_LSSmaster_switchStateDeselect(m_co->LSSmaster); res != CO_LSSmaster_OK) {
+        BR_LOG_ERROR(m_tag, "Unable to deselect LSS slaves: ({:X}) {}", res, canOpenLssMasterReturnToStr(res));
+        return;
+    }
+
+    std::vector<CO_LSS_address_t> nodesFound;
+    auto                          last  = steady_clock::now();
+    uint32_t                      delta = 0;
+
+    CO_LSSmaster_return_t scanRes = CO_LSSmaster_WAIT_SLAVE;
+    while (scanRes == CO_LSSmaster_WAIT_SLAVE) {
+        CO_LSSmaster_fastscan_t scanPass {
+          .scan  = {CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN},
+          .match = {},
+          .found = {},
+        };
+        scanRes = CO_LSSmaster_IdentifyFastscan(m_co->LSSmaster, delta, &scanPass);
+
+        if (scanRes != CO_LSSmaster_WAIT_SLAVE) {
+            BR_LOG_ERROR(m_tag, "Error while scanning: ({:X}) {}", scanRes, canOpenLssMasterReturnToStr(scanRes));
+            break;
+        }
+
+        delta = duration_cast<microseconds>(steady_clock::now() - last).count();
+        last  = steady_clock::now();
+        std::this_thread::sleep_for(microseconds {100});
+    }
+
+    auto taken = static_cast<float>(duration_cast<milliseconds>(steady_clock::now() - start).count()) / 1000.0f;
+    BR_LOG_INFO(m_tag, "Scan complete! Found {} nodes in {} seconds", nodesFound.size(), taken);
 }
 
 void CanOpen::canOpenTask(std::stop_token stopToken)
@@ -117,40 +179,44 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
 
 bool CanOpen::initialInit(std::string_view port)
 {
-    m_device = SlCan::Device {port};
+    try {
+        m_device = SlCan::Device {port};
+    }
+    catch (std::exception& e) {
+        BR_LOG_ERROR(m_tag, "Error occurred while opening {}: {}", port, e.what());
+        return false;
+    }
     if (!m_device.isOpen()) {
         BR_LOG_ERROR(m_tag, "Unable to open '{}'", port);
         return false;
     }
 
     // Initialize CANopen.
-    CO_config_t canOpenConfig = {};
-    OD_INIT_CONFIG(canOpenConfig);
+    OD_INIT_CONFIG(m_canOpenConfig);
     // TODO these fields should be determined based on a loaded environment.
 #if CO_CONFIG_LEDS & CO_CONFIG_LEDS_ENABLE
-    canOpenConfig.CNT_LEDS = 1;
+    m_canOpenConfig.CNT_LEDS = 1;
 #endif
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
     // TODO this is the main field that should be changed. It is based on the number of nodes.
-    canOpenConfig.CNT_LSS_SLV = 1;
+    m_canOpenConfig.CNT_LSS_SLV = 1;
 #endif
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
-    canOpenConfig.CNT_LSS_MST = 1;
+    m_canOpenConfig.CNT_LSS_MST = 1;
 #endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
-    canOpenConfig.CNT_GTWA = 1;
+    m_canOpenConfig.CNT_GTWA = 1;
 #endif
 #if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
-    canOpenConfig.CNT_TRACE = 1;
+    m_canOpenConfig.CNT_TRACE = 1;
 #endif
 
     // Allocate memory for CANopen objects.
-    m_co = CO_new(&canOpenConfig, &m_coHeapMemoryUsed);
+    m_co = CO_new(&m_canOpenConfig, &m_coHeapMemoryUsed);
     if (m_co == nullptr) {
         BR_LOG_ERROR(m_tag, "Unable to create CANopen context");
         return false;
     }
-
 
     uint32_t         storageInitError = 0;
     CO_ReturnError_t err              = CO_storageWindows_init(&m_storage,
@@ -317,8 +383,11 @@ CO_NMT_reset_cmd_t CanOpen::mainLoop()
         auto ret       = CO_storageWindows_auto_process(&m_storage, false);
         if (ret != 0) { BR_LOG_ERROR(m_tag, "Unable to save persistance data on fields: {:08x}", ret); }
     }
+    auto cmd   = CO_process(m_co, true, deltaUs.count(), &m_sleepForUs);
+    m_greenLed = CO_LED_GREEN(m_co->LEDs, CO_LED_CANopen);
+    m_redLed   = CO_LED_RED(m_co->LEDs, CO_LED_CANopen);
 
-    return CO_process(m_co, true, deltaUs.count(), &m_sleepForUs);
+    return cmd;
 }
 
 bool CanOpen::deinit()
@@ -332,6 +401,7 @@ bool CanOpen::deinit()
 
     CO_CANsetConfigurationMode(&m_device);
     CO_delete(m_co);
+    m_co = nullptr;
 
     BR_LOG_INFO(m_tag, "CANopen de-initialized!");
     return success;
@@ -445,6 +515,7 @@ void CanOpen::timePreCallback(void* arg)
     CanOpen* that = static_cast<CanOpen*>(arg);
     BR_LOG_DEBUG(that->m_tag, "TIME pre callback");
 }
+
 
 #undef EARLY_EXIT
 }    // namespace Frasy::CanOpen

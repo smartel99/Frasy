@@ -35,17 +35,18 @@
 
 namespace Frasy {
 class DeviceViewer;
-}
+class CanOpenViewer;
+}    // namespace Frasy
 
 namespace Frasy::CanOpen {
 class CanOpen {
 public:
-             CanOpen()                 = default;
-             CanOpen(const CanOpen&)   = delete;
+    CanOpen()                          = default;
+    CanOpen(const CanOpen&)            = delete;
     CanOpen& operator=(const CanOpen&) = delete;
-             CanOpen(CanOpen&&)        = default;
+    CanOpen(CanOpen&&)                 = default;
     CanOpen& operator=(CanOpen&&)      = default;
-    ~        CanOpen()
+    ~CanOpen()
     {
         if (isOpen()) { close(); }
     }
@@ -53,6 +54,8 @@ public:
     void open(std::string_view port);
     void close();
     bool isOpen() const { return m_device.isOpen(); }
+
+    void scanForDevices();
 
 private:
     void canOpenTask(std::stop_token stopToken);
@@ -187,6 +190,7 @@ private:
     std::string                  m_tag;
 
     friend DeviceViewer;
+    friend CanOpenViewer;
     std::string   m_port;
     SlCan::Device m_device;
 
@@ -202,7 +206,8 @@ private:
     static constexpr uint16_t s_cobLssSlaveId  = 0x6E1;
     static constexpr uint16_t s_cobLssMasterId = 0x6E2;
 
-    CO_t*                             m_co               = nullptr;
+    CO_t*                             m_co = nullptr;
+    CO_config_t                       m_canOpenConfig;
     uint32_t                          m_coHeapMemoryUsed = 0;
     bool                              m_hasBeenInitOnce  = false;
     CO_storage_t                      m_storage          = {};
@@ -223,6 +228,9 @@ private:
     static constexpr auto                              s_autoSavePeriod = std::chrono::minutes {1};
     std::chrono::time_point<std::chrono::steady_clock> m_lastSaveTime;
     uint32_t                                           m_sleepForUs = 0;
+
+    bool m_redLed   = false;
+    bool m_greenLed = false;
 };
 }    // namespace Frasy::CanOpen
 

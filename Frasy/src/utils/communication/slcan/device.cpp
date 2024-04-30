@@ -21,9 +21,9 @@
 namespace Frasy::SlCan {
 Device::Device(std::string_view port, bool open)
 : m_label("SlCan"),
-  m_device(std::string{port},
+  m_device(std::string {port},
            921600,
-           serial::Timeout::simpleTimeout(serial::Timeout::max()),
+           serial::Timeout::simpleTimeout(10),
            serial::eightbits,
            serial::parity_none,
            serial::stopbits_one,
@@ -44,7 +44,7 @@ Device& Device::operator=(Device&& o) noexcept
     m_queue = std::move(o.m_queue);
     m_muted = o.m_muted.load();
 
-    serial::Timeout timeout = serial::Timeout::simpleTimeout(serial::Timeout::max());
+    serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
     m_device.setTimeout(timeout);
     m_device.setBaudrate(921600);
     m_device.setPort(o.m_device.getPort());
@@ -97,8 +97,8 @@ void Device::open()
 
     m_rxThread = std::jthread([&](std::stop_token stopToken) {
         BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
+        std::string read;
         while (!stopToken.stop_requested()) {
-            std::string read;
             try {
                 read.clear();
                 [[maybe_unused]] size_t len = m_device.readline(read, Packet::s_mtu, "\r");
@@ -114,7 +114,19 @@ void Device::open()
             }
             catch (std::exception& e) {
                 if (!stopToken.stop_requested()) {
-                    BR_LOG_ERROR(m_label, "An error occurred in the listener thread: {}", e.what());
+                    auto getLastError = [] {
+                        char buff[100] = {};
+                        auto len       = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                                  nullptr,
+                                                  GetLastError(),
+                                                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                                                  &buff[0],
+                                                  sizeof(buff),
+                                                  nullptr);
+                        return std::string {&buff[0], &buff[len]};
+                    };
+                    BR_LOG_ERROR(
+                      m_label, "An error occurred in the listener thread: {}\n\r\t{}", e.what(), getLastError());
                 }
                 break;
             }
