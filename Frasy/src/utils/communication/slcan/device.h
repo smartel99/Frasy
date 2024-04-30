@@ -83,7 +83,8 @@ private:
 
     // Things used by the device viewer for monitoring purposes.
     friend class DeviceViewer;
-    std::function<void(const Packet&)> m_monitorFunc = [](const Packet&) {};
+    std::function<void(const Packet&)> m_rxMonitorFunc = [](const Packet&) {};
+    std::function<void(const Packet&)> m_txMonitorFunc = [](const Packet&) {};
 };
 }    // namespace Frasy::SlCan
 

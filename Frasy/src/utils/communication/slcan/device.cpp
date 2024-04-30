@@ -62,6 +62,7 @@ size_t Device::transmit(const Packet& pkt)
         try {
             auto written = m_device.write(&buff[0], size);
             m_device.flushOutput();
+            m_txMonitorFunc(pkt);
             return written;
         }
         catch (std::exception& e) {
@@ -106,7 +107,7 @@ void Device::open()
                 BR_LOG_TRACE(m_label, "RX: {}", read);
                 std::unique_lock lock {m_lock};
                 const auto&      packet = m_queue.emplace(reinterpret_cast<const uint8_t*>(read.data()), read.size());
-                m_monitorFunc(packet);
+                m_rxMonitorFunc(packet);
                 // manual unlocking is done before notifying, to avoid waking up
                 // the waiting thread only to block again (see notify_one for details)
                 lock.unlock();

@@ -55,11 +55,22 @@ void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& optio
 
 DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOpen)
 {
-    m_canOpen.m_device.m_monitorFunc = [this](const SlCan::Packet& pkt) {
-        m_pktCount++;
+    m_canOpen.m_device.m_rxMonitorFunc = [this](const SlCan::Packet& pkt) {
+        m_pktRxCount++;
 
         m_packetsRxInCurrentSecond++;
         m_bytesRxInCurrentSecond += pkt.sizeOfSerialPacket();
+        if (!m_isVisible) { return; }
+        if (!commandIsTransmit(pkt.command)) { return; }
+
+        m_networkState[pkt.data.packetData.id] = pkt.data.packetData;
+    };
+
+    m_canOpen.m_device.m_txMonitorFunc = [this](const SlCan::Packet& pkt) {
+        m_pktTxCount++;
+
+        m_packetsTxInCurrentSecond++;
+        m_bytesTxInCurrentSecond += pkt.sizeOfSerialPacket();
         if (!m_isVisible) { return; }
         if (!commandIsTransmit(pkt.command)) { return; }
 
@@ -76,6 +87,13 @@ DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOp
             m_kilobytesRxInLastSecond =
               (m_kilobytesRxInLastSecond + static_cast<float>(m_bytesRxInCurrentSecond) / 1024.0f) / 2.0f;
             m_bytesRxInCurrentSecond = 0;
+
+            m_packetsTxInLastSecond    = (m_packetsTxInLastSecond + m_packetsTxInCurrentSecond) / 2;
+            m_packetsTxInCurrentSecond = 0;
+
+            m_kilobytesTxInLastSecond =
+              (m_kilobytesTxInLastSecond + static_cast<float>(m_bytesTxInCurrentSecond) / 1024.0f) / 2.0f;
+            m_bytesTxInCurrentSecond = 0;
             std::this_thread::sleep_for(1s);
         }
     });
@@ -198,7 +216,8 @@ void DeviceViewer::onImGuiRender()
             ImGui::BeginTooltip();
             ImGui::Text("Addresses: %zu", m_networkState.size());
             ImGui::Text("Packets Pending: %zu", m_canOpen.m_device.m_queue.size());
-            ImGui::Text("Packets Received: %zu", m_pktCount);
+            ImGui::Text("Packets Received: %zu", m_pktRxCount);
+            ImGui::Text("Packets Sent: %zu", m_pktTxCount);
             ImGui::Text("Rx: %zu pkt/s (%0.3f kB/s)", m_packetsRxInLastSecond, m_kilobytesRxInLastSecond);
             ImGui::SameLine();
             renderNetworkUsage(m_kilobytesRxInLastSecond / 150.0f);
@@ -255,13 +274,13 @@ void DeviceViewer::onImGuiRender()
         ImGui::Text("Network State: %zu addresses, %zu pending packets (%zu total), %zu pkt/s, %0.3f kB/s",
                     m_networkState.size(),
                     m_canOpen.m_device.m_queue.size(),
-                    m_pktCount,
+                    m_pktRxCount,
                     m_packetsRxInLastSecond,
                     m_kilobytesRxInLastSecond);
         ImGui::SameLine();
         if (ImGui::Button("Clear")) {
             m_networkState.clear();
-            m_pktCount = 0;
+            m_pktRxCount = 0;
         }
         renderNetworkState();
     }

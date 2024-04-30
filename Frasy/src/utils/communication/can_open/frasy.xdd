@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="frasy.xdd" fileCreator="Samuel Martel" fileCreationDate="2024-04-22" fileCreationTime="17:28:32.0000000-04:00" fileModifiedBy="Samuel Martel" fileModificationDate="2024-04-23" fileModificationTime="10:00:51.2702029-04:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="frasy.xdd" fileCreator="Samuel Martel" fileCreationDate="2024-04-22" fileCreationTime="17:28:32.0000000-04:00" fileModifiedBy="Samuel Martel" fileModificationDate="2024-04-30" fileModificationTime="11:21:05.9390600-04:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName>Samuel Martel</q1:vendorName>
         <q1:vendorID>69</q1:vendorID>
@@ -2352,7 +2352,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="frasy.xdd" fileCreator="Samuel Martel" fileCreationDate="2024-04-22" fileCreationTime="17:28:32.0000000-04:00" fileModificationDate="2024-04-23" fileModificationTime="10:00:51.2702029-04:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="frasy.xdd" fileCreator="Samuel Martel" fileCreationDate="2024-04-22" fileCreationTime="17:28:32.0000000-04:00" fileModificationDate="2024-04-30" fileModificationTime="11:21:05.9390600-04:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -2731,7 +2731,7 @@
         </PhysicalLayer>
       </TransportLayers>
       <NetworkManagement>
-        <CANopenGeneralFeatures granularity="8" nrOfRxPDO="4" nrOfTxPDO="4" ngMaster="true" />
+        <CANopenGeneralFeatures granularity="8" nrOfRxPDO="4" nrOfTxPDO="4" />
         <CANopenMasterFeatures layerSettingServiceMaster="true" />
       </NetworkManagement>
     </ProfileBody>

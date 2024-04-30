@@ -78,13 +78,14 @@ private:
     std::unordered_map<decltype(std::declval<SlCan::CanPacket>().id), SlCan::CanPacket> m_networkState;
 
     std::jthread m_resetter;
-    size_t       m_pktCount                 = 0;
+    size_t       m_pktRxCount               = 0;
     size_t       m_packetsRxInLastSecond    = 0;
     size_t       m_packetsRxInCurrentSecond = 0;
 
     float  m_kilobytesRxInLastSecond = 0;
     size_t m_bytesRxInCurrentSecond  = 0;
 
+    size_t m_pktTxCount = 0;
     size_t m_packetsTxInLastSecond    = 0;
     size_t m_packetsTxInCurrentSecond = 0;
     float  m_kilobytesTxInLastSecond  = 0;
