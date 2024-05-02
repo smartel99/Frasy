@@ -33,6 +33,7 @@
 #include <chrono>
 #include <cstdint>
 #include <format>
+#include <functional>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -47,6 +48,9 @@ class CanOpenViewer;
 namespace Frasy::CanOpen {
 class CanOpen {
 public:
+    using EmergencyMessageCallback = std::function<void(const EmergencyMessage&)>;
+
+public:
              CanOpen();
              CanOpen(const CanOpen&)   = delete;
     CanOpen& operator=(const CanOpen&) = delete;
@@ -56,7 +60,7 @@ public:
 
     void open(std::string_view port);
     void close();
-    bool isOpen() const { return m_device.isOpen(); }
+    bool isOpen() const { return m_device.isOpen() && m_isRunning; }
 
     void reset();
     void start();
@@ -70,6 +74,8 @@ public:
     void               clearNodes();
     bool               isNodeRegistered(uint8_t nodeId);
     bool               isNodeOnNetwork(uint8_t nodeId);
+
+    void addEmergencyMessageCallback(const EmergencyMessageCallback& callback);
 
     HbConsumer getHbConsumer(uint8_t nodeId) const { return HbConsumer {m_co->HBcons, nodeId}; }
 
@@ -89,6 +95,13 @@ private:
     void scanForDevices();
 
 #pragma region Callbacks
+    /**
+     * Called whenever an emergency message is received from the CAN bus.
+     *
+     * @param arg Pointer to instance of CanOpen
+     */
+    static void emPreCallback(void* arg);
+
     /**
      * Called whenever an error condition is received.
      *
@@ -245,6 +258,7 @@ private:
 
     std::stop_source m_stopSource;
     std::jthread     m_coThread;
+    bool             m_isRunning = false;
 
     std::chrono::time_point<std::chrono::steady_clock> m_lastTimePoint;
     static constexpr auto                              s_autoSavePeriod = std::chrono::minutes {1};
@@ -255,6 +269,8 @@ private:
     bool m_greenLed = false;
 
     std::vector<Node> m_nodes;
+
+    std::vector<EmergencyMessageCallback> m_emCallbacks;
 };
 }    // namespace Frasy::CanOpen
 

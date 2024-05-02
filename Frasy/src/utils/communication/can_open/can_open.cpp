@@ -18,6 +18,7 @@
 
 #include "CO_storageWindows.h"
 
+#include "Brigerad/Utils/dialogs/error.h"
 #include "real_od.h"
 
 #include <Brigerad.h>
@@ -219,6 +220,11 @@ bool CanOpen::isNodeOnNetwork(uint8_t nodeId)
 }
 #pragma endregion
 
+void CanOpen::addEmergencyMessageCallback(const EmergencyMessageCallback& callback)
+{
+    if (callback) { m_emCallbacks.push_back(callback); }
+}
+
 void CanOpen::scanForDevices()
 {
     BR_PROFILE_FUNCTION();
@@ -271,10 +277,13 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
         m_device.close();
         return;
     }
+
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     while (!stopToken.stop_requested() && reset != CO_RESET_APP && reset != CO_RESET_QUIT) {
         // Complete the init,
         if (!runtimeInit()) { break; }
+
+        m_isRunning = true;
         // While loop,
         while (reset == CO_RESET_NOT && !stopToken.stop_requested()) {
             reset = mainLoop();
@@ -283,8 +292,7 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
     }
     // Terminate CANopen,
     deinit();
-    // Close the device.
-    m_device.close();
+    m_isRunning = false;
 }
 
 #pragma region Initialization
@@ -345,6 +353,8 @@ bool CanOpen::runtimeInit()
         CO_UNLOCK_OD(m_co->CANmodule);
     }
 
+    removeNode(0x01);
+
     // Enter CAN configuration mode.
     CO_CANsetConfigurationMode(&m_device);
     CO_CANmodule_disable(m_co->CANmodule);
@@ -396,11 +406,14 @@ bool CanOpen::runtimeInit()
 
     BR_LOG_INFO(m_tag, "CANOpen initialized and running!");
 
+    addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the EDS.
+
     return true;
 }
 
 bool CanOpen::initCallbacks()
 {
+    CO_EM_initCallbackPre(m_co->em, this, &emPreCallback);
     CO_EM_initCallbackRx(m_co->em, &emRxCallback);
 
     CO_HBconsumer_initCallbackPre(m_co->HBcons, this, &hbConsumerPreCallback);
@@ -489,24 +502,61 @@ bool CanOpen::deinit()
 }
 
 #pragma region Callbacks
-void           CanOpen::emRxCallback(const uint16_t ident,
+namespace {
+// TODO this might bite us hard in the ass...
+CanOpen* s_activeEmCan = nullptr;
+}    // namespace
+
+void CanOpen::emPreCallback(void* arg)
+{
+    BR_LOG_INFO("CanOpen", "EM Pre");
+    s_activeEmCan = static_cast<CanOpen*>(arg);
+}
+
+void CanOpen::emRxCallback(const uint16_t ident,
                            const uint16_t errorCode,
                            const uint8_t  errorRegister,
                            const uint8_t  errorBit,
                            uint32_t       infoCode)
 {
-    uint8_t nodeId = static_cast<uint8_t>(ident) & 0x7F;
-    BR_LOG_DEBUG(s_tag,
-                 "Emergency message received from {:#02x}:"
-                 "\n\r\tError Code: {:#04x}"
-                 "\n\r\tError Register: {:#02x}"
-                 "\n\r\tError Bit: {:#02x}"
-                 "\n\r\tInfo Code: {:#08x}",
-                 nodeId,
-                 errorCode,
-                 errorRegister,
-                 errorBit,
-                 infoCode);
+    BR_LOG_INFO("CanOpen", "EM RX");
+    EmergencyMessage emergencyMessage {
+      static_cast<uint8_t>(ident & 0x7F),
+      static_cast<CO_EM_errorCode_t>(errorCode),
+      static_cast<CO_errorRegister_t>(errorRegister),
+      static_cast<CO_EM_errorStatusBits_t>(errorBit),
+      infoCode,
+    };
+
+    if (s_activeEmCan == nullptr) {
+        if (!emergencyMessage.isCritical()) {
+            // not that much of a big deal I guess...
+            return;
+        }
+        // Panic the fuck out of this aaaaaaa
+        Brigerad::FatalErrorDialog(
+          "EMERGENCY", "Received emergency message, but there's no one to treat it!\n\r{}", emergencyMessage);
+    }
+
+    for (auto&& cb : s_activeEmCan->m_emCallbacks) {
+        cb(emergencyMessage);
+    }
+
+    // The source is us?
+    if (emergencyMessage.nodeId == 0) { s_activeEmCan->getNode(0x01)->m_emMessages.push_back(emergencyMessage); return;}
+
+    auto it = std::ranges::find_if(s_activeEmCan->m_nodes, [&emergencyMessage](const auto& node) {
+        return node.nodeId() == emergencyMessage.nodeId;
+    });
+
+    if (it == s_activeEmCan->m_nodes.end()) {
+        if (!emergencyMessage.isCritical()) { return; }
+        // Panic the fuck out of this aaaaaaa
+        Brigerad::FatalErrorDialog(
+          "EMERGENCY", "Received emergency message, but there's no one to treat it!\n\r{}", emergencyMessage);
+    }
+
+    it->m_emMessages.push_back(emergencyMessage);
 }
 
 void CanOpen::hbConsumerPreCallback(void* arg)

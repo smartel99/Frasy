@@ -123,7 +123,13 @@ bool CanOpenViewer::renderOpenNodeWindow(CanOpen::Node& node)
 {
     bool open = true;
 
-    if (ImGui::Begin(node.name().data(), &open)) {}
+    if (ImGui::Begin(node.name().data(), &open)) {
+        for(auto&& em: node.getEmergencies()) {
+            auto str = std::format("{}", em);
+            ImGui::Text("%s", str.c_str());
+            ImGui::Separator();
+        }
+    }
     ImGui::End();
 
     return open;

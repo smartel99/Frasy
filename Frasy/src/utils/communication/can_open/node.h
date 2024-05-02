@@ -19,12 +19,13 @@
 #ifndef FRASY_UTILS_COMMUNICATION_CAN_OPEN_NODE_H
 #define FRASY_UTILS_COMMUNICATION_CAN_OPEN_NODE_H
 
-#include "hb_consumer.h"
 #include "em.h"
+#include "hb_consumer.h"
 
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace Frasy::CanOpen {
 class CanOpen;
@@ -42,12 +43,16 @@ public:
     [[nodiscard]] CO_HBconsumer_state_t  getHbState() const { return m_hbConsumer.getState(); }
     [[nodiscard]] CO_NMT_internalState_t getNmtState() const { return m_hbConsumer.getNmtState(); }
 
+  [[nodiscard]] const std::vector<EmergencyMessage>& getEmergencies() const {return m_emMessages;}
+
 private:
     uint8_t     m_nodeId = 0;
     std::string m_name;
     std::string m_edsPath;
 
     HbConsumer m_hbConsumer;
+
+    std::vector<EmergencyMessage> m_emMessages;
 
     friend CanOpen;
     CanOpen* m_canOpen = nullptr;

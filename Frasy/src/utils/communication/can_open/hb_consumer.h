@@ -28,6 +28,7 @@
 namespace Frasy::CanOpen {
 class HbConsumer {
 public:
+             HbConsumer() = default;
     explicit HbConsumer(CO_HBconsumer_t* co, uint8_t nodeId) : m_co(co), m_index(getIdxByNodeId(nodeId)) {}
 
     /**
