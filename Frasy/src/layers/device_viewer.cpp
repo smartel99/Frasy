@@ -177,58 +177,7 @@ void DeviceViewer::onDetach()
 
 void DeviceViewer::onImGuiRender()
 {
-    if (ImGui::BeginMainMenuBar()) {
-        ImGui::BeginHorizontal("menuBarSpan", ImVec2 {ImGui::GetContentRegionAvail().x, 0.0f});
-        ImGui::Spring(1);
-        ImGui::Separator();
-
-        static constexpr ImVec4 s_connectedColor    = {40, 255, 0, 255};
-        static constexpr ImVec4 s_disconnectedColor = {255, 0, 0, 255};
-        ImVec4                  color               = m_canOpen.isOpen() ? s_connectedColor : s_disconnectedColor;
-        ImGui::PushStyleColor(ImGuiCol_Text, color);
-        if (m_canOpen.isOpen()) { ImGui::Text("Connected (%s)  ", m_canOpen.m_device.getPort().c_str()); }
-        else {
-            ImGui::Text("Disconnected  ");
-        }
-        ImGui::PopStyleColor();
-        if (ImGui::IsItemClicked()) { setVisibility(true); }
-
-        auto renderNetworkUsage = [](float usage) {
-            auto progressColor = ImVec4 {1.0f, 1.0f, 0, 1.0f};
-
-            // Under 50% usage, remove red to make it greener.
-            // Above 50% usage, remove green to make it more red.
-            if (usage <= 0.5f) { progressColor.x -= (0.5f - usage) * 2.0f; }
-            else {
-                // Will be in range (0.5, 1.0], bring into [0.0, 0.5] range.
-                progressColor.y -= (usage - 0.5f) * 2.0f;
-            }
-
-            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, progressColor);
-            ImGui::ProgressBar(usage, ImVec2 {50.0f, 0.0f}, "");
-            ImGui::PopStyleColor();
-        };
-
-        // Combine both Rx and Tx into one bar, then expand in the pop up.
-        renderNetworkUsage((m_kilobytesRxInLastSecond + m_kilobytesTxInLastSecond) / 300.0f);
-
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::Text("Addresses: %zu", m_networkState.size());
-            ImGui::Text("Packets Pending: %zu", m_canOpen.m_device.m_queue.size());
-            ImGui::Text("Packets Received: %zu", m_pktRxCount);
-            ImGui::Text("Packets Sent: %zu", m_pktTxCount);
-            ImGui::Text("Rx: %zu pkt/s (%0.3f kB/s)", m_packetsRxInLastSecond, m_kilobytesRxInLastSecond);
-            ImGui::SameLine();
-            renderNetworkUsage(m_kilobytesRxInLastSecond / 150.0f);
-            ImGui::Text("Tx: %zu pkt/s (%0.3f kB/s)", m_packetsTxInLastSecond, m_kilobytesTxInLastSecond);
-            ImGui::SameLine();
-            renderNetworkUsage(m_kilobytesTxInLastSecond / 150.0f);
-            ImGui::EndTooltip();
-        }
-        ImGui::EndHorizontal();
-        ImGui::EndMainMenuBar();
-    }
+    renderMenuBar();
 
     if (!m_isVisible) { return; }
 
@@ -313,6 +262,7 @@ void DeviceViewer::renderNetworkState()
         ImGui::TableSetupColumn("IsRTR");
         ImGui::TableSetupColumn("DLC");
         ImGui::TableSetupColumn("Data");
+        ImGui::TableSetupScrollFreeze(0,1);
         ImGui::TableHeadersRow();
         for (const auto& packet : m_networkState | std::views::values) {
             ImGui::TableNextRow();
@@ -342,7 +292,7 @@ void DeviceViewer::renderNetworkPacket(const SlCan::CanPacket& packet)
     // Use the pointer location as a unique ID.
     ImGui::PushID(static_cast<int>(packet.id));
 
-    renderColumn(0, "%#08x", packet.id);
+    renderColumn(0, "0x%08x", packet.id);
     renderColumn(1, "%c", packet.isExtended ? 'Y' : 'N');
     renderColumn(2, "%c", packet.isRemote ? 'Y' : 'N');
     renderColumn(3, "%d", packet.dataLen);
@@ -350,6 +300,85 @@ void DeviceViewer::renderNetworkPacket(const SlCan::CanPacket& packet)
 
     ImGui::PopID();
     ImGui::EndGroup();
+}
+
+void DeviceViewer::renderMenuBar()
+{
+    if (ImGui::BeginMainMenuBar()) {
+        ImGui::BeginHorizontal("menuBarSpan", ImVec2 {ImGui::GetContentRegionAvail().x, 0.0f});
+        ImGui::Spring(0.1);
+        ImGui::Separator();
+
+        static constexpr ImVec4 s_red   = {1, 0, 0, 1};
+        static constexpr ImVec4 s_green = {0, 1, 0, 1};
+
+        if (m_canOpen.m_redLed) { ImGui::PushStyleColor(ImGuiCol_Text, s_red); }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        }
+        ImGui::Bullet();
+        ImGui::PopStyleColor();
+
+        ImGui::Spring(0);
+
+        if (m_canOpen.m_greenLed) { ImGui::PushStyleColor(ImGuiCol_Text, s_green); }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        }
+        ImGui::Bullet();
+        ImGui::PopStyleColor();
+
+        ImGui::Spring(0);
+
+        static constexpr ImVec4 s_connectedColor    = {40, 255, 0, 255};
+        static constexpr ImVec4 s_disconnectedColor = {255, 0, 0, 255};
+        ImVec4                  color               = m_canOpen.isOpen() ? s_connectedColor : s_disconnectedColor;
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        if (m_canOpen.isOpen()) { ImGui::Text("Connected (%s)  ", m_canOpen.m_device.getPort().c_str()); }
+        else {
+            ImGui::Text("Disconnected  ");
+        }
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemClicked()) { setVisibility(true); }
+
+        auto renderNetworkUsage = [](float usage) {
+            auto progressColor = ImVec4 {1.0f, 1.0f, 0, 1.0f};
+
+            // Under 50% usage, remove red to make it greener.
+            // Above 50% usage, remove green to make it more red.
+            if (usage <= 0.5f) { progressColor.x -= (0.5f - usage) * 2.0f; }
+            else {
+                // Will be in range (0.5, 1.0], bring into [0.0, 0.5] range.
+                progressColor.y -= (usage - 0.5f) * 2.0f;
+            }
+
+            // Make at least a tiny bit of color show up if there's some activity.
+            if (usage > 0.0001f) { usage = std::max(usage, 0.02f); }
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, progressColor);
+            ImGui::ProgressBar(usage, ImVec2 {50.0f, 0.0f}, "");
+            ImGui::PopStyleColor();
+        };
+
+        // Combine both Rx and Tx into one bar, then expand in the pop up.
+        renderNetworkUsage((m_kilobytesRxInLastSecond + m_kilobytesTxInLastSecond) / 300.0f);
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Addresses: %zu", m_networkState.size());
+            ImGui::Text("Packets Pending: %zu", m_canOpen.m_device.m_queue.size());
+            ImGui::Text("Packets Received: %zu", m_pktRxCount);
+            ImGui::Text("Packets Sent: %zu", m_pktTxCount);
+            ImGui::Text("Rx: %zu pkt/s (%0.3f kB/s)", m_packetsRxInLastSecond, m_kilobytesRxInLastSecond);
+            ImGui::SameLine();
+            renderNetworkUsage(m_kilobytesRxInLastSecond / 150.0f);
+            ImGui::Text("Tx: %zu pkt/s (%0.3f kB/s)", m_packetsTxInLastSecond, m_kilobytesTxInLastSecond);
+            ImGui::SameLine();
+            renderNetworkUsage(m_kilobytesTxInLastSecond / 150.0f);
+            ImGui::EndTooltip();
+        }
+        ImGui::EndHorizontal();
+        ImGui::EndMainMenuBar();
+    }
 }
 
 }    // namespace Frasy

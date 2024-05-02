@@ -312,10 +312,11 @@ size_t Packet::sizeOfSerialPacket() const
         case Command::SetBitRate:
         case Command::SetMode:
         case Command::SetAutoRetry: return 3;    // Command byte + value byte + \r
-        case Command::TransmitDataFrame: return 3 + s_stdIdLen + data.packetData.dataLen;       // "t123dxxxx\r"
-        case Command::TransmitExtDataFrame: return 3 + s_extIdLen + data.packetData.dataLen;    // "T12345678dxxxx\r"
-        case Command::TransmitRemoteFrame: return 1 + s_stdIdLen + 1;                           // "r123\r"
-        case Command::TransmitExtRemoteFrame: return 1 + s_extIdLen + 1;                        // "R12345678\r"
+        case Command::TransmitDataFrame: return 3 + s_stdIdLen + (data.packetData.dataLen * 2);    // "t123dxxxx\r"
+        case Command::TransmitExtDataFrame:
+            return 3 + s_extIdLen + (data.packetData.dataLen * 2);          // "T12345678dxxxx\r"
+        case Command::TransmitRemoteFrame: return 1 + s_stdIdLen + 1;       // "r123\r"
+        case Command::TransmitExtRemoteFrame: return 1 + s_extIdLen + 1;    // "R12345678\r"
         case Command::Invalid:
         default: return 0;
     }

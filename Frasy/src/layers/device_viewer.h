@@ -67,6 +67,8 @@ private:
     void renderNetworkState();
     void renderNetworkPacket(const SlCan::CanPacket& packet);
 
+    void renderMenuBar();
+
 private:
     bool                m_isVisible = false;
     DeviceViewerOptions m_options;

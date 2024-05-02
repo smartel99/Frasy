@@ -35,11 +35,11 @@ class MyMainApplicationLayer final : public Frasy::MainApplicationLayer {
     };
 
 public:
-    MyMainApplicationLayer()                                         = default;
-    MyMainApplicationLayer(const MyMainApplicationLayer&)            = delete;
-    MyMainApplicationLayer& operator=(const MyMainApplicationLayer&) = delete;
-    MyMainApplicationLayer(MyMainApplicationLayer&&)                 = delete;
-    MyMainApplicationLayer& operator=(MyMainApplicationLayer&&)      = delete;
+                            MyMainApplicationLayer()                              = default;
+                            MyMainApplicationLayer(const MyMainApplicationLayer&) = delete;
+    MyMainApplicationLayer& operator=(const MyMainApplicationLayer&)              = delete;
+                            MyMainApplicationLayer(MyMainApplicationLayer&&)      = delete;
+    MyMainApplicationLayer& operator=(MyMainApplicationLayer&&)                   = delete;
 
     ~MyMainApplicationLayer() override = default;
 
@@ -55,19 +55,7 @@ private:
     void doTests();
     bool getSerials();
 
-    void makeOrchestrator(const std::string& name, const std::string& envPath, const std::string& testPath)
-    {
-        if (m_orchestrator.loadUserFiles(envPath, testPath)) {
-            m_activeProduct = name;
-            m_map           = m_orchestrator.getMap();
-        }
-        else {
-            Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");
-            makeLogWindowVisible();
-            BR_LOG_ERROR("APP", "Unable to initialize orchestrator!");
-            m_map = {};
-        }
-    }
+    void makeOrchestrator(const std::string& name, const std::string& envPath, const std::string& testPath);
 
     void loadProducts();
     bool shouldRegenerate();

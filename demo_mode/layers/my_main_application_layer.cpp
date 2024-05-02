@@ -220,6 +220,27 @@ bool MyMainApplicationLayer::getSerials()
     return true;
 }
 
+void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
+                                              const std::string& envPath,
+                                              const std::string& testPath)
+{
+    {
+        if (m_orchestrator.loadUserFiles(envPath, testPath)) {
+            m_activeProduct = name;
+            m_map           = m_orchestrator.getMap();
+            // TODO CANopen nodes should be added here, based on the environment file.
+            m_canOpen.addNode(2);
+            m_canOpen.addNode(3);
+        }
+        else {
+            Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");
+            makeLogWindowVisible();
+            BR_LOG_ERROR("APP", "Unable to initialize orchestrator!");
+            m_map = {};
+        }
+    }
+}
+
 std::vector<MyMainApplicationLayer::ProductInfo> MyMainApplicationLayer::detectProducts()
 {
     namespace fs = std::filesystem;

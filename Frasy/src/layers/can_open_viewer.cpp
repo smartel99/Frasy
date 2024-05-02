@@ -32,34 +32,28 @@ void CanOpenViewer::onDetach()
     Layer::onDetach();
 }
 
+void CanOpenViewer::onUpdate(Brigerad::Timestep timestep)
+{
+    Layer::onUpdate(timestep);
+}
+
 void CanOpenViewer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
+    BR_PROFILE_FUNCTION();
 
     if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
-        static constexpr ImVec4 s_red   = {1, 0, 0, 1};
-        static constexpr ImVec4 s_green = {0, 1, 0, 1};
+        renderNodes();
 
-        if (m_canOpen.m_redLed) { ImGui::PushStyleColor(ImGuiCol_Text, s_red); }
-        else {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        for (auto&& [open, nodeId] : m_openNodes) {
+            auto* node = m_canOpen.getNode(nodeId);
+            if (node == nullptr) { open = false; }
+            else {
+                open = renderOpenNodeWindow(*node);
+            }
         }
-        ImGui::Text("Red");
-        ImGui::PopStyleColor();
 
-        ImGui::SameLine();
-
-        if (m_canOpen.m_greenLed) { ImGui::PushStyleColor(ImGuiCol_Text, s_green); }
-        else {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        }
-        ImGui::Text("Green");
-        ImGui::PopStyleColor();
-
-        if(ImGui::Button("Scan"))
-        {
-            m_canOpen.scanForDevices();
-        }
+        std::erase_if(m_openNodes, [](const auto& node) { return !node.open; });
     }
     ImGui::End();
 }
@@ -68,5 +62,70 @@ void CanOpenViewer::setVisibility(bool visibility)
 {
     m_isVisible = visibility;
     ImGui::SetWindowFocus(s_windowName);
+}
+
+void CanOpenViewer::renderNodes()
+{
+    BR_PROFILE_FUNCTION();
+
+    static ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders | ImGuiTableFlags_Sortable |
+                                        ImGuiTableFlags_ScrollY | ImGuiTableFlags_SortMulti |
+                                        ImGuiTableFlags_SortTristate | ImGuiTableFlags_SizingStretchProp;
+
+    float maxY = ImGui::GetContentRegionAvail().y;
+    if (ImGui::BeginTable("nodes", 3, tableFlags, ImVec2 {0.0f, maxY})) {
+        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_DefaultSort);
+        ImGui::TableSetupColumn("Node ID");
+        ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableHeadersRow();
+        for (auto&& node : m_canOpen.getNodes()) {
+            ImGui::TableNextRow();
+            renderNode(node);
+        }
+        ImGui::EndTable();
+    }
+}
+
+void CanOpenViewer::renderNode(CanOpen::Node& node)
+{
+    BR_PROFILE_FUNCTION();
+    static auto renderColumn = [this](size_t columnId, const char* str) {
+        if (ImGui::TableSetColumnIndex(static_cast<int>(columnId))) {
+            bool clicked = ImGui::Selectable(str);
+            if (ImGui::IsItemHovered()) {
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
+            }
+            return clicked;
+        }
+
+        return false;
+    };
+
+    ImGui::BeginGroup();
+    ImGui::PushID(ImGui::GetID(node.name().data()));
+    bool clicked = renderColumn(0, node.name().data());
+    clicked |= renderColumn(1, std::format("0x{:02x}", node.nodeId()).c_str());
+    clicked |= renderColumn(
+      2,
+      std::format("HB: {}, NMT: {}", CanOpen::toString(node.getHbState()), CanOpen::toString(node.getNmtState()))
+        .c_str());
+    ImGui::PopID();
+    ImGui::EndGroup();
+
+    if (clicked &&
+        !std::ranges::any_of(m_openNodes, [nodeId = node.nodeId()](const auto& n) { return n.nodeId == nodeId; })) {
+        m_openNodes.emplace_back(true, node.nodeId());
+    }
+}
+
+bool CanOpenViewer::renderOpenNodeWindow(CanOpen::Node& node)
+{
+    bool open = true;
+
+    if (ImGui::Begin(node.name().data(), &open)) {}
+    ImGui::End();
+
+    return open;
 }
 }    // namespace Frasy

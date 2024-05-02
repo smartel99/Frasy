@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="frasy.xdd" fileCreator="Samuel Martel" fileCreationDate="2024-04-22" fileCreationTime="17:28:32.0000000-04:00" fileModifiedBy="Samuel Martel" fileModificationDate="2024-04-30" fileModificationTime="11:21:05.9390600-04:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="frasy.xdd" fileCreator="Samuel Martel" fileCreationDate="2024-04-22" fileCreationTime="17:28:32.0000000-04:00" fileModifiedBy="Samuel Martel" fileModificationDate="2024-05-02" fileModificationTime="09:30:17.8478747-04:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName>Samuel Martel</q1:vendorName>
         <q1:vendorID>69</q1:vendorID>
@@ -792,7 +792,7 @@
             <description lang="en">Consumer Heartbeat Time:
   * bit 24-31: set to 0
   * bit 16-23: Node ID of the monitored node. If 0 or greater than 127, sub-entry is not used.
-  * bit 0-15: Heartbeat time in ms (if 0, sub-intry is not used). Value should be higher than the corresponding producer heartbeat time.</description>
+  * bit 0-15: Heartbeat time in ms (if 0, sub-entry is not used). Value should be higher than the corresponding producer heartbeat time.</description>
             <q1:dataTypeIDRef uniqueIDRef="UID_ARR_1016" />
             <q1:property name="CO_countLabel" value="HB_CONS" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
@@ -805,12 +805,12 @@
           <q1:parameter uniqueID="UID_SUB_101601" access="readWrite">
             <label lang="en">Consumer heartbeat time</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x00020064" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_101602" access="readWrite">
             <label lang="en">Consumer heartbeat time</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x00030064" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_101603" access="readWrite">
             <label lang="en">Consumer heartbeat time</label>
@@ -2352,7 +2352,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="frasy.xdd" fileCreator="Samuel Martel" fileCreationDate="2024-04-22" fileCreationTime="17:28:32.0000000-04:00" fileModificationDate="2024-04-30" fileModificationTime="11:21:05.9390600-04:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="frasy.xdd" fileCreator="Samuel Martel" fileCreationDate="2024-04-22" fileCreationTime="17:28:32.0000000-04:00" fileModificationDate="2024-05-02" fileModificationTime="09:30:17.8478747-04:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />

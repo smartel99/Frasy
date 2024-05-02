@@ -250,7 +250,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
     auto packet = Frasy::SlCan::Packet {*buffer};
     CO_LOCK_CAN_SEND(CANmodule);
     size_t written = interface->transmit(packet);
-    if (errno == 0 && written != packet.sizeOfSerialPacket()) {
+    if (written == packet.sizeOfSerialPacket()) {
         /* success */
         if (buffer->bufferFull) {
             buffer->bufferFull = false;

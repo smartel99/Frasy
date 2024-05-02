@@ -95,22 +95,129 @@ std::string_view canOpenLssMasterReturnToStr(CO_LSSmaster_return_t val)
 }    // namespace
 
 
+CanOpen::CanOpen()
+{
+    start();
+}
+
+CanOpen::CanOpen(CanOpen&& o) noexcept
+: m_tag(std::move(o.m_tag)),
+  m_port(std::move(o.m_port)),
+  m_device(std::move(o.m_device)),
+  m_co(std::move(o.m_co)),
+  m_canOpenConfig(std::move(o.m_canOpenConfig)),
+  m_coHeapMemoryUsed(std::move(o.m_coHeapMemoryUsed)),
+  m_hasBeenInitOnce(std::move(o.m_hasBeenInitOnce)),
+  m_storage(std::move(o.m_storage)),
+  m_storageEntries(std::move(o.m_storageEntries)),
+  m_stopSource(std::move(o.m_stopSource)),
+  m_coThread(std::move(o.m_coThread)),
+  m_lastTimePoint(std::move(o.m_lastTimePoint)),
+  m_lastSaveTime(std::move(o.m_lastSaveTime)),
+  m_redLed(std::move(o.m_redLed)),
+  m_greenLed(std::move(o.m_greenLed)),
+  m_nodes(std::move(o.m_nodes))
+{
+    for (auto&& nodes : m_nodes) {
+        nodes.m_canOpen = this;
+    }
+}
+
+CanOpen::~CanOpen()
+{
+    stop();
+    if (isOpen()) { close(); }
+}
+
 void CanOpen::open(std::string_view port)
 {
     if (isOpen()) { close(); }
     m_tag  = fmt::format("{} {}", s_tag, port);
     m_port = port;
-
-    m_stopSource = {};
-    m_coThread   = std::jthread([this] { canOpenTask(m_stopSource.get_token()); });
+    try {
+        m_device = SlCan::Device {port};
+    }
+    catch (std::exception& e) {
+        BR_LOG_ERROR(m_tag, "Error occurred while opening {}: {}", port, e.what());
+        return;
+    }
+    if (!m_device.isOpen()) {
+        BR_LOG_ERROR(m_tag, "Unable to open '{}'", port);
+        return;
+    }
 }
 
 void CanOpen::close()
 {
     if (!isOpen()) { return; }
+    m_device.close();
+}
+
+void CanOpen::reset()
+{
+    stop();
+    start();
+}
+
+void CanOpen::start()
+{
+    m_stopSource = {};
+    m_coThread   = std::jthread([this] { canOpenTask(m_stopSource.get_token()); });
+}
+
+void CanOpen::stop()
+{
     if (m_stopSource.stop_possible()) { m_stopSource.request_stop(); }
     if (m_coThread.joinable()) { m_coThread.join(); }
 }
+
+#pragma region     Nodes
+std::vector<Node>& CanOpen::getNodes()
+{
+    return m_nodes;
+}
+
+Node* CanOpen::getNode(uint8_t nodeId)
+{
+    auto it = std::ranges::find_if(m_nodes, [nodeId](const auto& node) { return node.nodeId() == nodeId; });
+    return it == m_nodes.end() ? nullptr : &*it;
+}
+
+Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view edsPath)
+{
+    if (isNodeRegistered(nodeId)) {
+        BR_LOG_ERROR(m_tag, "Node with ID 0x{:02x} already exists", nodeId);
+        return nullptr;
+    }
+
+    return &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {:02x}", nodeId) : name, edsPath);
+}
+
+void CanOpen::removeNode(uint8_t nodeId)
+{
+    std::erase_if(m_nodes, [nodeId](const Node& node) { return node.nodeId() == nodeId; });
+}
+
+void CanOpen::removeNode(const Node& node)
+{
+    std::erase(m_nodes, node);
+}
+
+void CanOpen::clearNodes()
+{
+    m_nodes.clear();
+}
+
+bool CanOpen::isNodeRegistered(uint8_t nodeId)
+{
+    return std::ranges::any_of(m_nodes, [nodeId](const auto& node) { return node.nodeId() == nodeId; });
+}
+
+bool CanOpen::isNodeOnNetwork(uint8_t nodeId)
+{
+    throw std::runtime_error("Not implemented");
+}
+#pragma endregion
 
 void CanOpen::scanForDevices()
 {
@@ -132,13 +239,15 @@ void CanOpen::scanForDevices()
     auto                          last  = steady_clock::now();
     uint32_t                      delta = 0;
 
-    CO_LSSmaster_return_t scanRes = CO_LSSmaster_WAIT_SLAVE;
-    while (scanRes == CO_LSSmaster_WAIT_SLAVE) {
-        CO_LSSmaster_fastscan_t scanPass {
-          .scan  = {CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN},
-          .match = {},
-          .found = {},
-        };
+    size_t                  passes  = 0;
+    CO_LSSmaster_return_t   scanRes = CO_LSSmaster_WAIT_SLAVE;
+    CO_LSSmaster_fastscan_t scanPass {
+      .scan  = {CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SKIP, CO_LSSmaster_FS_SCAN},
+      .match = {},
+      .found = {},
+    };
+    while (isOpen() && scanRes == CO_LSSmaster_WAIT_SLAVE) {
+        ++passes;
         scanRes = CO_LSSmaster_IdentifyFastscan(m_co->LSSmaster, delta, &scanPass);
 
         if (scanRes != CO_LSSmaster_WAIT_SLAVE) {
@@ -152,7 +261,8 @@ void CanOpen::scanForDevices()
     }
 
     auto taken = static_cast<float>(duration_cast<milliseconds>(steady_clock::now() - start).count()) / 1000.0f;
-    BR_LOG_INFO(m_tag, "Scan complete! Found {} nodes in {} seconds", nodesFound.size(), taken);
+    BR_LOG_INFO(m_tag, "Scan complete! Found {} nodes in {} seconds and {} passes", nodesFound.size(), taken, passes);
+    BR_LOG_INFO(m_tag, "Found: {:x}", fmt::join(scanPass.found.addr, ", "));
 }
 
 void CanOpen::canOpenTask(std::stop_token stopToken)
@@ -177,20 +287,9 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
     m_device.close();
 }
 
-bool CanOpen::initialInit(std::string_view port)
+#pragma region Initialization
+bool           CanOpen::initialInit(std::string_view port)
 {
-    try {
-        m_device = SlCan::Device {port};
-    }
-    catch (std::exception& e) {
-        BR_LOG_ERROR(m_tag, "Error occurred while opening {}: {}", port, e.what());
-        return false;
-    }
-    if (!m_device.isOpen()) {
-        BR_LOG_ERROR(m_tag, "Unable to open '{}'", port);
-        return false;
-    }
-
     // Initialize CANopen.
     OD_INIT_CONFIG(m_canOpenConfig);
     // TODO these fields should be determined based on a loaded environment.
@@ -217,6 +316,7 @@ bool CanOpen::initialInit(std::string_view port)
         BR_LOG_ERROR(m_tag, "Unable to create CANopen context");
         return false;
     }
+    BR_LOG_INFO(m_tag, "Created CANopen with {} bytes used", m_coHeapMemoryUsed);
 
     uint32_t         storageInitError = 0;
     CO_ReturnError_t err              = CO_storageWindows_init(&m_storage,
@@ -256,14 +356,12 @@ bool CanOpen::runtimeInit()
         return false;
     }
 
-    if (!initLss()) { return false; }
-
     uint32_t errInfo = 0;
     err              = CO_CANopenInit(m_co,       // CANopen object.
                          nullptr,    // alternate NMT handle.
                          nullptr,    // alternate emergency handle, might be required.
                          OD,         // Object dictionary
-                         0,          // Optional OD_statusBits.
+                         nullptr,    // Optional OD_statusBits.
                          s_nmtControlFlags,
                          s_firstHeartbeatTime,
                          s_sdoServerTimeoutTime,
@@ -278,6 +376,7 @@ bool CanOpen::runtimeInit()
         }
         return false;
     }
+    CO_LSSmaster_changeTimeout(m_co->LSSmaster, s_lssTimeout);
 
     // Initialize part of threadMain and the various callbacks.
     if (!initCallbacks()) { return false; }
@@ -297,25 +396,6 @@ bool CanOpen::runtimeInit()
 
     BR_LOG_INFO(m_tag, "CANOpen initialized and running!");
 
-    return true;
-}
-
-bool CanOpen::initLss()
-{
-    auto err = CO_LSSmaster_init(m_co->LSSmaster,
-                                 s_lssTimeout,
-                                 m_co->CANmodule,
-                                 m_co->RX_IDX_LSS_MST,
-                                 s_cobLssSlaveId,
-                                 m_co->CANmodule,
-                                 m_co->TX_IDX_LSS_MST,
-                                 s_cobLssMasterId);
-    if (err != CO_ERROR_NO) {
-        BR_LOG_ERROR(m_tag, "Unable to initialize LSS master: ({}) {}", err, canOpenErrorToStr(err));
-        return false;
-    }
-
-    BR_LOG_INFO(m_tag, "LSS initialized");
     return true;
 }
 
@@ -366,6 +446,7 @@ bool CanOpen::initTime()
     BR_LOG_INFO(m_tag, "Time set: {} days, {} ms", days, ms);
     return true;
 }
+#pragma endregion
 
 CO_NMT_reset_cmd_t CanOpen::mainLoop()
 {
@@ -407,19 +488,21 @@ bool CanOpen::deinit()
     return success;
 }
 
-void CanOpen::emRxCallback(const uint16_t ident,
+#pragma region Callbacks
+void           CanOpen::emRxCallback(const uint16_t ident,
                            const uint16_t errorCode,
                            const uint8_t  errorRegister,
                            const uint8_t  errorBit,
                            uint32_t       infoCode)
 {
+    uint8_t nodeId = static_cast<uint8_t>(ident) & 0x7F;
     BR_LOG_DEBUG(s_tag,
-                 "Emergency message received from {:#04x}:"
+                 "Emergency message received from {:#02x}:"
                  "\n\r\tError Code: {:#04x}"
                  "\n\r\tError Register: {:#02x}"
                  "\n\r\tError Bit: {:#02x}"
                  "\n\r\tInfo Code: {:#08x}",
-                 ident,
+                 nodeId,
                  errorCode,
                  errorRegister,
                  errorBit,
@@ -430,7 +513,6 @@ void CanOpen::hbConsumerPreCallback(void* arg)
 {
     BR_CORE_ASSERT(arg != nullptr, "Arg pointer null in hbConsumerPreCallback");
     CanOpen* that = static_cast<CanOpen*>(arg);
-    BR_LOG_DEBUG(that->m_tag, "hbConsumerPreCallback");
 }
 
 void CanOpen::hbConsumerNmtChangedCallback(uint8_t nodeId, uint8_t idx, CO_NMT_internalState_t nmtState, void* arg)
@@ -492,7 +574,7 @@ void CanOpen::lssMasterPreCallback(void* arg)
 {
     BR_CORE_ASSERT(arg != nullptr, "Arg pointer null in lssMasterPreCallback");
     CanOpen* that = static_cast<CanOpen*>(arg);
-    BR_LOG_DEBUG(that->m_tag, "LSS Master pre callback");
+    BR_LOG_TRACE(that->m_tag, "LSS Master pre callback");
 }
 
 void CanOpen::sdoClientPreCallback(void* arg)
@@ -515,6 +597,7 @@ void CanOpen::timePreCallback(void* arg)
     CanOpen* that = static_cast<CanOpen*>(arg);
     BR_LOG_DEBUG(that->m_tag, "TIME pre callback");
 }
+#pragma endregion
 
 
 #undef EARLY_EXIT

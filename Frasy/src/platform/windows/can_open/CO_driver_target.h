@@ -66,7 +66,7 @@ extern "C" {
 #ifndef CO_CONFIG_HB_CONS
 #    define CO_CONFIG_HB_CONS                                                                                          \
         (CO_CONFIG_HB_CONS_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT |             \
-         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_HB_CONS_CALLBACK_MULTI)
+         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_HB_CONS_CALLBACK_MULTI | CO_CONFIG_HB_CONS_QUERY_FUNCT)
 #endif
 
 #ifndef CO_CONFIG_EM
@@ -137,7 +137,7 @@ extern "C" {
 
 /* Print debug info from some internal parts of the stack */
 #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_COMMON
-#include "utils/communication/can_open/CO_error.h"
+#    include "utils/communication/can_open/CO_error.h"
 #    define CO_DEBUG_COMMON(msg) log_printf(LOG_DEBUG, DBG_CO_DEBUG, msg);
 #endif
 

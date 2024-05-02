@@ -24,14 +24,20 @@
 #include <CANopen.h>
 #include <CO_storage.h>
 
+#include "hb_consumer.h"
+#include "node.h"
 #include "real_od.h"
+#include "to_string.h"
 
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <format>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 namespace Frasy {
 class DeviceViewer;
@@ -41,33 +47,48 @@ class CanOpenViewer;
 namespace Frasy::CanOpen {
 class CanOpen {
 public:
-    CanOpen()                          = default;
-    CanOpen(const CanOpen&)            = delete;
+             CanOpen();
+             CanOpen(const CanOpen&)   = delete;
     CanOpen& operator=(const CanOpen&) = delete;
-    CanOpen(CanOpen&&)                 = default;
-    CanOpen& operator=(CanOpen&&)      = default;
-    ~CanOpen()
-    {
-        if (isOpen()) { close(); }
-    }
+             CanOpen(CanOpen&& o) noexcept;
+    CanOpen& operator=(CanOpen&&) = default;
+    ~        CanOpen();
 
     void open(std::string_view port);
     void close();
     bool isOpen() const { return m_device.isOpen(); }
 
-    void scanForDevices();
+    void reset();
+    void start();
+    void stop();
+
+    std::vector<Node>& getNodes();
+    Node*              getNode(uint8_t nodeId);
+    Node*              addNode(uint8_t nodeId, std::string_view name = "", std::string_view edsPath = "");
+    void               removeNode(uint8_t nodeId);
+    void               removeNode(const Node& node);
+    void               clearNodes();
+    bool               isNodeRegistered(uint8_t nodeId);
+    bool               isNodeOnNetwork(uint8_t nodeId);
+
+    HbConsumer getHbConsumer(uint8_t nodeId) const { return HbConsumer {m_co->HBcons, nodeId}; }
 
 private:
     void canOpenTask(std::stop_token stopToken);
 
     bool               initialInit(std::string_view port);
     bool               runtimeInit();
-    bool               initLss();
     bool               initCallbacks();
     bool               initTime();
     CO_NMT_reset_cmd_t mainLoop();
     bool               deinit();
 
+    /**
+     * Left there just in case it's needed, but really doesn't do anything...
+     */
+    void scanForDevices();
+
+#pragma region Callbacks
     /**
      * Called whenever an error condition is received.
      *
@@ -184,6 +205,7 @@ private:
      * @param arg Pointer to instance of CanOpen
      */
     static void lssMasterPreCallback(void* arg);
+#pragma endregion
 
 private:
     static constexpr const char* s_tag = "CANopen";
@@ -201,13 +223,13 @@ private:
     static constexpr uint16_t s_sdoClientTimeoutTime   = 500;
     static constexpr bool     s_sdoClientBlockTransfer = false;
     static constexpr uint8_t  s_defaultNodeId          = 0x01;
-    static constexpr uint16_t s_lssTimeout             = 1000;
+    static constexpr uint16_t s_lssTimeout             = 50;
 
     static constexpr uint16_t s_cobLssSlaveId  = 0x6E1;
     static constexpr uint16_t s_cobLssMasterId = 0x6E2;
 
     CO_t*                             m_co = nullptr;
-    CO_config_t                       m_canOpenConfig;
+    CO_config_t                       m_canOpenConfig {};
     uint32_t                          m_coHeapMemoryUsed = 0;
     bool                              m_hasBeenInitOnce  = false;
     CO_storage_t                      m_storage          = {};
@@ -231,6 +253,8 @@ private:
 
     bool m_redLed   = false;
     bool m_greenLed = false;
+
+    std::vector<Node> m_nodes;
 };
 }    // namespace Frasy::CanOpen
 

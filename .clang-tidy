@@ -23,6 +23,7 @@ cppcoreguidelines-*,
 -readability-identifier-length,
 -readability-function-cognitive-complexity,
 -performance-no-int-to-ptr,
+-*-include-cleaner,
 
 hicpp-avoid-goto,
 hicpp-braces-around-statements,

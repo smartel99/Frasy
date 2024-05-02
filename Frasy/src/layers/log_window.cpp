@@ -24,8 +24,7 @@
 #include <Brigerad/Debug/Instrumentor.h>
 
 
-namespace Frasy
-{
+namespace Frasy {
 LogWindow::LogWindow() noexcept
 {
     Config cfg = FrasyInterpreter::Get().getConfig().getField("LogWindow");
@@ -39,7 +38,9 @@ void LogWindow::onAttach()
     BR_PROFILE_FUNCTION();
 
     if (m_options.CombineLoggers) { m_sink = std::make_shared<LogWindowSingleSink>(m_options.EntriesToShow); }
-    else { m_sink = std::make_shared<LogWindowMultiSink>(m_options.EntriesToShow); }
+    else {
+        m_sink = std::make_shared<LogWindowMultiSink>(m_options.EntriesToShow);
+    }
     m_sink->set_pattern(m_options.CombineLoggers ? s_combinedPattern : s_separatePattern);
     Brigerad::Log::AddSink(m_sink);
 }
@@ -59,15 +60,13 @@ void LogWindow::onImGuiRender()
 
     if (!m_isVisible) { return; }
 
-    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking))
-    {
+    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
         RenderOptions();
 
         ImGui::Separator();
 
         ImGuiWindowFlags flags = ImGuiWindowFlags_HorizontalScrollbar;
-        if (ImGui::BeginChild("ScrollingLog", ImVec2 {0.0f, 0.0f}, false, flags))
-        {
+        if (ImGui::BeginChild("ScrollingLog", ImVec2 {0.0f, 0.0f}, false, flags)) {
             m_renderLoggersFunc(m_options, m_sink);
         }
         ImGui::EndChild();
@@ -77,21 +76,16 @@ void LogWindow::onImGuiRender()
 
 void LogWindow::RenderOptions()
 {
-    if (ImGui::TreeNode("Options"))
-    {
+    if (ImGui::TreeNode("Options")) {
         const auto& loggers = Brigerad::Log::GetLoggers();
 
-        for (auto&& [name, ptr] : loggers)
-        {
+        for (auto&& [name, ptr] : loggers) {
             auto currentLevel    = ptr->level();
             auto currentLevelStr = spdlog::level::to_string_view(currentLevel);
-            if (ImGui::BeginCombo(name.c_str(), currentLevelStr.data()))
-            {
+            if (ImGui::BeginCombo(name.c_str(), currentLevelStr.data())) {
                 for (spdlog::level::level_enum level = spdlog::level::trace; level != spdlog::level::n_levels;
-                     level = static_cast<spdlog::level::level_enum>(static_cast<int>(level) + 1))
-                {
-                    if (ImGui::Selectable(spdlog::level::to_string_view(level).data()))
-                    {
+                     level = static_cast<spdlog::level::level_enum>(static_cast<int>(level) + 1)) {
+                    if (ImGui::Selectable(spdlog::level::to_string_view(level).data())) {
                         Brigerad::Log::SetLoggerLevel(name, level);
                     }
                 }
@@ -105,23 +99,19 @@ void LogWindow::RenderOptions()
 
 void LogWindow::RenderCombinedLoggers(LogWindowOptions& options, const std::shared_ptr<LogWindowSink>& sink)
 {
-    try
-    {
+    try {
         LogWindowSingleSink& singleSink = *dynamic_cast<LogWindowSingleSink*>(sink.get());
         RenderLoggerEntries(options, "loggers", singleSink.GetEntries());
     }
-    catch (std::bad_cast& e)
-    {
+    catch (std::bad_cast& e) {
         BR_CORE_ERROR("A logging error occurred: {}", e.what());
     }
 }
 
 void LogWindow::RenderSeparateLoggers(LogWindowOptions& options, const std::shared_ptr<LogWindowSink>& sink)
 {
-    if (ImGui::BeginTabBar("loggerTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton))
-    {
-        try
-        {
+    if (ImGui::BeginTabBar("loggerTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
+        try {
             LogWindowMultiSink& multiSink = *dynamic_cast<LogWindowMultiSink*>(sink.get());
 
             static LogWindow::LoggerName defaultLogger = {};
@@ -130,13 +120,11 @@ void LogWindow::RenderSeparateLoggers(LogWindowOptions& options, const std::shar
             static LogWindow::LoggerEntries defaultEntries = {};
             const LogWindow::LoggerEntries* activeEntries  = &defaultEntries;
 
-            for (auto&& [logger, entries] : multiSink.GetLoggers())
-            {
+            for (auto&& [logger, entries] : multiSink.GetLoggers()) {
                 // TODO: Indicate new entries from inactive tabs to the user through the unsaved
                 //  flag.
                 ImGuiTabItemFlags flags = ImGuiTabItemFlags_NoCloseWithMiddleMouseButton | ImGuiTabItemFlags_NoReorder;
-                if (ImGui::BeginTabItem(logger.data(), nullptr, flags))
-                {
+                if (ImGui::BeginTabItem(logger.data(), nullptr, flags)) {
                     // Tab is active, render it. We do not directly render the entries here to
                     // be able to sync table properties between tabs.
                     activeLogger  = &logger;
@@ -146,8 +134,7 @@ void LogWindow::RenderSeparateLoggers(LogWindowOptions& options, const std::shar
             }
             RenderLoggerEntries(options, *activeLogger, *activeEntries);
         }
-        catch (std::bad_cast& e)
-        {
+        catch (std::bad_cast& e) {
             BR_CORE_ERROR("A logging error occurred: {}", e.what());
         }
         ImGui::EndTabBar();
@@ -164,25 +151,23 @@ void LogWindow::RenderLoggerEntries(LogWindowOptions&               options,
       ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SortMulti | ImGuiTableFlags_SortTristate;
 
     float maxY = ImGui::GetContentRegionAvail().y;
-    if (ImGui::BeginTable("entries", 5, tableFlags, ImVec2 {0.0f, maxY}))
-    {
-        auto flagFromOption = [](bool enabled)
-        { return enabled ? ImGuiTableColumnFlags_None : ImGuiTableColumnFlags_DefaultHide; };
+    if (ImGui::BeginTable("entries", 5, tableFlags, ImVec2 {0.0f, maxY})) {
+        auto flagFromOption = [](bool enabled) {
+            return enabled ? ImGuiTableColumnFlags_None : ImGuiTableColumnFlags_DefaultHide;
+        };
         ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_NoHide);
         ImGui::TableSetupColumn("Timestamp", ImGuiTableColumnFlags_DefaultSort | flagFromOption(options.ShowTimeStamp));
         ImGui::TableSetupColumn("Source", flagFromOption(options.ShowLogSource));
         ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoHide);
         ImGui::TableSetupColumn("Location", flagFromOption(options.ShowSourceLocation));
+        ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
-        for (size_t i = loggerEntries.size(); i > 0; i--)
-        {
+        for (size_t i = loggerEntries.size(); i > 0; i--) {
             if ((i - 1) >= loggerEntries.size()) { continue; }
             const LogEntry& entry = loggerEntries.at(i - 1);
-            if (options.ShowLevels[entry.Level] && entry.Level >= Brigerad::Log::GetLoggerLevel(entry.LoggerName))
-            {
+            if (options.ShowLevels[entry.Level] && entry.Level >= Brigerad::Log::GetLoggerLevel(entry.LoggerName)) {
                 ImGui::TableNextRow();
-                if (!options.Filter.IsActive() || options.Filter.PassFilter(entry.Entry.c_str()))
-                {
+                if (!options.Filter.IsActive() || options.Filter.PassFilter(entry.Entry.c_str())) {
                     RenderEntry(options, entry);
                 }
             }
@@ -195,10 +180,8 @@ void LogWindow::RenderEntry(LogWindowOptions& options, const LogEntry& entry)
 {
     BR_PROFILE_FUNCTION();
 
-    static auto renderColumn = [](size_t columnId, const std::string& t, bool& isEnabled)
-    {
-        if (ImGui::TableSetColumnIndex(static_cast<int>(columnId)))
-        {
+    static auto renderColumn = [](size_t columnId, const std::string& t, bool& isEnabled) {
+        if (ImGui::TableSetColumnIndex(static_cast<int>(columnId))) {
             float wrapPos = ImGui::GetContentRegionMax().x;
             ImGui::PushTextWrapPos(wrapPos);
             ImGui::TextWrapped("%s", t.c_str());

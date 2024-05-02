@@ -23,24 +23,38 @@
 #include "utils/config.h"
 
 #include <Brigerad.h>
+#include <cstdint>
 
 namespace Frasy {
 class CanOpenViewer : public Brigerad::Layer {
+    struct OpenNode {
+        bool    open   = false;
+        uint8_t nodeId = 0;
+    };
+
 public:
-    CanOpenViewer(CanOpen::CanOpen& canOpen) noexcept;
+     CanOpenViewer(CanOpen::CanOpen& canOpen) noexcept;
     ~CanOpenViewer() override = default;
 
     void onAttach() override;
     void onDetach() override;
 
+    void onUpdate(Brigerad::Timestep timestep) override;
     void onImGuiRender() override;
 
     void setVisibility(bool visibility);
 
 private:
+    void renderNodes();
+    void renderNode(CanOpen::Node& node);
+    bool renderOpenNodeWindow(CanOpen::Node& node);
+
+private:
     bool m_isVisible = false;
 
     CanOpen::CanOpen& m_canOpen;
+
+    std::vector<OpenNode> m_openNodes;
 
     static constexpr const char* s_windowName = "CANopen Viewer";
 };
