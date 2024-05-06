@@ -21,16 +21,24 @@
 
 #include "to_string.h"
 
+#include <spdlog/spdlog.h>
+
+#include <chrono>
 #include <cstdint>
 #include <format>
 
 namespace Frasy::CanOpen {
 struct EmergencyMessage {
+    using timestamp_t = std::chrono::time_point<std::chrono::system_clock>;
+
     uint8_t                 nodeId        = {};
     CO_EM_errorCode_t       errorCode     = {};
     CO_errorRegister_t      errorRegister = {};
     CO_EM_errorStatusBits_t errorStatus   = {};
     uint32_t                information   = {};
+    timestamp_t             timestamp;
+    bool                    isActive = true;
+    timestamp_t             resolutionTime;    //! Time at which the error went from actitve to solved.
 
     constexpr auto operator<=>(const EmergencyMessage&) const = default;
 
@@ -96,10 +104,7 @@ struct EmergencyMessage {
         }
     }
 };
-}    // namespace Frasy::CanOpen
-
-template<>
-struct std::formatter<Frasy::CanOpen::EmergencyMessage> {
+struct EmergencyMessageFormatter {
     template<typename ParseContext>
     constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
@@ -111,23 +116,35 @@ struct std::formatter<Frasy::CanOpen::EmergencyMessage> {
     }
 
     template<typename FmtContext>
-    FmtContext::iterator format(const Frasy::CanOpen::EmergencyMessage& em, FmtContext& ctx) const
+    FmtContext::iterator format(const EmergencyMessage& em, FmtContext& ctx) const
     {
-        using Frasy::CanOpen::toString;
+        using CanOpen::toString;
         std::format_to(ctx.out(),
-                       "Node ID: {}, "
+                       "Node ID: {}, {}, "
                        "\n\rCode: {},"
                        "\n\rRegister: {},"
                        "\n\rStatus: {}"
-                       "\n\rInfo: 0x{:08x}",
+                       "\n\rInfo: 0x{:08x}"
+                       "\n\rActive: {}, Resolution Time: {}",
                        em.nodeId,
+                       em.timestamp,
                        toString(em.errorCode),
                        toString(em.errorRegister),
                        toString(em.errorStatus),
-                       em.information);
+                       em.information,
+                       em.isActive,
+                       em.resolutionTime);
 
         return ctx.out();
     }
 };
+}    // namespace Frasy::CanOpen
+
+
+template<>
+struct std::formatter<Frasy::CanOpen::EmergencyMessage> : Frasy::CanOpen::EmergencyMessageFormatter {};
+
+template<>
+struct fmt::formatter<Frasy::CanOpen::EmergencyMessage> : Frasy::CanOpen::EmergencyMessageFormatter {};
 
 #endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_EM_H
