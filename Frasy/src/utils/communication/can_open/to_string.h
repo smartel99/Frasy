@@ -22,9 +22,15 @@
 #include <CO_HBconsumer.h>
 #include <CO_NMT_Heartbeat.h>
 
+#include <spdlog/spdlog.h>
+
+#include <format>
 #include <string_view>
 
 namespace Frasy::CanOpen {
+
+
+
 constexpr std::string_view toString(CO_HBconsumer_state_t state)
 {
     switch (state) {
@@ -176,6 +182,42 @@ constexpr std::string_view toString(CO_EM_errorStatusBits_t status)
             return "Unknwown";
     }
 }
+
+template<typename T>
+struct Formatter {
+    template<typename ParseContext>
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    {
+        auto it = ctx.begin();
+        if (it == ctx.end()) { return it; }
+        if (it != ctx.end() && *it != '}') { throw std::format_error("Invalid format args."); }
+
+        return it;
+    }
+
+    template<typename FmtContext>
+    FmtContext::iterator format(const T& t, FmtContext& ctx) const
+    {
+        using CanOpen::toString;
+        std::format_to(ctx.out(), "{}", toString(t));
+
+        return ctx.out();
+    }
+};
+
+template<typename T>
+concept Formattable = requires(T t)
+{
+    {
+        CanOpen::toString(t)
+    } -> std::same_as<std::string_view>;
+};
 }    // namespace Frasy::CanOpen
+
+template<Frasy::CanOpen::Formattable T>
+struct std::formatter<T> : Frasy::CanOpen::Formatter<T> {};
+
+template<Frasy::CanOpen::Formattable T>
+struct fmt::formatter<T> : Frasy::CanOpen::Formatter<T> {};
 
 #endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_TO_STRING_H

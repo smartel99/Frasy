@@ -83,15 +83,8 @@ public:
         return *this;
     }
 
-    template<typename Container, typename Func>
-        requires requires(Container container) {
-            typename std::remove_reference_t<Container>::value_type;
-            std::begin(container);
-            std::end(container);
-        } && std::invocable<Func,
-                            std::add_lvalue_reference_t<Table>,
-                            std::add_lvalue_reference_t<typename std::remove_cvref_t<Container>::value_type>>
-    Table& Content(Container&& container, const Func& func)
+    template<std::ranges::viewable_range Container, typename Func>
+    Table& Content(Container&& container, Func&& func)
     {
         for (auto&& elem : container) {
             ImGui::TableNextRow();
@@ -112,15 +105,41 @@ public:
         std::invoke(func, std::forward<Args>(args)...);
     }
 
-    template<typename... Args>
-    void CellContentText(std::format_string<Args...> fmt, Args&&... args)
+    template<typename T, typename... Args>
+    void CellContentText(std::format_string<T, Args...> fmt, T&& t,Args&&... args)
+    {
+        CellContent([](const std::format_string<T, Args...>& _fmt, T&& _t,
+                       Args&&... _args) { ImGui::Text("%s", std::format(_fmt, std::forward<Args>(_args)...).c_str()); },
+                    fmt,
+                    std::forward<T>(t),
+                    std::forward<Args>(args)...);
+    }
+
+    template<typename T>
+    void CellContentText(T&& t)
+    {
+        CellContentText("{}", std::forward<T>(t));
+    }
+
+    template<typename T, typename... Args>
+    void CellContenTextWrapped(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
     {
         CellContent(
-          [](const std::format_string<Args...>& _fmt, Args&&... _args) {
-            ImGui::Text("%s", std::format(_fmt, std::forward<Args>(_args)...).c_str());
+          [](const std::format_string<T, Args...>& _fmt, T&& _t, Args&&... _args) {
+              float wrapPos = ImGui::GetContentRegionMax().x;
+              ImGui::PushTextWrapPos(wrapPos);
+              ImGui::TextWrapped("%s", std::format(_fmt, std::forward<T>(_t), std::forward<Args>(_args)...).c_str());
+              ImGui::PopTextWrapPos();
           },
           fmt,
+          std::forward<T>(t),
           std::forward<Args>(args)...);
+    }
+
+    template<typename T>
+    void CellContenTextWrapped(T&& t)
+    {
+        CellContenTextWrapped("{}", std::forward<T>(t));
     }
 
 private:

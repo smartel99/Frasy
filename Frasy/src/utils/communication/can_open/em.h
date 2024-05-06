@@ -128,9 +128,9 @@ struct EmergencyMessageFormatter {
                        "\n\rActive: {}, Resolution Time: {}",
                        em.nodeId,
                        em.timestamp,
-                       toString(em.errorCode),
-                       toString(em.errorRegister),
-                       toString(em.errorStatus),
+                       em.errorCode,
+                       em.errorRegister,
+                       em.errorStatus,
                        em.information,
                        em.isActive,
                        em.resolutionTime);

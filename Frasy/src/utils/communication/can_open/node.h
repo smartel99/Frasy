@@ -43,7 +43,8 @@ public:
     [[nodiscard]] CO_HBconsumer_state_t  getHbState() const { return m_hbConsumer.getState(); }
     [[nodiscard]] CO_NMT_internalState_t getNmtState() const { return m_hbConsumer.getNmtState(); }
 
-  [[nodiscard]] const std::vector<EmergencyMessage>& getEmergencies() const {return m_emMessages;}
+    void                                               addEmergency(EmergencyMessage em);
+    [[nodiscard]] const std::vector<EmergencyMessage>& getEmergencies() const { return m_emHistory; }
 
 private:
     uint8_t     m_nodeId = 0;
@@ -52,7 +53,7 @@ private:
 
     HbConsumer m_hbConsumer;
 
-    std::vector<EmergencyMessage> m_emMessages;
+    std::vector<EmergencyMessage> m_emHistory;
 
     friend CanOpen;
     CanOpen* m_canOpen = nullptr;

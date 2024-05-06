@@ -509,7 +509,6 @@ CanOpen* s_activeEmCan = nullptr;
 
 void CanOpen::emPreCallback(void* arg)
 {
-    BR_LOG_INFO("CanOpen", "EM Pre");
     s_activeEmCan = static_cast<CanOpen*>(arg);
 }
 
@@ -519,13 +518,15 @@ void CanOpen::emRxCallback(const uint16_t ident,
                            const uint8_t  errorBit,
                            uint32_t       infoCode)
 {
-    BR_LOG_INFO("CanOpen", "EM RX");
+    BR_PROFILE_FUNCTION();
     EmergencyMessage emergencyMessage {
       static_cast<uint8_t>(ident & 0x7F),
       static_cast<CO_EM_errorCode_t>(errorCode),
       static_cast<CO_errorRegister_t>(errorRegister),
       static_cast<CO_EM_errorStatusBits_t>(errorBit),
       infoCode,
+      EmergencyMessage::timestamp_t::clock::now(),
+      true,
     };
 
     if (s_activeEmCan == nullptr) {
@@ -543,7 +544,10 @@ void CanOpen::emRxCallback(const uint16_t ident,
     }
 
     // The source is us?
-    if (emergencyMessage.nodeId == 0) { s_activeEmCan->getNode(0x01)->m_emMessages.push_back(emergencyMessage); return;}
+    if (emergencyMessage.nodeId == 0) {
+        s_activeEmCan->getNode(0x01)->addEmergency(emergencyMessage);
+        return;
+    }
 
     auto it = std::ranges::find_if(s_activeEmCan->m_nodes, [&emergencyMessage](const auto& node) {
         return node.nodeId() == emergencyMessage.nodeId;
@@ -556,7 +560,7 @@ void CanOpen::emRxCallback(const uint16_t ident,
           "EMERGENCY", "Received emergency message, but there's no one to treat it!\n\r{}", emergencyMessage);
     }
 
-    it->m_emMessages.push_back(emergencyMessage);
+    it->addEmergency(emergencyMessage);
 }
 
 void CanOpen::hbConsumerPreCallback(void* arg)

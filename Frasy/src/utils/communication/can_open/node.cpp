@@ -18,6 +18,8 @@
 
 #include "can_open.h"
 
+#include <Brigerad.h>
+
 #include <cstdint>
 #include <string_view>
 
@@ -26,5 +28,28 @@ namespace Frasy::CanOpen {
 Node::Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_view edsPath)
 : m_nodeId(nodeId), m_name(name), m_edsPath(edsPath), m_hbConsumer(canOpen->getHbConsumer(nodeId)), m_canOpen(canOpen)
 {
+}
+
+void Node::addEmergency(EmergencyMessage em)
+{
+    if (em.errorCode == CO_EM_errorCode_t::CO_EMC_NO_ERROR) {
+        // NO_ERROR messages indicates that the error condition is now solved.
+        // Find the first error in our history that has the same status, mark it as solved and save the time of
+        // resolution.
+        auto it = std::ranges::find_if(m_emHistory, [&em](const auto& message) {
+            return message.errorStatus == em.errorStatus && message.isActive;
+        });
+        if (it == m_emHistory.end()) {
+            // Sounds like that'd be a weird error condition, but be a good boy and handle it anyways...
+            BR_LOG_WARN(m_name, "There are no active messages in the history for the following message: {}", em);
+            return;
+        }
+
+        it->isActive       = false;
+        it->resolutionTime = EmergencyMessage::timestamp_t::clock::now();
+    }
+    else {
+        m_emHistory.push_back(std::move(em));
+    }
 }
 }    // namespace Frasy::CanOpen

@@ -28,8 +28,9 @@
 namespace Frasy {
 class CanOpenViewer : public Brigerad::Layer {
     struct OpenNode {
-        bool    open   = false;
-        uint8_t nodeId = 0;
+        bool        open = false;
+        std::string tabBarName;
+        uint8_t     nodeId = 0;
     };
 
 public:
@@ -46,8 +47,9 @@ public:
 
 private:
     void renderNodes();
-    void renderNode(CanOpen::Node& node);
-    bool renderOpenNodeWindow(CanOpen::Node& node);
+    bool renderOpenNodeWindow(OpenNode& node);
+    void renderActiveErrors(const CanOpen::Node& node);
+    void renderErrorHistory(const CanOpen::Node& node);
 
 private:
     bool m_isVisible = false;
@@ -56,7 +58,8 @@ private:
 
     std::vector<OpenNode> m_openNodes;
 
-    static constexpr const char* s_windowName = "CANopen Viewer";
+    static constexpr const char* s_windowName             = "CANopen Viewer";
+    static constexpr uint32_t    s_criticalEmergencyColor = static_cast<uint32_t>(0x203030DC);
 };
 }    // namespace Frasy
 #endif    // FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_H
