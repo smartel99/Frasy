@@ -81,30 +81,28 @@ void CanOpenViewer::renderNodes()
       .ColumnHeader("Node ID")
       .ColumnHeader("State", ImGuiTableColumnFlags_WidthStretch)
       .ScrollFreeze(0, 1)
-      .FinishHeader()    // Validate that if there was any calls to ColumnHeader, there was the right amount of them.
-      .Content(
-        m_canOpen.getNodes(), [this](Widget::Table& table, CanOpen::Node& node /* Just needs to be callable with T*/) {
-            // Custom cell renderer.
-            bool clicked    = false;
-            auto renderCell = [&clicked](std::string_view str) {
-                if (ImGui::Selectable(str.data())) { clicked = true; }
-                if (ImGui::IsItemHovered()) {
-                    ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
-                }
-            };
+      .FinishHeader()
+      .Content(m_canOpen.getNodes(), [this](Widget::Table& table, CanOpen::Node& node) {
+          bool clicked    = false;
+          auto renderCell = [&clicked](std::string_view str) {
+              if (ImGui::Selectable(str.data())) { clicked = true; }
+              if (ImGui::IsItemHovered()) {
+                  ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
+              }
+          };
 
-            table.CellContent(renderCell, node.name());    // lambda needs to be callable with the arguments provided.
-            table.CellContent(renderCell, std::format("0x{:02x}", node.nodeId()));
-            table.CellContent(renderCell,
-                              std::format("HB: {}, NMT: {}",
-                                          CanOpen::toString(node.getHbState()),
-                                          CanOpen::toString(node.getNmtState())));
+          table.CellContent(renderCell, node.name());
+          table.CellContent(renderCell, std::format("0x{:02x}", node.nodeId()));
+          table.CellContent(renderCell,
+                            std::format("HB: {}, NMT: {}",
+                                        CanOpen::toString(node.getHbState()),
+                                        CanOpen::toString(node.getNmtState())));
 
-            if (clicked && !std::ranges::any_of(
-                             m_openNodes, [nodeId = node.nodeId()](const auto& n) { return n.nodeId == nodeId; })) {
-                m_openNodes.emplace_back(true, std::format("{}tabBar", node.name()), node.nodeId());
-            }
-        });
+          if (clicked && !std::ranges::any_of(m_openNodes,
+                                              [nodeId = node.nodeId()](const auto& n) { return n.nodeId == nodeId; })) {
+              m_openNodes.emplace_back(true, std::format("{}tabBar", node.name()), node.nodeId());
+          }
+      });
 }
 
 bool CanOpenViewer::renderOpenNodeWindow(OpenNode& openNode)
@@ -144,15 +142,16 @@ void CanOpenViewer::renderActiveErrors(const CanOpen::Node& node)
       .ColumnHeader("Register")
       .ColumnHeader("Status")
       .ColumnHeader("Information")
+      .ScrollFreeze(0, 1)
       .FinishHeader()
       .Content(node.getEmergencies() | std::views::filter([](const auto& em) { return em.isActive; }),
                [](Widget::Table& table, const CanOpen::EmergencyMessage& em) {
                    if (em.isCritical()) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_criticalEmergencyColor); }
-                   table.CellContenTextWrapped("{0:%c}", em.timestamp);
-                   table.CellContenTextWrapped(em.errorCode);
-                   table.CellContenTextWrapped(em.errorRegister);
-                   table.CellContenTextWrapped(em.errorStatus);
-                   table.CellContenTextWrapped(em.information);
+                   table.CellContentTextWrapped("{0:%c}", em.timestamp);
+                   table.CellContentTextWrapped(em.errorCode);
+                   table.CellContentTextWrapped(em.errorRegister);
+                   table.CellContentTextWrapped(em.errorStatus);
+                   table.CellContentTextWrapped(em.information);
                });
 }
 
@@ -167,16 +166,17 @@ void CanOpenViewer::renderErrorHistory(const CanOpen::Node& node)
       .ColumnHeader("Information")
       .ColumnHeader("Active")
       .ColumnHeader("Resolution Time")
+      .ScrollFreeze(0, 1)
       .FinishHeader()
       .Content(node.getEmergencies(), [](Widget::Table& table, const CanOpen::EmergencyMessage& em) {
           if (em.isCritical()) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_criticalEmergencyColor); }
-          table.CellContenTextWrapped("{0:%c %Z}", em.timestamp);
-          table.CellContenTextWrapped(em.errorCode);
-          table.CellContenTextWrapped(em.errorRegister);
-          table.CellContenTextWrapped(em.errorStatus);
-          table.CellContenTextWrapped(em.information);
-          table.CellContenTextWrapped(em.isActive);
-          table.CellContenTextWrapped("{0:%c %Z}", em.resolutionTime);
+          table.CellContentTextWrapped("{0:%c %Z}", em.timestamp);
+          table.CellContentTextWrapped(em.errorCode);
+          table.CellContentTextWrapped(em.errorRegister);
+          table.CellContentTextWrapped(em.errorStatus);
+          table.CellContentTextWrapped(em.information);
+          table.CellContentTextWrapped(em.isActive);
+          table.CellContentTextWrapped("{0:%c %Z}", em.resolutionTime);
       });
 }
 }    // namespace Frasy

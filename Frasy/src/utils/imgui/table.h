@@ -25,6 +25,33 @@
 
 
 namespace Frasy::Widget {
+/**
+ * Simple wrapper over ImGui's Table API.
+ *
+ * Example Usage:
+ * @code
+ * Widget::Table(node.name().data(), 7)
+ * .ColumnHeader("Timestamp", ImGuiTableColumnFlags_DefaultSort)
+ * .ColumnHeader("Code")
+ * .ColumnHeader("Register")
+ * .ColumnHeader("Status")
+ * .ColumnHeader("Information")
+ * .ColumnHeader("Active")
+ * .ColumnHeader("Resolution Time")
+ * .ScrollFreeze(0, 1)
+ * .FinishHeader()
+ * .Content(node.getEmergencies(), [](Widget::Table& table, const CanOpen::EmergencyMessage& em) {
+ *     if (em.isCritical()) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_criticalEmergencyColor); }
+ *     table.CellContenTextWrapped("{0:%c %Z}", em.timestamp);
+ *     table.CellContenTextWrapped(em.errorCode);
+ *     table.CellContenTextWrapped(em.errorRegister);
+ *     table.CellContenTextWrapped(em.errorStatus);
+ *     table.CellContenTextWrapped(em.information);
+ *     table.CellContenTextWrapped(em.isActive);
+ *     table.CellContenTextWrapped("{0:%c %Z}", em.resolutionTime);
+ * });
+ * @endcode
+ */
 class Table {
 public:
     Table(std::string_view name, size_t columnCount, ImGuiTableFlags flags = s_defaultFlags)
@@ -32,9 +59,8 @@ public:
     {
     }
     Table(std::string_view name, size_t columnCount, ImVec2 size, ImGuiTableFlags flags = s_defaultFlags)
-    : m_columnCount(columnCount)
+    : m_columnCount(columnCount), m_active(ImGui::BeginTable(name.data(), columnCount, flags, size))
     {
-        m_active = ImGui::BeginTable(name.data(), columnCount, flags, size);
     }
     ~Table()
     {
@@ -48,6 +74,7 @@ public:
             m_active = false;
         }
     }
+
     Table& FinishHeader()
     {
         if (m_realColumnCount > 0) {
@@ -83,6 +110,19 @@ public:
         return *this;
     }
 
+    /**
+     * Renders the content of the table.
+     *
+     * @note View https://en.cppreference.com/w/cpp/ranges/viewable_range for a list of the acceptable types of
+     * Containers.
+     *
+     * @tparam Container A range that can be converted into a view through views::all
+     * @tparam Func A function to be called for each elements in the container. Needs to be invocable with an instance
+     * of Table and an element of Container.
+     * @param container A list of elements to be rendered in the table, where one element is one row
+     * @param func A function that renders an element
+     * @return instance
+     */
     template<std::ranges::viewable_range Container, typename Func>
     Table& Content(Container&& container, Func&& func)
     {
@@ -90,7 +130,7 @@ public:
             ImGui::TableNextRow();
             ImGui::BeginGroup();
             ImGui::PushID(&elem);
-            std::invoke(func, *this, std::forward<decltype(elem)>(elem));
+            std::invoke(std::forward<Func>(func), *this, std::forward<decltype(elem)>(elem));
             ImGui::PopID();
             ImGui::EndGroup();
         }
@@ -106,13 +146,15 @@ public:
     }
 
     template<typename T, typename... Args>
-    void CellContentText(std::format_string<T, Args...> fmt, T&& t,Args&&... args)
+    void CellContentText(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
     {
-        CellContent([](const std::format_string<T, Args...>& _fmt, T&& _t,
-                       Args&&... _args) { ImGui::Text("%s", std::format(_fmt, std::forward<Args>(_args)...).c_str()); },
-                    fmt,
-                    std::forward<T>(t),
-                    std::forward<Args>(args)...);
+        CellContent(
+          [](const std::format_string<T, Args...>& _fmt, T&& _t, Args&&... _args) {
+              ImGui::Text("%s", std::format(_fmt, std::forward<T>(_t), std::forward<Args>(_args)...).c_str());
+          },
+          fmt,
+          std::forward<T>(t),
+          std::forward<Args>(args)...);
     }
 
     template<typename T>
@@ -122,7 +164,7 @@ public:
     }
 
     template<typename T, typename... Args>
-    void CellContenTextWrapped(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
+    void CellContentTextWrapped(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
     {
         CellContent(
           [](const std::format_string<T, Args...>& _fmt, T&& _t, Args&&... _args) {
@@ -137,9 +179,9 @@ public:
     }
 
     template<typename T>
-    void CellContenTextWrapped(T&& t)
+    void CellContentTextWrapped(T&& t)
     {
-        CellContenTextWrapped("{}", std::forward<T>(t));
+        CellContentTextWrapped("{}", std::forward<T>(t));
     }
 
 private:
