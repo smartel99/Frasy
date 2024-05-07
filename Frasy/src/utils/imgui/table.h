@@ -19,6 +19,8 @@
 #define FRASY_SRC_UTILS_IMGUI_TABLE_H
 #include <imgui.h>
 
+#include <boost/pfr.hpp>
+
 #include <concepts>
 #include <cstddef>
 #include <string_view>
@@ -124,6 +126,11 @@ public:
      * @return instance
      */
     template<std::ranges::viewable_range Container, typename Func>
+        requires requires(Container container) {
+            requires std::invocable<Func,
+                                    std::add_lvalue_reference_t<Table>,
+                                    std::add_lvalue_reference_t<decltype(*std::begin(container))>>;
+        }
     Table& Content(Container&& container, Func&& func)
     {
         for (auto&& elem : container) {
@@ -137,16 +144,91 @@ public:
         return *this;
     }
 
+    /**
+     *
+     * @tparam Container A range that can be converted into a view through views::all
+     * @tparam ElemFunc A function to be called for each elements in the container. Needs to be invocable with an
+     * instance of Table and an element of Container.
+     * @tparam CellFunc A function to be called for each member of an element. Needs to be invocable with any member
+     * type of the element.
+     * @param container A list of elements to be rendered in the table, where one element is one row
+     * @param elemFunc A function that is called before an element is rendered.
+     * @param cellFunc A function that renders a member of an element.
+     * @return instance
+     *
+     * @example
+     * @code
+     * struct S {
+     *       std::string name;
+     *       int id;
+     *       float value;
+     * };
+     *
+     * std::vector s = {
+     *     S{"A", 1, 1.234f}, S{"B", 2, 5.678f}, S{"C", 3, 8.012f},
+     *     S{"D", 4, 3.456f}, S{"E", 5, 7.890f},
+     * };
+     *
+     * Table("My S Table", 3)
+     *     .ColumnHeader("Name")
+     *     .ColumnHeader("ID")
+     *     .ColumnHeader("Value")
+     *     .FinishHeader()
+     *     .AutoContent(s,
+     *          [](Table& table, const S& elem) {
+     *              if(elem.id % 2) {
+     *                  ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, 0x203030DC);
+     *              }
+     *          },
+     *          []<typename T>(T&& t) {
+     *              table.CellContentTextWrapped(std::forward<T>(t));
+     *          });
+     * @endcode
+     */
+    template<std::ranges::viewable_range Container, typename ElemFunc, typename CellFunc>
+    Table& AutoContent(Container&& container, ElemFunc&& elemFunc, CellFunc&& cellFunc)
+    {
+        return Content(std::forward<Container>(container), [&cellFunc, &elemFunc](Table& table, auto&& elem) {
+            std::invoke(elemFunc, table, elem);
+            boost::pfr::for_each_field(
+              elem, [&cellFunc]<typename T>(T&& item) { std::invoke(cellFunc, std::forward<T>(item)); });
+        });
+    }
+
+    template<std::ranges::viewable_range Container, typename CellFunc>
+    Table& AutoContent(Container&& container, CellFunc&& cellFunc)
+    {
+        return AutoContent(
+          std::forward<Container>(container), [](Table&, const auto&) {}, std::forward<CellFunc>(cellFunc));
+    }
+
+    template<std::ranges::viewable_range Container, typename ElemFunc>
+    Table& AutoContentElemFunc(Container&& container, ElemFunc&& elemFunc)
+    {
+        return AutoContent(std::forward<Container>(container), std::forward<ElemFunc>(elemFunc), []<typename T>(T&& t) {
+            CellContentTextWrapped(std::forward<T>(t));
+        });
+    }
+
+    template<std::ranges::viewable_range Container>
+    Table& AutoContent(Container&& container)
+    {
+        return AutoContent(
+          std::forward<Container>(container),
+          [](Table&, const auto&) {},
+          []<typename T>(T&& t) { CellContentTextWrapped(std::forward<T>(t)); });
+    }
+
     template<typename Func, typename... Args>
         requires std::invocable<Func, Args...>
-    void CellContent(Func&& func, Args&&... args)
+    static void CellContent(Func&& func, Args&&... args)
     {
         ImGui::TableNextColumn();
         std::invoke(func, std::forward<Args>(args)...);
     }
 
     template<typename T, typename... Args>
-    void CellContentText(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
+    static void CellContentText(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
     {
         CellContent(
           [](const std::format_string<T, Args...>& _fmt, T&& _t, Args&&... _args) {
@@ -158,13 +240,13 @@ public:
     }
 
     template<typename T>
-    void CellContentText(T&& t)
+    static void CellContentText(T&& t)
     {
         CellContentText("{}", std::forward<T>(t));
     }
 
     template<typename T, typename... Args>
-    void CellContentTextWrapped(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
+    static void CellContentTextWrapped(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
     {
         CellContent(
           [](const std::format_string<T, Args...>& _fmt, T&& _t, Args&&... _args) {
@@ -179,7 +261,7 @@ public:
     }
 
     template<typename T>
-    void CellContentTextWrapped(T&& t)
+    static void CellContentTextWrapped(T&& t)
     {
         CellContentTextWrapped("{}", std::forward<T>(t));
     }
