@@ -21,6 +21,7 @@
 
 #include "em.h"
 #include "hb_consumer.h"
+#include "services/sdo.h"
 
 #include <cstdint>
 #include <string>
@@ -31,31 +32,46 @@ namespace Frasy::CanOpen {
 class CanOpen;
 
 class Node {
+    friend CanOpen;
+
 public:
     Node() = default;
     Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_view edsPath);
 
     [[nodiscard]] uint8_t          nodeId() const { return m_nodeId; }
     [[nodiscard]] std::string_view name() const { return m_name; }
+    [[nodiscard]] CanOpen*         bus() const { return m_canOpen; }
 
-    constexpr auto operator<=>(const Node&) const = default;
+    constexpr bool operator==(const Node& o) const
+    {
+        return m_nodeId == o.m_nodeId && m_name == o.m_name && m_edsPath == o.m_edsPath;
+    }
 
     [[nodiscard]] CO_HBconsumer_state_t  getHbState() const { return m_hbConsumer.getState(); }
     [[nodiscard]] CO_NMT_internalState_t getNmtState() const { return m_hbConsumer.getNmtState(); }
 
+    [[nodiscard]] SdoInterface sdoInterface() const { return m_sdoInterface; }
+
     void                                               addEmergency(EmergencyMessage em);
     [[nodiscard]] const std::vector<EmergencyMessage>& getEmergencies() const { return m_emHistory; }
+
+private:
+    void setHbConsumer(CO_HBconsumer_t* hbConsumer);
+    void setSdoInterface(SdoManager* manager);
+
+    void removeHbConsumer() { m_hbConsumer = {}; }
+    void removeSdoInterface() { m_sdoInterface = {}; }
 
 private:
     uint8_t     m_nodeId = 0;
     std::string m_name;
     std::string m_edsPath;
 
-    HbConsumer m_hbConsumer;
+    HbConsumer   m_hbConsumer;
+    SdoInterface m_sdoInterface;
 
     std::vector<EmergencyMessage> m_emHistory;
 
-    friend CanOpen;
     CanOpen* m_canOpen = nullptr;
 };
 }    // namespace Frasy::CanOpen

@@ -26,7 +26,7 @@
 namespace Frasy::CanOpen {
 
 Node::Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_view edsPath)
-: m_nodeId(nodeId), m_name(name), m_edsPath(edsPath), m_hbConsumer(canOpen->getHbConsumer(nodeId)), m_canOpen(canOpen)
+: m_nodeId(nodeId), m_name(name), m_edsPath(edsPath), m_canOpen(canOpen)
 {
 }
 
@@ -40,8 +40,8 @@ void Node::addEmergency(EmergencyMessage em)
             return message.errorStatus == em.errorStatus && message.isActive;
         });
         if (it == m_emHistory.end()) {
-            // Sounds like that'd be a weird error condition, but be a good boy and handle it anyways...
-            BR_LOG_WARN(m_name, "There are no active messages in the history for the following message: {}", em);
+            // Not a message intended to clear an active error, but rather an active error itself. Might not actually be
+            m_emHistory.push_back(std::move(em));
             return;
         }
 
@@ -51,5 +51,15 @@ void Node::addEmergency(EmergencyMessage em)
     else {
         m_emHistory.push_back(std::move(em));
     }
+}
+
+void Node::setHbConsumer(CO_HBconsumer_t* hbConsumer)
+{
+    m_hbConsumer = HbConsumer {hbConsumer, m_nodeId};
+}
+
+void Node::setSdoInterface(SdoManager* manager)
+{
+    m_sdoInterface = SdoInterface {manager, m_nodeId};
 }
 }    // namespace Frasy::CanOpen

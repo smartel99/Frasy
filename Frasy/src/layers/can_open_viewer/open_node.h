@@ -1,7 +1,7 @@
 /**
- * @file    can_open_viewer.h
+ * @file    open_node.h
  * @author  Samuel Martel
- * @date    2024-04-29
+ * @date    2024-05-08
  * @brief
  *
  * @copyright
@@ -16,44 +16,47 @@
  */
 
 
-#ifndef FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_H
-#define FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_H
+#ifndef FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_OPEN_NODE_H
+#define FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_OPEN_NODE_H
 
-#include "can_open_viewer/open_node.h"
 #include "utils/communication/can_open/can_open.h"
 #include "utils/communication/can_open/services/sdo_uploader.h"
-#include "utils/config.h"
 
-#include <Brigerad.h>
+#include "sdo.h"
+
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
+
 namespace Frasy::CanOpenViewer {
-class Layer : public Brigerad::Layer {
+
+
+
+class OpenNode {
 public:
-    explicit Layer(CanOpen::CanOpen& canOpen) noexcept;
-    ~        Layer() override = default;
+              OpenNode(uint8_t nodeId, CanOpen::CanOpen* canOpen);
 
-    void onAttach() override;
-    void onDetach() override;
+    void onImGuiRender();
 
-    void onUpdate(Brigerad::Timestep timestep) override;
-    void onImGuiRender() override;
-
-    void setVisibility(bool visibility);
+    [[nodiscard]] bool    open() const { return m_open; }
+    [[nodiscard]] uint8_t nodeId() const { return m_nodeId; }
 
 private:
-    void renderNodes();
+    void renderActiveErrors(const CanOpen::Node& node);
+    void renderErrorHistory(const CanOpen::Node& node);
 
 private:
-    bool m_isVisible = false;
+    uint8_t           m_nodeId = 0;
+    CanOpen::CanOpen* m_canOpen;
+    std::string       m_tabBarName;
+    bool              m_open = true;
 
-    CanOpen::CanOpen& m_canOpen;
+    std::unique_ptr<Sdo> m_sdo;
 
-    std::vector<OpenNode> m_openNodes;
-
-    static constexpr const char* s_windowName             = "CANopen Viewer";
+    static constexpr uint32_t s_criticalEmergencyColor = 0x203030DC;    // Pretty red uwu.
 };
 }    // namespace Frasy::CanOpenViewer
-#endif    // FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_H
+
+#endif    // FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_OPEN_NODE_H

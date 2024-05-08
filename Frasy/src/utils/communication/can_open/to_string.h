@@ -21,6 +21,9 @@
 
 #include <CO_HBconsumer.h>
 #include <CO_NMT_Heartbeat.h>
+#include <CO_SDOserver.h>
+
+#include "services/sdo_uploader.h"
 
 #include <spdlog/spdlog.h>
 
@@ -28,9 +31,6 @@
 #include <string_view>
 
 namespace Frasy::CanOpen {
-
-
-
 constexpr std::string_view toString(CO_HBconsumer_state_t state)
 {
     switch (state) {
@@ -183,6 +183,79 @@ constexpr std::string_view toString(CO_EM_errorStatusBits_t status)
     }
 }
 
+constexpr std::string_view toString(CO_SDO_return_t ret)
+{
+    switch (ret) {
+        case CO_SDO_RT_waitingLocalTransfer: return "Waiting in client local transfer";
+        case CO_SDO_RT_uploadDataBufferFull:
+            return "Data buffer is full. SDO client: Data must be read before next upload cycle begins.";
+        case CO_SDO_RT_transmittBufferFull: return "CAN transmit buffer is full. Waiting.";
+        case CO_SDO_RT_blockDownldInProgress: return "Block download is in progress. Sending train of messages.";
+        case CO_SDO_RT_blockUploadInProgress: return "Block upload is in progress. Receiving train of messages.";
+        case CO_SDO_RT_waitingResponse: return "Waiting server or client response.";
+        case CO_SDO_RT_ok_communicationEnd: return "Success, end of communication.";
+        case CO_SDO_RT_wrongArguments: return "Error in arguments.";
+        case CO_SDO_RT_endedWithClientAbort: return "Communication ended with client abort.";
+        case CO_SDO_RT_endedWithServerAbort: return "Communication ended with server abort.";
+        default: return "Unknown";
+    }
+}
+
+constexpr std::string_view toString(CO_SDO_abortCode_t code)
+{
+    switch (code) {
+
+        case CO_SDO_AB_NONE: return "No abort.";
+        case CO_SDO_AB_TOGGLE_BIT: return "Toggle bit not altered.";
+        case CO_SDO_AB_TIMEOUT: return "SDO protocol timed out.";
+        case CO_SDO_AB_CMD: return "Command specifier not valid or unknown.";
+        case CO_SDO_AB_BLOCK_SIZE: return "Invalid block size in block mode.";
+        case CO_SDO_AB_SEQ_NUM: return "Invalid sequence number in block mode.";
+        case CO_SDO_AB_CRC: return "CRC error in block mode.";
+        case CO_SDO_AB_OUT_OF_MEM: return "Out of memory.";
+        case CO_SDO_AB_UNSUPPORTED_ACCESS: return "Unsupported access to an object.";
+        case CO_SDO_AB_WRITEONLY: return "Attempt to read a write only object.";
+        case CO_SDO_AB_READONLY: return "Attempt to write to a read only object.";
+        case CO_SDO_AB_NOT_EXIST: return "Object does not exist in the object dictionary.";
+        case CO_SDO_AB_NO_MAP: return "Object cannot be mapped to the PDO.";
+        case CO_SDO_AB_MAP_LEN: return "Number and length of object to be mapped exceeds PDO length.";
+        case CO_SDO_AB_PRAM_INCOMPAT: return "General parameter incompatibility reason.";
+        case CO_SDO_AB_DEVICE_INCOMPAT: return "General internal incompatibility in device.";
+        case CO_SDO_AB_HW: return "Access failed due to hardware error.";
+        case CO_SDO_AB_TYPE_MISMATCH: return "Data type does not match, length of service parameter does not match.";
+        case CO_SDO_AB_DATA_LONG: return "Data type does not match, length of service parameter too long.";
+        case CO_SDO_AB_DATA_SHORT: return "Data type does not match, length of service parameter too short.";
+        case CO_SDO_AB_SUB_UNKNOWN: return "Sub index does not exist.";
+        case CO_SDO_AB_INVALID_VALUE: return "Invalid value for parameter.";
+        case CO_SDO_AB_VALUE_HIGH: return "Value range of parameter written too high.";
+        case CO_SDO_AB_VALUE_LOW: return "Value range of parameter written too low.";
+        case CO_SDO_AB_MAX_LESS_MIN: return "Maximum value is less than minimum value.";
+        case CO_SDO_AB_NO_RESOURCE: return "Resource not available: SDO connection.";
+        case CO_SDO_AB_GENERAL: return "General Error.";
+        case CO_SDO_AB_DATA_TRANSF: return "Data cannot be transferred or stored to application.";
+        case CO_SDO_AB_DATA_LOC_CTRL:
+            return "Data cannot be transferred or stored to application because of local control.";
+        case CO_SDO_AB_DATA_DEV_STATE:
+            return "Data cannot be transferred or stored to application because of the current device state.";
+        case CO_SDO_AB_DATA_OD: return "Object dictionary not present, or dynamic generation failed.";
+        case CO_SDO_AB_NO_DATA: return "No data available.";
+        default: return "Unknown";
+    }
+}
+
+constexpr std::string_view toString(SdoUploadRequestStatus status)
+{
+    switch (status) {
+        case SdoUploadRequestStatus::Queued: return "Queued";
+        case SdoUploadRequestStatus::OnGoing: return "On Going";
+        case SdoUploadRequestStatus::Complete: return "Complete";
+        case SdoUploadRequestStatus::CancelRequested: return "Cancel Requested";
+        case SdoUploadRequestStatus::Cancelled: return "Cancelled";
+        case SdoUploadRequestStatus::Unknown:
+        default: return "Unknown";
+    }
+}
+
 template<typename T>
 struct Formatter {
     template<typename ParseContext>
@@ -206,8 +279,7 @@ struct Formatter {
 };
 
 template<typename T>
-concept Formattable = requires(T t)
-{
+concept Formattable = requires(T t) {
     {
         CanOpen::toString(t)
     } -> std::same_as<std::string_view>;

@@ -80,7 +80,7 @@ protected:
 
     std::unique_ptr<LogWindow>      m_logWindow      = nullptr;
     std::unique_ptr<DeviceViewer>   m_deviceViewer   = nullptr;
-    std::unique_ptr<CanOpenViewer>  m_canOpenViewer  = nullptr;
+    std::unique_ptr<CanOpenViewer::Layer>  m_canOpenViewer  = nullptr;
     std::unique_ptr<ResultViewer>   m_resultViewer   = nullptr;
     std::unique_ptr<ResultAnalyzer> m_resultAnalyzer = nullptr;
     std::unique_ptr<TestViewer>     m_testViewer     = nullptr;

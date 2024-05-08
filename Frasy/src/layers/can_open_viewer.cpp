@@ -18,28 +18,28 @@
 
 #include "utils/imgui/table.h"
 
-namespace Frasy {
+namespace Frasy::CanOpenViewer {
 
-CanOpenViewer::CanOpenViewer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOpen)
+Layer::Layer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOpen)
 {
 }
 
-void CanOpenViewer::onAttach()
+void Layer::onAttach()
 {
-    Layer::onAttach();
+    Brigerad::Layer::onAttach();
 }
 
-void CanOpenViewer::onDetach()
+void Layer::onDetach()
 {
-    Layer::onDetach();
+    Brigerad::Layer::onDetach();
 }
 
-void CanOpenViewer::onUpdate(Brigerad::Timestep timestep)
+void Layer::onUpdate(Brigerad::Timestep timestep)
 {
-    Layer::onUpdate(timestep);
+    Brigerad::Layer::onUpdate(timestep);
 }
 
-void CanOpenViewer::onImGuiRender()
+void Layer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
     BR_PROFILE_FUNCTION();
@@ -53,26 +53,24 @@ void CanOpenViewer::onImGuiRender()
     if (ImGui::Begin("Node Explorer", &open)) {
         if (ImGui::BeginTabBar("nodeExplorerTabBar")) {
             for (auto&& node : m_openNodes) {
-                // ImGui::BeginChildFrame(reinterpret_cast<ImGuiID>(&node), ImVec2 {0, 0});
-                renderOpenNodeWindow(node);
-                // ImGui::EndChildFrame();
+                node.onImGuiRender();
             }
             ImGui::EndTabBar();
         }
 
-        std::erase_if(m_openNodes, [](const auto& node) { return !node.open; });
+        std::erase_if(m_openNodes, [](const auto& node) { return !node.open(); });
     }
     ImGui::End();
     if (!open) { m_openNodes.clear(); }
 }
 
-void CanOpenViewer::setVisibility(bool visibility)
+void Layer::setVisibility(bool visibility)
 {
     m_isVisible = visibility;
     ImGui::SetWindowFocus(s_windowName);
 }
 
-void CanOpenViewer::renderNodes()
+void Layer::renderNodes()
 {
     BR_PROFILE_FUNCTION();
 
@@ -80,9 +78,9 @@ void CanOpenViewer::renderNodes()
       .ColumnHeader("Name", ImGuiTableColumnFlags_DefaultSort)
       .ColumnHeader("Node ID")
       .ColumnHeader("State", ImGuiTableColumnFlags_WidthStretch)
-      .ScrollFreeze(0, 1)
+      .ScrollFreeze()
       .FinishHeader()
-      .Content(m_canOpen.getNodes(), [this](Widget::Table& table, CanOpen::Node& node) {
+      .Content(m_canOpen.getNodes(), [this](Widget::Table& table, const CanOpen::Node& node) {
           bool clicked    = false;
           auto renderCell = [&clicked](std::string_view str) {
               if (ImGui::Selectable(str.data())) { clicked = true; }
@@ -98,85 +96,10 @@ void CanOpenViewer::renderNodes()
                                         CanOpen::toString(node.getHbState()),
                                         CanOpen::toString(node.getNmtState())));
 
-          if (clicked && !std::ranges::any_of(m_openNodes,
-                                              [nodeId = node.nodeId()](const auto& n) { return n.nodeId == nodeId; })) {
-              m_openNodes.emplace_back(true, std::format("{}tabBar", node.name()), node.nodeId());
+          if (clicked && !std::ranges::any_of(
+                           m_openNodes, [nodeId = node.nodeId()](const auto& n) { return n.nodeId() == nodeId; })) {
+              m_openNodes.emplace_back(node.nodeId(), &m_canOpen);
           }
       });
 }
-
-bool CanOpenViewer::renderOpenNodeWindow(OpenNode& openNode)
-{
-    auto* node = m_canOpen.getNode(openNode.nodeId);
-    if (node == nullptr) {
-        openNode.open = false;
-        return false;
-    }
-
-    if (ImGui::BeginTabItem(node->name().data(), &openNode.open)) {
-        if (ImGui::BeginTabBar(openNode.tabBarName.c_str(),
-                               ImGuiTabBarFlags_NoCloseWithMiddleMouseButton |
-                                 ImGuiTabBarFlags_FittingPolicyResizeDown | ImGuiTabBarFlags_FittingPolicyScroll)) {
-            if (ImGui::BeginTabItem("Active Errors")) {
-                renderActiveErrors(*node);
-                ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Error History")) {
-                renderErrorHistory(*node);
-                ImGui::EndTabItem();
-            }
-            ImGui::EndTabBar();
-        }
-        ImGui::EndTabItem();
-    }
-
-    return openNode.open;
-}
-
-void CanOpenViewer::renderActiveErrors(const CanOpen::Node& node)
-{
-    BR_PROFILE_FUNCTION();
-    Widget::Table(node.name().data(), 5)
-      .ColumnHeader("Timestamp", ImGuiTableColumnFlags_DefaultSort)
-      .ColumnHeader("Code")
-      .ColumnHeader("Register")
-      .ColumnHeader("Status")
-      .ColumnHeader("Information")
-      .ScrollFreeze(0, 1)
-      .FinishHeader()
-      .Content(node.getEmergencies() | std::views::filter([](const auto& em) { return em.isActive; }),
-               [](Widget::Table& table, const CanOpen::EmergencyMessage& em) {
-                   if (em.isCritical()) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_criticalEmergencyColor); }
-                   table.CellContentTextWrapped("{0:%c}", em.timestamp);
-                   table.CellContentTextWrapped(em.errorCode);
-                   table.CellContentTextWrapped(em.errorRegister);
-                   table.CellContentTextWrapped(em.errorStatus);
-                   table.CellContentTextWrapped(em.information);
-               });
-}
-
-void CanOpenViewer::renderErrorHistory(const CanOpen::Node& node)
-{
-    BR_PROFILE_FUNCTION();
-    Widget::Table(node.name().data(), 7)
-      .ColumnHeader("Timestamp", ImGuiTableColumnFlags_DefaultSort)
-      .ColumnHeader("Code")
-      .ColumnHeader("Register")
-      .ColumnHeader("Status")
-      .ColumnHeader("Information")
-      .ColumnHeader("Active")
-      .ColumnHeader("Resolution Time")
-      .ScrollFreeze(0, 1)
-      .FinishHeader()
-      .Content(node.getEmergencies(), [](Widget::Table& table, const CanOpen::EmergencyMessage& em) {
-          if (em.isCritical()) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_criticalEmergencyColor); }
-          table.CellContentTextWrapped("{0:%c %Z}", em.timestamp);
-          table.CellContentTextWrapped(em.errorCode);
-          table.CellContentTextWrapped(em.errorRegister);
-          table.CellContentTextWrapped(em.errorStatus);
-          table.CellContentTextWrapped(em.information);
-          table.CellContentTextWrapped(em.isActive);
-          table.CellContentTextWrapped("{0:%c %Z}", em.resolutionTime);
-      });
-}
-}    // namespace Frasy
+}    // namespace Frasy::CanOpenViewer

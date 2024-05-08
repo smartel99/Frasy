@@ -96,33 +96,33 @@ std::string_view canOpenLssMasterReturnToStr(CO_LSSmaster_return_t val)
 }    // namespace
 
 
-CanOpen::CanOpen()
+CanOpen::CanOpen() : m_sdoManager()
 {
     start();
 }
 
-CanOpen::CanOpen(CanOpen&& o) noexcept
-: m_tag(std::move(o.m_tag)),
-  m_port(std::move(o.m_port)),
-  m_device(std::move(o.m_device)),
-  m_co(std::move(o.m_co)),
-  m_canOpenConfig(std::move(o.m_canOpenConfig)),
-  m_coHeapMemoryUsed(std::move(o.m_coHeapMemoryUsed)),
-  m_hasBeenInitOnce(std::move(o.m_hasBeenInitOnce)),
-  m_storage(std::move(o.m_storage)),
-  m_storageEntries(std::move(o.m_storageEntries)),
-  m_stopSource(std::move(o.m_stopSource)),
-  m_coThread(std::move(o.m_coThread)),
-  m_lastTimePoint(std::move(o.m_lastTimePoint)),
-  m_lastSaveTime(std::move(o.m_lastSaveTime)),
-  m_redLed(std::move(o.m_redLed)),
-  m_greenLed(std::move(o.m_greenLed)),
-  m_nodes(std::move(o.m_nodes))
-{
-    for (auto&& nodes : m_nodes) {
-        nodes.m_canOpen = this;
-    }
-}
+// CanOpen::CanOpen(CanOpen&& o) noexcept
+// : m_tag(std::move(o.m_tag)),
+//   m_port(std::move(o.m_port)),
+//   m_device(std::move(o.m_device)),
+//   m_co(std::move(o.m_co)),
+//   m_canOpenConfig(std::move(o.m_canOpenConfig)),
+//   m_coHeapMemoryUsed(std::move(o.m_coHeapMemoryUsed)),
+//   m_hasBeenInitOnce(std::move(o.m_hasBeenInitOnce)),
+//   m_storage(std::move(o.m_storage)),
+//   m_storageEntries(std::move(o.m_storageEntries)),
+//   m_stopSource(std::move(o.m_stopSource)),
+//   m_coThread(std::move(o.m_coThread)),
+//   m_lastTimePoint(std::move(o.m_lastTimePoint)),
+//   m_lastSaveTime(std::move(o.m_lastSaveTime)),
+//   m_redLed(std::move(o.m_redLed)),
+//   m_greenLed(std::move(o.m_greenLed)),
+//   m_nodes(std::move(o.m_nodes))
+// {
+//     for (auto&& nodes : m_nodes) {
+//         nodes.m_canOpen = this;
+//     }
+// }
 
 CanOpen::~CanOpen()
 {
@@ -191,7 +191,11 @@ Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view e
         return nullptr;
     }
 
-    return &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {:02x}", nodeId) : name, edsPath);
+    Node* node = &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {:02x}", nodeId) : name, edsPath);
+    node->setHbConsumer(m_co->HBcons);
+    node->setSdoInterface(&m_sdoManager);
+
+    return node;
 }
 
 void CanOpen::removeNode(uint8_t nodeId)
@@ -300,6 +304,8 @@ bool           CanOpen::initialInit(std::string_view port)
 {
     // Initialize CANopen.
     OD_INIT_CONFIG(m_canOpenConfig);
+    // TODO m_canOpenConfig.CNT_SDO_CLI must be set to the number of nodes in the env (+ frasy)
+
     // TODO these fields should be determined based on a loaded environment.
 #if CO_CONFIG_LEDS & CO_CONFIG_LEDS_ENABLE
     m_canOpenConfig.CNT_LEDS = 1;
@@ -354,6 +360,7 @@ bool CanOpen::runtimeInit()
     }
 
     removeNode(0x01);
+    deinitNodeServices();
 
     // Enter CAN configuration mode.
     CO_CANsetConfigurationMode(&m_device);
@@ -370,7 +377,7 @@ bool CanOpen::runtimeInit()
     err              = CO_CANopenInit(m_co,       // CANopen object.
                          nullptr,    // alternate NMT handle.
                          nullptr,    // alternate emergency handle, might be required.
-                         OD,         // Object dictionary
+                         OD,    // TODO: Object dictionary must be dynamically built from the loaded environment.
                          nullptr,    // Optional OD_statusBits.
                          s_nmtControlFlags,
                          s_firstHeartbeatTime,
@@ -407,6 +414,8 @@ bool CanOpen::runtimeInit()
     BR_LOG_INFO(m_tag, "CANOpen initialized and running!");
 
     addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the EDS.
+
+    initNodeServices();
 
     return true;
 }
@@ -493,12 +502,35 @@ bool CanOpen::deinit()
         BR_LOG_ERROR(m_tag, "Unable to save persistance data on fields: {:08x}", ret);
     }
 
+    // Remove all the nodes' hooks to CAN open, for they are now invalid.
+    deinitNodeServices();
+
     CO_CANsetConfigurationMode(&m_device);
     CO_delete(m_co);
     m_co = nullptr;
 
     BR_LOG_INFO(m_tag, "CANopen de-initialized!");
     return success;
+}
+
+void CanOpen::initNodeServices()
+{
+    m_sdoManager.setSdoClient(m_co->SDOclient);
+
+    for (auto&& node : m_nodes) {
+        node.setHbConsumer(m_co->HBcons);
+        node.setSdoInterface(&m_sdoManager);
+    }
+}
+
+void CanOpen::deinitNodeServices()
+{
+    for (auto&& node : m_nodes) {
+        node.removeHbConsumer();
+        node.removeSdoInterface();
+    }
+
+    m_sdoManager.removeSdoClient();
 }
 
 #pragma region Callbacks

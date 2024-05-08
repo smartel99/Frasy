@@ -1,0 +1,109 @@
+/**
+ * @file    sdo_uploader.h
+ * @author  Samuel Martel
+ * @date    2024-05-07
+ * @brief
+ *
+ * @copyright
+ * This program is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+ */
+
+
+#ifndef FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_UPLOADER_H
+#define FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_UPLOADER_H
+
+#include <CO_SDOclient.h>
+
+#include <cstdint>
+#include <expected>
+#include <future>
+#include <memory>
+#include <span>
+#include <vector>
+
+namespace Frasy::CanOpen {
+enum class SdoUploadRequestStatus : uint8_t {
+    Unknown = 0,        //!< Status not known.
+    Queued,             //!< Transfer hasn't started yet.
+    OnGoing,            //!< Transfer is currently on going.
+    Complete,           //!< Transfer has been completed.
+    CancelRequested,    //!< Cancel requested, but not yet served.
+    Cancelled,          //!< Transfer has been cancelled.
+};
+
+struct SdoUploadRequest {
+    SdoUploadRequestStatus status       = SdoUploadRequestStatus::Unknown;
+    uint8_t                nodeId       = 0;
+    uint16_t               index        = 0;
+    uint8_t                subIndex     = 0;
+    bool                   isBlock      = false;
+    uint16_t               sdoTimeoutMs = 1000;
+
+    //! Total size of the data which will be transferred. It is optionally used by the server.
+    size_t sizeIndicated = 0;
+    //! Number of bytes that has been sent so far.
+    size_t sizeTransferred = 0;
+
+    CO_SDO_abortCode_t                                               abortCode = CO_SDO_AB_NONE;
+    std::promise<std::expected<std::span<uint8_t>, CO_SDO_return_t>> promise;
+
+    std::vector<uint8_t> data;
+
+    void markAsComplete(const std::expected<std::span<uint8_t>, CO_SDO_return_t>& res)
+    {
+        if (status == SdoUploadRequestStatus::CancelRequested) {
+            cancel();
+            return;
+        }
+        status = SdoUploadRequestStatus::Complete;
+        promise.set_value(res);
+    }
+
+    void cancel()
+    {
+        status = SdoUploadRequestStatus::Cancelled;
+        promise.set_value(std::unexpected(CO_SDO_RT_endedWithClientAbort));
+    }
+
+    void abort(CO_SDO_abortCode_t code)
+    {
+        abortCode = code;
+        status    = SdoUploadRequestStatus::Complete;
+        promise.set_value(std::unexpected {CO_SDO_RT_endedWithClientAbort});
+    }
+};
+
+struct SdoUploadDataResult {
+    [[nodiscard]] SdoUploadRequestStatus status() const { return m_request->status; }
+    [[nodiscard]] uint8_t                nodeId() const { return m_request->nodeId; }
+    [[nodiscard]] uint16_t               index() const { return m_request->index; }
+    [[nodiscard]] uint8_t                subIndex() const { return m_request->subIndex; }
+    [[nodiscard]] CO_SDO_abortCode_t     abortCode() const { return m_request->abortCode; }
+    [[nodiscard]] size_t                 sizeIndicated() const { return m_request->sizeIndicated; }
+    [[nodiscard]] size_t                 sizeTransferred() const { return m_request->sizeTransferred; }
+
+    bool cancel()
+    {
+        if (status() != SdoUploadRequestStatus::Complete) {
+            m_request->status = SdoUploadRequestStatus::CancelRequested;
+            return true;
+        }
+        return false;
+    }
+
+    std::future<std::expected<std::span<uint8_t>, CO_SDO_return_t>> future;
+
+private:
+    friend class SdoManager;
+    std::shared_ptr<SdoUploadRequest> m_request;
+};
+}    // namespace Frasy::CanOpen
+
+#endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_UPLOADER_H

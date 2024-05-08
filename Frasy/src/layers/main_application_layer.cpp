@@ -48,7 +48,7 @@ void MainApplicationLayer::onAttach()
 
     m_logWindow      = std::make_unique<LogWindow>();
     m_deviceViewer   = std::make_unique<DeviceViewer>(m_canOpen);
-    m_canOpenViewer  = std::make_unique<CanOpenViewer>(m_canOpen);
+    m_canOpenViewer  = std::make_unique<CanOpenViewer::Layer>(m_canOpen);
     m_resultViewer   = std::make_unique<ResultViewer>();
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
     m_testViewer     = std::make_unique<TestViewer>();

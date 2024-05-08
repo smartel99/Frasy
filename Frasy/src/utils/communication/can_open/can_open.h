@@ -27,6 +27,7 @@
 #include "hb_consumer.h"
 #include "node.h"
 #include "real_od.h"
+#include "services/sdo.h"
 #include "to_string.h"
 
 #include <array>
@@ -42,10 +43,17 @@
 
 namespace Frasy {
 class DeviceViewer;
-class CanOpenViewer;
+namespace CanOpenViewer {
+class Layer;
+}
 }    // namespace Frasy
 
 namespace Frasy::CanOpen {
+/**
+ * TODO Adding nodes should perform the following actions:
+ *  - A SDO client should be registered in the CANopen instance. This might require a complete re-initialization of the
+ * stack?
+ */
 class CanOpen {
 public:
     using EmergencyMessageCallback = std::function<void(const EmergencyMessage&)>;
@@ -54,9 +62,9 @@ public:
              CanOpen();
              CanOpen(const CanOpen&)   = delete;
     CanOpen& operator=(const CanOpen&) = delete;
-             CanOpen(CanOpen&& o) noexcept;
-    CanOpen& operator=(CanOpen&&) = default;
-    ~        CanOpen();
+    //          CanOpen(CanOpen&& o) noexcept;
+    // CanOpen& operator=(CanOpen&&) = default;
+    ~CanOpen();
 
     void open(std::string_view port);
     void close();
@@ -77,7 +85,7 @@ public:
 
     void addEmergencyMessageCallback(const EmergencyMessageCallback& callback);
 
-    HbConsumer getHbConsumer(uint8_t nodeId) const { return HbConsumer {m_co->HBcons, nodeId}; }
+    CO_t* nativeHandle() { return m_co; }
 
 private:
     void canOpenTask(std::stop_token stopToken);
@@ -88,6 +96,9 @@ private:
     bool               initTime();
     CO_NMT_reset_cmd_t mainLoop();
     bool               deinit();
+
+    void initNodeServices();
+    void deinitNodeServices();
 
     /**
      * Left there just in case it's needed, but really doesn't do anything...
@@ -225,7 +236,7 @@ private:
     std::string                  m_tag;
 
     friend DeviceViewer;
-    friend CanOpenViewer;
+    friend CanOpenViewer::Layer;
     std::string   m_port;
     SlCan::Device m_device;
 
@@ -271,6 +282,8 @@ private:
     std::vector<Node> m_nodes;
 
     std::vector<EmergencyMessageCallback> m_emCallbacks;
+
+    SdoManager m_sdoManager;
 };
 }    // namespace Frasy::CanOpen
 
