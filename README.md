@@ -9,7 +9,7 @@ Frasy is a tool allowing technicians to test any Printed Circuit Board Assemblie
 
 Using a descriptive approach, very little programming knowledge are required in order to write test sequences. The technician only has to specify the criteria for a PCBA to be valid, and Frasy handles the rest!
 
-**TODO: add screenshot of main gui**
+![main_gui](doc/assets/img/main_gui.png)
 
 ## Example Sequence
 This short example demonstrates how a voltage is measured on a PCBA.
@@ -48,7 +48,7 @@ Thank you to the following persons for their help in making this project possibl
 To generate the project files, use one of the scripts found [here](scripts/Windows/).
 Alternatively, invoke Premake directly. 
 
-**Note**: C++20 is required to build Frasy!
+**Note**: C++23 is required to build Frasy!
 
 By default, Frasy builds the demonstration mode. The sources for this demo mode can be found [here](Frasy/src/demo_mode).
 To provide your own source code, use the `--src_loc` flag when generating the project files.
