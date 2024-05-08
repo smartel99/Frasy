@@ -17,6 +17,8 @@
 
 #ifndef FRASY_SRC_UTILS_IMGUI_TABLE_H
 #define FRASY_SRC_UTILS_IMGUI_TABLE_H
+#include <Brigerad/Core/Core.h>
+
 #include <imgui.h>
 
 #include <boost/pfr.hpp>
@@ -95,8 +97,10 @@ public:
                         float                 initWidthOrHeight = 0.0f,
                         ImGuiID               userId            = 0)
     {
-        ImGui::TableSetupColumn(name.data(), flags, initWidthOrHeight, userId);
-        ++m_realColumnCount;
+        if (m_active) {
+            ImGui::TableSetupColumn(name.data(), flags, initWidthOrHeight, userId);
+            ++m_realColumnCount;
+        }
         return *this;
     }
 
@@ -105,10 +109,11 @@ public:
      * @param cols Column to be frozen
      * @param rows Row to be frozen
      * @return instance
+     * @note By default (no arguments provided), freezes the first row.
      */
-    Table& ScrollFreeze(int cols, int rows)
+    Table& ScrollFreeze(int cols = 0, int rows = 1)
     {
-        ImGui::TableSetupScrollFreeze(cols, rows);
+        if (m_active) { ImGui::TableSetupScrollFreeze(cols, rows); }
         return *this;
     }
 
@@ -133,6 +138,7 @@ public:
         }
     Table& Content(Container&& container, Func&& func)
     {
+        if (!m_active) { return *this; }
         for (auto&& elem : container) {
             ImGui::TableNextRow();
             ImGui::BeginGroup();
@@ -221,10 +227,10 @@ public:
 
     template<typename Func, typename... Args>
         requires std::invocable<Func, Args...>
-    static void CellContent(Func&& func, Args&&... args)
+    static decltype(auto) CellContent(Func&& func, Args&&... args)
     {
         ImGui::TableNextColumn();
-        std::invoke(func, std::forward<Args>(args)...);
+        return std::invoke(func, std::forward<Args>(args)...);
     }
 
     template<typename T, typename... Args>
