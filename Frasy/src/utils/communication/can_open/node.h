@@ -50,25 +50,25 @@ public:
     [[nodiscard]] CO_HBconsumer_state_t  getHbState() const { return m_hbConsumer.getState(); }
     [[nodiscard]] CO_NMT_internalState_t getNmtState() const { return m_hbConsumer.getNmtState(); }
 
-    [[nodiscard]] SdoInterface sdoInterface() const { return m_sdoInterface; }
+    [[nodiscard]] SdoManager* sdoInterface() { return m_sdoManager.get(); }
 
     void                                               addEmergency(EmergencyMessage em);
     [[nodiscard]] const std::vector<EmergencyMessage>& getEmergencies() const { return m_emHistory; }
 
 private:
     void setHbConsumer(CO_HBconsumer_t* hbConsumer);
-    void setSdoInterface(SdoManager* manager);
+    void setSdoClient(CO_SDOclient_t* client) { m_sdoManager->setSdoClient(client); }
 
     void removeHbConsumer() { m_hbConsumer = {}; }
-    void removeSdoInterface() { m_sdoInterface = {}; }
+    void removeSdoClient() { m_sdoManager->removeSdoClient(); }
 
 private:
     uint8_t     m_nodeId = 0;
     std::string m_name;
     std::string m_edsPath;
 
-    HbConsumer   m_hbConsumer;
-    SdoInterface m_sdoInterface;
+    HbConsumer m_hbConsumer {};
+    std::unique_ptr<SdoManager> m_sdoManager;
 
     std::vector<EmergencyMessage> m_emHistory;
 

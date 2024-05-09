@@ -92,10 +92,10 @@ void Sdo::renderUploadRequestMaker(CanOpen::Node& node)
     ImGui::SliderInt("Timeout", &m_uploadRequestTimeout, 0, 65535, "%d ms");
     ImGui::Checkbox("Is Block", &m_uploadRequestIsBlock);
     if (ImGui::Button("Send")) {
-        m_uploadRequestQueue.push_back(node.sdoInterface().uploadData(static_cast<uint16_t>(m_uploadRequestIndex),
-                                                                      static_cast<uint8_t>(m_uploadRequestSubIndex),
-                                                                      static_cast<uint16_t>(m_uploadRequestTimeout),
-                                                                      m_uploadRequestIsBlock));
+        m_uploadRequestQueue.push_back(node.sdoInterface()->uploadData(static_cast<uint16_t>(m_uploadRequestIndex),
+                                                                       static_cast<uint8_t>(m_uploadRequestSubIndex),
+                                                                       static_cast<uint16_t>(m_uploadRequestTimeout),
+                                                                       m_uploadRequestIsBlock));
     }
 }
 

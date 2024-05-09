@@ -44,7 +44,14 @@ void Layer::onImGuiRender()
     if (!m_isVisible) { return; }
     BR_PROFILE_FUNCTION();
 
-    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) { renderNodes(); }
+    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
+        ImGui::Text("%s", m_canOpen.isOpen()?"Active":"Innactive");
+        ImGui::SameLine();
+        if(ImGui::Button("Restart")) {
+            m_canOpen.reset();
+        }
+        renderNodes();
+    }
     ImGui::End();
 
     if (m_openNodes.empty()) { return; }

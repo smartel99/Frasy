@@ -18,10 +18,10 @@
 
 #ifndef FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_H
 #define FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_H
-
 #include "sdo_uploader.h"
 
 #include <CO_SDOclient.h>
+#include <CO_ODinterface.h>
 
 #include <condition_variable>
 #include <cstdint>
@@ -34,55 +34,26 @@
 #include <thread>
 
 namespace Frasy::CanOpen {
-class CanOpen;
+class Node;
+
+struct SdoClientInfo {
+    uint32_t cobIdClientToServer = 0;
+    uint32_t cobIdServerToClient = 0;
+    uint8_t  serverNodId         = 0;
+    uint8_t  highestSubIndex     = 3;
+};
 
 class SdoManager {
-    friend CanOpen;
+    friend Node;
 
 public:
-    SdoManager();
+             SdoManager();
+    explicit SdoManager(uint8_t nodeId);
+
     [[nodiscard]] bool   hasRequestPending() const;
     [[nodiscard]] size_t requestsPending() const;
 
-    /**
-     * Initiates a transfer of data from a remote node to Frasy.
-     *
-     * @param nodeId ID of the remote node.
-     * @param index Index of object in the object dictionary of the remotet node.
-     * @param subIndex Sub-index of object in the object dictionary of the remote node.
-     * @param sdoTimeoutTimeMs Timeout time (in milliseconds) for SDO communication.
-     * @param isBlock Try to initiate a block transfer.
-     * @return On success, returns a future on which the entire data transfered can be received, as well as values that
-     * can be used to keep track of the transfer. On failure, returns the reason.
-     */
-    SdoUploadDataResult uploadData(
-      uint8_t nodeId, uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs = 1000, bool isBlock = false);
-
-private:
-    void uploadWorkerThread(std::stop_token stopToken);
-    void handleUploadRequest(SdoUploadRequest& request);
-    void readUploadBufferIntoRequest(SdoUploadRequest& request);
-
-    void setSdoClient(CO_SDOclient_t* sdoClient) { m_sdoClient = sdoClient; }
-    void removeSdoClient() { m_sdoClient = nullptr; }
-
-private:
-    CO_SDOclient_t* m_sdoClient;
-
-    std::queue<std::shared_ptr<SdoUploadRequest>> m_pendingUploadRequests;
-
-    std::mutex                  m_lock;
-    std::condition_variable_any m_cv;
-    std::jthread                m_uploadWorkerThread;
-
-    static constexpr const char* s_cliTag = "SDO Client";
-    static constexpr const char* s_srvTag = "SDO Server";
-};
-
-class SdoInterface {
-public:
-    SdoInterface() = default;
-    SdoInterface(SdoManager* sdo, uint8_t nodeId) : m_sdo(sdo), m_nodeId(nodeId) {}
+    [[nodiscard]] OD_entry_t makeSdoClientOdEntry() const;
 
     /**
      * Initiates a transfer of data from a remote node to Frasy.
@@ -97,15 +68,39 @@ public:
     SdoUploadDataResult uploadData(uint16_t index,
                                    uint8_t  subIndex,
                                    uint16_t sdoTimeoutTimeMs = 1000,
-                                   bool     isBlock          = false)
-    {
-        if (m_sdo == nullptr) { throw std::runtime_error("SdoInterface not initialized"); }
-        return m_sdo->uploadData(m_nodeId, index, subIndex, sdoTimeoutTimeMs, isBlock);
-    }
+                                   bool     isBlock          = false);
 
 private:
-    SdoManager* m_sdo    = nullptr;
-    uint8_t     m_nodeId = 0;
+    [[nodiscard]] bool isAbleToMakeRequests() const
+    {
+        return m_isUploadWorkerActive && m_nodeId != s_noNodeId && m_sdoClient != nullptr;
+    }
+
+    void uploadWorkerThread(const std::stop_token& stopToken);
+    void handleUploadRequest(SdoUploadRequest& request);
+    void readUploadBufferIntoRequest(SdoUploadRequest& request);
+
+    void setNodeId(uint8_t nodeId);
+    void setSdoClient(CO_SDOclient_t* sdoClient);
+    void removeSdoClient();
+
+private:
+    static constexpr uint8_t s_noNodeId  = 0xFF;
+    uint8_t                  m_nodeId    = s_noNodeId;
+    CO_SDOclient_t*          m_sdoClient = nullptr;
+
+    SdoClientInfo   m_clientInfo;
+    std::unique_ptr<OD_obj_record_t> m_odObjRecord;
+
+    std::queue<std::shared_ptr<SdoUploadRequest>> m_pendingUploadRequests;
+
+    std::mutex                  m_lock;
+    std::condition_variable_any m_cv;
+    bool                        m_isUploadWorkerActive = false;
+    std::jthread                m_uploadWorkerThread;
+
+    static constexpr const char* s_cliTag = "SDO Client";
+    static constexpr const char* s_srvTag = "SDO Server";
 };
 }    // namespace Frasy::CanOpen
 

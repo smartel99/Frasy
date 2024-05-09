@@ -26,13 +26,17 @@
 namespace Frasy::CanOpen {
 
 Node::Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_view edsPath)
-: m_nodeId(nodeId), m_name(name), m_edsPath(edsPath), m_canOpen(canOpen)
+: m_nodeId(nodeId),
+  m_name(name),
+  m_edsPath(edsPath),
+  m_sdoManager(std::make_unique<SdoManager>(nodeId)),
+  m_canOpen(canOpen)
 {
 }
 
 void Node::addEmergency(EmergencyMessage em)
 {
-    if (em.errorCode == CO_EM_errorCode_t::CO_EMC_NO_ERROR) {
+    if (em.errorCode == CO_EMC_NO_ERROR) {
         // NO_ERROR messages indicates that the error condition is now solved.
         // Find the first error in our history that has the same status, mark it as solved and save the time of
         // resolution.
@@ -56,10 +60,5 @@ void Node::addEmergency(EmergencyMessage em)
 void Node::setHbConsumer(CO_HBconsumer_t* hbConsumer)
 {
     m_hbConsumer = HbConsumer {hbConsumer, m_nodeId};
-}
-
-void Node::setSdoInterface(SdoManager* manager)
-{
-    m_sdoInterface = SdoInterface {manager, m_nodeId};
 }
 }    // namespace Frasy::CanOpen

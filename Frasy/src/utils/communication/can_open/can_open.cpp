@@ -96,7 +96,7 @@ std::string_view canOpenLssMasterReturnToStr(CO_LSSmaster_return_t val)
 }    // namespace
 
 
-CanOpen::CanOpen() : m_sdoManager()
+CanOpen::CanOpen()
 {
     start();
 }
@@ -163,7 +163,11 @@ void CanOpen::reset()
 void CanOpen::start()
 {
     m_stopSource = {};
-    m_coThread   = std::jthread([this] { canOpenTask(m_stopSource.get_token()); });
+    m_coThread   = std::jthread([this] {
+        addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the EDS.
+        canOpenTask(m_stopSource.get_token());
+        removeNode(0x01);
+    });
 }
 
 void CanOpen::stop()
@@ -192,24 +196,32 @@ Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view e
     }
 
     Node* node = &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {:02x}", nodeId) : name, edsPath);
-    node->setHbConsumer(m_co->HBcons);
-    node->setSdoInterface(&m_sdoManager);
+    m_sdoClientODEntries.push_back(node->sdoInterface()->makeSdoClientOdEntry());
+
+    // Node will not be usable until we restart CANopen.
 
     return node;
 }
 
 void CanOpen::removeNode(uint8_t nodeId)
 {
+    std::erase_if(m_sdoClientODEntries, [nodeId](const OD_entry_t& entry) {
+        return (entry.index >= s_sdoClientBaseAddress) && (entry.index - s_sdoClientBaseAddress) == nodeId;
+    });
     std::erase_if(m_nodes, [nodeId](const Node& node) { return node.nodeId() == nodeId; });
 }
 
 void CanOpen::removeNode(const Node& node)
 {
+    std::erase_if(m_sdoClientODEntries, [nodeId = node.nodeId()](const OD_entry_t& entry) {
+        return (entry.index >= s_sdoClientBaseAddress) && (entry.index - s_sdoClientBaseAddress) == nodeId;
+    });
     std::erase(m_nodes, node);
 }
 
 void CanOpen::clearNodes()
 {
+    m_sdoClientODEntries.clear();
     m_nodes.clear();
 }
 
@@ -304,7 +316,8 @@ bool           CanOpen::initialInit(std::string_view port)
 {
     // Initialize CANopen.
     OD_INIT_CONFIG(m_canOpenConfig);
-    // TODO m_canOpenConfig.CNT_SDO_CLI must be set to the number of nodes in the env (+ frasy)
+    m_canOpenConfig.CNT_SDO_CLI = m_nodes.size();
+    m_canOpenConfig.ENTRY_H1280 = m_sdoClientODEntries.data();
 
     // TODO these fields should be determined based on a loaded environment.
 #if CO_CONFIG_LEDS & CO_CONFIG_LEDS_ENABLE
@@ -359,7 +372,6 @@ bool CanOpen::runtimeInit()
         CO_UNLOCK_OD(m_co->CANmodule);
     }
 
-    removeNode(0x01);
     deinitNodeServices();
 
     // Enter CAN configuration mode.
@@ -412,8 +424,6 @@ bool CanOpen::runtimeInit()
     CO_CANsetNormalMode(m_co->CANmodule);
 
     BR_LOG_INFO(m_tag, "CANOpen initialized and running!");
-
-    addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the EDS.
 
     initNodeServices();
 
@@ -515,11 +525,9 @@ bool CanOpen::deinit()
 
 void CanOpen::initNodeServices()
 {
-    m_sdoManager.setSdoClient(m_co->SDOclient);
-
     for (auto&& node : m_nodes) {
         node.setHbConsumer(m_co->HBcons);
-        node.setSdoInterface(&m_sdoManager);
+        node.setSdoClient(findSdoClientHandle(node.nodeId()));
     }
 }
 
@@ -527,10 +535,22 @@ void CanOpen::deinitNodeServices()
 {
     for (auto&& node : m_nodes) {
         node.removeHbConsumer();
-        node.removeSdoInterface();
+        node.removeSdoClient();
     }
+}
 
-    m_sdoManager.removeSdoClient();
+CO_SDOclient_t* CanOpen::findSdoClientHandle(uint8_t nodeId)
+{
+    auto* sdoClientPtr = m_co->SDOclient;
+    for (uint8_t i = 0; i < m_co->config->CNT_SDO_CLI; i++) {
+        if (sdoClientPtr->nodeIDOfTheSDOServer == nodeId) {
+            BR_LOG_DEBUG(m_tag, "Found SDO client handle for node {:02x} at position {}!", nodeId, i);
+            return sdoClientPtr;
+        }
+        ++sdoClientPtr;
+    }
+    BR_LOG_ERROR(m_tag, "No SDO client found for node {:02x}!", nodeId);
+    return nullptr;
 }
 
 #pragma region Callbacks

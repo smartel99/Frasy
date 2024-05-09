@@ -14,20 +14,56 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
+
 #include "sdo.h"
 
 #include "../can_open.h"
 #include "../to_string.h"
-#include "Brigerad/Debug/Instrumentor.h"
 
 #include <Brigerad/Core/Log.h>
+#include <Brigerad/Debug/Instrumentor.h>
 
 #include <CO_SDOclient.h>
 
 namespace Frasy::CanOpen {
 
-SdoManager::SdoManager()
-: m_uploadWorkerThread(std::jthread([this](const std::stop_token& stopToken) { uploadWorkerThread(stopToken); }))
+SdoManager::SdoManager() : SdoManager(s_noNodeId)
+{
+}
+
+SdoManager::SdoManager(uint8_t nodeId)
+: m_nodeId(nodeId),
+  m_clientInfo {
+    .cobIdClientToServer = static_cast<uint32_t>(CO_CAN_ID_SDO_CLI + m_nodeId),
+    .cobIdServerToClient = static_cast<uint32_t>(CO_CAN_ID_SDO_SRV + m_nodeId),
+    .serverNodId         = nodeId,
+    .highestSubIndex     = 3,
+  },
+  m_odObjRecord(new OD_obj_record_t[4] {OD_obj_record_t {
+                                          .dataOrig   = &m_clientInfo.highestSubIndex,
+                                          .subIndex   = 0,
+                                          .attribute  = ODA_SDO_R,
+                                          .dataLength = 1,
+                                        },
+                                        OD_obj_record_t {
+                                          .dataOrig   = &m_clientInfo.cobIdClientToServer,
+                                          .subIndex   = 1,
+                                          .attribute  = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                          .dataLength = 4,
+                                        },
+                                        OD_obj_record_t {
+                                          .dataOrig   = &m_clientInfo.cobIdServerToClient,
+                                          .subIndex   = 2,
+                                          .attribute  = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                          .dataLength = 4,
+                                        },
+                                        OD_obj_record_t {
+                                          .dataOrig   = &m_clientInfo.serverNodId,
+                                          .subIndex   = 3,
+                                          .attribute  = ODA_SDO_RW,
+                                          .dataLength = 1,
+                                        }}),
+  m_uploadWorkerThread(std::jthread([this](const std::stop_token& stopToken) { uploadWorkerThread(stopToken); }))
 {
 }
 
@@ -41,16 +77,20 @@ size_t SdoManager::requestsPending() const
     return m_pendingUploadRequests.size();
 }
 
-SdoUploadDataResult SdoManager::uploadData(
-  uint8_t nodeId, uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs, bool isBlock)
+OD_entry_t SdoManager::makeSdoClientOdEntry() const
+{
+    return {static_cast<uint16_t>(s_sdoClientBaseAddress + m_nodeId), 0x04, ODT_REC, m_odObjRecord.get(), nullptr};
+}
+
+SdoUploadDataResult SdoManager::uploadData(uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs, bool isBlock)
 {
     SdoUploadDataResult result;
     result.m_request = std::make_shared<SdoUploadRequest>(
-      SdoUploadRequestStatus::Queued, nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs);
+      SdoUploadRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs);
 
     result.future = result.m_request->promise.get_future();
 
-    if (m_sdoClient == nullptr) {
+    if (!isAbleToMakeRequests()) {
         // It's impossible to make requests without a client to talk with!
         result.m_request->abort(CO_SDO_AB_GENERAL);
         return result;
@@ -66,14 +106,21 @@ SdoUploadDataResult SdoManager::uploadData(
     return result;
 }
 
-void SdoManager::uploadWorkerThread(std::stop_token stopToken)
+void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
 {
+    auto ret =
+      CO_SDOclient_setup(m_sdoClient, m_clientInfo.cobIdClientToServer, m_clientInfo.cobIdServerToClient, m_nodeId);
+    if (ret != CO_SDO_RT_ok_communicationEnd) { return; }
+
+    m_isUploadWorkerActive = true;
+
     while (!stopToken.stop_requested()) {
         std::shared_ptr<SdoUploadRequest> request;
         // Get the first pending request in the queue.
         {
             std::unique_lock lock {m_lock};
             m_cv.wait(lock, stopToken, [this] { return !m_pendingUploadRequests.empty(); });
+            if (m_pendingUploadRequests.empty()) { continue; }
             request = m_pendingUploadRequests.front();
             m_pendingUploadRequests.pop();
         }
@@ -87,20 +134,16 @@ void SdoManager::uploadWorkerThread(std::stop_token stopToken)
         request->status = SdoUploadRequestStatus::OnGoing;
         handleUploadRequest(*request);
     }
+
+    m_isUploadWorkerActive = false;
+    CO_SDOclientClose(m_sdoClient);
 }
 
 void SdoManager::handleUploadRequest(SdoUploadRequest& request)
 {
     BR_PROFILE_FUNCTION();
-    auto ret = CO_SDOclient_setup(
-      m_sdoClient, CO_CAN_ID_SDO_CLI + request.nodeId, CO_CAN_ID_SDO_SRV + request.nodeId, request.nodeId);
-    if (ret != CO_SDO_RT_ok_communicationEnd) {
-        request.markAsComplete(std::unexpected(ret));
-        return;
-    }
-
     // Initiate the upload.
-    ret =
+    auto ret =
       CO_SDOclientUploadInitiate(m_sdoClient, request.index, request.subIndex, request.sdoTimeoutMs, request.isBlock);
     if (ret != CO_SDO_RT_ok_communicationEnd) {
         request.markAsComplete(std::unexpected(ret));
@@ -163,7 +206,25 @@ void SdoManager::readUploadBufferIntoRequest(SdoUploadRequest& request)
     do {
         uint8_t tmp[16] = {};
         read            = CO_SDOclientUploadBufRead(m_sdoClient, &tmp[0], sizeof(tmp));
-        request.data.insert_range(request.data.end(), tmp);
+        request.data.insert(request.data.end(), std::begin(tmp), std::begin(tmp)+read);
     } while (read > 0);
+}
+
+void SdoManager::setNodeId(uint8_t nodeId)
+{
+    m_nodeId             = nodeId;
+    m_uploadWorkerThread = std::jthread([this](const std::stop_token& stopToken) { uploadWorkerThread(stopToken); });
+}
+
+void SdoManager::setSdoClient(CO_SDOclient_t* sdoClient)
+{
+    m_sdoClient          = sdoClient;
+    m_uploadWorkerThread = std::jthread([this](const std::stop_token& stopToken) { uploadWorkerThread(stopToken); });
+}
+
+void SdoManager::removeSdoClient()
+{
+    m_uploadWorkerThread.request_stop();
+    m_sdoClient = nullptr;
 }
 }    // namespace Frasy::CanOpen

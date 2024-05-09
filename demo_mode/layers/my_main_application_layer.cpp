@@ -231,6 +231,7 @@ void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
             // TODO CANopen nodes should be added here, based on the environment file.
             m_canOpen.addNode(2);
             m_canOpen.addNode(3);
+            m_canOpen.reset();    // CANopen needs to be reloaded on environment changes.
         }
         else {
             Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");

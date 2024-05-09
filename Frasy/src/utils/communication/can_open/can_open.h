@@ -21,14 +21,14 @@
 
 #include "utils/communication/slcan/device.h"
 
-#include <CANopen.h>
-#include <CO_storage.h>
-
 #include "hb_consumer.h"
 #include "node.h"
 #include "real_od.h"
 #include "services/sdo.h"
 #include "to_string.h"
+
+#include <CANopen.h>
+#include <CO_storage.h>
 
 #include <array>
 #include <chrono>
@@ -49,6 +49,8 @@ class Layer;
 }    // namespace Frasy
 
 namespace Frasy::CanOpen {
+static constexpr uint16_t s_sdoClientBaseAddress = 0x1280;
+
 /**
  * TODO Adding nodes should perform the following actions:
  *  - A SDO client should be registered in the CANopen instance. This might require a complete re-initialization of the
@@ -99,6 +101,8 @@ private:
 
     void initNodeServices();
     void deinitNodeServices();
+
+   CO_SDOclient_t* findSdoClientHandle(uint8_t nodeId);
 
     /**
      * Left there just in case it's needed, but really doesn't do anything...
@@ -279,11 +283,10 @@ private:
     bool m_redLed   = false;
     bool m_greenLed = false;
 
-    std::vector<Node> m_nodes;
+    std::vector<Node>       m_nodes;
+    std::vector<OD_entry_t> m_sdoClientODEntries;
 
     std::vector<EmergencyMessageCallback> m_emCallbacks;
-
-    SdoManager m_sdoManager;
 };
 }    // namespace Frasy::CanOpen
 
