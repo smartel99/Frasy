@@ -1,7 +1,7 @@
 /**
- * @file    sdo_uploader.h
+ * @file    sdo_downloader.h
  * @author  Samuel Martel
- * @date    2024-05-07
+ * @date    2024-05-09
  * @brief
  *
  * @copyright
@@ -16,8 +16,8 @@
  */
 
 
-#ifndef FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_UPLOADER_H
-#define FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_UPLOADER_H
+#ifndef FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_DOWNLOADER_H
+#define FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_DOWNLOADER_H
 
 #include "sdo_request_status.h"
 
@@ -31,26 +31,24 @@
 #include <vector>
 
 namespace Frasy::CanOpen {
-
-struct SdoUploadRequest {
+struct SdoDownloadRequest {
     SdoRequestStatus status       = SdoRequestStatus::Unknown;
-    uint8_t                nodeId       = 0;
-    uint16_t               index        = 0;
-    uint8_t                subIndex     = 0;
-    bool                   isBlock      = false;
-    uint16_t               sdoTimeoutMs = 1000;
-
-    //! Total size of the data which will be transferred. It is optionally used by the server.
-    size_t sizeIndicated = 0;
-    //! Number of bytes that has been sent so far.
-    size_t sizeTransferred = 0;
-
-    CO_SDO_abortCode_t                                               abortCode = CO_SDO_AB_NONE;
-    std::promise<std::expected<std::span<uint8_t>, CO_SDO_return_t>> promise;
+    uint8_t          nodeId       = 0;
+    uint16_t         index        = 0;
+    uint8_t          subIndex     = 0;
+    bool             isBlock      = false;
+    uint16_t         sdoTimeoutMs = 1000;
 
     std::vector<uint8_t> data;
 
-    void markAsComplete(const std::expected<std::span<uint8_t>, CO_SDO_return_t>& res)
+    //! Number of bytes that has been sent so far.
+    size_t sizeTransferred = 0;
+
+    CO_SDO_abortCode_t            abortCode = CO_SDO_AB_NONE;
+    std::promise<CO_SDO_return_t> promise;
+
+
+    void markAsComplete(CO_SDO_return_t res)
     {
         if (status == SdoRequestStatus::CancelRequested) {
             cancel();
@@ -60,29 +58,28 @@ struct SdoUploadRequest {
         status = SdoRequestStatus::Complete;
     }
 
-    void cancel()
-    {
-        abort(CO_SDO_AB_GENERAL);
-    }
+    void cancel() { abort(CO_SDO_AB_GENERAL); }
 
     void abort(CO_SDO_abortCode_t code)
     {
         abortCode = code;
-        promise.set_value(std::unexpected {CO_SDO_RT_endedWithClientAbort});
+        promise.set_value(CO_SDO_RT_endedWithClientAbort);
         status    = SdoRequestStatus::Cancelled;
     }
 };
 
-struct SdoUploadDataResult {
-    [[nodiscard]] SdoRequestStatus status() const { return m_request->status; }
-    [[nodiscard]] uint8_t                nodeId() const { return m_request->nodeId; }
-    [[nodiscard]] uint16_t               index() const { return m_request->index; }
-    [[nodiscard]] uint8_t                subIndex() const { return m_request->subIndex; }
-    [[nodiscard]] CO_SDO_abortCode_t     abortCode() const { return m_request->abortCode; }
-    //! Total size of the data which will be transferred. It is optionally used by the server.
-    [[nodiscard]] size_t sizeIndicated() const { return m_request->sizeIndicated; }
+struct SdoDownloadDataResult {
+    [[nodiscard]] SdoRequestStatus   status() const { return m_request->status; }
+    [[nodiscard]] uint8_t            nodeId() const { return m_request->nodeId; }
+    [[nodiscard]] uint16_t           index() const { return m_request->index; }
+    [[nodiscard]] uint8_t            subIndex() const { return m_request->subIndex; }
+    [[nodiscard]] CO_SDO_abortCode_t abortCode() const { return m_request->abortCode; }
+    //! Total size of the data which will be transferred.
+    [[nodiscard]] size_t totalSize() const { return m_request->data.size(); }
     //! Number of bytes that has been sent so far.
     [[nodiscard]] size_t sizeTransferred() const { return m_request->sizeTransferred; }
+
+    [[nodiscard]] const std::vector<uint8_t>& data() const { return m_request->data; }
 
     bool cancel()
     {
@@ -93,12 +90,12 @@ struct SdoUploadDataResult {
         return false;
     }
 
-    std::future<std::expected<std::span<uint8_t>, CO_SDO_return_t>> future;
+    std::future<CO_SDO_return_t> future;
 
 private:
     friend class SdoManager;
-    std::shared_ptr<SdoUploadRequest> m_request;
+    std::shared_ptr<SdoDownloadRequest> m_request;
 };
 }    // namespace Frasy::CanOpen
 
-#endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_UPLOADER_H
+#endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_DOWNLOADER_H

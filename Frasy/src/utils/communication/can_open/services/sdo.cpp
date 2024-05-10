@@ -62,17 +62,17 @@ SdoManager::SdoManager(uint8_t nodeId)
                                           .subIndex   = 3,
                                           .attribute  = ODA_SDO_RW,
                                           .dataLength = 1,
-                                        }}),
-  m_uploadWorkerThread(std::jthread([this](const std::stop_token& stopToken) { uploadWorkerThread(stopToken); }))
+                                        }})
 {
+    startWorkers();
 }
 
-bool SdoManager::hasRequestPending() const
+bool SdoManager::hasUploadRequestsPending() const
 {
     return !m_pendingUploadRequests.empty();
 }
 
-size_t SdoManager::requestsPending() const
+size_t SdoManager::uploadRequestsPending() const
 {
     return m_pendingUploadRequests.size();
 }
@@ -86,11 +86,11 @@ SdoUploadDataResult SdoManager::uploadData(uint16_t index, uint8_t subIndex, uin
 {
     SdoUploadDataResult result;
     result.m_request = std::make_shared<SdoUploadRequest>(
-      SdoUploadRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs);
+      SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs);
 
     result.future = result.m_request->promise.get_future();
 
-    if (!isAbleToMakeRequests()) {
+    if (!isAbleToMakeUploadRequests()) {
         // It's impossible to make requests without a client to talk with!
         result.m_request->abort(CO_SDO_AB_GENERAL);
         return result;
@@ -98,45 +98,59 @@ SdoUploadDataResult SdoManager::uploadData(uint16_t index, uint8_t subIndex, uin
 
     {
         // Queue the message.
-        std::unique_lock lock {m_lock};
+        std::unique_lock lock {m_uploadLock};
         m_pendingUploadRequests.emplace(result.m_request);
-        m_cv.notify_all();
+        m_uploadCv.notify_all();
     }
 
     return result;
 }
 
-void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
+void SdoManager::startWorkers()
 {
+    m_stopSource = {};
     auto ret =
       CO_SDOclient_setup(m_sdoClient, m_clientInfo.cobIdClientToServer, m_clientInfo.cobIdServerToClient, m_nodeId);
     if (ret != CO_SDO_RT_ok_communicationEnd) { return; }
 
+    m_uploadWorkerThread =
+      std::jthread([this](std::stop_source source) { uploadWorkerThread(source.get_token()); }, m_stopSource);
+    m_downloadWorkerThread =
+      std::jthread([this](std::stop_source source) { downloadWorkerThread(source.get_token()); }, m_stopSource);
+}
+
+void SdoManager::stopWorkers()
+{
+    m_stopSource.request_stop();
+    CO_SDOclientClose(m_sdoClient);
+}
+
+void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
+{
     m_isUploadWorkerActive = true;
 
     while (!stopToken.stop_requested()) {
         std::shared_ptr<SdoUploadRequest> request;
         // Get the first pending request in the queue.
         {
-            std::unique_lock lock {m_lock};
-            m_cv.wait(lock, stopToken, [this] { return !m_pendingUploadRequests.empty(); });
+            std::unique_lock lock {m_uploadLock};
+            m_uploadCv.wait(lock, stopToken, [this] { return !m_pendingUploadRequests.empty(); });
             if (m_pendingUploadRequests.empty()) { continue; }
             request = m_pendingUploadRequests.front();
             m_pendingUploadRequests.pop();
         }
 
         // If it was cancelled before it became active, ditch the request.
-        if (request->status == SdoUploadRequestStatus::Cancelled) {
-            request->markAsComplete(std::unexpected(CO_SDO_RT_endedWithClientAbort));
+        if (request->status == SdoRequestStatus::CancelRequested) {
+            request->cancel();
             continue;
         }
 
-        request->status = SdoUploadRequestStatus::OnGoing;
+        request->status = SdoRequestStatus::OnGoing;
         handleUploadRequest(*request);
     }
 
     m_isUploadWorkerActive = false;
-    CO_SDOclientClose(m_sdoClient);
 }
 
 void SdoManager::handleUploadRequest(SdoUploadRequest& request)
@@ -158,7 +172,7 @@ void SdoManager::handleUploadRequest(SdoUploadRequest& request)
     uint32_t delta = 0;
     // Upload the data.
     do {
-        if (request.status == SdoUploadRequestStatus::CancelRequested) {
+        if (request.status == SdoRequestStatus::CancelRequested) {
             request.cancel();
             return;
         }
@@ -167,7 +181,7 @@ void SdoManager::handleUploadRequest(SdoUploadRequest& request)
         // Check and update the status of the upload.
         ret = CO_SDOclientUpload(m_sdoClient,
                                  delta,
-                                 request.abortCode != CO_SDO_AB_NONE,
+                                 request.abortCode != CO_SDO_AB_NONE && request.status != SdoRequestStatus::OnGoing,
                                  &request.abortCode,
                                  &request.sizeIndicated,
                                  &request.sizeTransferred,
@@ -206,25 +220,107 @@ void SdoManager::readUploadBufferIntoRequest(SdoUploadRequest& request)
     do {
         uint8_t tmp[16] = {};
         read            = CO_SDOclientUploadBufRead(m_sdoClient, &tmp[0], sizeof(tmp));
-        request.data.insert(request.data.end(), std::begin(tmp), std::begin(tmp)+read);
+        request.data.insert(request.data.end(), std::begin(tmp), std::begin(tmp) + read);
     } while (read > 0);
+}
+
+void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
+{
+    m_isDownloadWorkerActive = true;
+
+    while (!stopToken.stop_requested()) {
+        std::shared_ptr<SdoDownloadRequest> request;
+        // Get the first pending request in the queue.
+        {
+            std::unique_lock lock {m_downloadLock};
+            m_downloadCv.wait(lock, stopToken, [this] { return !m_pendingDownloadRequests.empty(); });
+            if (m_pendingDownloadRequests.empty()) { continue; }
+            request = m_pendingDownloadRequests.front();
+            m_pendingDownloadRequests.pop();
+        }
+
+        // If it was cancelled before it became active, ditch the request.
+        if (request->status == SdoRequestStatus::CancelRequested) {
+            request->cancel();
+            continue;
+        }
+
+        request->status = SdoRequestStatus::OnGoing;
+        handleDownloadRequest(*request);
+    }
+
+    m_isDownloadWorkerActive = false;
+}
+
+void SdoManager::handleDownloadRequest(SdoDownloadRequest& request)
+{
+    BR_PROFILE_FUNCTION();
+    // Initiate the download.
+    auto ret = CO_SDOclientDownloadInitiate(
+      m_sdoClient, request.index, request.subIndex, request.data.size(), request.sdoTimeoutMs, request.isBlock);
+    if (ret != CO_SDO_RT_ok_communicationEnd) {
+        request.markAsComplete(ret);
+        return;
+    }
+
+    using std::chrono::duration_cast;
+    using std::chrono::microseconds;
+    using std::chrono::milliseconds;
+    using std::chrono::steady_clock;
+    auto     last  = steady_clock::now();
+    uint32_t delta = 0;
+    // Upload the data.
+    do {
+        if (request.status == SdoRequestStatus::CancelRequested) {
+            request.cancel();
+            return;
+        }
+        uint32_t timeToSleep = 1'000;    // 1ms
+
+        // Fill data.
+        size_t written = CO_SDOclientDownloadBufWrite(
+          m_sdoClient, request.data.data() + request.sizeTransferred, request.data.size() - request.sizeTransferred);
+        bool bufferComplete = request.sizeTransferred + written == request.data.size();
+
+        size_t transfered = 0;
+        ret               = CO_SDOclientDownload(m_sdoClient,
+                                   delta,
+                                   request.abortCode != CO_SDO_AB_NONE && request.status != SdoRequestStatus::OnGoing,
+                                   bufferComplete,
+                                   &request.abortCode,
+                                   &transfered,
+                                   &timeToSleep);
+        if (ret < 0) {
+            // < 0 = error code, we gotta stop.
+            request.markAsComplete(ret);
+            return;
+        }
+
+        request.sizeTransferred += transfered;
+
+        delta = duration_cast<microseconds>(steady_clock::now() - last).count();
+        last  = steady_clock::now();
+        std::this_thread::sleep_for(microseconds {timeToSleep});
+    } while (ret != CO_SDO_RT_ok_communicationEnd);
+
+    request.markAsComplete(ret);
 }
 
 void SdoManager::setNodeId(uint8_t nodeId)
 {
-    m_nodeId             = nodeId;
-    m_uploadWorkerThread = std::jthread([this](const std::stop_token& stopToken) { uploadWorkerThread(stopToken); });
+    m_nodeId = nodeId;
+    startWorkers();
 }
 
 void SdoManager::setSdoClient(CO_SDOclient_t* sdoClient)
 {
-    m_sdoClient          = sdoClient;
-    m_uploadWorkerThread = std::jthread([this](const std::stop_token& stopToken) { uploadWorkerThread(stopToken); });
+    m_sdoClient = sdoClient;
+    startWorkers();
 }
 
 void SdoManager::removeSdoClient()
 {
-    m_uploadWorkerThread.request_stop();
+    m_stopSource.request_stop();
     m_sdoClient = nullptr;
 }
 }    // namespace Frasy::CanOpen

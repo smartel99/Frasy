@@ -1,7 +1,7 @@
 /**
- * @file    sdo_uploader.cpp
+ * @file    sdo_request_status.h
  * @author  Samuel Martel
- * @date    2024-05-07
+ * @date    2024-05-09
  * @brief
  *
  * @copyright
@@ -14,8 +14,22 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#include "sdo_uploader.h"
 
-namespace Frasy::CanOpen{
 
+#ifndef FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_REQUEST_STATUS_H
+#define FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_REQUEST_STATUS_H
+
+#include <cstdint>
+
+namespace Frasy::CanOpen {
+enum class SdoRequestStatus : uint8_t {
+    Unknown = 0,        //!< Status not known.
+    Queued,             //!< Transfer hasn't started yet.
+    OnGoing,            //!< Transfer is currently on going.
+    Complete,           //!< Transfer has been completed.
+    CancelRequested,    //!< Cancel requested, but not yet served.
+    Cancelled,          //!< Transfer has been cancelled.
+};
 }
+
+#endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_REQUEST_STATUS_H

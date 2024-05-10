@@ -18,10 +18,12 @@
 
 #ifndef FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_H
 #define FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_H
+#include "Brigerad/Core/Core.h"
+#include "sdo_downloader.h"
 #include "sdo_uploader.h"
 
-#include <CO_SDOclient.h>
 #include <CO_ODinterface.h>
+#include <CO_SDOclient.h>
 
 #include <condition_variable>
 #include <cstdint>
@@ -50,8 +52,8 @@ public:
              SdoManager();
     explicit SdoManager(uint8_t nodeId);
 
-    [[nodiscard]] bool   hasRequestPending() const;
-    [[nodiscard]] size_t requestsPending() const;
+    [[nodiscard]] bool   hasUploadRequestsPending() const;
+    [[nodiscard]] size_t uploadRequestsPending() const;
 
     [[nodiscard]] OD_entry_t makeSdoClientOdEntry() const;
 
@@ -70,15 +72,54 @@ public:
                                    uint16_t sdoTimeoutTimeMs = 1000,
                                    bool     isBlock          = false);
 
-private:
-    [[nodiscard]] bool isAbleToMakeRequests() const
+    template<typename T>
+        requires std::is_trivially_copyable_v<T>
+    SdoDownloadDataResult downloadData(
+      uint16_t index, uint8_t subIndex, const T& data, uint16_t sdoTimeoutTimeMs = 1000, bool isBlock = false)
     {
-        return m_isUploadWorkerActive && m_nodeId != s_noNodeId && m_sdoClient != nullptr;
+        SdoDownloadDataResult result;
+        result.m_request = std::make_unique<SdoDownloadRequest>(
+          SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, [&data] {
+              auto tmp = std::vector<uint8_t>(sizeof(data), 0);
+              std::memcpy(tmp.data(), &data, sizeof(data));
+              return tmp;
+          }());
+
+        result.future = result.m_request->promise.get_future();
+
+        if (!isAbleToMakeUploadRequests()) {
+            // It's impossible to make requests without a client to talk with!
+            result.m_request->abort(CO_SDO_AB_GENERAL);
+            return result;
+        }
+
+        {
+            // Queue the message.
+            std::unique_lock lock {m_downloadLock};
+            m_pendingDownloadRequests.emplace(result.m_request);
+            m_downloadCv.notify_all();
+        }
+
+        BR_ASSERT(result.future.valid(), "Future is not valid!");
+
+        return result;
     }
+
+private:
+    [[nodiscard]] bool isAbleToMakeUploadRequests() const
+    {
+        return m_isUploadWorkerActive && m_isDownloadWorkerActive && m_nodeId != s_noNodeId && m_sdoClient != nullptr;
+    }
+
+    void startWorkers();
+    void stopWorkers();
 
     void uploadWorkerThread(const std::stop_token& stopToken);
     void handleUploadRequest(SdoUploadRequest& request);
     void readUploadBufferIntoRequest(SdoUploadRequest& request);
+
+    void downloadWorkerThread(const std::stop_token& stopToken);
+    void handleDownloadRequest(SdoDownloadRequest& request);
 
     void setNodeId(uint8_t nodeId);
     void setSdoClient(CO_SDOclient_t* sdoClient);
@@ -89,15 +130,23 @@ private:
     uint8_t                  m_nodeId    = s_noNodeId;
     CO_SDOclient_t*          m_sdoClient = nullptr;
 
-    SdoClientInfo   m_clientInfo;
+    SdoClientInfo                    m_clientInfo;
     std::unique_ptr<OD_obj_record_t> m_odObjRecord;
 
-    std::queue<std::shared_ptr<SdoUploadRequest>> m_pendingUploadRequests;
+    std::queue<std::shared_ptr<SdoUploadRequest>>   m_pendingUploadRequests;
+    std::queue<std::shared_ptr<SdoDownloadRequest>> m_pendingDownloadRequests;
 
-    std::mutex                  m_lock;
-    std::condition_variable_any m_cv;
+    std::stop_source m_stopSource;
+
+    std::mutex                  m_uploadLock;
+    std::condition_variable_any m_uploadCv;
     bool                        m_isUploadWorkerActive = false;
     std::jthread                m_uploadWorkerThread;
+
+    std::mutex                  m_downloadLock;
+    std::condition_variable_any m_downloadCv;
+    bool                        m_isDownloadWorkerActive = false;
+    std::jthread                m_downloadWorkerThread;
 
     static constexpr const char* s_cliTag = "SDO Client";
     static constexpr const char* s_srvTag = "SDO Server";

@@ -23,7 +23,7 @@
 #include <CO_NMT_Heartbeat.h>
 #include <CO_SDOserver.h>
 
-#include "services/sdo_uploader.h"
+#include "services/sdo_request_status.h"
 
 #include <spdlog/spdlog.h>
 
@@ -243,15 +243,15 @@ constexpr std::string_view toString(CO_SDO_abortCode_t code)
     }
 }
 
-constexpr std::string_view toString(SdoUploadRequestStatus status)
+constexpr std::string_view toString(SdoRequestStatus status)
 {
     switch (status) {
-        case SdoUploadRequestStatus::Queued: return "Queued";
-        case SdoUploadRequestStatus::OnGoing: return "On Going";
-        case SdoUploadRequestStatus::Complete: return "Complete";
-        case SdoUploadRequestStatus::CancelRequested: return "Cancel Requested";
-        case SdoUploadRequestStatus::Cancelled: return "Cancelled";
-        case SdoUploadRequestStatus::Unknown:
+        case SdoRequestStatus::Queued: return "Queued";
+        case SdoRequestStatus::OnGoing: return "On Going";
+        case SdoRequestStatus::Complete: return "Complete";
+        case SdoRequestStatus::CancelRequested: return "Cancel Requested";
+        case SdoRequestStatus::Cancelled: return "Cancelled";
+        case SdoRequestStatus::Unknown:
         default: return "Unknown";
     }
 }
