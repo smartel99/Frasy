@@ -188,9 +188,9 @@ void MainApplicationLayer::renderAbout()
 {
     ImGui::Begin("About", &m_renderAbout);
 
-    ImGui::Text("%s version %s", Version::description, Version::versionStr);
-    ImGui::TextUnformatted(Version::author);
-    ImGui::TextUnformatted(Version::copyright);
+    ImGui::Text("%s version %s", version.description, version.versionStr);
+    ImGui::TextUnformatted(version.author);
+    ImGui::TextUnformatted(version.copyright);
 
     ImGui::End();
 }

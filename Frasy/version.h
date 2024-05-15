@@ -15,6 +15,7 @@
 
 /*****************************************************************************/
 /* Includes */
+#    include "utils/models/version.h"
 #    include <string>
 
 /*****************************************************************************/
@@ -28,8 +29,8 @@
 #    define VERSION_BUILD            1273
 #    define VER_FILE_DESCRIPTION_STR "Frasy Universal Test-Bench Control Station"
 #    define VER_FILE_VERSION         VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD
-#    define VER_FILE_VERSION_STR \
-        STRINGIZE(VERSION_MAJOR) \
+#    define VER_FILE_VERSION_STR                                                                                       \
+        STRINGIZE(VERSION_MAJOR)                                                                                       \
         "." STRINGIZE(VERSION_MINOR) "." STRINGIZE(VERSION_REVISION) "." STRINGIZE(VERSION_BUILD)
 
 #    define VER_PRODUCTNAME_STR       "Frasy Universal Test-Bench Control Station"
@@ -38,7 +39,7 @@
 #    define VER_ORIGINAL_FILENAME_STR VER_PRODUCTNAME_STR ".exe"
 #    define VER_INTERNAL_NAME_STR     VER_ORIGINAL_FILENAME_STR
 #    define VER_AUTHOR_STR            "Written by Paul Thomas and Samuel Martel"
-#    define VER_COPYRIGHT_STR \
+#    define VER_COPYRIGHT_STR                                                                                          \
         R"(This program is free software: you can redistribute it and/or modify it under the\
 terms of the GNU General Public License as published by the Free Software Foundation, either\
 version 3 of the License, or (at your option) any later version.\
@@ -64,17 +65,18 @@ not, see https://www.gnu.org/licenses/>https://www.gnu.org/licenses/.)"
 
 /*****************************************************************************/
 /* Exported types */
-struct Version
-{
-    static constexpr size_t      major       = VERSION_MAJOR;
-    static constexpr size_t      minor       = VERSION_MINOR;
-    static constexpr size_t      revision    = VERSION_REVISION;
-    static constexpr size_t      build       = VERSION_BUILD;
-    static constexpr const char* versionStr  = VER_FILE_VERSION_STR;
-    static constexpr const char* description = VER_FILE_DESCRIPTION_STR;
-    static constexpr const char* copyright   = VER_COPYRIGHT_STR;
-    static constexpr const char* author      = VER_AUTHOR_STR;
+namespace Frasy {
+constexpr Version version = {
+  .major       = VERSION_MAJOR,
+  .minor       = VERSION_MINOR,
+  .revision    = VERSION_REVISION,
+  .build       = VERSION_BUILD,
+  .versionStr  = VER_FILE_VERSION_STR,
+  .description = VER_FILE_DESCRIPTION_STR,
+  .copyright   = VER_COPYRIGHT_STR,
+  .author      = VER_AUTHOR_STR,
 };
+}
 
 /*****************************************************************************/
 /* Exported functions */
