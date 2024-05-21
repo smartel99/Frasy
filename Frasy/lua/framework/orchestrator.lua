@@ -24,8 +24,8 @@ local Json             = require("lua/core/vendor/json")
 
 Orchestrator           = {}
 
-if Context.Orchestrator == nil then
-    Context.Orchestrator = {
+if Context.orchestrator == nil then
+    Context.orchestrator = {
         sequences          = {},
         scope              = nil,
         solution           = {},
@@ -43,24 +43,24 @@ end
 
 local function is_scope_enabled(scope)
     if not Orchestrator.HasScope(scope) then error(NotFound()) end
-    local sequence = Context.Orchestrator.enable_list[scope.sequence]
+    local sequence = Context.orchestrator.enable_list[scope.sequence]
     if sequence == nil then return true end
     if scope.test == nil then
         return sequence.enabled == true
     else
         if sequence.enabled == false then return false end
-        local test = Context.Orchestrator.enable_list[scope.sequence][scope.test]
+        local test = Context.orchestrator.enable_list[scope.sequence][scope.test]
         return test.enabled == true
     end
 end
 
 function Orchestrator.RunSequence(sIndex, scope)
-    local sequence             = Context.Orchestrator.sequences[scope.sequence]
-    Context.Orchestrator.scope = scope
+    local sequence             = Context.orchestrator.sequences[scope.sequence]
+    Context.orchestrator.scope = scope
 
     local start                = os.clock()
     if sequence.time == nil then
-        Context.Orchestrator.values[scope.sequence] = {}
+        Context.orchestrator.values[scope.sequence] = {}
         Log.d("Start sequence " .. scope.sequence)
         sequence.result.enabled = is_scope_enabled(scope)
         if sequence.result.enabled then
@@ -78,7 +78,7 @@ function Orchestrator.RunSequence(sIndex, scope)
     end
 
     if not sequence.result.skipped then
-        for _, sqStage in ipairs(Context.Orchestrator.solution[sIndex]) do
+        for _, sqStage in ipairs(Context.orchestrator.solution[sIndex]) do
             for _, sq in ipairs(sqStage) do
                 if (sq.name == scope.sequence) then
                     for _, tStage in ipairs(sq.tests) do
@@ -116,10 +116,11 @@ function Orchestrator.RunSequence(sIndex, scope)
 end
 
 function Orchestrator.RunTest(scope)
-    local test                                              = Context.Orchestrator.sequences[scope.sequence].tests[scope.test]
+    local test                                              = Context.orchestrator.sequences[scope.sequence].tests
+    [scope.test]
     test.result.enabled                                     = is_scope_enabled(scope)
-    Context.Orchestrator.values[scope.sequence][scope.test] = {}
-    Context.Orchestrator.scope                              = scope
+    Context.orchestrator.values[scope.sequence][scope.test] = {}
+    Context.orchestrator.scope                              = scope
     Log.d("Start Test " .. scope.test)
     test.expectations      = {}
     test.result.time       = {}
@@ -180,11 +181,11 @@ function Orchestrator.Generate()
     while hasFailedSequences do
         hasFailedSequences           = false
         local hasProgressOnSequences = false
-        for sName, sequence in pairs(Context.Orchestrator.sequences) do
+        for sName, sequence in pairs(Context.orchestrator.sequences) do
             if completedSequences[sName] ~= nil then
                 Log.d("Sequence " .. sName .. " already generated, skipping")
             else
-                Context.Orchestrator.scope = Scope:new(sName)
+                Context.orchestrator.scope = Scope:new(sName)
                 Log.d("Generating sequence " .. sName)
                 sequence.func()
                 sd[sName] = {}
@@ -202,7 +203,7 @@ function Orchestrator.Generate()
                                 Log.d("Test " .. tName .. " already generated, skipping")
                             else
                                 Log.d("Generating test " .. tName)
-                                Context.Orchestrator.scope = Scope:new(sName, tName)
+                                Context.orchestrator.scope = Scope:new(sName, tName)
                                 local _, err               = xpcall(test.func, error_handler)
                                 if err == nil then
                                     td[sName][tName] = {}
@@ -238,7 +239,7 @@ function Orchestrator.Generate()
             error(GenerationError("Stuck on sequence generation"))
         end
     end
-    Context.Orchestrator.scope = nil
+    Context.orchestrator.scope = nil
     local edges                = {
         first = {
             sequence = nil,
@@ -250,7 +251,7 @@ function Orchestrator.Generate()
         },
     }
 
-    for _, requirement in ipairs(Context.Orchestrator.order_requirements) do
+    for _, requirement in ipairs(Context.orchestrator.order_requirements) do
         if not Orchestrator.HasScope(requirement.scope) then
             error(InvalidRequirement())
         end
@@ -287,7 +288,7 @@ function Orchestrator.Generate()
         end
     end
 
-    for _, requirement in pairs(Context.Orchestrator.sync_requirements) do
+    for _, requirement in pairs(Context.orchestrator.sync_requirements) do
         if requirement.scope.sequence == nil then
             error(InvalidRequirement())
         end
@@ -307,10 +308,10 @@ function Orchestrator.Generate()
     ordered.tests     = {}
     for sequence, tests in pairs(tn) do
         ordered.tests[sequence] = Sort.SortScopes(
-                tests,
-                edges.first.tests[sequence],
-                edges.last.tests[sequence],
-                td[sequence])
+            tests,
+            edges.first.tests[sequence],
+            edges.last.tests[sequence],
+            td[sequence])
     end
 
     local sectionized     = {}
@@ -320,14 +321,14 @@ function Orchestrator.Generate()
         sectionized.tests[sequence] = Sort.Sectionize(tests, ts[sequence])
     end
 
-    Context.Orchestrator.solution = Sort.CombineSectionized(sectionized.sequences, sectionized.tests)
-    return Context.Orchestrator.solution
+    Context.orchestrator.solution = Sort.CombineSectionized(sectionized.sequences, sectionized.tests)
+    return Context.orchestrator.solution
 end
 
 function Orchestrator.Validate()
     Log.d("Validation")
-    for sIndex, section in ipairs(Context.Orchestrator.solution) do
-        Context.Orchestrator.section = section
+    for sIndex, section in ipairs(Context.orchestrator.solution) do
+        Context.orchestrator.section = section
         for _, sequenceStage in ipairs(section) do
             for _, sequence in ipairs(sequenceStage) do
                 Orchestrator.RunSequence(sIndex, Scope:new(sequence.name))
@@ -338,13 +339,13 @@ end
 
 function Orchestrator.ExecuteSection(index)
     Log.d("Section execution : " .. tostring(index))
-    local section = Context.Orchestrator.solution[index]
+    local section = Context.orchestrator.solution[index]
     local results = { time = {} }
     if index == 1 then
-        Context.Orchestrator.section         = {}
-        Context.Orchestrator.section         = {}
-        Context.Orchestrator.section.results = {}
-        Context.time.start                   = os.clock()
+        Context.orchestrator.section         = {}
+        Context.orchestrator.section         = {}
+        Context.orchestrator.section.results = {}
+        Context.info.time.start              = os.clock()
         results.time.start                   = os.clock()
     end
     for _, sequenceStage in ipairs(section) do
@@ -353,27 +354,27 @@ function Orchestrator.ExecuteSection(index)
         end
     end
     results.time.stop                           = os.clock()
-    Context.Orchestrator.section.results[index] = results
+    Context.orchestrator.section.results[index] = results
 end
 
 function Orchestrator.CompileExecutionResults(outputDir)
     local report     = {}
     report.info      = {
-        version  = Context.version,
-        operator = Context.operator,
-        serial   = Context.serial,
-        uut      = Context.uut,
+        version  = Context.info.version,
+        operator = Context.info.operator,
+        serial   = Context.info.serial,
+        uut      = Context.info.uut,
         date     = os.date(),
         pass     = true,
         time     = {
-            start   = Context.time.start,
+            start   = Context.info.time.start,
             stop    = os.clock(),
-            elapsed = os.clock() - Context.time.start,
+            elapsed = os.clock() - Context.info.time.start,
             process = 0,
         }
     }
     report.sequences = {}
-    for sName, sequence in pairs(Context.Orchestrator.sequences) do
+    for sName, sequence in pairs(Context.orchestrator.sequences) do
         if not sequence.result.pass then
             report.info.pass = false
         end
@@ -381,7 +382,7 @@ function Orchestrator.CompileExecutionResults(outputDir)
         report.sequences[sName].tests = {}
         for tName, test in pairs(sequence.tests) do
             report.sequences[sName].tests[tName]              = test.result
-            report.sequences[sName].tests[tName].expectations = { }
+            report.sequences[sName].tests[tName].expectations = {}
             for _, expectation in pairs(test.expectations) do
                 table.insert(report.sequences[sName].tests[tName].expectations, expectation)
             end
@@ -395,35 +396,35 @@ function Orchestrator.CompileExecutionResults(outputDir)
         report.sequences[sName].time.elapsed = report.sequences[sName].time.stop - report.sequences[sName].time.start
         report.info.time.process             = report.info.time.process + report.sequences[sName].time.process
     end
-    Utils.save_as_json(report, string.format("%s/%s.json", outputDir, Context.uut))
+    Utils.save_as_json(report, string.format("%s/%s.json", outputDir, Context.info.uut))
 end
 
 function Orchestrator.SaveSolution(path)
-    Utils.save_as_json(Context.Orchestrator.solution, path)
+    Utils.save_as_json(Context.orchestrator.solution, path)
 end
 
 function Orchestrator.LoadSolution(path)
     local file                    = io.open(path, "r")
-    Context.Orchestrator.solution = Json.decode(file:read("*all"))
+    Context.orchestrator.solution = Json.decode(file:read("*all"))
 end
 
 function Orchestrator.CreateSequence(name, func)
     if Orchestrator.IsInSequence() then error(NestedScope()) end
     if Orchestrator.HasSequence(Scope:new(name)) then error(AlreadyDefined()) end
-    Context.Orchestrator.sequences[name] = Sequence:new(func)
-    Context.Orchestrator.values[name]    = {}
+    Context.orchestrator.sequences[name] = Sequence:new(func)
+    Context.orchestrator.values[name]    = {}
 end
 
 function Orchestrator.CreateTest(name, func)
     if not Orchestrator.IsInSequence() then error(BadScope()) end
     if Orchestrator.IsInTest() then error(NestedScope()) end
-    Context.Orchestrator.sequences[Context.Orchestrator.scope.sequence].tests[name] = Test:new(func)
-    Context.Orchestrator.values[Context.Orchestrator.scope.sequence][name]          = {}
+    Context.orchestrator.sequences[Context.orchestrator.scope.sequence].tests[name] = Test:new(func)
+    Context.orchestrator.values[Context.orchestrator.scope.sequence][name]          = {}
 end
 
 function Orchestrator.GetSequenceScopeRequirement(name)
     if not Orchestrator.IsInSequence() then error(BadScope()) end
-    if name == nil then name = Context.Orchestrator.scope.sequence end
+    if name == nil then name = Context.orchestrator.scope.sequence end
     return ScopeRequirement:new(Orchestrator, Scope:new(name, nil))
 end
 
@@ -431,26 +432,26 @@ function Orchestrator.GetTestScopeRequirement(name)
     if not Orchestrator.IsInSequence() then error(BadScope()) end
     if name == nil then
         if not Orchestrator.IsInTest() then error(BadScope()) end
-        name = Context.Orchestrator.scope.test
+        name = Context.orchestrator.scope.test
     end
-    return ScopeRequirement:new(Orchestrator, Scope:new(Context.Orchestrator.scope.sequence, name))
+    return ScopeRequirement:new(Orchestrator, Scope:new(Context.orchestrator.scope.sequence, name))
 end
 
 function Orchestrator.GetSyncRequirement()
     if not Orchestrator.IsInSequence() then error(BadScope()) end
-    return SyncRequirement:new(Context.Orchestrator.scope)
+    return SyncRequirement:new(Context.orchestrator.scope)
 end
 
-function Orchestrator.IsInSequence() return Context.Orchestrator.scope ~= nil end
+function Orchestrator.IsInSequence() return Context.orchestrator.scope ~= nil end
 
 function Orchestrator.IsInTest()
-    return Context.Orchestrator.scope ~= nil and Context.Orchestrator.scope.test ~= nil
+    return Context.orchestrator.scope ~= nil and Context.orchestrator.scope.test ~= nil
 end
 
-function Orchestrator.HasSequence(scope) return Context.Orchestrator.sequences[scope.sequence] ~= nil end
+function Orchestrator.HasSequence(scope) return Context.orchestrator.sequences[scope.sequence] ~= nil end
 
 function Orchestrator.HasTest(scope)
-    return Orchestrator.HasSequence(scope) and Context.Orchestrator.sequences[scope.sequence].tests[scope.test] ~= nil
+    return Orchestrator.HasSequence(scope) and Context.orchestrator.sequences[scope.sequence].tests[scope.test] ~= nil
 end
 
 function Orchestrator.HasScope(scope)
@@ -459,68 +460,75 @@ end
 
 function Orchestrator.HasValue(scope, name)
     if not Orchestrator.HasScope(scope) then error(BadScope()) end
-    return Context.Orchestrator.values[scope.sequence][scope.test][name] ~= nil
+    return Context.orchestrator.values[scope.sequence][scope.test][name] ~= nil
 end
 
 function Orchestrator.SetValue(scope, name, value)
-    if Orchestrator.HasValue(scope, name) and Context.stage ~= Stage.Generation then error(AlreadyDefined()) end
-    Context.Orchestrator.values[scope.sequence][scope.test][name] = value
+    if Orchestrator.HasValue(scope, name) and Context.info.stage ~= Stage.Generation then error(AlreadyDefined()) end
+    Context.orchestrator.values[scope.sequence][scope.test][name] = value
 end
 
 function Orchestrator.GetValue(scope, name)
     if not Orchestrator.HasValue(scope, name) then error(NotFound()) end
-    return Context.Orchestrator.values[scope.sequence][scope.test][name]
+    return Context.orchestrator.values[scope.sequence][scope.test][name]
 end
 
 function Orchestrator.AddOrderRequirement(requirement)
     if not Orchestrator.IsInSequence() then error(BadScope()) end
-    table.insert(Context.Orchestrator.order_requirements, requirement)
+    table.insert(Context.orchestrator.order_requirements, requirement)
 end
 
 function Orchestrator.AddSyncRequirement(requirement)
     if not Orchestrator.IsInSequence() then error(BadScope()) end
-    table.insert(Context.Orchestrator.sync_requirements, requirement)
+    table.insert(Context.orchestrator.sync_requirements, requirement)
 end
 
 function Orchestrator.AddExpectationResult(result)
     if not Orchestrator.IsInTest() then error(BadScope()) end
-    local scope = Context.Orchestrator.scope
-    table.insert(Context.Orchestrator.sequences[scope.sequence].tests[scope.test].expectations, result)
+    local scope = Context.orchestrator.scope
+    table.insert(Context.orchestrator.sequences[scope.sequence].tests[scope.test].expectations, result)
 end
 
-function Orchestrator.GetScope() return Context.Orchestrator.scope end
+function Orchestrator.GetScope() return Context.orchestrator.scope end
 
 function Orchestrator.HasPassed(scope)
     if not Orchestrator.HasScope(scope) then error(NotFound(scope:ToString())) end
-    local s = Context.Orchestrator.sequences[scope.sequence]
+    local s = Context.orchestrator.sequences[scope.sequence]
     if scope.test ~= nil then s = s.tests[scope.test] end
     return (not s.result.skipped) and s.result.pass
 end
 
 function Orchestrator.HasBeenSkipped(scope)
     if not Orchestrator.HasScope(scope) then error(NotFound(scope:ToString())) end
-    local s = Context.Orchestrator.sequences[scope.sequence]
+    local s = Context.orchestrator.sequences[scope.sequence]
     if scope.test ~= nil then s = s.tests[scope.test] end
     return s.result.skipped
 end
 
 function Orchestrator.Enable(sequence, test)
     local scope = Scope:new(sequence, test)
-    if not Orchestrator.HasScope(scope) then error(BadScope("S: %s, T: %s", tostring(sequence),
-                                                            tostring(test))) end
-    local s = Context.Orchestrator.enable_list[sequence]
+    if not Orchestrator.HasScope(scope) then
+        error(BadScope("S: %s, T: %s", tostring(sequence),
+            tostring(test)))
+    end
+    local s = Context.orchestrator.enable_list[sequence]
     if s == nil then s = { enabled = true } end
     if test ~= nil then s[test] = true end
-    Context.Orchestrator.enable_list[sequence] = s
+    Context.orchestrator.enable_list[sequence] = s
 end
 
 function Orchestrator.Disable(sequence, test)
     local scope = Scope:new(sequence, test)
-    if not Orchestrator.HasScope(scope) then error(BadScope("S: %s, T: %s", tostring(sequence),
-                                                            tostring(test))) end
-    local s = Context.Orchestrator.enable_list[sequence]
+    if not Orchestrator.HasScope(scope) then
+        error(BadScope("S: %s, T: %s", tostring(sequence),
+            tostring(test)))
+    end
+    local s = Context.orchestrator.enable_list[sequence]
     if s == nil then s = { enabled = true } end
-    if test == nil then s = { enabled = false }
-    else s[test] = false end
-    Context.Orchestrator.enable_list[sequence] = s
+    if test == nil then
+        s = { enabled = false }
+    else
+        s[test] = false
+    end
+    Context.orchestrator.enable_list[sequence] = s
 end

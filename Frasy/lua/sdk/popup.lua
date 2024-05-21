@@ -70,13 +70,13 @@ function PopupBuilder:Routine(routine)
 end
 
 function PopupBuilder:Consume()
-    if (Context.stage == Stage.Execution) then
+    if (Context.info.stage == Stage.Execution) then
         __popup.consume(self)
     end
 end
 
 function PopupBuilder:Show()
-    if (Context.stage == Stage.Execution) then
+    if (Context.info.stage == Stage.Execution) then
         __popup.show(self)
     end
 end

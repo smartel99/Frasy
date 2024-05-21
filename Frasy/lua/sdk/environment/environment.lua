@@ -13,39 +13,76 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-local mapper = require("lua/core/sdk/environment/map")
-local worker = require("lua/core/sdk/environment/worker")
-local team = require("lua/core/sdk/environment/team")
+local _worker = require("lua/core/sdk/environment/worker")
+local _team = require("lua/core/sdk/environment/team")
+local _ib = require("lua/core/sdk/environment/ib")
 
+if (Context.map == nil) then
+    Context.map = {
+        uuts = {},
+        ibs = {},
+        team = {},
+        values = {},
+    }
+end
+
+if (Ibs == nil) then
+    Ibs = {}
+end
 
 ---Environment
 ---@param func function Function that defines the environment.
 function Environment(func)
     func()
-    Map = mapper.validate()
-    team.validate()
-    worker.evaluate()
+    -- _map.validate()
+    _team.validate()
+    _worker.evaluate()
 end
 
----@class TestPoint
----@field public To fun(uut: number, ib: number, tp: number):TestPoint Establishes a connection between the UUT and the instrumentation board.
----
+function TestPoint(ibs, index)
+    return { ibs = ibs, index = index }
+end
 
---- Creates a new test point
----@param name string The name of the test point.
----@return TestPoint
-function TestPoint(name)
-    if name ~= nil then
-        mapper.TestPoint.New(name)
+local function setUutCount(count)
+    Context.map.uuts = {};
+    for i = 1, count do
+        table.insert(Context.map.uuts, i)
     end
-    return {
-        To = mapper.TestPoint.To,
-        Count = mapper.TestPoint.Count,
-    }
 end
 
-UUT = { Count = mapper.UUT.Count }
+local function addTeam(...)
+    Context.team.hasTeam = true
+    local leader
+    for index, uuts in ipairs({ ... }) do
+        if index == 1 then leader = uuts end
+        assert(Context.team.players[uuts] == nil,
+            TeamError(string.format("Player %d is already in team %d", uuts, leader)))
+        Context.team.players[uuts] = { leader = leader, position = index }
+    end
+    Context.team.teams[leader] = { ... }
+end
 
-IB = { Count = mapper.IB.Count }
+local function addUutValue(key)
+--     assert(Context.info.stage == Stage.Generation, "AddUutValue, invalid stage")
+    assert(type(key) == "string", "AddUutValue, argument is not a string")
+    Context.map.values[key] = {}
+    local t = {}
+    t.Link = function(uuts, value)
+        assert(type(uuts) == "number", "AddUutValue.Link, uuts is not a number")
+        Context.map.values[key][uuts] = value
+        return t
+    end
+    return t
+end
 
-Worker = { Count = worker.count, Limit = worker.limit }
+local function addIb(base)
+    local nIb = _ib:new(base)
+    table.insert(Context.map.ibs, nIb)
+    return nIb
+end
+
+Uut = { Count = setUutCount }
+Ib = { Add = addIb }
+UutValue = { Add = addUutValue }
+Team.Add = addTeam
+Worker = { Limit = _worker.Limit }

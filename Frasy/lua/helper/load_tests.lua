@@ -16,5 +16,5 @@
 return function(directory)
     local files = Utils.dirlist(directory)
     for _, file in ipairs(files) do require(file) end
-    Context.Orchestrator.enable_list = {}
+    Context.orchestrator.enable_list = {}
 end

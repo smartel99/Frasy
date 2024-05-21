@@ -12,10 +12,9 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
 Team = {}
-if Context.Team == nil then
-    Context.Team = {
+if Context.team == nil then
+    Context.team = {
         players = {},
         teams   = {},
         hasTeam = false,
@@ -27,52 +26,27 @@ Team.Status = {
     fail             = 1,
     critical_failure = 2,
 }
-
---- Create a new team
---- @vararg number the UUT to join the team. Provided in order, first is leader
-function Team.Join(...)
-    Context.Team.hasTeam = true
-    local leader
-    for index, uut in ipairs({ ... }) do
-        if index == 1 then leader = uut end
-        if Context.Team.players[uut] ~= nil then
-            TeamError(string.format("Player %d is already in team %d", uut, leader))
-        end
-        Context.Team.players[uut] = { leader = leader, position = index }
-    end
-    Context.Team.teams[leader] = { ... }
-end
-
 function Team.Wait(fun)
-    if not Team.IsLeader() then
-        TeamError("Only leader can wait for others")
-    end
-    if fun == nil then
-        TeamError("No routine provided")
-    end
-    if type(fun) ~= "function" then
-        TeamError("Argument is not a function")
-    end
+    assert(Team.IsLeader(), TeamError("Only leader can wait for others"))
+    assert(type(fun) == "function", TeamError("Invalid routine provided: " .. type(fun)))
     Team.__wait(fun)
 end
 
 function Team.Done()
-    if Team.IsLeader() then
-        TeamError("Only teammate can report as done")
-    end
+    assert(not Team.IsLeader, TeamError("Only teammate can report as done"))
     Team.__done()
 end
 
 function Team.GetLeader()
-    return Context.Team.players[Context.uut].leader
+    return Context.team.players[Context.info.uut].leader
 end
 
 function Team.IsLeader()
-    return Context.Team.players[Context.uut].position == 1
+    return Context.team.players[Context.info.uut].position == 1
 end
 
 function Team.Position()
-    return Context.Team.players[Context.uut].position
+    return Context.team.players[Context.info.uut].position
 end
 
 function Team.Tell(value)
@@ -95,7 +69,7 @@ function Team.Sync(result)
         else
             status = Team.Status.pass
         end
-        team_status = Team.__sync(status)
+        local team_status = Team.__sync(status)
         if team_status ~= status then
             if team_status == Team.Status.fail then
                 result.pass   = false
@@ -118,47 +92,37 @@ function Team.Fail()
 end
 
 function Team.HasTeam()
-    return Context.Team.hasTeam
+    return Context.team.hasTeam
 end
 
 -- C++ calls
 function Team.__tell(value) end
+
 function Team.__get() end
-function Team.__wait() end
+
+function Team.__wait(fun) end
+
 function Team.__done() end
+
 function Team.__sync(status) end
+
 function Team.__fail() end
 
 -- not exposed to user
 local team = {}
 function team.validate()
-    if not Context.Team.hasTeam then
+    if not Context.team.hasTeam then
         Log.d("Team Not enabled")
         return
     end
 
     local playersCount = 0
-    for _, _ in pairs(Context.Team.players) do
+    for _, _ in pairs(Context.team.players) do
         playersCount = playersCount + 1
     end
-    if playersCount ~= Context.Map.count.uut then
-        error(TeamError(string.format(
-                "Expected %d players, got %d",
-                Context.Map.count.uut, playersCount)))
-    end
-
-    for leader, players in ipairs(Context.Team.teams) do
-        local teamIb = Context.Map.uut[leader].ib
-        for uut, info in pairs(players) do
-            local playerIb = Context.Map.uut[uut].ib
-            if playerIb ~= teamIb then
-                error(TeamError(string.format(
-                        "IB missmatch. Team %d IB is %d, Player %d IB is %d",
-                        leader, teamIb, uut, playerIb)))
-            end
-        end
-    end
-
+    assert(playersCount == #Context.map.uuts,
+        TeamError(string.format("Expected %d players, got %d", #Context.map.uuts, playersCount)))
     Log.d("Team OK!")
 end
+
 return team

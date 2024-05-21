@@ -13,12 +13,12 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-if Context.stage == Stage.Generation then
+if Context.info.stage == Stage.Generation then
     return require("lua/core/framework/scope_requirement/generation")
-elseif Context.stage == Stage.Validation then
+elseif Context.info.stage == Stage.Validation then
     return require("lua/core/framework/scope_requirement/validation")
-elseif Context.stage == Stage.Execution then
+elseif Context.info.stage == Stage.Execution then
     return require("lua/core/framework/scope_requirement/execution")
 else
-    error(InvalidStage("Stage: " .. Context.stage))
+    error(InvalidStage("Stage: " .. Context.info.stage))
 end

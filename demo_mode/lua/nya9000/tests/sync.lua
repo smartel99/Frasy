@@ -21,7 +21,7 @@ Sequence("Sync", function()
         Log.i("Before sync")
         -- Be extremely careful with this call.
         -- If you do not reach it on each active UUT, the software will deadlock
-        Sync.Global()
+        Sync()
         Log.i("After sync")
     end)
 end)

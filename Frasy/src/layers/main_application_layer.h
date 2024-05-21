@@ -78,12 +78,12 @@ protected:
     bool m_renderAbout = false;
     bool m_noMove      = true;
 
-    std::unique_ptr<LogWindow>      m_logWindow      = nullptr;
-    std::unique_ptr<DeviceViewer>   m_deviceViewer   = nullptr;
-    std::unique_ptr<CanOpenViewer::Layer>  m_canOpenViewer  = nullptr;
-    std::unique_ptr<ResultViewer>   m_resultViewer   = nullptr;
-    std::unique_ptr<ResultAnalyzer> m_resultAnalyzer = nullptr;
-    std::unique_ptr<TestViewer>     m_testViewer     = nullptr;
+    std::unique_ptr<LogWindow>            m_logWindow      = nullptr;
+    std::unique_ptr<DeviceViewer>         m_deviceViewer   = nullptr;
+    std::unique_ptr<CanOpenViewer::Layer> m_canOpenViewer  = nullptr;
+    std::unique_ptr<ResultViewer>         m_resultViewer   = nullptr;
+    std::unique_ptr<ResultAnalyzer>       m_resultAnalyzer = nullptr;
+    std::unique_ptr<TestViewer>           m_testViewer     = nullptr;
 
     Brigerad::Ref<Brigerad::Texture2D> m_run;
     Brigerad::Ref<Brigerad::Texture2D> m_runWarn;
@@ -96,7 +96,7 @@ protected:
     Brigerad::Ref<Brigerad::Texture2D> m_disabled;
 
     Lua::Orchestrator m_orchestrator;
-    Map               m_map;
+    Lua::Map          m_map;
 
     CanOpen::CanOpen m_canOpen;
 

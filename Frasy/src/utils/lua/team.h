@@ -23,15 +23,10 @@
 #include <sol/sol.hpp>
 #include <vector>
 
-class Team
-{
+namespace Frasy::Lua {
+class Team {
 private:
-    enum SyncState
-    {
-        pass,
-        fail,
-        critical_failure
-    };
+    enum SyncState { pass, fail, critical_failure };
     std::size_t                                    m_teamSize = 0;
     std::unique_ptr<sol::state>                    m_teamState;
     std::array<std::unique_ptr<std::barrier<>>, 3> m_bShare;
@@ -44,10 +39,10 @@ private:
     std::vector<SyncState>                         m_syncStates;
 
 public:
-    Team() = default;
+             Team() = default;
     explicit Team(std::size_t teamSize);
-    void InitializeState(sol::state_view other, std::size_t uut, std::size_t position, bool is_leader);
-    void Store(sol::state_view lua, const sol::object& o);
+    void     InitializeState(sol::state_view other, std::size_t uut, std::size_t position, bool is_leader);
+    void     Store(sol::state_view lua, const sol::object& o);
     std::optional<sol::object> Load(sol::state_view lua);
 
 private:
@@ -59,5 +54,6 @@ private:
     void                       _Store(sol::state_view lua, const sol::object& o);
     std::optional<sol::object> _Load(sol::state_view lua, std::size_t& cur);
 };
+}    // namespace Frasy::Lua
 
 #endif    // FRASYLUA_TEAM_H

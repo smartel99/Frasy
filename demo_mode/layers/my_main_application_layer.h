@@ -35,11 +35,11 @@ class MyMainApplicationLayer final : public Frasy::MainApplicationLayer {
     };
 
 public:
-                            MyMainApplicationLayer()                              = default;
-                            MyMainApplicationLayer(const MyMainApplicationLayer&) = delete;
-    MyMainApplicationLayer& operator=(const MyMainApplicationLayer&)              = delete;
-                            MyMainApplicationLayer(MyMainApplicationLayer&&)      = delete;
-    MyMainApplicationLayer& operator=(MyMainApplicationLayer&&)                   = delete;
+    MyMainApplicationLayer()                                         = default;
+    MyMainApplicationLayer(const MyMainApplicationLayer&)            = delete;
+    MyMainApplicationLayer& operator=(const MyMainApplicationLayer&) = delete;
+    MyMainApplicationLayer(MyMainApplicationLayer&&)                 = delete;
+    MyMainApplicationLayer& operator=(MyMainApplicationLayer&&)      = delete;
 
     ~MyMainApplicationLayer() override = default;
 
@@ -77,10 +77,10 @@ private:
 
 private:
     static constexpr std::size_t s_operatorLength                              = 20;
-    char                         m_operator[s_operatorLength]                  = "\0";
+    char                         m_operator[s_operatorLength]                  = "Paul\0";
     static constexpr std::size_t serialNumberLength                            = 32;
-    char                         m_serialNumberTopLeft[serialNumberLength]     = "\0";
-    char                         m_serialNumberBottomRight[serialNumberLength] = "\0";
+    char                         m_serialNumberTopLeft[serialNumberLength]     = "0000\0";
+    char                         m_serialNumberBottomRight[serialNumberLength] = "0009\0";
     bool                         m_serialIsDirty                               = false;
     std::vector<std::string>     m_serials;
 

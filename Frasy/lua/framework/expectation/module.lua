@@ -13,11 +13,11 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-if Context.stage == Stage.Generation then
+if Context.info.stage == Stage.Generation then
     return require("lua/core/framework/expectation/generation")
-elseif Context.stage == Stage.Validation then
+elseif Context.info.stage == Stage.Validation then
     return require("lua/core/framework/expectation/validation")
-elseif Context.stage == Stage.Execution then
+elseif Context.info.stage == Stage.Execution then
     return require("lua/core/framework/expectation/execution")
 else
     error(InvalidStage())

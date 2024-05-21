@@ -1,7 +1,7 @@
 /**
  * @file    version.h
  * @author  Paul Thomas
- * @date    5/15/2024
+ * @date    5/16/2024
  * @brief
  *
  * @copyright
@@ -14,29 +14,30 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef FRASY_SRC_UTILS_LUA_VERSION_H
+#define FRASY_SRC_UTILS_LUA_VERSION_H
 
-#include <string>
+#include "utils/models/version.h"
+#include <sol/sol.hpp>
 
-struct Version {
-    size_t      major       = 0;
-    size_t      minor       = 0;
-    size_t      revision    = 0;
-    size_t      build       = 0;
-    const char* versionStr  = "";
-    const char* description = "";
-    const char* copyright   = "";
-    const char* author      = "";
+Version versionFromLuaTable(sol::table table)
+{
+    return {
+      table["major"].get_or<std::size_t>(0),
+      table["minor"].get_or<std::size_t>(0),
+      table["revision"].get_or<std::size_t>(0),
+      table["build"].get_or<std::size_t>(0),
+    };
+}
 
-    static Version            parse(const std::string& version);
-    [[nodiscard]] std::string toString() const
-    {
-        return std::to_string(major) + "."         //
-               + std::to_string(minor) + "."       //
-               + std::to_string(revision) + "."    //
-               + std::to_string(build);
-    }
-};
+sol::table versionToLuaTable(sol::state_view lua, const Version& version)
+{
+    auto table        = lua.create_table();
+    table["major"]    = version.major;
+    table["minor"]    = version.minor;
+    table["revision"] = version.revision;
+    table["build"]    = version.build;
+    return table;
+}
 
-#endif    // VERSION_H
+#endif    // FRASY_SRC_UTILS_LUA_VERSION_H

@@ -14,22 +14,44 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 Environment(function()
-    Team.Join(1, 2, 3, 4) -- Makes a team with UUT 1 as the leader, and UUT 2, 3 and 4 as members.
-    Team.Join(5, 6, 7, 8)
-    Team.Join(9, 10)
+    -- Tell how many UUT we have
+    Uut.Count(10)
 
-    -- Limits the number of teams that can be simultaneously be executed on every instrumentation board.
-    Worker.Limit(IB).To(1, Team)
+    Team.Add(1, 2, 3, 4) -- {L: 1, M: {2, 3, 4}}. Create team with UUT 1 as the leader and UUT 2, 3 and 4 as members.
+    Team.Add(5, 6, 7, 8) -- {L: 5, M: {6, 7, 8}}
+    Team.Add(9, 10)      -- {L: 9, M: {10}}
 
-    TestPoint("TP1") -- Creates a test point called TP1
-            .To(01, 1, 01)  -- Connects that test point between UUT 1 and TP1 of instrumentation card 1.
-            .To(02, 1, 02)  -- Connects that test point between UUT 1 and TP2 of instrumentation card 1.
-            .To(03, 1, 03)  -- Connects that test point between UUT 1 and TP3 of instrumentation card 1.
-            .To(04, 1, 04)  -- Connects that test point between UUT 1 and TP4 of instrumentation card 1.
-            .To(05, 1, 05)  -- Connects that test point between UUT 1 and TP5 of instrumentation card 1.
-            .To(06, 1, 06)  -- Connects that test point between UUT 1 and TP6 of instrumentation card 1.
-            .To(07, 1, 07)  -- Connects that test point between UUT 1 and TP7 of instrumentation card 1.
-            .To(08, 1, 08)  -- Connects that test point between UUT 1 and TP8 of instrumentation card 1.
-            .To(09, 1, 09)  -- Connects that test point between UUT 1 and TP9 of instrumentation card 1.
-            .To(10, 1, 10)  -- Connects that test point between UUT 1 and TP10 of instrumentation card 1.
+    -- -- Limits the number of teams that can be simultaneously executed
+    -- Worker.Limit(Team).To(1)
+
+    -- Define IBs
+    local daq = Ib.Add(Ibs.daq)
+    local pio = Ib.Add(Ibs.pio):NodeId(3)
+
+
+    -- UUT Values
+    -- Will be tree-shaken per uuts
+    UutValue.Add("tpPower")
+        .Link(01, TestPoint(daq, 01))
+        .Link(02, TestPoint(daq, 02))
+        .Link(03, TestPoint(daq, 03))
+        .Link(04, TestPoint(daq, 04))
+        .Link(05, TestPoint(daq, 05))
+        .Link(06, TestPoint(daq, 06))
+        .Link(07, TestPoint(daq, 07))
+        .Link(08, TestPoint(daq, 08))
+        .Link(09, TestPoint(daq, 09))
+        .Link(10, TestPoint(daq, 10))
+
+    UutValue.Add("tpRelay")
+        .Link(01, TestPoint(pio, 01))
+        .Link(02, TestPoint(pio, 01))
+        .Link(03, TestPoint(pio, 01))
+        .Link(04, TestPoint(pio, 01))
+        .Link(05, TestPoint(pio, 02))
+        .Link(06, TestPoint(pio, 02))
+        .Link(07, TestPoint(pio, 02))
+        .Link(08, TestPoint(pio, 02))
+        .Link(09, TestPoint(pio, 03))
+        .Link(10, TestPoint(pio, 03))
 end)

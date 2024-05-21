@@ -14,8 +14,17 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 Context = {
-    version = "0.0.0",
-    uut     = 0,
-    stage   = Stage.Idle,
-    time    = { start = 0, stop = 0, elapsed = 0, process = 0 },
+    info = {
+        uut          = 0,
+        stage        = Stage.Idle,
+        time         = { start = 0, stop = 0, elapsed = 0, process = 0 },
+        orchestrator = {
+            version = "1.2.0",
+            date = "5/15/2024"
+        },
+        user         = {
+            version = "0.0.0",
+            date = "12/31/1969"
+        }
+    },
 }

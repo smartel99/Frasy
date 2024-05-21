@@ -17,33 +17,17 @@
 #ifndef COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H
 #define COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H
 
+#include "ib_view.h"
+
 #include <map>
 #include <vector>
 
-namespace Frasy
-{
-struct Map
-{
-    struct IB
-    {
-        struct Team
-        {
-            std::vector<std::size_t> uuts;
-        };
-        // Key: leader
-        std::map<std::size_t, Team> teams;
-    };
-    // Key: index
-    std::map<std::size_t, IB> ibs;
-    std::vector<std::size_t>  uuts;
-
-    struct
-    {
-        std::size_t uut=0;
-        std::size_t teams=0;
-        std::size_t ib=0;
-    } count;
+namespace Frasy::Lua {
+struct Map {
+    std::vector<IbView>                   ibs;
+    std::vector<std::size_t>              uuts;
+    std::vector<std::vector<std::size_t>> teams;
 };
-}    // namespace Frasy
+}    // namespace Frasy::Lua
 
 #endif    // COPY_LUA_PY_FRASY_SRC_UTILS_LUA_MAP_H

@@ -31,7 +31,7 @@ function SyncRequirement:new(scope)
                         }, SyncRequirement)
 end
 
-function SyncRequirement:IB() self.kind = SyncRequirement.Kind.Ib end
+function SyncRequirement:Ib() self.kind = SyncRequirement.Kind.Ib end
 
 function SyncRequirement:IsMet() return true end
 

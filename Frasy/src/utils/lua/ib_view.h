@@ -1,5 +1,5 @@
 /**
- * @file    version.h
+ * @file    ib.h
  * @author  Paul Thomas
  * @date    5/15/2024
  * @brief
@@ -14,29 +14,16 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef IB_H
+#define IB_H
 
-#include <string>
-
-struct Version {
-    size_t      major       = 0;
-    size_t      minor       = 0;
-    size_t      revision    = 0;
-    size_t      build       = 0;
-    const char* versionStr  = "";
-    const char* description = "";
-    const char* copyright   = "";
-    const char* author      = "";
-
-    static Version            parse(const std::string& version);
-    [[nodiscard]] std::string toString() const
-    {
-        return std::to_string(major) + "."         //
-               + std::to_string(minor) + "."       //
-               + std::to_string(revision) + "."    //
-               + std::to_string(build);
-    }
+#include "../models/version.h"
+namespace Frasy::Lua {
+struct IbView {
+    int     kind;
+    int     nodeId;
+    Version version;
 };
+}
 
-#endif    // VERSION_H
+#endif //IB_H

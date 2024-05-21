@@ -19,35 +19,25 @@ local internal = {
     limit = nil
 }
 
-function worker.evaluate()
-    Context.Worker        = { }
-    Context.Worker.stages = {}
+local function __evaluate_team()
+    assert(type(internal.limit.reference) == "number", WorkerError("Team limitation must be a number"))
+    local stage = {}
+    for team in pairs(Context.team.teams) do
 
-    if internal.limit == nil then
-        Context.Worker.stages[1] = {}
-        for i = 1, Context.Map.count.uut do
-            table.insert(Context.Worker.stages[1], i);
-        end
-        return
     end
+end
 
-    if internal.limit.target ~= IB then
-        error(WorkerError("Invalid target specifier"))
-    end
-
-    if internal.limit.reference ~= Team then
-        error(WorkerError("IB limitation must be linked to Team"))
-    end
-
-    for player in pairs(Context.Team.players) do
-        local playerIb    = Context.Map.ib[player]
-        local playerTeam  = Context.Team.players[player].leader
+local function __evaluate_ib()
+    assert(internal.limit.reference == Team, WorkerError("Ib limitation must be linked to Team"))
+    for player in pairs(Context.team.players) do
+        local playerIb    = Context.map.ibs[player]
+        local playerTeam  = Context.team.players[player].leader
         local playerAdded = false
-        for _, stage in ipairs(Context.Worker.stages) do
+        for _, stage in ipairs(Context.worker.stages) do
             local sameIbTeams = {}
             for _, other in ipairs(stage) do
-                local otherIb   = Context.Map.ib[other]
-                local otherTeam = Context.Team.players[other].leader
+                local otherIb   = Context.map.ibs[other]
+                local otherTeam = Context.team.players[other].leader
                 if playerTeam == otherTeam then
                     table.insert(stage, player)
                     playerAdded = true
@@ -66,8 +56,29 @@ function worker.evaluate()
             end
         end
         if not playerAdded then
-            table.insert(Context.Worker.stages, { player })
+            table.insert(Context.worker.stages, { player })
         end
+    end
+end
+
+function worker.evaluate()
+    Context.worker        = {}
+    Context.worker.stages = {}
+
+    if internal.limit == nil then
+        Context.worker.stages[1] = {}
+        for i = 1, #Context.map.uuts do
+            table.insert(Context.worker.stages[1], i);
+        end
+        return
+    end
+
+    if (internal.limit.target == Team) then
+        __evaluate_team()
+    elseif (internal.limit.target == Ib) then
+        __evaluate_ib()
+    else
+        error(WorkerError("Invalid Limitation"))
     end
 end
 
@@ -79,21 +90,17 @@ function worker.count(count)
 end
 
 function internal.limitTo(count, specifier)
-    if count == nil then
-        error(WorkerError("Count missing"))
-    end
-    if specifier ~= Team then error(WorkerError("Invalid specifier: " .. tostring(specifier)))
-    end
+    assert(count ~= nil, WorkerError("Count missing"))
+    assert(specifier == Team, WorkerError("Invalid specifier: " .. tostring(specifier)))
     internal.limit = { target = internal.scope, count = count, reference = specifier }
 end
 
 function worker.limit(specifier)
-    if internal.limit ~= nil then
-        error(WorkerError("Only one limit allowed"))
-    end
+    assert(internal.limit == nil, WorkerError("Only one limit allowed"))
     if specifier == nil then
         error(WorkerError("Missing specifier"))
-    elseif specifier == IB then internal.scope = specifier
+    elseif specifier == Ib then
+        internal.scope = specifier
     else
         error(WorkerError("Unsupported limit specifier: " .. tostring(specifier)))
     end

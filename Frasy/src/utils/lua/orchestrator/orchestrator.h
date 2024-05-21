@@ -19,33 +19,24 @@
 
 #include "../../commands/type/struct.h"
 #include "../../communication/serial/device.h"
-#include "../../concepts.h"
-#include "../../map.h"
 #include "../../UutState.h"
+#include "../map.h"
 #include "utils/commands/built_in/command_info/reply.h"
 #include "utils/lua/popup.h"
-#include "utils/models/sequence.h"
 #include "utils/models/solution.h"
 
-#include <barrier>
 #include <functional>
 #include <future>
 #include <map>
 #include <sol/sol.hpp>
 #include <string>
-#include <thread>
-#include <unordered_map>
-#include <utility>
 
-namespace Frasy::Lua
-{
-class Orchestrator
-{
+namespace Frasy::Lua {
+class Orchestrator {
 public:
     class Interface;
 
-    enum class Stage
-    {
+    enum class Stage {
         Idle       = 0,
         Generation = 1,
         Validation = 2,
@@ -128,7 +119,7 @@ public:
 
     [[nodiscard]] bool     isRunning() const;
     [[nodiscard]] UutState GetUutState(std::size_t uut) const;
-    void                   setPopulateUserMethodsCallback(std::function<void(sol::state_view, Stage)> callback);
+    void                   setLoadUserBoards(std::function<sol::table(sol::state_view)> callback);
 
 private:
     bool        CreateOutputDirs();
@@ -136,16 +127,16 @@ private:
     void        ImportExclusive(sol::state_view lua, Stage stage);
     static void ImportLog(sol::state_view lua, std::size_t uut, Stage stage);
     void        ImportPopup(sol::state_view lua, std::size_t uut, Stage stage);
-    void        LoadIb(sol::state_view lua);
-    static void LoadIbCommandForExecution(sol::state_view lua, const Frasy::Actions::CommandInfo::Reply& fun);
-    static void LoadIbCommandForValidation(sol::state_view lua, const Frasy::Actions::CommandInfo::Reply& fun);
+    // void        LoadIb(sol::state_view lua);
+    // static void LoadIbCommandForExecution(sol::state_view lua, const Actions::CommandInfo::Reply& fun);
+    // static void LoadIbCommandForValidation(sol::state_view lua, const Actions::CommandInfo::Reply& fun);
     static bool LoadEnvironment(sol::state_view lua, const std::string& filename);
     static bool LoadTests(sol::state_view lua, const std::string& filename);
     void        RunTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
 
     void PopulateMap();
-    void UpdateUutState(enum UutState state, bool force = false);
-    void UpdateUutState(enum UutState state, const std::vector<std::size_t>& uuts, bool force = false);
+    void UpdateUutState(UutState state, bool force = false);
+    void UpdateUutState(UutState state, const std::vector<std::size_t>& uuts, bool force = false);
 
     bool RunStageGenerate(bool regenerate = false);
     bool RunStageVerify(sol::state_view team);
@@ -153,24 +144,26 @@ private:
     void CheckResults(const std::vector<std::size_t>& devices);
 
 private:
-    std::unique_ptr<sol::state>  m_state     = nullptr;
-    std::vector<Frasy::UutState> m_uutStates = {};
-    std::future<void>            m_running;
-    Frasy::Map                   m_map;
-    bool                         m_generated = false;
-    std::string                  m_environment;
-    std::string                  m_testsDir;
-    std::string                  m_outputDirectory = "logs";
-    bool                         m_ibEnabled       = true;
+    std::unique_ptr<sol::state> m_state     = nullptr;
+    std::vector<UutState>       m_uutStates = {};
+    std::future<void>           m_running;
+    Map                         m_map;
+    bool                        m_generated = false;
+    std::string                 m_environment;
+    std::string                 m_testsDir;
+    std::string                 m_outputDirectory = "logs";
+    bool                        m_ibEnabled       = true;
 
-    std::map<std::string, Frasy::Lua::Popup*> m_popups;
-    std::unique_ptr<std::mutex>               m_popupMutex = nullptr;
+    std::map<std::string, Popup*> m_popups;
+    std::unique_ptr<std::mutex>   m_popupMutex = nullptr;
 
-    std::unique_ptr<std::mutex>       m_exclusiveLock    = nullptr;
+    std::unique_ptr<std::mutex>       m_exclusiveLock = nullptr;
     std::map<std::size_t, std::mutex> m_exclusiveLockMap;
 
-    std::function<void(sol::state_view lua, Stage stage)> m_populateUserMethods = [](sol::state_view, Stage) {};
-    Models::Solution                                      m_solution            = {};
+    std::function<sol::table(sol::state_view lua)> m_loadUserBoards = [](sol::state_view lua) {
+        return lua.create_table();
+    };
+    Models::Solution m_solution = {};
 };
 
 }    // namespace Frasy::Lua
