@@ -1,0 +1,27 @@
+Context:
+    title: str, name of the test
+    version:
+        orchestrator: str, tell the orchestrator version
+        user: str, tell the user script version
+    operator: str, name of the operator running the script
+    serial: str, serial number of the uuts
+    uuts: int, tell uuts number, 0 on generation
+    stage: Stage, tell what stage we are in
+    pass: bool, tell if test succeeded
+    time: table
+        start: date, tell when test started
+        stop: date, tell when test ended
+        elapsed: int, stop - start
+        process: int, total cpu time among all threads
+
+    team: table,
+        players: map[table], tell player information in team, key is uuts
+            leader: int, leader of the player team
+            position: int, position of the player in team
+        teams: map[list[int]], list every uuts in team, key is leader uuts
+        hasTeam: bool, tell if team is enabled
+
+    worker:
+        stages:
+
+    orchestrator: table, global variables used by orchestrator 

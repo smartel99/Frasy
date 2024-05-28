@@ -95,10 +95,9 @@ protected:
     Brigerad::Ref<Brigerad::Texture2D> m_idle;
     Brigerad::Ref<Brigerad::Texture2D> m_disabled;
 
+    CanOpen::CanOpen  m_canOpen;
     Lua::Orchestrator m_orchestrator;
     Lua::Map          m_map;
-
-    CanOpen::CanOpen m_canOpen;
 
 private:
     void PresetControlRoomOptions();

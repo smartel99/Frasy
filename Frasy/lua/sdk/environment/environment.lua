@@ -12,23 +12,15 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
 local _worker = require("lua/core/sdk/environment/worker")
 local _team = require("lua/core/sdk/environment/team")
 local _ib = require("lua/core/sdk/environment/ib")
 
 if (Context.map == nil) then
-    Context.map = {
-        uuts = {},
-        ibs = {},
-        team = {},
-        values = {},
-    }
+    Context.map = {uuts = {}, ibs = {}, team = {}, values = {}}
 end
 
-if (Ibs == nil) then
-    Ibs = {}
-end
+if (Ibs == nil) then Ibs = {} end
 
 ---Environment
 ---@param func function Function that defines the environment.
@@ -39,31 +31,27 @@ function Environment(func)
     _worker.evaluate()
 end
 
-function TestPoint(ibs, index)
-    return { ibs = ibs, index = index }
-end
+function TestPoint(ibs, index) return {ibs = ibs, index = index} end
 
 local function setUutCount(count)
     Context.map.uuts = {};
-    for i = 1, count do
-        table.insert(Context.map.uuts, i)
-    end
+    for i = 1, count do table.insert(Context.map.uuts, i) end
 end
 
 local function addTeam(...)
     Context.team.hasTeam = true
     local leader
-    for index, uuts in ipairs({ ... }) do
+    for index, uuts in ipairs({...}) do
         if index == 1 then leader = uuts end
-        assert(Context.team.players[uuts] == nil,
-            TeamError(string.format("Player %d is already in team %d", uuts, leader)))
-        Context.team.players[uuts] = { leader = leader, position = index }
+        assert(Context.team.players[uuts] == nil, TeamError(
+                   string.format("Player %d is already in team %d", uuts, leader)))
+        Context.team.players[uuts] = {leader = leader, position = index}
     end
-    Context.team.teams[leader] = { ... }
+    Context.team.teams[leader] = {...}
 end
 
 local function addUutValue(key)
---     assert(Context.info.stage == Stage.Generation, "AddUutValue, invalid stage")
+    --     assert(Context.info.stage == Stage.Generation, "AddUutValue, invalid stage")
     assert(type(key) == "string", "AddUutValue, argument is not a string")
     Context.map.values[key] = {}
     local t = {}
@@ -75,14 +63,18 @@ local function addUutValue(key)
     return t
 end
 
-local function addIb(base)
+local function addIb(base, name)
     local nIb = _ib:new(base)
-    table.insert(Context.map.ibs, nIb)
+    local odParser = require('lua.core.can_open.object_dictionnary')
+    if (name == nil) then name = nIb.name end
+    assert(Context.map.ibs[name] == nil, "Ib already defined. " .. name)
+    Context.map.ibs[name] = nIb
+    nIb.od = odParser.loadFile(nIb.eds)
     return nIb
 end
 
-Uut = { Count = setUutCount }
-Ib = { Add = addIb }
-UutValue = { Add = addUutValue }
+Uut = {Count = setUutCount}
+Ib = {Add = addIb}
+UutValue = {Add = addUutValue}
 Team.Add = addTeam
-Worker = { Limit = _worker.Limit }
+Worker = {Limit = _worker.Limit}

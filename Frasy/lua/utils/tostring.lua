@@ -12,24 +12,11 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-local utils = {}
-function utils.tostring(t, lvl)
-    if type(lvl) == "nil" then lvl = 0 end
-
-    local str = ""
-    for _ = 1, (lvl - 1) do str = str .. "    " end
-    if lvl ~= 0 then str = str .. "|--- " end
-
-    if type(t) == "table" or type(t) == "userdata" then
-        for k, v in pairs(t) do
-            str = str .. k .. ":\r\n" .. utils.tostring(v, lvl + 1)
-        end
+local pprint = require("lua.core.utils.pprint")
+return function(t)
+    if (type(t) == "table") then
+        return pprint(t, 0)
     else
-        if type(t) == "string" then t = "\"" .. t .. "\"" end
-        str = str .. tostring(t) .. "\r\n"
+        return tostring(t)
     end
-
-    return str
 end
-return utils.tostring

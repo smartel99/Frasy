@@ -18,9 +18,12 @@
 #include "orchestrator.h"
 
 #include "../../commands/built_in/status/reply.h"
+#include "../../communication/can_open/services/sdo.h"
 #include "../../communication/serial/device_map.h"
 #include "../args_checker.h"
 #include "../dummy_table_deserializer.h"
+#include "../ode_deserializer.h"
+#include "../ode_serializer.h"
 #include "../table_deserializer.h"
 #include "../table_serializer.h"
 #include "../tag.h"
@@ -193,6 +196,35 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua.script_file("lua/core/framework/orchestrator.lua");
         lua.script_file("lua/core/sdk/test.lua");
 
+        // Communication
+        lua.script_file("lua/core/can_open/can_open.lua");
+        lua["CanOpen"]["__upload"] = [this](sol::this_state state, std::size_t nodeId, const sol::table& ode) {
+            sol::state_view lua  = sol::state_view(state.lua_state());
+            auto*           node = m_canOpen->getNode(nodeId);
+            if (node == NULL) { throw sol::error("Invalid node id"); }
+            auto* interface = node->sdoInterface();
+            auto  index     = std::stoi(ode["index"].get<std::string>(), nullptr, 16);
+            auto  subIndex  = std::stoi(ode["subIndex"].get<std::string>(), nullptr, 16);
+            auto  request   = interface->uploadData(index, subIndex);
+            request.future.wait();
+            if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) { throw sol::error("Request failed"); }
+            auto result = request.future.get();
+            if (!result.has_value()) { throw sol::error("No value provided in result"); }
+            auto value = deserializeOdeValue(lua, ode, result.value());
+            return value;
+        };
+
+        lua["CanOpen"]["__download"] = [&](std::size_t nodeId, sol::table ode, sol::object value) {
+            auto* node      = m_canOpen->getNode(nodeId);
+            auto* interface = node->sdoInterface();
+            auto  index     = std::stoi(ode["index"].get<std::string>(), nullptr, 16);
+            auto  subIndex  = std::stoi(ode["subIndex"].get<std::string>(), nullptr, 16);
+            auto  sValue    = serializeOdeValue(ode, value);
+            auto  request   = interface->downloadData(index, subIndex, sValue);
+            request.future.wait();
+            if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) { throw sol::error("Request failed"); }
+        };
+
         // Boards
         auto ibs     = lua.create_named_table("Ibs");
         auto cepIbs  = lua.script_file("lua/core/cep/ibs.lua");
@@ -203,7 +235,6 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         for (auto& [k, v] : userIbs) {
             ibs[k] = v;
         }
-
         return true;
     }
     catch (std::exception& e) {

@@ -49,7 +49,7 @@ class SdoManager {
     friend Node;
 
 public:
-             SdoManager();
+    SdoManager();
     explicit SdoManager(uint8_t nodeId);
 
     [[nodiscard]] bool   hasUploadRequestsPending() const;
@@ -72,16 +72,18 @@ public:
                                    uint16_t sdoTimeoutTimeMs = 1000,
                                    bool     isBlock          = false);
 
-    template<typename T>
-        requires std::is_trivially_copyable_v<T>
-    SdoDownloadDataResult downloadData(
-      uint16_t index, uint8_t subIndex, const T& data, uint16_t sdoTimeoutTimeMs = 1000, bool isBlock = false)
+    SdoDownloadDataResult downloadData(uint16_t                    index,
+                                       uint8_t                     subIndex,
+                                       const std::vector<uint8_t>& data,
+                                       uint16_t                    sdoTimeoutTimeMs = 1000,
+                                       bool                        isBlock          = false)
     {
         SdoDownloadDataResult result;
         result.m_request = std::make_unique<SdoDownloadRequest>(
           SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, [&data] {
-              auto tmp = std::vector<uint8_t>(sizeof(data), 0);
-              std::memcpy(tmp.data(), &data, sizeof(data));
+              std::vector<uint8_t> tmp {};
+              tmp.reserve(data.size());
+              tmp.insert(tmp.begin(), data.begin(), data.end());
               return tmp;
           }());
 
@@ -103,6 +105,23 @@ public:
         BR_ASSERT(result.future.valid(), "Future is not valid!");
 
         return result;
+    }
+
+    template<typename T>
+        requires std::is_trivially_copyable_v<T>
+    SdoDownloadDataResult downloadData(
+      uint16_t index, uint8_t subIndex, const T& data, uint16_t sdoTimeoutTimeMs = 1000, bool isBlock = false)
+    {
+        return downloadData(
+          index,
+          subIndex,
+          [&data] {
+              auto tmp = std::vector<uint8_t>(sizeof(data), 0);
+              std::memcpy(tmp.data(), &data, sizeof(data));
+              return tmp;
+          }(),
+          sdoTimeoutTimeMs,
+          isBlock);
     }
 
 private:

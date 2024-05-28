@@ -60,6 +60,8 @@ void MainApplicationLayer::onAttach()
     m_resultViewer->onAttach();
     m_resultAnalyzer->onAttach();
     m_testViewer->onAttach();
+    
+    m_orchestrator.SetCanOpen(&m_canOpen);
 }
 
 

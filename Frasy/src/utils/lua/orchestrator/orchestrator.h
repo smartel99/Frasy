@@ -18,6 +18,7 @@
 #define BRIGERAD_FRASY_LUA_INTERPRETER_H
 
 #include "../../commands/type/struct.h"
+#include "../../communication/can_open/can_open.h"
 #include "../../communication/serial/device.h"
 #include "../../UutState.h"
 #include "../map.h"
@@ -52,6 +53,8 @@ public:
 
 public:
     Orchestrator() = default;
+
+    void SetCanOpen(CanOpen::CanOpen* instance) { m_canOpen = instance; }
 
     /**
      * Load the user environment files
@@ -164,6 +167,8 @@ private:
         return lua.create_table();
     };
     Models::Solution m_solution = {};
+
+    CanOpen::CanOpen* m_canOpen;
 };
 
 }    // namespace Frasy::Lua

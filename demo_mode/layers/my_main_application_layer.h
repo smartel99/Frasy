@@ -80,7 +80,7 @@ private:
     char                         m_operator[s_operatorLength]                  = "Paul\0";
     static constexpr std::size_t serialNumberLength                            = 32;
     char                         m_serialNumberTopLeft[serialNumberLength]     = "0000\0";
-    char                         m_serialNumberBottomRight[serialNumberLength] = "0009\0";
+    char                         m_serialNumberBottomRight[serialNumberLength] = "0000\0";
     bool                         m_serialIsDirty                               = false;
     std::vector<std::string>     m_serials;
 

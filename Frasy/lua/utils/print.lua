@@ -12,33 +12,12 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+local pprint = require('lua/core/utils/pprint')
 
-local utils = {}
-function utils.print(t, lvl)
-    if type(lvl) == "nil" then lvl = 0 end
-
-    local str = ""
-    for _ = 1, (lvl - 1) do str = str .. "    " end
-    if lvl ~= 0 then str = str .. "|--- " end
-
-    local fmt = string.format("%s%s: ", str, type(t))
-    -- print(type(t))
-    
-    if type(t) == "table" then
-        fmt = fmt .. "{\n"
-        for k, v in pairs(t) do
-            fmt = fmt .. str .. k .. ":" .. utils.print(v, lvl + 1) .. "\n"
-            -- print(str .. k .. ":")
-            -- utils.print(v, lvl + 1)
-        end
-        fmt = fmt .. str .. "}"
+return function(t, max_depth)
+    if (type(t) == "table") then
+        print(pprint(t, 0, max_depth))
     else
-        if type(t) == "string" then t = "\"" .. t .. "\"" end
-        fmt = fmt .. str .. tostring(t) .. "\n"
-        -- print(str .. tostring(t))
+        print(t)
     end
-
-    if lvl == 0 then Log.i(fmt) else return fmt end
 end
-
-return utils.print

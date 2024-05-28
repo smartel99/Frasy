@@ -15,11 +15,11 @@
 
 Environment(function()
     -- Tell how many UUT we have
-    Uut.Count(10)
+    Uut.Count(1)
 
-    Team.Add(1, 2, 3, 4) -- {L: 1, M: {2, 3, 4}}. Create team with UUT 1 as the leader and UUT 2, 3 and 4 as members.
-    Team.Add(5, 6, 7, 8) -- {L: 5, M: {6, 7, 8}}
-    Team.Add(9, 10)      -- {L: 9, M: {10}}
+--     Team.Add(1, 2, 3, 4) -- {L: 1, M: {2, 3, 4}}. Create team with UUT 1 as the leader and UUT 2, 3 and 4 as members.
+--     Team.Add(5, 6, 7, 8) -- {L: 5, M: {6, 7, 8}}
+--     Team.Add(9, 10)      -- {L: 9, M: {10}}
 
     -- -- Limits the number of teams that can be simultaneously executed
     -- Worker.Limit(Team).To(1)
@@ -33,25 +33,25 @@ Environment(function()
     -- Will be tree-shaken per uuts
     UutValue.Add("tpPower")
         .Link(01, TestPoint(daq, 01))
-        .Link(02, TestPoint(daq, 02))
-        .Link(03, TestPoint(daq, 03))
-        .Link(04, TestPoint(daq, 04))
-        .Link(05, TestPoint(daq, 05))
-        .Link(06, TestPoint(daq, 06))
-        .Link(07, TestPoint(daq, 07))
-        .Link(08, TestPoint(daq, 08))
-        .Link(09, TestPoint(daq, 09))
-        .Link(10, TestPoint(daq, 10))
+--         .Link(02, TestPoint(daq, 02))
+--         .Link(03, TestPoint(daq, 03))
+--         .Link(04, TestPoint(daq, 04))
+--         .Link(05, TestPoint(daq, 05))
+--         .Link(06, TestPoint(daq, 06))
+--         .Link(07, TestPoint(daq, 07))
+--         .Link(08, TestPoint(daq, 08))
+--         .Link(09, TestPoint(daq, 09))
+--         .Link(10, TestPoint(daq, 10))
 
     UutValue.Add("tpRelay")
         .Link(01, TestPoint(pio, 01))
-        .Link(02, TestPoint(pio, 01))
-        .Link(03, TestPoint(pio, 01))
-        .Link(04, TestPoint(pio, 01))
-        .Link(05, TestPoint(pio, 02))
-        .Link(06, TestPoint(pio, 02))
-        .Link(07, TestPoint(pio, 02))
-        .Link(08, TestPoint(pio, 02))
-        .Link(09, TestPoint(pio, 03))
-        .Link(10, TestPoint(pio, 03))
+--         .Link(02, TestPoint(pio, 01))
+--         .Link(03, TestPoint(pio, 01))
+--         .Link(04, TestPoint(pio, 01))
+--         .Link(05, TestPoint(pio, 02))
+--         .Link(06, TestPoint(pio, 02))
+--         .Link(07, TestPoint(pio, 02))
+--         .Link(08, TestPoint(pio, 02))
+--         .Link(09, TestPoint(pio, 03))
+--         .Link(10, TestPoint(pio, 03))
 end)

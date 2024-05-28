@@ -12,11 +12,11 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-local utils    = {}
-utils.print    = require("lua/core/utils/print")
-utils.tostring = require("lua/core/utils/tostring")
-utils.equals   = require("lua/core/utils/equals")
-utils.dirlist  = require("lua/core/utils/dirlist")
-utils.traverse  = require("lua/core/utils/traverse")
-return utils
+return {
+    print    = require("lua/core/utils/print"),
+    tostring = require("lua/core/utils/tostring"),
+    equals   = require("lua/core/utils/equals"),
+    dirlist  = require("lua/core/utils/dirlist"),
+    traverse  = require("lua/core/utils/traverse"),
+    linesplit = require('lua.core.utils.linesplit')
+}
