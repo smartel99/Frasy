@@ -1,30 +1,30 @@
 [FileInfo]
-FileName=r8l.eds
+FileName=r8l_1.0.0.eds
 FileVersion=1
 FileRevision=1
 LastEDS=
 EDSVersion=4.0
-Description=Demo CANopen device with example usage.
-CreationTime=7:37AM
-CreationDate=11-28-2020
-CreatedBy=Janez Paternoster
-ModificationTime=5:13PM
-ModificationDate=05-21-2024
-ModifiedBy=Janez Paternoster
+Description=
+CreationTime=4:51PM
+CreationDate=05-27-2024
+CreatedBy=Samuel Martel
+ModificationTime=5:40PM
+ModificationDate=05-28-2024
+ModifiedBy=Samuel Martel
 
 [DeviceInfo]
-VendorName=-
-VendorNumber=0
-ProductName=r8l
-ProductNumber=1
+VendorName=Conception Electronique Prive
+VendorNumber=69
+ProductName=R8L
+ProductNumber=MPCB0045
 RevisionNumber=0
-BaudRate_10=1
-BaudRate_20=1
-BaudRate_50=1
-BaudRate_125=1
-BaudRate_250=1
-BaudRate_500=1
-BaudRate_800=1
+BaudRate_10=0
+BaudRate_20=0
+BaudRate_50=0
+BaudRate_125=0
+BaudRate_250=0
+BaudRate_500=0
+BaudRate_800=0
 BaudRate_1000=1
 SimpleBootUpMaster=0
 SimpleBootUpSlave=0
@@ -34,17 +34,17 @@ CompactPDO=0
 GroupMessaging=0
 NrOfRXPDO=0
 NrOfTXPDO=0
-LSS_Supported=1
+LSS_Supported=0
 NG_Slave=0
 
 [DummyUsage]
 Dummy0001=0
-Dummy0002=1
-Dummy0003=1
-Dummy0004=1
-Dummy0005=1
-Dummy0006=1
-Dummy0007=1
+Dummy0002=0
+Dummy0003=0
+Dummy0004=0
+Dummy0005=0
+Dummy0006=0
+Dummy0007=0
 
 [Comments]
 Lines=0
@@ -61,7 +61,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=ro
-DefaultValue=0x000F0191
+DefaultValue=0x00000004
 PDOMapping=0
 
 [1001]
@@ -94,7 +94,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=0x00000000
+DefaultValue=0x00000069
 PDOMapping=0
 
 [1018sub2]
@@ -103,7 +103,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=0x00000001
+DefaultValue=0x00000000
 PDOMapping=0
 
 [1018sub3]
@@ -121,28 +121,32 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=0x00000003
+DefaultValue=0x00000000
 PDOMapping=0
 
 [OptionalObjects]
-SupportedObjects=17
-1=0x0042
-2=0x1003
-3=0x1005
-4=0x1006
-5=0x1007
-6=0x1008
-7=0x1009
-8=0x100A
-9=0x1010
-10=0x1011
-11=0x1012
-12=0x1014
-13=0x1015
-14=0x1016
-15=0x1017
-16=0x1019
-17=0x1200
+SupportedObjects=21
+1=0x1003
+2=0x1005
+3=0x1006
+4=0x1007
+5=0x1008
+6=0x1009
+7=0x100A
+8=0x1010
+9=0x1011
+10=0x1012
+11=0x1014
+12=0x1015
+13=0x1016
+14=0x1017
+15=0x1019
+16=0x1200
+17=0x1280
+18=0x6200
+19=0x6206
+20=0x6207
+21=0x6401
 
 [1003]
 ParameterName=Pre-defined error field
@@ -336,7 +340,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0009
 AccessType=ro
-DefaultValue=
+DefaultValue=R8L
 PDOMapping=0
 
 [1009]
@@ -345,7 +349,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0009
 AccessType=ro
-DefaultValue=
+DefaultValue=A0
 PDOMapping=0
 
 [100A]
@@ -354,14 +358,14 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0009
 AccessType=ro
-DefaultValue=
+DefaultValue=v1.0.0
 PDOMapping=0
 
 [1010]
 ParameterName=Store parameters
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x7
+SubNumber=0x5
 
 [1010sub0]
 ParameterName=Highest sub-index supported
@@ -369,7 +373,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x06
+DefaultValue=0x04
 PDOMapping=0
 
 [1010sub1]
@@ -378,7 +382,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000003
+DefaultValue=0x00000001
 PDOMapping=0
 
 [1010sub2]
@@ -400,16 +404,7 @@ DefaultValue=0x00000001
 PDOMapping=0
 
 [1010sub4]
-ParameterName=Save mainline data block
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000003
-PDOMapping=0
-
-[1010sub5]
-ParameterName=Save PERSIST_APP parameters
+ParameterName=Save manufacturer defined parameters
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
@@ -417,20 +412,11 @@ AccessType=rw
 DefaultValue=0x00000001
 PDOMapping=0
 
-[1010sub6]
-ParameterName=Save PERSIST_APP_AUTO auto-store parameters
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000003
-PDOMapping=0
-
 [1011]
 ParameterName=Restore default parameters
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x7
+SubNumber=0x5
 
 [1011sub0]
 ParameterName=Highest sub-index supported
@@ -438,7 +424,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x06
+DefaultValue=0x04
 PDOMapping=0
 
 [1011sub1]
@@ -469,25 +455,7 @@ DefaultValue=0x00000001
 PDOMapping=0
 
 [1011sub4]
-ParameterName=Restore mainline default data block
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000001
-PDOMapping=0
-
-[1011sub5]
-ParameterName=Restore PERSIST_APP default parameters
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000001
-PDOMapping=0
-
-[1011sub6]
-ParameterName=Restore PERSIST_APP_AUTO auto-store default parameters
+ParameterName=Restore manufacturer defined default parameters
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
@@ -519,7 +487,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0006
 AccessType=rw
-DefaultValue=0
+DefaultValue=100
 PDOMapping=0
 
 [1016]
@@ -659,6 +627,108 @@ DataType=0x0007
 AccessType=ro
 DefaultValue=$NODEID+0x580
 PDOMapping=1
+
+[1280]
+ParameterName=SDO client parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x4
+
+[1280sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x03
+PDOMapping=0
+
+[1280sub1]
+ParameterName=COB-ID client to server (tx)
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x80000000
+PDOMapping=1
+
+[1280sub2]
+ParameterName=COB-ID server to client (rx)
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x80000000
+PDOMapping=1
+
+[1280sub3]
+ParameterName=Node-ID of the SDO server
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x01
+PDOMapping=0
+
+[6200]
+ParameterName=Write Digital Output
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[6206]
+ParameterName=Error Mode Output
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rw
+DefaultValue=1
+PDOMapping=0
+
+[6207]
+ParameterName=Error Value Ouput
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[6401]
+ParameterName=ID
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x3
+
+[6401sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[6401sub1]
+ParameterName=ID_BRD_L
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[6401sub2]
+ParameterName=ID_BRD_R
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
 
 [ManufacturerObjects]
 SupportedObjects=0

@@ -45,15 +45,22 @@ public:
 
 private:
     void renderNodes();
+    void renderErrorGenerator();
 
 private:
     bool m_isVisible = false;
+
+    bool                    m_shouldRenderErrorGenerator = false;
+    CO_EM_errorStatusBits_t m_selectedErrorKind          = CO_EM_NO_ERROR;
+    CO_EM_errorCode_t       m_selectedErrorCode          = CO_EMC_NO_ERROR;
+    std::array<char, 9>     m_selectedErrorInfo          = {'0', '0', '0', '0', '0', '0', '0', '0', 0};
+    bool                    m_selectedErrorIsActive      = true;
 
     CanOpen::CanOpen& m_canOpen;
 
     std::vector<OpenNode> m_openNodes;
 
-    static constexpr const char* s_windowName             = "CANopen Viewer";
+    static constexpr const char* s_windowName = "CANopen Viewer";
 };
 }    // namespace Frasy::CanOpenViewer
 #endif    // FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_H

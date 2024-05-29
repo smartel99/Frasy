@@ -281,7 +281,7 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
           T                       max  = std::numeric_limits<T>::max();
           constexpr ImGuiDataType type = ImGuiTypeFromType_v<T>;
 
-          // ImGui gets triggered if the floats and doubles are too big...
+          // ImGui gets triggered if the values are too big...
           if constexpr (std::same_as<T, float> || std::same_as<T, double> || std::signed_integral<T>) {
               min /= 2;
               max /= 2;

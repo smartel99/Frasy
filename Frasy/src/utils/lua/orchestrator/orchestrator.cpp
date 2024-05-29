@@ -201,7 +201,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["CanOpen"]["__upload"] = [this](sol::this_state state, std::size_t nodeId, const sol::table& ode) {
             sol::state_view lua  = sol::state_view(state.lua_state());
             auto*           node = m_canOpen->getNode(nodeId);
-            if (node == NULL) { throw sol::error("Invalid node id"); }
+            if (node == nullptr) { throw sol::error("Invalid node id"); }
             auto* interface = node->sdoInterface();
             auto  index     = std::stoi(ode["index"].get<std::string>(), nullptr, 16);
             auto  subIndex  = std::stoi(ode["subIndex"].get<std::string>(), nullptr, 16);
@@ -802,8 +802,8 @@ void Orchestrator::PopulateMap()
     m_map = {};
     for (auto& [k, v] : (*m_state)["Context"]["map"]["ibs"].get<sol::table>()) {
         auto ib = v.as<sol::table>();
-        m_map.ibs.emplace_back(ib["kind"].get<std::size_t>(),
-                               ib["nodeId"].get<std::size_t>(),
+        m_map.ibs.emplace_back(static_cast<int>(ib["kind"].get<std::size_t>()),
+                               static_cast<int>(ib["nodeId"].get<std::size_t>()),
                                Version::parse(ib["version"].get<std::string>()));
     }
 

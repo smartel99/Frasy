@@ -31,12 +31,9 @@
 
 
 namespace Frasy::CanOpenViewer {
-
-
-
 class OpenNode {
 public:
-              OpenNode(uint8_t nodeId, CanOpen::CanOpen* canOpen);
+    OpenNode(uint8_t nodeId, CanOpen::CanOpen* canOpen);
 
     void onImGuiRender();
 

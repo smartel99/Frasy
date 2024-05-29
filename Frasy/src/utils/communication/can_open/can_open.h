@@ -28,6 +28,7 @@
 #include "to_string.h"
 
 #include <CANopen.h>
+#include <CO_Emergency.h>
 #include <CO_storage.h>
 
 #include <array>
@@ -86,6 +87,8 @@ public:
     bool               isNodeOnNetwork(uint8_t nodeId);
 
     void addEmergencyMessageCallback(const EmergencyMessageCallback& callback);
+    void reportError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code, uint32_t infoCode);
+    void clearError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code);
 
     CO_t* nativeHandle() { return m_co; }
 
@@ -102,7 +105,7 @@ private:
     void initNodeServices();
     void deinitNodeServices();
 
-   CO_SDOclient_t* findSdoClientHandle(uint8_t nodeId);
+    CO_SDOclient_t* findSdoClientHandle(uint8_t nodeId);
 
     /**
      * Left there just in case it's needed, but really doesn't do anything...

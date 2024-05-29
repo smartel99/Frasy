@@ -195,7 +195,7 @@ Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view e
         return nullptr;
     }
 
-    Node* node = &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {:02x}", nodeId) : name, edsPath);
+    Node* node = &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {}", nodeId) : name, edsPath);
     m_sdoClientODEntries.push_back(node->sdoInterface()->makeSdoClientOdEntry());
 
     // Node will not be usable until we restart CANopen.
@@ -239,6 +239,16 @@ bool CanOpen::isNodeOnNetwork(uint8_t nodeId)
 void CanOpen::addEmergencyMessageCallback(const EmergencyMessageCallback& callback)
 {
     if (callback) { m_emCallbacks.push_back(callback); }
+}
+
+void CanOpen::reportError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code, uint32_t infoCode)
+{
+    CO_errorReport(m_co->em, kind, code, infoCode);
+}
+
+void CanOpen::clearError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code)
+{
+    CO_errorReset(m_co->em, kind, code);
 }
 
 void CanOpen::scanForDevices()
