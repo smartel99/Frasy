@@ -32,7 +32,7 @@ namespace Brigerad {
 /* Exported types */
 class BRIGERAD_API Layer {
 public:
-    Layer(const std::string& name = "Layer");
+             Layer(const std::string& name = "Layer");
     virtual ~Layer();
 
     virtual void onAttach() {}
@@ -43,9 +43,9 @@ public:
 
     virtual void onImGuiRender() {}
 
-    virtual void OnEvent(Event& event) {}
+    virtual void onEvent(Event& event) {}
 
-    inline const std::string& GetName() const { return m_debugName; }
+    inline const std::string& getName() const { return m_debugName; }
 
 protected:
     std::string m_debugName;

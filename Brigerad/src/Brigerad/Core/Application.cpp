@@ -15,8 +15,7 @@
 #include "KeyCodes.h"
 #include "Time.h"
 
-namespace Brigerad
-{
+namespace Brigerad {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
 /**
@@ -76,8 +75,7 @@ void Application::run()
     BR_PROFILE_FUNCTION();
 
     // For as long as the application should be running:
-    while (m_running)
-    {
+    while (m_running) {
         BR_PROFILE_SCOPE("RunLoop");
 
         // Get the time elapsed since the last frame.
@@ -87,13 +85,13 @@ void Application::run()
 
         // If the window is not minimized:
         // (If the window is minimized, we don't want to waste time rendering stuff!)
-        if (!m_minimized)
-        {
+        if (!m_minimized) {
             {
                 // Update all Application Layers.
                 BR_PROFILE_SCOPE("Layer Stack onUpdate");
                 for (Layer* layer : m_layerStack) {
-                    layer->onUpdate(timestep); }
+                    layer->onUpdate(timestep);
+                }
             }
 
             // Render all ImGui Layers.
@@ -101,7 +99,8 @@ void Application::run()
             {
                 BR_PROFILE_SCOPE("LayerStack onImGuiRender");
                 for (Layer* layer : m_layerStack) {
-                    layer->onImGuiRender(); }
+                    layer->onImGuiRender();
+                }
             }
             m_imguiLayer->End();
         }
@@ -110,12 +109,15 @@ void Application::run()
         m_window->OnUpdate();
 
         // Execute the post-frame task queue.
-        for (const auto& task : m_postFrameTasks) { task(); }
+        for (const auto& task : m_postFrameTasks) {
+            task();
+        }
         m_postFrameTasks.clear();
     }
 
     for (auto&& layer : m_layerStack) {
-        layer->onDetach(); }
+        layer->onDetach();
+    }
 }
 
 /**
@@ -137,13 +139,11 @@ void Application::onEvent(Event& e)
 
 
     // For each layers in the layer stack, from the last one to the first:
-    for (auto it = m_layerStack.end(); it != m_layerStack.begin();)
-    {
+    for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
         // Pass the event to the layer.
-        (*--it)->OnEvent(e);
+        (*--it)->onEvent(e);
         // If the event has been handled by that layer:
-        if (e.Handled())
-        {
+        if (e.Handled()) {
             // Stop propagating it.
             break;
         }
@@ -161,8 +161,7 @@ void Application::pushLayer(Layer* layer)
 {
     BR_PROFILE_FUNCTION();
 
-    std::function<void()> task = [this, layer]()
-    {
+    std::function<void()> task = [this, layer]() {
         // Push the new layer to the stack.
         m_layerStack.PushLayer(layer);
         // Initialize the layer.
@@ -182,8 +181,7 @@ void Application::pushOverlay(Layer* layer)
 {
     BR_PROFILE_FUNCTION();
 
-    std::function<void()> task = [this, layer]()
-    {
+    std::function<void()> task = [this, layer]() {
         // Push the new layer to the stack.
         m_layerStack.PushOverlay(layer);
         // Initialize the layer.
@@ -198,8 +196,7 @@ void Application::popLayer(Layer* layer)
     BR_PROFILE_FUNCTION();
     BR_CORE_ASSERT(layer != nullptr, "Layer is NULL in Application::popLayer");
 
-    std::function<void()> task = [this, layer]()
-    {
+    std::function<void()> task = [this, layer]() {
         // Pop the layer from the stack.
         m_layerStack.PopLayer(layer);
         // De-initialize the layer.
@@ -238,8 +235,7 @@ bool Application::onWindowResize(WindowResizeEvent& e)
 {
     BR_PROFILE_FUNCTION();
 
-    if (e.GetHeight() == 0 || e.GetWidth() == 0)
-    {
+    if (e.GetHeight() == 0 || e.GetWidth() == 0) {
         m_minimized = true;
         return false;
     }
@@ -254,8 +250,7 @@ bool Application::onKeyPressed(KeyPressedEvent& e)
 {
     BR_PROFILE_FUNCTION();
 
-    if (e.GetKeyCode() == BR_KEY_ESCAPE && e.GetRepeatCount() == 0)
-    {
+    if (e.GetKeyCode() == BR_KEY_ESCAPE && e.GetRepeatCount() == 0) {
         m_imguiLayer->ToggleIsVisible();
         return true;
     }

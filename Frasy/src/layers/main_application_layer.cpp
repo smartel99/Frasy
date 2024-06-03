@@ -60,7 +60,7 @@ void MainApplicationLayer::onAttach()
     m_resultViewer->onAttach();
     m_resultAnalyzer->onAttach();
     m_testViewer->onAttach();
-    
+
     m_orchestrator.SetCanOpen(&m_canOpen);
 }
 
@@ -146,14 +146,14 @@ void MainApplicationLayer::onImGuiRender()
 }
 
 
-void MainApplicationLayer::OnEvent(Brigerad::Event& e)
+void MainApplicationLayer::onEvent(Brigerad::Event& e)
 {
-    m_logWindow->OnEvent(e);
-    m_deviceViewer->OnEvent(e);
-    m_canOpenViewer->OnEvent(e);
-    m_resultViewer->OnEvent(e);
-    m_resultAnalyzer->OnEvent(e);
-    m_resultViewer->OnEvent(e);
+    m_logWindow->onEvent(e);
+    m_deviceViewer->onEvent(e);
+    m_canOpenViewer->onEvent(e);
+    m_resultViewer->onEvent(e);
+    m_resultAnalyzer->onEvent(e);
+    m_resultViewer->onEvent(e);
 }
 
 void MainApplicationLayer::makeLogWindowVisible()

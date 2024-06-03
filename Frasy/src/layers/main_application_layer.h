@@ -56,7 +56,7 @@ public:
 
     void onUpdate(Brigerad::Timestep ts) override;
     void onImGuiRender() final;
-    void OnEvent(Brigerad::Event& e) override;
+    void onEvent(Brigerad::Event& e) override;
 
 protected:
     virtual void renderControlRoom() {}

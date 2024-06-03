@@ -15,7 +15,7 @@ public:
 
     virtual void onAttach() override;
     virtual void onDetach() override;
-    virtual void OnEvent(Event& event) override;
+    virtual void onEvent(Event& event) override;
     virtual void onImGuiRender() override;
 
     void        Begin();

@@ -78,7 +78,7 @@ void ImGuiLayer::onDetach()
     ImGui::DestroyContext();
 }
 
-void ImGuiLayer::OnEvent(Event& event)
+void ImGuiLayer::onEvent(Event& event)
 {
     if (m_blockImGuiEvents)
     {
