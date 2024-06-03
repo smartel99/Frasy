@@ -19,44 +19,45 @@
 #ifndef BRIGERAD_SRC_BRIGERAD_EVENTS_USB_EVENT_H
 #define BRIGERAD_SRC_BRIGERAD_EVENTS_USB_EVENT_H
 
+#include "Brigerad/Utils/types/wstring_to_utf8.h"
 #include "Event.h"
 
-namespace Brigerad
-{
-class UsbEvent : public Event
-{
+#include <codecvt>
+
+namespace Brigerad {
+class UsbEvent : public Event {
 public:
     EVENT_CLASS_CATEGORY(EventCategoryUsb)
+    std::wstring guid;
+    std::wstring name;
 
 protected:
-    UsbEvent()  {}
+    UsbEvent(const std::wstring& guid, const std::wstring& name) : guid(guid), name(name) {}
 };
 
-class BRIGERAD_API UsbConnectedEvent : public UsbEvent
-{
+class BRIGERAD_API UsbConnectedEvent : public UsbEvent {
 public:
-    UsbConnectedEvent() : UsbEvent() {}
+    UsbConnectedEvent(const std::wstring& guid, const std::wstring& name) : UsbEvent(guid, name) {}
 
     std::string ToString() const override
     {
-        std::stringstream ss;
-        ss << "UsbConnectedEvent: ";
-        return ss.str();
+        std::wstringstream ss;
+        ss << "UsbConnectedEvent {guid: " << guid << ", name: " << name << "}";
+        return wstring_to_utf8(ss.str());
     }
 
     EVENT_CLASS_TYPE(EventType::UsbConnected)
 };
 
-class BRIGERAD_API UsbDisconnectedEvent : public UsbEvent
-{
+class BRIGERAD_API UsbDisconnectedEvent : public UsbEvent {
 public:
-    UsbDisconnectedEvent() : UsbEvent() {}
+    UsbDisconnectedEvent(const std::wstring& guid, const std::wstring& name) : UsbEvent(guid, name) {}
 
     std::string ToString() const override
     {
-        std::stringstream ss;
-        ss << "UsbDisconnectedEvent: ";
-        return ss.str();
+        std::wstringstream ss;
+        ss << "UsbDisconnectedEvent:  {guid: " << guid << ", name: " << name << "}";
+        return wstring_to_utf8(ss.str());
     }
 
     EVENT_CLASS_TYPE(EventType::UsbDisconnected)

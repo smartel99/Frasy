@@ -10,7 +10,12 @@
 
 
 // Device handling code from: https://learn.microsoft.com/en-us/windows/win32/devio/registering-for-device-notification
+#include "Brigerad/Core/Application.h"
+#include "Brigerad/Events/usb_event.h"
+
+
 #include <dbt.h>
+#include <spdlog/fmt/fmt.h>
 #include <windows.h>
 
 namespace Brigerad {
@@ -63,6 +68,7 @@ bool doRegisterDeviceInterfaceToHwnd(IN GUID interfaceClassGuid, IN HWND hWnd, O
         return false;
     }
 
+
     return true;
 }
 
@@ -73,18 +79,35 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
     static HWND       hEditWnd;
     static ULONGLONG  msgCount = 0;
 
-    static GUID WceusbshGUID = {
-      0x4d36e978,
-      0xe325,
-      0x11c3,
-      0xbf,
-      0xc1,
+    // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/system-defined-device-setup-classes-available-to-vendors
+    // -> Ports
+    // static GUID WportshGUID = {
+    //   0x4d36e978,
+    //   0xe325,
+    //   0x11ce,
+    //   0xbf,
+    //   0xc1,
+    //   0x08,
+    //   0x00,
+    //   0x2b,
+    //   0xe1,
+    //   0x03,
+    //   0x18,
+    // };
+
+    // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/guid-devinterface-comport
+    static GUID WcomportshGUID = {
+      0x86E0D1E0,
+      0x8089,
+      0x11D0,
+      0x9C,
+      0xE4,
       0x08,
       0x00,
-      0x2b,
-      0xe1,
-      0x03,
-      0x18,
+      0x3E,
+      0x30,
+      0x1F,
+      0x73,
     };
 
     switch (message) {
@@ -97,7 +120,7 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
             // If you were using a service, you would put this in your main code
             // path as part of your service initialization.
             //
-            if (!doRegisterDeviceInterfaceToHwnd(WceusbshGUID, hWnd, &hDeviceNotify)) {
+            if (!doRegisterDeviceInterfaceToHwnd(WcomportshGUID, hWnd, &hDeviceNotify)) {
                 BR_CORE_ERROR("doRegisterDeviceInterfaceToHwnd failed");
             }
 
@@ -113,16 +136,49 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
             // way. Refer to the extended information for your particular device type
             // specified by your GUID.
             //
-            PDEV_BROADCAST_DEVICEINTERFACE b = (PDEV_BROADCAST_DEVICEINTERFACE)lParam;
+            PDEV_BROADCAST_DEVICEINTERFACE b             = (PDEV_BROADCAST_DEVICEINTERFACE)lParam;
+            auto                           makeClassGuid = [](PDEV_BROADCAST_DEVICEINTERFACE b) -> std::wstring {
+                std::string guid = fmt::format("{:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+                                               b->dbcc_classguid.Data1,
+                                               b->dbcc_classguid.Data2,
+                                               b->dbcc_classguid.Data3,
+                                               b->dbcc_classguid.Data4[0],
+                                               b->dbcc_classguid.Data4[1],
+                                               b->dbcc_classguid.Data4[2],
+                                               b->dbcc_classguid.Data4[3],
+                                               b->dbcc_classguid.Data4[4],
+                                               b->dbcc_classguid.Data4[5],
+                                               b->dbcc_classguid.Data4[6],
+                                               b->dbcc_classguid.Data4[7]);
+                return std::wstring(guid.begin(), guid.end());    // OK because ASCII only
+            };
+            auto makeName = [](PDEV_BROADCAST_DEVICEINTERFACE b) -> std::wstring {
+#ifdef UNICODE
+                auto name = std::wstring((const wchar_t*)(b->dbcc_name));
+                return name;
+#else
+                std::string name = std::string(b->dbcc_name);
+                return std::wstring(name.begin(), name.end());
+#endif
+            };
+
             // Output some messages to the window.
             switch (wParam) {
                     // TODO dispatch Brigerad events.
                 case DBT_DEVICEARRIVAL:
                     msgCount++;
+                    {
+                        auto event = UsbConnectedEvent(makeClassGuid(b), makeName(b));
+                        Application::Get().onEvent(event);
+                    }
                     BR_CORE_DEBUG("Message {}: DBT_DEVICEARRIVAL", msgCount);
                     break;
                 case DBT_DEVICEREMOVECOMPLETE:
                     msgCount++;
+                    {
+                        auto event = UsbDisconnectedEvent(makeClassGuid(b), makeName(b));
+                        Application::Get().onEvent(event);
+                    }
                     BR_CORE_DEBUG("Message {}, DBT_DEVICEREMOVECOMPLETE", msgCount);
                     break;
                 case DBT_DEVNODES_CHANGED:
@@ -218,7 +274,7 @@ void WindowsWindow::Init(const WindowProps& props)
 #if defined(BR_DEBUG)
         if (Renderer::GetAPI() == RendererAPI::API::OpenGL) { glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE); }
 #endif
-        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        // glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
         m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
         ++s_GLFWWindowCount;
     }
