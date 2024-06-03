@@ -162,6 +162,10 @@ void CanOpen::reset()
 
 void CanOpen::start()
 {
+    if (m_port == "") {
+        BR_LOG_WARN(m_tag, "Ignoring CanOpen Start on empty port");
+        return;
+    }
     m_stopSource = {};
     m_coThread   = std::jthread([this] {
         addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the EDS.
