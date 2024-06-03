@@ -45,10 +45,10 @@ class DeviceViewer : public Brigerad::Layer {
         std::string                lastDevice;
         std::vector<WhitelistItem> usbWhitelist;
     };
-    friend void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions& options);
-    friend void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions::WhitelistItem& item);
-    friend void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions::WhitelistItem& item);
-    friend void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& options);
+    friend void to_json(nlohmann::json& j, const DeviceViewerOptions& options);
+    friend void to_json(nlohmann::json& j, const DeviceViewerOptions::WhitelistItem& item);
+    friend void from_json(const nlohmann::json& j, DeviceViewerOptions::WhitelistItem& item);
+    friend void from_json(const nlohmann::json& j, DeviceViewerOptions& options);
 
 public:
      DeviceViewer(CanOpen::CanOpen& canOpen) noexcept;
@@ -56,6 +56,7 @@ public:
 
     void onAttach() override;
     void onDetach() override;
+    void onEvent(Brigerad::Event& event) override;
 
     void onImGuiRender() override;
 
@@ -74,7 +75,7 @@ private:
     DeviceViewerOptions m_options;
 
     CanOpen::CanOpen&             m_canOpen;
-    std::string* m_selectedPort = nullptr;
+    std::string*                  m_selectedPort = nullptr;
     std::vector<serial::PortInfo> m_ports;
 
     std::unordered_map<decltype(std::declval<SlCan::CanPacket>().id), SlCan::CanPacket> m_networkState;
@@ -87,7 +88,7 @@ private:
     float  m_kilobytesRxInLastSecond = 0;
     size_t m_bytesRxInCurrentSecond  = 0;
 
-    size_t m_pktTxCount = 0;
+    size_t m_pktTxCount               = 0;
     size_t m_packetsTxInLastSecond    = 0;
     size_t m_packetsTxInCurrentSecond = 0;
     float  m_kilobytesTxInLastSecond  = 0;

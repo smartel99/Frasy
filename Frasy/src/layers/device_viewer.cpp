@@ -19,12 +19,14 @@
 #include "utils/communication/serial/device_map.h"
 #include "utils/communication/serial/enumerator.h"
 
+#include "Brigerad/Events/usb_event.h"
 #include "frasy_interpreter.h"
 
 #include <algorithm>
 #include <charconv>
 #include <regex>
 #include <string>
+#include <utils/get_serial_port.h>
 #include <vector>
 
 namespace Frasy {
@@ -175,6 +177,27 @@ void DeviceViewer::onDetach()
     FrasyInterpreter::Get().getConfig().setField("communication", m_options);
 }
 
+void DeviceViewer::onEvent(Brigerad::Event& event)
+{
+    Brigerad::EventDispatcher dispatcher = Brigerad::EventDispatcher(event);
+    dispatcher.Dispatch<Brigerad::UsbConnectedEvent>([&](Brigerad::Event& e) {
+        m_ports          = serial::list_ports();
+        std::string port = getSerialPort(reinterpret_cast<const Brigerad::UsbEvent&>(e), m_ports);
+        if (!port.empty()) { std::cout << "Port: " << port << std::endl; }
+        return false;
+    });
+    dispatcher.Dispatch<Brigerad::UsbDisconnectedEvent>([&](Brigerad::Event& e) {
+        // We must used previously used ports because if our port was disconnected, we won't have it anymore
+        std::string port = getSerialPort(reinterpret_cast<const Brigerad::UsbEvent&>(e), m_ports);
+        m_ports          = serial::list_ports();
+        if (!port.empty()) { std::cout << "Port: " << port << std::endl; }
+        return false;
+    });
+}
+
+
+
+
 void DeviceViewer::onImGuiRender()
 {
     renderMenuBar();
@@ -262,7 +285,7 @@ void DeviceViewer::renderNetworkState()
         ImGui::TableSetupColumn("IsRTR");
         ImGui::TableSetupColumn("DLC");
         ImGui::TableSetupColumn("Data");
-        ImGui::TableSetupScrollFreeze(0,1);
+        ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
         for (const auto& packet : m_networkState | std::views::values) {
             ImGui::TableNextRow();
