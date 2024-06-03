@@ -4,7 +4,8 @@ local Ib = {
     nodeId = 0,
     eds = "",
     name = "",
-    __kind = "ib"
+    __kind = "ib",
+    __functions = {}
 }
 Ib.__index = Ib
 
@@ -17,16 +18,25 @@ function Ib:new(base, name)
             nodeId = 0,
             eds = "",
             name = name,
-            __kind = "ib"
+            __kind = "ib",
+            __functions = {}
         }, Ib)
     else
-        return setmetatable({
+        object = {
             kind = base.kind,
             nodeId = base.nodeId,
             version = base.version,
             eds = base.eds,
-            name = base.name
-        }, Ib)
+            name = name,
+            __kind = "ib",
+            __functions = {}
+        }
+        if (name == nil) then object.name = base.name end
+        for _, name in pairs(base.__functions) do
+            object[name] = base[name]
+            object.__functions[name] = name
+        end
+        return setmetatable(object, Ib)
     end
 end
 
@@ -70,6 +80,12 @@ function Ib:Eds(path)
         self.eds = path
         return self
     end
+end
+
+function Ib:AddFunction(name, func)
+    self.__functions[name] = name
+    self[name] = func
+    return self
 end
 
 function Ib:Upload(ode)

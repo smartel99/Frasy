@@ -15,5 +15,8 @@ ibs.r8l = ib:new(nil, "r8l")
             :Kind(04)
             :NodeId(04)
             :Eds("lua/core/cep/eds/r8l_1.0.0.eds")
+            :AddFunction("foo", function(self)
+                Utils.print(self, 2)
+            end)
 
 return ibs

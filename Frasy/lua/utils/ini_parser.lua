@@ -34,7 +34,7 @@ return {
             file:close()
             return parse(lines)
         else
-            error(err)
+            error("Failed to open ini file. Error: " .. tostring(err))
         end
     end
 }

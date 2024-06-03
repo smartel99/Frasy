@@ -27,7 +27,9 @@ Environment(function()
     -- Define IBs
     --local daq = Ib.Add(Ibs.daq)
     --local pio = Ib.Add(Ibs.pio):NodeId(3)
-    local r8l = Ib.Add(Ibs.r8l):NodeId(26)
+    -- local r8l = Ib.Add(Ibs.r8l):NodeId(26)
+    local board1 = Ib.Add(Ibs.r8l, "board1")
+    local board2 = Ib.Add(Ibs.r8l, "board2")
 
 
     -- UUT Values
