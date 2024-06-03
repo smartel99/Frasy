@@ -262,7 +262,8 @@ function DefineBrigerad()
     defines {
         "BR_PLATFORM_WINDOWS",
         "BR_BUILD_DLL",
-        "GLFW_INCLUDE_NONE"
+        "GLFW_INCLUDE_NONE",
+        "UNICODE"
     }
 
     links {
