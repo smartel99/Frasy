@@ -86,7 +86,7 @@ std::vector<uint8_t> serializeOdeValue(sol::table& ode, const sol::object& value
             return std::vector<uint8_t>(str.begin(), str.end());
         }
         case DataType::unicodeString: {
-            auto str = value.as<std::wstring>();
+            auto str = value.as<std::string>();
             return std::vector<uint8_t>(str.begin(), str.end());
         }
         case DataType::domain: return value.as<std::vector<uint8_t>>();

@@ -96,6 +96,7 @@ end
 function CommonFlags()
     filter { "toolset:not gcc", "toolset:not clang" }
     defines {
+        "_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
         "_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
         "_SILENCE_CXX20_CISO646_REMOVED_WARNING",
         "_CRT_SECURE_NO_WARNINGS",
