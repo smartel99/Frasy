@@ -65,8 +65,8 @@ end
 
 local function addIb(base, name)
     local nIb = _ib:new(base, name)
-    local odParser = require('lua.core.can_open.object_dictionnary')
-    assert(Context.map.ibs[name] == nil, "Ib already defined. " .. name)
+    local odParser = require('lua.core.can_open.object_dictionary')
+    assert(Context.map.ibs[name] == nil, "Ib already defined. " .. tostring(name))
     Context.map.ibs[name] = nIb
     nIb.od = odParser.loadFile(nIb.eds)
     return nIb

@@ -4,7 +4,7 @@ CanOpen = {}
 
 CanOpen.dataType = require("lua.core.can_open.types.data_type")
 CanOpen.objectType = require("lua.core.can_open.types.object_type")
-CanOpen.objectDictionnary = require("lua.core.can_open.object_dictionnary")
+CanOpen.objectDictionary = require("lua.core.can_open.object_dictionary")
 
 -- C++ functions
 -- see orchestrator.cpp
