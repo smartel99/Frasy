@@ -64,9 +64,11 @@ local function addUutValue(key)
 end
 
 local function addIb(base, name)
+    if(base == nil) then error("Base IB not provided") end
+    if (name == nil) then name = base.name end
     local nIb = _ib:new(base, name)
     local odParser = require('lua.core.can_open.object_dictionary')
-    assert(Context.map.ibs[name] == nil, "Ib already defined. " .. tostring(name))
+    assert(Context.map.ibs[name] == nil, "Ib already defined. " .. name)
     Context.map.ibs[name] = nIb
     nIb.od = odParser.loadFile(nIb.eds)
     return nIb
