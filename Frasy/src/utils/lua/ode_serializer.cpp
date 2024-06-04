@@ -56,7 +56,7 @@ std::vector<uint8_t> serializeTimeStruct(const sol::object& value)
 std::vector<uint8_t> serializeOdeValue(sol::table& ode, const sol::object& value)
 {
     switch (static_cast<DataType>(ode["dataType"].get<uint16_t>())) {
-        case DataType::boolean: return std::vector<uint8_t>(value.as<bool>() ? 1 : 0);
+        case DataType::boolean: return std::vector<uint8_t>(1, value.as<bool>() ? 1 : 0);
         case DataType::real32: return Frasy::Serialize(value.as<float>());
         case DataType::real64: return Frasy::Serialize(value.as<double>());
 
