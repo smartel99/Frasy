@@ -106,7 +106,8 @@ function CommonFlags()
         "/wd5105"
     }
     buildoptions {
-        "/openmp:experimental"
+        "/openmp:experimental",
+        "/permissive-"
     }
 
     filter { "toolset:not gcc", "toolset:not clang", "configurations:Debug or RelWithDebInfo" }

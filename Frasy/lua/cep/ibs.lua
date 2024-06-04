@@ -9,7 +9,7 @@ ibs.daq = ib:new(nil, "daq")
 ibs.pio = ib:new(nil, "pio")
             :Kind(03)
             :NodeId(03)
-            :Eds("lua/core/cep/eds/pio.eds")
+            :Eds("lua/core/cep/eds/pio_1.0.0.eds")
 
 ibs.r8l = ib:new(nil, "r8l")
             :Kind(04)
