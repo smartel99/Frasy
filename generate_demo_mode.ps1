@@ -13,4 +13,6 @@ param(
     [string]$Action
 )
 
+cd $PSScriptRoot\demo_mode
+
 & $PSScriptRoot\\vendor\\bin\\premake\\premake5.exe $Action
