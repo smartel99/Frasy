@@ -13,43 +13,6 @@ function DefineOptions()
         value = "DIR",
         description = "Path (relative or absolute) to a directory that should be copied to the output directory upon building the project."
     }
-
-    newoption {
-        trigger = "demo_mode",
-        description = "Build the demonstration mode"
-    }
-end
-
-function DefineWorkspace()
-    workspace "Frasy"
-    architecture "x64"
-    filter "not options:demo_mode"
-        startproject "Frasy"
-    filter "options:demo_mode"
-        startproject "Demo"
-
-    filter {}
-
-    configurations {
-        "Debug",
-        "Release",
-        "Dist",
-        "RelWithDebInfo"
-    }
-
-    flags {
-        "MultiProcessorCompile",
-        "LinkTimeOptimization",
-        "Color"
-    }
-
-    filter { "toolset:not gcc", "toolset:not clang" }
-    buildoptions {
-        "/wd5105",
-        "/Zc:preprocessor"
-    }
-
-    outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 end
 
 -- Include directories relative to root folder (solution folder)
@@ -220,10 +183,6 @@ function DefineSolution()
     group ""
     DefineBrigerad()
     DefineFrasy()
-
-    filter { "options:demo-mode" }
-        DefineDemoMode()
-    filter ""
 end
 
 function DefineBrigerad()
@@ -351,95 +310,5 @@ function DefineFrasy()
     }
 end
 
-function DefineDemoMode()
-    project "Demo"
-    location "demo_mode"
-    kind "ConsoleApp"
-
-    language "C++"
-    cppdialect "C++latest"
-    staticruntime "On"
-
-    targetdir("bin/" .. outputdir .. "/%{prj.name}")
-    objdir("bin-int/" .. outputdir .. "/%{prj.name}")
-
-    files {
-        "demo_mode/**.cpp",
-    }
-
-    CommonFlags()
-
-    filter {}
-    includedirs {
-        "Frasy/src",
-        "Frasy/vendor",
-        "Brigerad/src",
-        "Brigerad/vendor",
-        "Brigerad/vendor/spdlog/include",
-        "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Glad}",
-        "%{IncludeDir.ImGui}",
-        "%{IncludeDir.glm}",
-        "%{IncludeDir.stb_image}",
-        "%{IncludeDir.serial}/include",
-        "%{IncludeDir.entt}",
-        "%{IncludeDir.lua}/src",
-        "%{IncludeDir.sol}/include",
-        "%{IncludeDir.yaml_cpp}",
-        "%{IncludeDir.pfr}",
-        "%{IncludeDir.gtest}",
-    }
-
-    externalincludedirs {
-        "Brigerad/vendor/spdlog/include",
-        "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Glad}",
-        "%{IncludeDir.ImGui}",
-        "%{IncludeDir.glm}",
-        "%{IncludeDir.stb_image}",
-        "%{IncludeDir.serial}/include",
-        "%{IncludeDir.entt}",
-        "%{IncludeDir.lua}/src",
-        "%{IncludeDir.sol}/include",
-        "%{IncludeDir.yaml_cpp}",
-        "%{IncludeDir.pfr}",
-        "%{IncludeDir.gtest}",
-    }
-
-    CANopenIncludes()
-
-    filter "system:windows"
-    systemversion "latest"
-
-    defines { "BR_PLATFORM_WINDOWS" }
-
-    links {
-        "Frasy",
-        "Brigerad",
-        "GLFW",
-        "Glad",
-        "ImGui",
-        "serial",
-        "gtest",
-        "opengl32.lib",
-        "Ws2_32.lib"
-    }
-
-    filter "action:not vs*"
-    postbuildcommands {
-        "{CMD_COPYFILE} . %{cfg.buildtarget.directory} config.json",
-        "{CMD_COPYDIR} ../Frasy/assets %{cfg.buildtarget.directory}/assets",
-        "{CMD_RMDIR} %{cfg.buildtarget.directory}/lua",
-        "{CMD_COPYDIR} ../Frasy/lua %{cfg.buildtarget.directory}/lua/core",
-        "{CMD_COPYDIR} lua %{cfg.buildtarget.directory}/lua/user",
-    }
-
-    filter "action:vs*"
-    postbuildcommands {
-        "./Frasy/scripts/Windows/refresh_dependencies.bat"
-    }
-end
-
-DefineWorkspace()
 DefineSolution()
 -- LuaFormatter on
