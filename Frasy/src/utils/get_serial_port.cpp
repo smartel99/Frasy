@@ -34,7 +34,7 @@ std::string getSerialPort(const Brigerad::UsbEvent& event, const std::vector<ser
     if (!std::regex_search(target, match, pPid)) { return ""; }
     std::string tPid = match[0];
     std::string tMi  = "";
-    if (std::regex_search(target, match, pMi)) { tMi = match[1]; }
+    if (std::regex_search(target, match, pMi)) { tMi = match[0]; }
 
     for (auto& port : ports) {
         std::regex oVid(tVid);

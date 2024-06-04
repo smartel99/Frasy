@@ -31,6 +31,43 @@
 
 namespace Frasy {
 
+
+std::optional<DeviceViewer::DeviceViewerOptions::WhitelistItem> DeviceViewer::DeviceViewerOptions::WhitelistItem::parse(
+  const std::string& name)
+{
+    WhitelistItem info {};
+    std::regex    pVid("VID_([A-F0-9]+)");
+    std::regex    pPid("PID_([A-F0-9]+)");
+    std::regex    pMi("MI_([A-F0-9]+)");
+    std::regex    pRev("REV_([A-F0-9]+)");
+    std::smatch   match;
+    if (!std::regex_search(name, match, pVid)) { return {}; }
+    auto r = parseHexInteger<uint32_t>(match[1]);
+    if (!r.has_value()) { return {}; }
+    info.vid = r.value();
+    if (!std::regex_search(name, match, pPid)) { return {}; }
+    r = parseHexInteger<uint32_t>(match[1]);
+    if (!r.has_value()) { return {}; }
+    info.pid = r.value();
+    if (std::regex_search(name, match, pMi)) {
+        r = parseHexInteger<uint32_t>(match[1]);
+        if (r.has_value()) { info.mi = r.value(); }
+    }
+    if (std::regex_search(name, match, pRev)) {
+        r = parseHexInteger<uint32_t>(match[1]);
+        if (r.has_value()) { info.rev = r.value(); }
+    }
+    return info;
+}
+
+
+std::optional<DeviceViewer::DeviceViewerOptions::WhitelistItem> DeviceViewer::DeviceViewerOptions::WhitelistItem::parse(
+  const std::wstring& name)
+{
+    return parse(wstring_to_utf8(name));
+}
+
+
 void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions::WhitelistItem& item)
 {
     j = nlohmann::json {{"vid", item.vid}, {"pid", item.pid}};
@@ -144,9 +181,7 @@ void DeviceViewer::onAttach()
     if (!m_options.lastDevice.empty() &&
         std::ranges::any_of(m_ports, [&last = m_options.lastDevice](const auto& port) { return port.port == last; })) {
         m_canOpen.open(m_options.lastDevice);
-        m_selectedPort = &std::ranges::find_if(m_ports, [&selected = m_options.lastDevice](const auto& port) {
-                              return port.port == selected;
-                          })->port;
+        m_selectedPort = m_options.lastDevice;
     }
     // If fails: get a list of the connected devices, search for a whitelisted VID/PID pair.
     // If found, open the first one found.
@@ -163,10 +198,10 @@ void DeviceViewer::onAttach()
         if (it != m_ports.end()) {
             BR_APP_INFO("Found whitelisted device on port {} ({})!", it->port, it->hardware_id);
             m_canOpen.open(it->port);
-            if (m_canOpen.isOpen()) {
-                m_options.lastDevice = it->port;
-                m_selectedPort       = &it->port;
-            }
+            // if (m_canOpen.isOpen()) {
+            m_options.lastDevice = it->port;
+            m_selectedPort       = it->port;
+            // }
         }
     }
 }
@@ -181,16 +216,31 @@ void DeviceViewer::onEvent(Brigerad::Event& event)
 {
     Brigerad::EventDispatcher dispatcher = Brigerad::EventDispatcher(event);
     dispatcher.Dispatch<Brigerad::UsbConnectedEvent>([&](Brigerad::Event& e) {
-        m_ports          = serial::list_ports();
-        std::string port = getSerialPort(reinterpret_cast<const Brigerad::UsbEvent&>(e), m_ports);
-        if (!port.empty()) { std::cout << "Port: " << port << std::endl; }
+        const auto& usbEvent = reinterpret_cast<const Brigerad::UsbEvent&>(e);
+        const auto  info     = DeviceViewerOptions::WhitelistItem::parse(usbEvent.name);
+        if (!info.has_value()) {
+            BR_APP_DEBUG("Could not parse device info, aborting");
+            return false;
+        }
+        m_ports                = serial::list_ports();
+        const std::string port = getSerialPort(usbEvent, m_ports);
+        if (port.empty()) {
+            BR_APP_DEBUG("Could not find port info, aborting");
+            return false;
+        }
+        handleSerialConnection(info.value(), port);
         return false;
     });
     dispatcher.Dispatch<Brigerad::UsbDisconnectedEvent>([&](Brigerad::Event& e) {
         // We must used previously used ports because if our port was disconnected, we won't have it anymore
-        std::string port = getSerialPort(reinterpret_cast<const Brigerad::UsbEvent&>(e), m_ports);
-        m_ports          = serial::list_ports();
-        if (!port.empty()) { std::cout << "Port: " << port << std::endl; }
+        const std::string port = getSerialPort(reinterpret_cast<const Brigerad::UsbEvent&>(e), m_ports);
+        // We do not update m_ports in case of multiple callback in a row
+        // m_ports                = serial::list_ports();
+        if (port.empty()) {
+            BR_APP_DEBUG("Could not find port info, aborting");
+            return false;
+        }
+        handleSerialDisconnection(port);
         return false;
     });
 }
@@ -209,38 +259,40 @@ void DeviceViewer::onImGuiRender()
         if (m_canOpen.isOpen()) {
             ImGui::Text("Connected to: %s", m_canOpen.m_device.getPort().c_str());
             ImGui::SameLine();
-            if (ImGui::Button("Close")) { m_canOpen.close(); }
+            if (ImGui::Button("Close")) {
+                m_canOpen.close();
+                m_selectedPort = "";
+            }
         }
         else {
-            if (ImGui::BeginCombo("Port", m_selectedPort != nullptr ? m_selectedPort->c_str() : "")) {
+            if (ImGui::BeginCombo("Port", !m_selectedPort.empty() ? m_selectedPort.c_str() : "")) {
                 for (auto&& port : m_ports) {
-                    if (ImGui::Selectable(port.port.c_str(), &port.port == m_selectedPort)) {
-                        m_selectedPort = &port.port;
+                    if (ImGui::Selectable(port.port.c_str(), port.port == m_selectedPort)) {
+                        m_selectedPort = port.port;
                     }
                 }
                 ImGui::EndCombo();
             }
             ImGui::SameLine();
             if (ImGui::Button("Refresh")) {
-                std::string selectedPort = m_selectedPort == nullptr ? "" : *m_selectedPort;
+                std::string selectedPort = m_selectedPort.empty() ? "" : m_selectedPort;
                 refreshPorts();
-                if (m_selectedPort != nullptr) {
+                if (!m_selectedPort.empty()) {
                     auto it = std::ranges::find_if(
                       m_ports, [&selectedPort](const auto& port) { return port.port == selectedPort; });
-                    if (it != m_ports.end()) { m_selectedPort = &it->port; }
+                    if (it != m_ports.end()) { m_selectedPort = it->port; }
                 }
             }
 
-            if (m_selectedPort == nullptr) {
+            if (m_selectedPort.empty()) {
                 const auto& disabled = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, disabled);
                 ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, disabled);
                 ImGui::PushStyleColor(ImGuiCol_FrameBgActive, disabled);
             }
             ImGui::SameLine();
-            if (ImGui::Button("Open") && m_selectedPort != nullptr) { m_canOpen.open(*m_selectedPort); }
-
-            if (m_selectedPort == nullptr) { ImGui::PopStyleColor(3); }
+            if (ImGui::Button("Open") && !m_selectedPort.empty()) { m_canOpen.open(m_selectedPort); }
+            if (m_selectedPort.empty()) { ImGui::PopStyleColor(3); }
         }
         ImGui::Separator();
         ImGui::Text("Network State: %zu addresses, %zu pending packets (%zu total), %zu pkt/s, %0.3f kB/s",
@@ -403,5 +455,50 @@ void DeviceViewer::renderMenuBar()
         ImGui::EndMainMenuBar();
     }
 }
+
+void DeviceViewer::handleSerialConnection(const DeviceViewerOptions::WhitelistItem& info, const std::string& port)
+{
+    BR_APP_DEBUG("Handling connection of port {}", port);
+    if (port.empty()) {
+        BR_APP_DEBUG("No port provided, aborting");
+        return;
+    }
+    if (m_canOpen.isOpen()) {
+        BR_APP_DEBUG("Already connected, aborting");
+        return;
+    }
+    if (!std::ranges::any_of(m_options.usbWhitelist, [info](const auto& device) { return device == info; })) {
+        BR_APP_DEBUG("Not in whitelist, aborting");
+        return;
+    }
+    BR_APP_INFO("Connecting to {}", port);
+    m_canOpen.open(port);
+    // if (m_canOpen.isOpen()) {
+    m_options.lastDevice = port;
+    m_selectedPort       = port;
+    // }
+}
+
+void DeviceViewer::handleSerialDisconnection(const std::string& port)
+{
+    BR_APP_DEBUG("Handling disconnection of port {}", port);
+    if (port.empty()) {
+        BR_APP_DEBUG("No port provided, aborting");
+        return;
+    }
+    if (!m_canOpen.isOpen()) {
+        BR_APP_DEBUG("Already closed, aborting");
+        return;
+    }
+    if (m_selectedPort != port) {
+        BR_APP_DEBUG("Not the port we are connected to, aborting");
+        return;
+    }
+    BR_APP_DEBUG("Port match our current connection, closing it");
+    m_canOpen.close();
+    m_selectedPort = "";
+}
+
+
 
 }    // namespace Frasy

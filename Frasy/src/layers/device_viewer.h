@@ -40,6 +40,9 @@ class DeviceViewer : public Brigerad::Layer {
                        (!mi.has_value() || mi == rhs.mi);
             }
             bool operator==(const std::string& rhs) const;
+
+            static std::optional<WhitelistItem> parse(const std::string& name);
+            static std::optional<WhitelistItem> parse(const std::wstring& name);
         };
 
         std::string                lastDevice;
@@ -70,12 +73,15 @@ private:
 
     void renderMenuBar();
 
+    void handleSerialConnection(const DeviceViewerOptions::WhitelistItem& info, const std::string& port);
+    void handleSerialDisconnection(const std::string& port);
+
 private:
     bool                m_isVisible = false;
     DeviceViewerOptions m_options;
 
     CanOpen::CanOpen&             m_canOpen;
-    std::string*                  m_selectedPort = nullptr;
+    std::string                   m_selectedPort;
     std::vector<serial::PortInfo> m_ports;
 
     std::unordered_map<decltype(std::declval<SlCan::CanPacket>().id), SlCan::CanPacket> m_networkState;

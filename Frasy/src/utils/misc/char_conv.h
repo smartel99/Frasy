@@ -24,24 +24,36 @@
 #include <charconv>
 #include <concepts>
 #include <cstdint>
+#include <optional>
 #include <system_error>
-#include <utility>
 
 
-namespace Frasy
+namespace Frasy {
+
+template<std::integral T>
+std::optional<T> parseHexInteger(const std::string& str)
 {
+    T value        = 0;
+    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.length(), value, 16);
+    if (ec != std::errc()) { return {}; }
+    return value;
+}
+
 template<std::integral T>
 [[nodiscard]] constexpr T AsciiToT(const uint8_t* data)
 {
     T      v         = {};
     size_t charsForT = sizeof(T) * 2;
-    for (size_t i = 0; i < charsForT; i++)
-    {
+    for (size_t i = 0; i < charsForT; i++) {
         const uint8_t& current = data[i];
         uint8_t        value   = 0;
         if ((current >= 'a') && (current <= 'f')) { value = (current - 'a') + 0xA; }
-        else if ((current >= 'A') && (current <= 'F')) { value = (current - 'A') + 0xA; }
-        else if ((current >= '0') && (current <= '9')) { value = current - '0'; }
+        else if ((current >= 'A') && (current <= 'F')) {
+            value = (current - 'A') + 0xA;
+        }
+        else if ((current >= '0') && (current <= '9')) {
+            value = current - '0';
+        }
 
         constexpr size_t bitsPerChar = 4;
         size_t           shiftBy     = ((charsForT * bitsPerChar) - bitsPerChar) - (i * bitsPerChar);
@@ -56,11 +68,12 @@ template<std::integral T, size_t CharsForT = sizeof(T) * 2>
 {
     std::array<uint8_t, CharsForT> out = {};
 
-    for (int i = CharsForT - 1; i >= 0; i--)
-    {
+    for (int i = CharsForT - 1; i >= 0; i--) {
         uint8_t v = static_cast<uint8_t>(t) & 0xF;
         if ((v >= 0) && (v <= 9)) { v += '0'; }
-        else if ((v >= 0xA) && (v <= 0xF)) { v = (v - 0xA) + 'A'; }
+        else if ((v >= 0xA) && (v <= 0xF)) {
+            v = (v - 0xA) + 'A';
+        }
         out[i] = v;
 
         t = static_cast<T>(t >> 4);
