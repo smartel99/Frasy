@@ -28,7 +28,7 @@ Application* Application::s_instance = nullptr;
  * @brief   Construct a new Application:: Application object
  *          This creates a new window and binds the event function to it.
  */
-Application::Application(const std::string& name)
+Application::Application(const std::string& name, bool maximized)
 {
     BR_PROFILE_FUNCTION();
 
@@ -37,7 +37,7 @@ Application::Application(const std::string& name)
     s_instance = this;
 
     // Create the window for the application.
-    m_window = Scope<Window>(Window::Create(WindowProps(name)));
+    m_window = Scope<Window>(Window::Create(WindowProps(name, maximized)));
     // Bind the Application's events to the window's.
     m_window->SetEventCallback([this](Event& e) { onEvent(e); });
 

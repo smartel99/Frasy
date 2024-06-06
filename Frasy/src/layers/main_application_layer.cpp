@@ -15,6 +15,7 @@
 #include "result_analyzer.h"
 
 #include <Brigerad/Core/File.h>
+#include <frasy_interpreter.h>
 #include <imgui/imgui.h>
 
 #define CREATE_TEXTURE(texture, path)                                                                                  \
@@ -53,6 +54,13 @@ void MainApplicationLayer::onAttach()
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
     m_testViewer     = std::make_unique<TestViewer>();
     m_testViewer->SetInterface(this);
+
+    bool  maximized = FrasyInterpreter::Get().getConfig().getField("maximized", true);
+    auto& window    = FrasyInterpreter::Get().getWindow();
+    if (maximized) { window.Maximize(); }
+    else {
+        window.Restore();
+    }
 
     m_logWindow->onAttach();
     m_deviceViewer->onAttach();
@@ -148,6 +156,20 @@ void MainApplicationLayer::onImGuiRender()
 
 void MainApplicationLayer::onEvent(Brigerad::Event& e)
 {
+    // Creates a dispatch context with the event.
+    Brigerad::EventDispatcher dispatcher(e);
+    // Dispatch it to the proper handling function in the Application, if the type matches.
+    dispatcher.Dispatch<Brigerad::WindowMaximizedEvent>([this](Brigerad::WindowMaximizedEvent& e) {
+        BR_APP_INFO("Window maximized");
+        FrasyInterpreter::Get().getConfig().setField("maximized", true);
+        return true;
+    });
+    dispatcher.Dispatch<Brigerad::WindowRestoredEvent>([this](Brigerad::WindowRestoredEvent& e) {
+        BR_APP_INFO("Window restored");
+        FrasyInterpreter::Get().getConfig().setField("maximized", false);
+        return true;
+    });
+
     m_logWindow->onEvent(e);
     m_deviceViewer->onEvent(e);
     m_canOpenViewer->onEvent(e);

@@ -29,6 +29,8 @@ public:
     bool IsVSync() const override;
 
     void* GetNativeWindow() const override { return reinterpret_cast<void*>(m_window); }
+    void  Maximize() override;
+    void  Restore() override;
 
 private:
     virtual void Init(const WindowProps& props);

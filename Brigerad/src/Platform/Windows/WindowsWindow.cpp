@@ -274,7 +274,9 @@ void WindowsWindow::Init(const WindowProps& props)
 #if defined(BR_DEBUG)
         if (Renderer::GetAPI() == RendererAPI::API::OpenGL) { glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE); }
 #endif
-        // glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        if(props.maximized) {
+            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        }
         m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
         ++s_GLFWWindowCount;
     }
@@ -299,6 +301,18 @@ void WindowsWindow::Init(const WindowProps& props)
         WindowData&      data = *(WindowData*)glfwGetWindowUserPointer(window);
         WindowCloseEvent event;
         data.eventCallback(event);
+    });
+
+    glfwSetWindowMaximizeCallback(m_window, [](GLFWwindow* window, int maximized) {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        if (maximized == 1) {
+            WindowMaximizedEvent event;
+            data.eventCallback(event);
+        }
+        else {
+            WindowRestoredEvent event;
+            data.eventCallback(event);
+        }
     });
 
     glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -435,6 +449,16 @@ void WindowsWindow::SetVSync(bool enabled)
 bool WindowsWindow::IsVSync() const
 {
     return m_data.vsync;
+}
+
+void WindowsWindow::Maximize()
+{
+    glfwMaximizeWindow(m_window);
+}
+
+void WindowsWindow::Restore()
+{
+    glfwRestoreWindow(m_window);
 }
 
 }    // namespace Brigerad

@@ -21,7 +21,7 @@ namespace Brigerad
 class BRIGERAD_API Application
 {
 public:
-    Application(const std::string& name = "Brigerad Engine");
+    Application(const std::string& name = "Brigerad Engine", bool maximized=true);
     virtual ~Application();
 
     void run();
@@ -71,5 +71,5 @@ private:
 };
 
 // To be defined in client.
-Application* CreateApplication();
+Application* CreateApplication(int argc, char** argv);
 }    // namespace Brigerad

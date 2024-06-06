@@ -25,7 +25,7 @@ public:
 };
 
 
-Brigerad::Application* Brigerad::CreateApplication()
+Brigerad::Application* Brigerad::CreateApplication(int argc, char** argv)
 {
     return new MyFrasyInterpreter();
 }

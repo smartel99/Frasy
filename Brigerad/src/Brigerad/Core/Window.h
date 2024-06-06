@@ -4,25 +4,24 @@
 
 #include <string>
 
-namespace Brigerad
-{
-struct WindowProps
-{
+namespace Brigerad {
+struct WindowProps {
     std::string  title;
     unsigned int width;
     unsigned int height;
+    bool         maximized = true;
 
-    WindowProps(const std::string& t = "Brigerad Engine",
-                unsigned int       w = 1920,
-                unsigned int       h = 1080)
-    : title(t), width(w), height(h)
+    WindowProps(const std::string& t         = "Brigerad Engine",
+                bool               maximized = true,
+                unsigned int       w         = 1920,
+                unsigned int       h         = 1080)
+    : title(t), width(w), height(h), maximized(maximized)
     {
     }
 };
 
 // Interface representing a desktop system based window.
-class BRIGERAD_API Window
-{
+class BRIGERAD_API Window {
 public:
     using EventCallbackFn = std::function<void(Event&)>;
 
@@ -39,6 +38,9 @@ public:
     virtual bool IsVSync() const                                   = 0;
 
     virtual void* GetNativeWindow() const = 0;
+
+    virtual void Maximize() = 0;
+    virtual void Restore()  = 0;
 
     static Window* Create(const WindowProps& props = WindowProps());
 };

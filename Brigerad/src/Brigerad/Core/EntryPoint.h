@@ -7,7 +7,7 @@
 
 #if defined(BR_PLATFORM_WINDOWS) || defined(BR_PLATFORM_LINUX)
 
-extern Brigerad::Application* Brigerad::CreateApplication();
+extern Brigerad::Application* Brigerad::CreateApplication(int argc, char** argv);
 
 int main(int argc, char** argv)
 {
@@ -15,9 +15,9 @@ int main(int argc, char** argv)
     Brigerad::Log::Init();
 
     std::string path = std::filesystem::current_path().string();
-//    BR_CORE_WARN("Running from: {0}", path);
+    //    BR_CORE_WARN("Running from: {0}", path);
 
-    auto app = Brigerad::CreateApplication();
+    auto app = Brigerad::CreateApplication(argc, argv);
     BR_PROFILE_END_SESSION();
 
     app->run();

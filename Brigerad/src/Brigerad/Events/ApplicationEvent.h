@@ -3,25 +3,14 @@
 #include "Brigerad/Events/Event.h"
 #include <sstream>
 
-namespace Brigerad
-{
-class BRIGERAD_API WindowResizeEvent : public Event
-{
+namespace Brigerad {
+class BRIGERAD_API WindowResizeEvent : public Event {
 public:
-    WindowResizeEvent(unsigned int width, unsigned int height)
-        : m_width(width), m_height(height)
-    {
-    }
+    WindowResizeEvent(unsigned int width, unsigned int height) : m_width(width), m_height(height) {}
 
-    inline const unsigned int GetWidth() const
-    {
-        return m_width;
-    }
+    inline const unsigned int GetWidth() const { return m_width; }
 
-    inline const unsigned int GetHeight() const
-    {
-        return m_height;
-    }
+    inline const unsigned int GetHeight() const { return m_height; }
 
     std::string ToString() const override
     {
@@ -37,8 +26,7 @@ private:
     unsigned int m_width, m_height;
 };
 
-class BRIGERAD_API WindowCloseEvent : public Event
-{
+class BRIGERAD_API WindowCloseEvent : public Event {
 public:
     WindowCloseEvent() = default;
 
@@ -46,8 +34,23 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryApplication);
 };
 
-class BRIGERAD_API AppTickEvent : public Event
-{
+class BRIGERAD_API WindowMaximizedEvent : public Event {
+public:
+    WindowMaximizedEvent() = default;
+
+    EVENT_CLASS_TYPE(EventType::WindowMaximized);
+    EVENT_CLASS_CATEGORY(EventCategoryApplication);
+};
+
+class BRIGERAD_API WindowRestoredEvent : public Event {
+public:
+    WindowRestoredEvent() = default;
+
+    EVENT_CLASS_TYPE(EventType::WindowRestored);
+    EVENT_CLASS_CATEGORY(EventCategoryApplication);
+};
+
+class BRIGERAD_API AppTickEvent : public Event {
 public:
     AppTickEvent() = default;
 
@@ -55,8 +58,7 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryApplication);
 };
 
-class BRIGERAD_API AppUpdateEvent : public Event
-{
+class BRIGERAD_API AppUpdateEvent : public Event {
 public:
     AppUpdateEvent() = default;
 
@@ -64,8 +66,7 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryApplication);
 };
 
-class BRIGERAD_API AppRenderEvent : public Event
-{
+class BRIGERAD_API AppRenderEvent : public Event {
 public:
     AppRenderEvent() = default;
 
@@ -73,4 +74,4 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryApplication);
 };
 
-} // namespace Brigerad
+}    // namespace Brigerad

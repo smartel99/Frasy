@@ -23,6 +23,8 @@ enum class EventType {
     WindowFocus,
     WindowLostFocus,
     WindowMoved,
+    WindowMaximized,
+    WindowRestored,
     // Application Events.
     AppTick,
     AppUpdate,
