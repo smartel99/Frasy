@@ -207,22 +207,36 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             auto  subIndex  = std::stoi(ode["subIndex"].get<std::string>(), nullptr, 16);
             auto  request   = interface->uploadData(index, subIndex);
             request.future.wait();
-            if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) { throw sol::error("Request failed"); }
+            if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) {
+                throw sol::error(std::format("Request failed: {}", request.status()));
+            }
             auto result = request.future.get();
-            if (!result.has_value()) { throw sol::error("No value provided in result"); }
+            if (!result.has_value()) {
+                throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
+                                             static_cast<int>(result.error()),
+                                             result.error(),
+                                             request.abortCode()));
+            }
             auto value = deserializeOdeValue(lua, ode, result.value());
             return value;
         };
 
         lua["CanOpen"]["__download"] = [&](std::size_t nodeId, sol::table ode, sol::object value) {
-            auto* node      = m_canOpen->getNode(nodeId);
+            auto* node = m_canOpen->getNode(nodeId);
+            if (node == nullptr) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
             auto* interface = node->sdoInterface();
             auto  index     = std::stoi(ode["index"].get<std::string>(), nullptr, 16);
             auto  subIndex  = std::stoi(ode["subIndex"].get<std::string>(), nullptr, 16);
             auto  sValue    = serializeOdeValue(ode, value);
             auto  request   = interface->downloadData(index, subIndex, sValue);
             request.future.wait();
-            if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) { throw sol::error("Request failed"); }
+            if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) {
+                throw sol::error(std::format("Request failed: {}", request.status()));
+            }
+            auto result = request.future.get();
+            if (result != CO_SDO_RT_ok_communicationEnd) {
+                throw sol::error(std::format("Request failed: {}", result));
+            }
         };
 
         // Boards
