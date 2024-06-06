@@ -446,8 +446,7 @@ bool CanOpen::runtimeInit()
 
 bool CanOpen::initCallbacks()
 {
-    CO_EM_initCallbackPre(m_co->em, this, &emPreCallback);
-    CO_EM_initCallbackRx(m_co->em, &emRxCallback);
+    CO_EM_initCallbackRx(m_co->em, this, &emRxCallback);
 
     CO_HBconsumer_initCallbackPre(m_co->HBcons, this, &hbConsumerPreCallback);
     // TODO These might need to be called per-node?
@@ -568,22 +567,14 @@ CO_SDOclient_t* CanOpen::findSdoClientHandle(uint8_t nodeId)
 }
 
 #pragma region Callbacks
-namespace {
-// TODO this might bite us hard in the ass...
-CanOpen* s_activeEmCan = nullptr;
-}    // namespace
-
-void CanOpen::emPreCallback(void* arg)
-{
-    s_activeEmCan = static_cast<CanOpen*>(arg);
-}
-
-void CanOpen::emRxCallback(const uint16_t ident,
+void CanOpen::emRxCallback(void*          arg,
+                           const uint16_t ident,
                            const uint16_t errorCode,
                            const uint8_t  errorRegister,
                            const uint8_t  errorBit,
                            uint32_t       infoCode)
 {
+    BR_CORE_ASSERT(arg != nullptr, "arg is null in emRxCallback");
     BR_PROFILE_FUNCTION();
     EmergencyMessage emergencyMessage {
       static_cast<uint8_t>(ident & 0x7F),
@@ -595,7 +586,9 @@ void CanOpen::emRxCallback(const uint16_t ident,
       true,
     };
 
-    if (s_activeEmCan == nullptr) {
+    CanOpen* that = static_cast<CanOpen*>(arg);
+
+    if (that == nullptr) {
         if (!emergencyMessage.isCritical()) {
             // not that much of a big deal I guess...
             return;
@@ -605,21 +598,21 @@ void CanOpen::emRxCallback(const uint16_t ident,
           "EMERGENCY", "Received emergency message, but there's no one to treat it!\n\r{}", emergencyMessage);
     }
 
-    for (auto&& cb : s_activeEmCan->m_emCallbacks) {
+    for (auto&& cb : that->m_emCallbacks) {
         cb(emergencyMessage);
     }
 
     // The source is us?
     if (emergencyMessage.nodeId == 0) {
-        s_activeEmCan->getNode(0x01)->addEmergency(emergencyMessage);
+        that->getNode(0x01)->addEmergency(emergencyMessage);
         return;
     }
 
-    auto it = std::ranges::find_if(s_activeEmCan->m_nodes, [&emergencyMessage](const auto& node) {
+    auto it = std::ranges::find_if(that->m_nodes, [&emergencyMessage](const auto& node) {
         return node.nodeId() == emergencyMessage.nodeId;
     });
 
-    if (it == s_activeEmCan->m_nodes.end()) {
+    if (it == that->m_nodes.end()) {
         if (!emergencyMessage.isCritical()) { return; }
         // Panic the fuck out of this aaaaaaa
         Brigerad::FatalErrorDialog(

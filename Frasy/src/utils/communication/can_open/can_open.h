@@ -114,13 +114,6 @@ private:
 
 #pragma region Callbacks
     /**
-     * Called whenever an emergency message is received from the CAN bus.
-     *
-     * @param arg Pointer to instance of CanOpen
-     */
-    static void emPreCallback(void* arg);
-
-    /**
      * Called whenever an error condition is received.
      *
      * @param ident CAN-ID of the emergency message. If 0, then the message was sent from this device.
@@ -129,7 +122,8 @@ private:
      * @param errorBit
      * @param infoCode
      */
-    static void emRxCallback(const uint16_t ident,
+    static void emRxCallback(void*          arg,
+                             const uint16_t ident,
                              const uint16_t errorCode,
                              const uint8_t  errorRegister,
                              const uint8_t  errorBit,
