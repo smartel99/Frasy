@@ -13,6 +13,10 @@ param(
     [string]$Action
 )
 
+$og_pwd = $pwd
+
 cd $PSScriptRoot\demo_mode
 
 & $PSScriptRoot\\vendor\\bin\\premake\\premake5.exe $Action
+
+cd $og_pwd
