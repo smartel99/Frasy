@@ -21,6 +21,6 @@
 #include <sol/sol.hpp>
 #include <vector>
 
-std::vector<uint8_t> serializeOdeValue(sol::table& ode, const sol::object& value);
+std::vector<uint8_t> serializeOdeValue(const sol::table& ode, const sol::object& value);
 
 #endif    // FRASY_SRC_UTILS_LUA_ODE_SERIALIZER_H

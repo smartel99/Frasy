@@ -39,30 +39,32 @@ SdoManager::SdoManager(uint8_t nodeId)
     .serverNodId         = nodeId,
     .highestSubIndex     = 3,
   },
-  m_odObjRecord(new OD_obj_record_t[4] {OD_obj_record_t {
-                                          .dataOrig   = &m_clientInfo.highestSubIndex,
-                                          .subIndex   = 0,
-                                          .attribute  = ODA_SDO_R,
-                                          .dataLength = 1,
-                                        },
-                                        OD_obj_record_t {
-                                          .dataOrig   = &m_clientInfo.cobIdClientToServer,
-                                          .subIndex   = 1,
-                                          .attribute  = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
-                                          .dataLength = 4,
-                                        },
-                                        OD_obj_record_t {
-                                          .dataOrig   = &m_clientInfo.cobIdServerToClient,
-                                          .subIndex   = 2,
-                                          .attribute  = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
-                                          .dataLength = 4,
-                                        },
-                                        OD_obj_record_t {
-                                          .dataOrig   = &m_clientInfo.serverNodId,
-                                          .subIndex   = 3,
-                                          .attribute  = ODA_SDO_RW,
-                                          .dataLength = 1,
-                                        }})
+  m_odObjRecord(new OD_obj_record_t[4] {
+    OD_obj_record_t {
+      .dataOrig   = &m_clientInfo.highestSubIndex,
+      .subIndex   = 0,
+      .attribute  = ODA_SDO_R,
+      .dataLength = 1,
+    },
+    OD_obj_record_t {
+      .dataOrig   = &m_clientInfo.cobIdClientToServer,
+      .subIndex   = 1,
+      .attribute  = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+      .dataLength = 4,
+    },
+    OD_obj_record_t {
+      .dataOrig   = &m_clientInfo.cobIdServerToClient,
+      .subIndex   = 2,
+      .attribute  = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+      .dataLength = 4,
+    },
+    OD_obj_record_t {
+      .dataOrig   = &m_clientInfo.serverNodId,
+      .subIndex   = 3,
+      .attribute  = ODA_SDO_RW,
+      .dataLength = 1,
+    },
+  })
 {
     startWorkers();
 }

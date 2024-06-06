@@ -198,37 +198,57 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         // Communication
         lua.script_file("lua/core/can_open/can_open.lua");
-        lua["CanOpen"]["__upload"] = [this](sol::this_state state, std::size_t nodeId, const sol::table& ode) {
-            sol::state_view lua  = sol::state_view(state.lua_state());
-            auto*           node = m_canOpen->getNode(nodeId);
-            if (node == nullptr) { throw sol::error("Invalid node id"); }
-            auto* interface = node->sdoInterface();
-            auto  index     = std::stoi(ode["index"].get<std::string>(), nullptr, 16);
-            auto  subIndex  = std::stoi(ode["subIndex"].get<std::string>(), nullptr, 16);
-            auto  request   = interface->uploadData(index, subIndex);
-            request.future.wait();
-            if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) {
-                throw sol::error(std::format("Request failed: {}", request.status()));
+
+        auto getIndexAndSubIndex = [](const sol::table& ode) {
+            int index = 0;
+            try {
+                index = std::stoi(ode["index"].get<std::string>(), nullptr, 16);
             }
-            auto result = request.future.get();
-            if (!result.has_value()) {
-                throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
-                                             static_cast<int>(result.error()),
-                                             result.error(),
-                                             request.abortCode()));
+            catch (std::exception& e) {
+                throw sol::error(std::format("Error when reading index: {}", e.what()));
             }
-            auto value = deserializeOdeValue(lua, ode, result.value());
-            return value;
+
+            int subIndex = 0;
+            try {
+                subIndex = std::stoi(ode["subIndex"].get<std::string>(), nullptr, 16);
+            }
+            catch (std::exception& e) {
+                throw sol::error(std::format("Error when reading subIndex: {}", e.what()));
+            }
+
+            return std::make_pair(index, subIndex);
         };
 
-        lua["CanOpen"]["__download"] = [&](std::size_t nodeId, sol::table ode, sol::object value) {
+        lua["CanOpen"]["__upload"] =
+          [this, &getIndexAndSubIndex](sol::this_state state, std::size_t nodeId, const sol::table& ode) {
+              sol::state_view lua  = sol::state_view(state.lua_state());
+              auto*           node = m_canOpen->getNode(nodeId);
+              if (node == nullptr) { throw sol::error("Invalid node id"); }
+              auto* interface        = node->sdoInterface();
+              auto [index, subIndex] = getIndexAndSubIndex(ode);
+              auto request           = interface->uploadData(index, subIndex);
+              request.future.wait();
+              if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) {
+                  throw sol::error(std::format("Request failed: {}", request.status()));
+              }
+              auto result = request.future.get();
+              if (!result.has_value()) {
+                  throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
+                                               static_cast<int>(result.error()),
+                                               result.error(),
+                                               request.abortCode()));
+              }
+              auto value = deserializeOdeValue(lua, ode, result.value());
+              return value;
+          };
+
+        lua["CanOpen"]["__download"] = [&](std::size_t nodeId, const sol::table& ode, sol::object value) {
             auto* node = m_canOpen->getNode(nodeId);
             if (node == nullptr) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
-            auto* interface = node->sdoInterface();
-            auto  index     = std::stoi(ode["index"].get<std::string>(), nullptr, 16);
-            auto  subIndex  = std::stoi(ode["subIndex"].get<std::string>(), nullptr, 16);
-            auto  sValue    = serializeOdeValue(ode, value);
-            auto  request   = interface->downloadData(index, subIndex, sValue);
+            auto* interface        = node->sdoInterface();
+            auto [index, subIndex] = getIndexAndSubIndex(ode);
+            auto sValue            = serializeOdeValue(ode, value);
+            auto request           = interface->downloadData(index, subIndex, sValue);
             request.future.wait();
             if (request.status() != Frasy::CanOpen::SdoRequestStatus::Complete) {
                 throw sol::error(std::format("Request failed: {}", request.status()));

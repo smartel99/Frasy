@@ -13,12 +13,13 @@ Sequence("PIO", function()
         --ib:Download(ib.od["Supply 12V"]["Output Enable"], false)
         --ib:Download(ib.od["Supply 24V"]["Output Enable"], false)
 
-        local supply = "Variable Supply 1"
+        local supply = "Variable Supply 2"
         local voltages = { 0.0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20 }
         local enables = { false, true }
         for _, enable in ipairs(enables) do
             ib:Download(ib.od[supply]["Output Enable"], enable)
             for __, voltage in ipairs(voltages) do
+                Log.d("Setting voltage to " .. voltage)
                 ib:Download(ib.od[supply]["Desired Voltage"], voltage)
                 Utils.sleep_for(10)
                 local actualVoltage = ib:Upload(ib.od[supply]["Voltage"])

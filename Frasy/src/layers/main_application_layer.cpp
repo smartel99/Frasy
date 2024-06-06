@@ -160,12 +160,10 @@ void MainApplicationLayer::onEvent(Brigerad::Event& e)
     Brigerad::EventDispatcher dispatcher(e);
     // Dispatch it to the proper handling function in the Application, if the type matches.
     dispatcher.Dispatch<Brigerad::WindowMaximizedEvent>([this](Brigerad::WindowMaximizedEvent& e) {
-        BR_APP_INFO("Window maximized");
         FrasyInterpreter::Get().getConfig().setField("maximized", true);
         return true;
     });
     dispatcher.Dispatch<Brigerad::WindowRestoredEvent>([this](Brigerad::WindowRestoredEvent& e) {
-        BR_APP_INFO("Window restored");
         FrasyInterpreter::Get().getConfig().setField("maximized", false);
         return true;
     });
