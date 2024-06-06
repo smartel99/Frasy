@@ -21,12 +21,43 @@
 
 using DataType = Frasy::CanOpen::DataType;
 
+static float deserializeFloat(const std::span<uint8_t>& value)
+{
+    float result = 0;
+    auto* ptr    = reinterpret_cast<uint8_t*>(&result);
+    for (int i = 0; i < value.size(); ++i) {
+        // ReSharper disable once CppDFAUnreachableCode
+        if constexpr (std::endian::native == std::endian::big) { ptr[value.size() - i - 1] = value[i]; }
+        else {
+            ptr[i] = value[i];
+        }
+    }
+    return result;
+}
+static double deserializeDouble(const std::span<uint8_t>& value)
+{
+    double result = 0;
+    auto*  ptr    = reinterpret_cast<uint8_t*>(&result);
+    for (int i = 0; i < value.size(); ++i) {
+        // ReSharper disable once CppDFAUnreachableCode
+        if constexpr (std::endian::native == std::endian::big) { ptr[value.size() - i - 1] = value[i]; }
+        else {
+            ptr[i] = value[i];
+        }
+    }
+    return result;
+}
+
 static int64_t deserializeInteger(const std::span<uint8_t>& value)
 {
     int64_t result = 0;
     auto*   ptr    = reinterpret_cast<uint8_t*>(&result);
     for (int i = 0; i < value.size(); ++i) {
-        ptr[i] = value[i];
+        // ReSharper disable once CppDFAUnreachableCode
+        if constexpr (std::endian::native == std::endian::big) { ptr[value.size() - i - 1] = value[i]; }
+        else {
+            ptr[i] = value[i];
+        }
     }
     result <<= 64 - (value.size() * 8);
     result >>= 64 - (value.size() * 8);
@@ -38,7 +69,11 @@ static uint64_t deserializeUnsigned(const std::span<uint8_t>& value)
     uint64_t result = 0;
     auto*    ptr    = reinterpret_cast<uint8_t*>(&result);
     for (int i = 0; i < value.size(); ++i) {
-        ptr[i] = value[i];
+        // ReSharper disable once CppDFAUnreachableCode
+        if constexpr (std::endian::native == std::endian::big) { ptr[value.size() - i - 1] = value[i]; }
+        else {
+            ptr[i] = value[i];
+        }
     }
     return result;
 }
@@ -56,24 +91,24 @@ sol::object deserializeOdeValue(sol::state_view& lua, const sol::table& ode, con
 {
     switch (static_cast<DataType>(ode["dataType"].get<uint16_t>())) {
         case DataType::boolean: return make_object(lua, value[0] != 0);
-        case DataType::real32: return make_object(lua, Frasy::Deserialize<float>(value.begin(), value.end()));
-        case DataType::real64: return make_object(lua, Frasy::Deserialize<double>(value.begin(), value.end()));
+        case DataType::real32: return make_object(lua, deserializeFloat(value));
+        case DataType::real64: return make_object(lua, deserializeDouble(value));
 
-        case DataType::integer8: return make_object(lua, deserializeInteger(value));
-        case DataType::integer16: return make_object(lua, deserializeInteger(value));
-        case DataType::integer32: return make_object(lua, deserializeInteger(value));
-        case DataType::integer64: return make_object(lua, deserializeInteger(value));
-        case DataType::unsigned8: return make_object(lua, deserializeUnsigned(value));
-        case DataType::unsigned16: return make_object(lua, deserializeUnsigned(value));
-        case DataType::unsigned32: return make_object(lua, deserializeUnsigned(value));
-        case DataType::unsigned64: return make_object(lua, deserializeUnsigned(value));
-        case DataType::integer24: return make_object(lua, deserializeInteger(value));
-        case DataType::integer40: return make_object(lua, deserializeInteger(value));
-        case DataType::integer48: return make_object(lua, deserializeInteger(value));
+        case DataType::integer8:
+        case DataType::integer16:
+        case DataType::integer32:
+        case DataType::integer64:
+        case DataType::integer24:
+        case DataType::integer40:
+        case DataType::integer48:
         case DataType::integer56: return make_object(lua, deserializeInteger(value));
-        case DataType::unsigned24: return make_object(lua, deserializeUnsigned(value));
-        case DataType::unsigned40: return make_object(lua, deserializeUnsigned(value));
-        case DataType::unsigned48: return make_object(lua, deserializeUnsigned(value));
+        case DataType::unsigned8:
+        case DataType::unsigned16:
+        case DataType::unsigned32:
+        case DataType::unsigned64:
+        case DataType::unsigned24:
+        case DataType::unsigned40:
+        case DataType::unsigned48:
         case DataType::unsigned56: return make_object(lua, deserializeUnsigned(value));
 
         case DataType::visibleString: return make_object(lua, std::string(value.begin(), value.end()));

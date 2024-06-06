@@ -22,26 +22,65 @@
 
 using DataType = Frasy::CanOpen::DataType;
 
-std::vector<uint8_t> serializeInteger(int64_t value, std::size_t size)
+static std::vector<uint8_t> serializeFloat(float value)
 {
+    auto                 size = sizeof(float);
     std::vector<uint8_t> result(size, 0);
     auto*                ptr = reinterpret_cast<uint8_t*>(&value);
     for (size_t i = 0; i < size; ++i) {
-        result[i] = ptr[i];
-    }
-    return result;
-}
-std::vector<uint8_t> serializeUnsigned(uint64_t value, std::size_t size)
-{
-    std::vector<uint8_t> result(size, 0);
-    auto*                ptr = reinterpret_cast<uint8_t*>(&value);
-    for (size_t i = 0; i < size; ++i) {
-        result[i] = ptr[i];
+        // ReSharper disable once CppDFAUnreachableCode
+        if constexpr (std::endian::native == std::endian::big) { result[size - i - 1] = ptr[i]; }
+        else {
+            result[i] = ptr[i];
+        }
     }
     return result;
 }
 
-std::vector<uint8_t> serializeTimeStruct(const sol::object& value)
+static std::vector<uint8_t> serializeDouble(double value)
+{
+    auto                 size = sizeof(double);
+    std::vector<uint8_t> result(size, 0);
+    auto*                ptr = reinterpret_cast<uint8_t*>(&value);
+    for (size_t i = 0; i < size; ++i) {
+        // ReSharper disable once CppDFAUnreachableCode
+        if constexpr (std::endian::native == std::endian::big) { result[size - i - 1] = ptr[i]; }
+        else {
+            result[i] = ptr[i];
+        }
+    }
+    return result;
+}
+
+static std::vector<uint8_t> serializeInteger(int64_t value, std::size_t size)
+{
+    std::vector<uint8_t> result(size, 0);
+    auto*                ptr = reinterpret_cast<uint8_t*>(&value);
+    for (size_t i = 0; i < size; ++i) {
+        // ReSharper disable once CppDFAUnreachableCode
+        if constexpr (std::endian::native == std::endian::big) { result[size - i - 1] = ptr[i]; }
+        else {
+            result[i] = ptr[i];
+        }
+    }
+    return result;
+}
+
+static std::vector<uint8_t> serializeUnsigned(uint64_t value, std::size_t size)
+{
+    std::vector<uint8_t> result(size, 0);
+    auto*                ptr = reinterpret_cast<uint8_t*>(&value);
+    for (size_t i = 0; i < size; ++i) {
+        // ReSharper disable once CppDFAUnreachableCode
+        if constexpr (std::endian::native == std::endian::big) { result[size - i - 1] = ptr[i]; }
+        else {
+            result[i] = ptr[i];
+        }
+    }
+    return result;
+}
+
+static std::vector<uint8_t> serializeTimeStruct(const sol::object& value)
 {
     auto     table = value.as<sol::table>();
     uint32_t ms    = table["ms"].get<uint32_t>() & 0x0F'FF'FF'FF;
@@ -57,8 +96,8 @@ std::vector<uint8_t> serializeOdeValue(sol::table& ode, const sol::object& value
 {
     switch (static_cast<DataType>(ode["dataType"].get<uint16_t>())) {
         case DataType::boolean: return std::vector<uint8_t>(1, value.as<bool>() ? 1 : 0);
-        case DataType::real32: return Frasy::Serialize(value.as<float>());
-        case DataType::real64: return Frasy::Serialize(value.as<double>());
+        case DataType::real32: return serializeFloat(value.as<float>());
+        case DataType::real64: return serializeDouble(value.as<double>());
 
         case DataType::integer8: return serializeInteger(value.as<int64_t>(), 1);
         case DataType::integer16: return serializeInteger(value.as<int64_t>(), 2);
