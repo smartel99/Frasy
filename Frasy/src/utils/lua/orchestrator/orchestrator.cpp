@@ -259,6 +259,9 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             }
         };
 
+        // User functions
+        m_loadUserFunctions(lua);
+
         // Boards
         auto ibs     = lua.create_named_table("Ibs");
         auto cepIbs  = lua.script_file("lua/core/cep/ibs.lua");
@@ -783,7 +786,12 @@ bool Orchestrator::isRunning() const
     return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
 }
 
-void Orchestrator::setLoadUserBoards(std::function<sol::table(sol::state_view)> callback)
+void Orchestrator::setLoadUserFunctions(const std::function<void(sol::state_view)>& callback)
+{
+    m_loadUserFunctions = callback;
+}
+
+void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback)
 {
     m_loadUserBoards = callback;
 }
