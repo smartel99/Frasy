@@ -16,7 +16,7 @@ function R8L:new(name, nodeId)
     ib.kind = 04;
     if name == nil then name = "r8l" end
     ib.name = name
-    if nodeId == nil then nodeId = ib.kind;
+    if nodeId == nil then nodeId = ib.kind end
     ib.nodeId = nodeId
     ib.eds = "lua/core/cep/eds/r8l_1.0.0.eds"
     return setmetatable({ib = ib, od = {}}, R8L)

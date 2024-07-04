@@ -40,7 +40,7 @@ function PIO:new(name, nodeId)
     ib.name = name and name ~= nil or "pio"
     ib.nodeId = nodeId and nodeId ~= nil or 03
     ib.eds = "lua/core/cep/eds/pio_1.0.0.eds"
-    return setmetatable({ib = ib, cache = {}})
+    return setmetatable({ib = ib, cache = {}}, PIO)
 end
 
 local function supplyEnumToOdName(supply)

@@ -74,7 +74,6 @@ local function addIb(board)
     board.ib.od = odParser.loadFile(board.ib.eds)
     return board
 end
-
 Environment = {
     Make = makeEnvironment,
     Uut = {Count = setUutCount},
