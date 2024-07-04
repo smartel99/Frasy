@@ -17,12 +17,10 @@
 #ifndef IB_H
 #define IB_H
 
-#include "../models/version.h"
 namespace Frasy::Lua {
 struct IbView {
     int     kind;
     int     nodeId;
-    Version version;
 };
 }
 

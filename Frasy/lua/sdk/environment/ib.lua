@@ -1,91 +1,19 @@
 local Ib = {
     kind = 0,
-    version = "0.0.0",
     nodeId = 0,
     eds = "",
     name = "",
     __kind = "ib",
-    __functions = {}
 }
 Ib.__index = Ib
 
-function Ib:new(base, name)
-    if (base == nil) then
-        if (name == nil) then name = "" end
-        return setmetatable({
-            kind = 0,
-            version = "0.0.0",
-            nodeId = 0,
-            eds = "",
-            name = name,
-            __kind = "ib",
-            __functions = {}
-        }, Ib)
-    else
-        object = {
-            kind = base.kind,
-            nodeId = base.nodeId,
-            version = base.version,
-            eds = base.eds,
-            name = name,
-            __kind = "ib",
-            __functions = {}
-        }
-        if (name == nil) then object.name = base.name end
-        for _, name in pairs(base.__functions) do
-            object[name] = base[name]
-            object.__functions[name] = name
-        end
-        return setmetatable(object, Ib)
-    end
-end
-
-function Ib:Kind(kind)
-    if (kind == nil) then
-        return Ib.kind
-    else
-        assert(type(kind) == "number",
-               "Cannot set Ib kind. Type is not a number")
-        self.kind = kind
-        return self
-    end
-end
-
-function Ib:Version(requirement)
-    if (requirement == nil) then
-        return Ib.version
-    else
-        self.version = requirement
-        return self
-    end
-end
-
-function Ib:NodeId(id)
-    if (id == nil) then
-        return self.nodeId
-    else
-        assert(type(id) == "number", "Cannot set Ib NodeId. ID is not a number")
-        assert(1 <= id and id <= 127, "Cannot set Ib NodeId. ID is out of scope")
-        self.nodeId = id
-        return self
-    end
-end
-
-function Ib:Eds(path)
-    if (path == nil) then
-        return self.eds
-    else
-        assert(type(path) == "string",
-               "Cannot set Ib eds path. Path is not a string")
-        self.eds = path
-        return self
-    end
-end
-
-function Ib:AddFunction(name, func)
-    self.__functions[name] = name
-    self[name] = func
-    return self
+function Ib:new()
+    return setmetatable({
+        kind = 0,
+        nodeId = 0,
+        eds = "",
+        name = name
+    }, Ib)
 end
 
 function Ib:Upload(ode)
