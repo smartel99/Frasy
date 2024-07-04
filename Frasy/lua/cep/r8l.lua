@@ -14,8 +14,10 @@ end
 function R8L:new(name, nodeId)
     local ib = Ib:new()
     ib.kind = 04;
-    ib.name = name and name ~= nil or "r8l"
-    ib.nodeId = nodeId and nodeId ~= nil or ib.kind
+    if name == nil then name = "r8l" end
+    ib.name = name
+    if nodeId == nil then nodeId = ib.kind;
+    ib.nodeId = nodeId
     ib.eds = "lua/core/cep/eds/r8l_1.0.0.eds"
     return setmetatable({ib = ib, od = {}}, R8L)
 end
