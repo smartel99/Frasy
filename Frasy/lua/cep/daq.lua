@@ -441,7 +441,7 @@ DAQ.ImpedanceRangeRegistorEnum = {
     r100k = 3,
     r1M = 4
 }
-function DAQ:Impedances(mode, shape, rangeRegistor, frequency, amplitude, delay,
+function DAQ:impedances(mode, shape, rangeRegistor, frequency, amplitude, delay,
                         samplesToTake, expectedValue, favorSpeed)
     checkField("mode", mode, isIntegerInOd(mode, odMode))
 
