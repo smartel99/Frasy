@@ -37,8 +37,10 @@ end
 function PIO:new(name, nodeId)
     local ib = Ib:new()
     ib.kind = 03;
-    ib.name = name and name ~= nil or "pio"
-    ib.nodeId = nodeId and nodeId ~= nil or 03
+    if name == nil then name = "pio" end
+    ib.name = name
+    if nodeId == nil then nodeId = ib.kind end 
+    ib.nodeId = nodeId
     ib.eds = "lua/core/cep/eds/pio_1.0.0.eds"
     return setmetatable({ib = ib, cache = {}}, PIO)
 end
