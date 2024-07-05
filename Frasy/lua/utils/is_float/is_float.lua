@@ -1,0 +1,1 @@
+return function(value) type(value) == "number" end
