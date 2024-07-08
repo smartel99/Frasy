@@ -508,7 +508,7 @@ end
 
 -- Impedances
 DAQ.ImpedanceModeEnum = {resistor = 0, capacitor = 1, inductor = 2}
-DAQ.ImpendanceShapeEnum = {
+DAQ.ImpedanceShapeEnum = {
     automatic = 0,
     dc = 1,
     sine = 2,
@@ -524,7 +524,7 @@ DAQ.ImpedanceRangeResistorEnum = {
     r1M = 4
 }
 DAQ.ImpedanceDefaults = {
-    shape = DAQ.ImpendanceShapeEnum.automatic,
+    shape = DAQ.ImpedanceShapeEnum.automatic,
     rangeResistor = DAQ.ImpedanceRangeResistorEnum.automatic,
     frequency = 0,
     amplitude = 0,
@@ -587,7 +587,7 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     CheckField("favorSpeed", favorSpeed, IsBoolean(favorSpeed))
 
     if (rangeResistor == 0 or
-        (frequency == 0 and shape ~= DAQ.ImpendanceShapeEnum.dc)) and
+        (frequency == 0 and shape ~= DAQ.ImpedanceShapeEnum.dc)) and
         expectedValue == 0 then
         error(
             "Expected Value cannot be set to automatic when Range Resistor or Frequency are as well")
@@ -717,7 +717,7 @@ function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay,
     end
 
     local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor,
-                                   DAQ.ImpendanceShapeEnum.dc, range,
+                                   DAQ.ImpedanceShapeEnum.dc, range,
                                    DAQ.ImpedanceDefaults.frequency, voltage,
                                    delay // 1, samplesToTake,
                                    DAQ.ImpedanceDefaults.expectedValue,
