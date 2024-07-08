@@ -31,16 +31,20 @@ Popup::Popup(std::size_t uut, sol::table builder)
     if (!global) { m_name = std::format("UUT{} - {}", uut, m_name); }
     auto elements = builder["elements"].get<std::vector<sol::table>>();
     for (const auto& element : elements) {
-        auto kind = element["kind"].get<Popup::Element::Kind>();
+        auto kind = element["kind"].get<Element::Kind>();
         auto text = element["value"].get<std::string>();
         switch (kind) {
-            case Popup::Element::Kind::Text: m_elements.push_back(std::make_unique<Text>(text)); break;
-            case Popup::Element::Kind::Input:
+            case Element::Kind::Text: m_elements.push_back(std::make_unique<Text>(text)); break;
+            case Element::Kind::Input:
                 m_elements.push_back(std::make_unique<Input>(text, m_inputs.size()));
                 m_inputs.push_back({});
                 break;
-            case Popup::Element::Kind::Button:
+            case Element::Kind::Button:
                 m_elements.push_back(std::make_unique<Button>(text, element["action"].get<sol::function>()));
+                break;
+            case Element::Kind::Image:
+                m_elements.push_back(std::make_unique<Image>(
+                  text, element["width"].get<std::size_t>(), element["height"].get<std::size_t>()));
                 break;
         }
     }
@@ -71,6 +75,7 @@ void Popup::Routine(bool once)
 
 void Popup::Render()
 {
+    ImGui::SetNextWindowFocus();    // Note: Forcing focus will prevent user to be able to open the top menu
     ImGui::Begin(m_name.c_str(),
                  nullptr,
                  ImGuiWindowFlags_NoResize |              //
@@ -96,6 +101,30 @@ void Popup::Render()
         }
     };
 
+    auto renderImage = [&](Image* element, std::size_t index) {
+        // Creation must be done in UI thread
+        // Otherwise, you get a nice black image
+        if (element->texture == nullptr) {
+            if (Brigerad::File::CheckIfPathExists(element->text)) {
+                element->texture = Brigerad::Texture2D::Create(element->text);
+            }
+            else {
+                const auto placeholderTexture = Brigerad::Texture2D::Create(1, 1);
+                uint32_t   magentaTextureData = 0xFFFF00FF;
+                placeholderTexture->SetData(&magentaTextureData, sizeof(magentaTextureData));
+                BR_CORE_ERROR("Unable to open '{}'!", element->text);
+                element->texture = placeholderTexture;
+            }
+            BR_CORE_DEBUG("Texture ID -> {}", element->texture->getRenderId());
+        }
+        uint64_t texture = element->texture->getRenderId();
+        ImVec2   size    = {element->width != 0 ? static_cast<float>(element->width)
+                                                : static_cast<float>(element->texture->GetWidth()),
+                       element->height != 0 ? static_cast<float>(element->height)
+                                                 : static_cast<float>(element->texture->GetHeight())};
+        ImGui::Image(reinterpret_cast<void*>(texture), size);
+    };
+
     for (std::size_t i = 0; i < m_elements.size(); ++i) {
         auto& element = m_elements[i];
         ImGui::PushID(std::format("Element {}", i).c_str());
@@ -103,6 +132,7 @@ void Popup::Render()
             case Element::Kind::Text: renderText(static_cast<Text*>(element.get())); break;
             case Element::Kind::Input: renderInput(static_cast<Input*>(element.get()), i); break;
             case Element::Kind::Button: renderButton(static_cast<Button*>(element.get()), i); break;
+            case Element::Kind::Image: renderImage(static_cast<Image*>(element.get()), i); break;
         }
         ImGui::PopID();
     }

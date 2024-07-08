@@ -259,6 +259,9 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             }
         };
 
+        // User functions
+        m_loadUserFunctions(lua);
+
         // Boards
         auto ibs     = lua.create_named_table("Ibs");
         auto cepIbs  = lua.script_file("lua/core/cep/ibs.lua");
@@ -783,7 +786,12 @@ bool Orchestrator::isRunning() const
     return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
 }
 
-void Orchestrator::setLoadUserBoards(std::function<sol::table(sol::state_view)> callback)
+void Orchestrator::setLoadUserFunctions(const std::function<void(sol::state_view)>& callback)
+{
+    m_loadUserFunctions = callback;
+}
+
+void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback)
 {
     m_loadUserBoards = callback;
 }
@@ -836,9 +844,8 @@ void Orchestrator::PopulateMap()
     m_map = {};
     for (auto& [k, v] : (*m_state)["Context"]["map"]["ibs"].get<sol::table>()) {
         auto ib = v.as<sol::table>();
-        m_map.ibs.emplace_back(static_cast<int>(ib["kind"].get<std::size_t>()),
-                               static_cast<int>(ib["nodeId"].get<std::size_t>()),
-                               Version::parse(ib["version"].get<std::string>()));
+        m_map.ibs.emplace_back(static_cast<int>(ib["ib"]["kind"].get<std::size_t>()),
+                               static_cast<int>(ib["ib"]["nodeId"].get<std::size_t>()));
     }
 
     for (auto& [k, v] : (*m_state)["Context"]["map"]["uuts"].get<sol::table>()) {

@@ -24,7 +24,7 @@ if (Ibs == nil) then Ibs = {} end
 
 ---Environment
 ---@param func function Function that defines the environment.
-function Environment(func)
+local function makeEnvironment(func)
     func()
     -- _map.validate()
     _team.validate()
@@ -63,19 +63,22 @@ local function addUutValue(key)
     return t
 end
 
-local function addIb(base, name)
-    if(base == nil) then error("Base IB not provided") end
-    if (name == nil) then name = base.name end
-    local nIb = _ib:new(base, name)
+local function addIb(board)
+    if (board == nil or board.ib == nil) then
+        error("Invalid board: " .. tostring(board))
+    end
     local odParser = require('lua.core.can_open.object_dictionary')
-    assert(Context.map.ibs[name] == nil, "Ib already defined. " .. name)
-    Context.map.ibs[name] = nIb
-    nIb.od = odParser.loadFile(nIb.eds)
-    return nIb
+    assert(Context.map.ibs[board.ib.name] == nil,
+           "Ib already defined. " .. board.ib.name)
+    Context.map.ibs[board.ib.name] = board
+    board.ib.od = odParser.loadFile(board.ib.eds)
+    return board
 end
-
-Uut = {Count = setUutCount}
-Ib = {Add = addIb}
-UutValue = {Add = addUutValue}
-Team.Add = addTeam
-Worker = {Limit = _worker.Limit}
+Environment = {
+    Make = makeEnvironment,
+    Uut = {Count = setUutCount},
+    Ib = {Add = addIb},
+    UutValue = {Add = addUutValue},
+    Team = {Add = addTeam},
+    Worker = {Limit = _worker.Limit}
+}

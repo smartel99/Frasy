@@ -147,8 +147,6 @@ void MyMainApplicationLayer::renderControlRoom()
     for (std::size_t i = 0; i < uutLines.size(); ++i) {
         const auto&         line       = uutLines[i];
         static const ImVec2 buttonSize = ImVec2 {80.0f, 80.0f};
-        static const ImVec2 buttonUv0  = ImVec2 {0.0f, 1.0f};
-        static const ImVec2 buttonUv1  = ImVec2 {1.0f, 0.0f};
         ImGui::TableNextRow();
         for (const auto& uut : line) {
             ImGui::TableNextColumn();
@@ -165,7 +163,7 @@ void MyMainApplicationLayer::renderControlRoom()
                 case Frasy::UutState::Failed: texture = m_fail->getRenderId(); break;
                 case Frasy::UutState::Error: texture = m_error->getRenderId(); break;
             }
-            if (ImGui::ImageButton(reinterpret_cast<void*>(texture), buttonSize, buttonUv0, buttonUv1)) {
+            if (ImGui::ImageButton(reinterpret_cast<void*>(texture), buttonSize)) {
                 m_orchestrator.ToggleUut(uut);
             }
             ImGui::PopID();

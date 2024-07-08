@@ -57,8 +57,9 @@ function TeamError(what) return populationException(exceptions_values.TeamError,
 function WorkerError(what) return populationException(exceptions_values.WorkerError, what) end
 function GenerationError(what) return populationException(exceptions_values.GenerationError, what) end
 function GenericError(what)
+    if(what == nil) then what = exceptions_values.GenericError.what end
     return {
         code = exceptions_values.GenericError.code,
-        what = (what ~= nil and what or exceptions_values.GenericError.what)
+        what = what
     }
 end

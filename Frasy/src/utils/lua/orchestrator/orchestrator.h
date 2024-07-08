@@ -122,7 +122,8 @@ public:
 
     [[nodiscard]] bool     isRunning() const;
     [[nodiscard]] UutState GetUutState(std::size_t uut) const;
-    void                   setLoadUserBoards(std::function<sol::table(sol::state_view)> callback);
+    void                   setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
+    void                   setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
 
 private:
     bool        CreateOutputDirs();
@@ -163,7 +164,8 @@ private:
     std::unique_ptr<std::mutex>       m_exclusiveLock = nullptr;
     std::map<std::size_t, std::mutex> m_exclusiveLockMap;
 
-    std::function<sol::table(sol::state_view lua)> m_loadUserBoards = [](sol::state_view lua) {
+    std::function<void(sol::state_view lua)>       m_loadUserFunctions = [](sol::state_view lua) {};
+    std::function<sol::table(sol::state_view lua)> m_loadUserBoards    = [](sol::state_view lua) {
         return lua.create_table();
     };
     Models::Solution m_solution = {};

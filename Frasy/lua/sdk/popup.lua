@@ -20,6 +20,7 @@ local ElementKind    = {
     Text   = 0,
     Input  = 1,
     Button = 2,
+    Image  = 3,
 }
 
 function PopupBuilder.new(name)
@@ -42,6 +43,18 @@ function PopupBuilder:Text(text)
     table.insert(self.elements, {
         kind  = ElementKind.Text,
         value = text,
+    })
+    return self
+end
+
+function PopupBuilder:Image(path, width, height)
+    if(width == nil) then width = 0 end
+    if(height == nil) then height = 0 end
+    table.insert(self.elements, {
+        kind = ElementKind.Image,
+        value = path,
+        width = width,
+        height = height
     })
     return self
 end
