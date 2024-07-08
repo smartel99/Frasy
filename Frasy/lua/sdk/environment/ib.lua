@@ -21,7 +21,6 @@ function Ib:Upload(ode)
     assert(ode.__kind == "Object Dictionary Entry",
            "Ib upload, argument is not an Object Dictionary Entry. " ..
                ode.__kind)
-    Utils.print("Node id: " .. tostring(self.nodeId))
     if (ode.objectType == CanOpen.objectType.var) then
         if (Context.info.stage ~= Stage.execution) then return ode.value end
         ode.value = CanOpen.__upload(self.nodeId, ode)
