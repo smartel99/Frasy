@@ -1,7 +1,7 @@
 local Ib = require("lua/core/sdk/environment/ib")
 local Bitwise = require("lua.core.utils.bitwise")
 local IsIntegerIn = require("lua.core.utils.is_integer.is_integer_in")
-local IsInteger8 = require("lua.core.utils.is_integer.is_integer_8")
+local IsUnsigned8 = require("lua.core.utils.is_unsigned.is_unsigned_8")
 local CheckField = require("lua.core.utils.check_field")
 
 R8L = {ib = nil, cache = {digitalOutput = 0, errorValueOutput = 0}}
@@ -11,8 +11,8 @@ local function CheckIndex(index)
     CheckField(index, "index", IsIntegerIn(index, 0, 7))
 end
 
-local function IsRelayValueOk(value)
-    CheckField(value, "value", IsInteger8(value))
+local function CheckRelayValue(value)
+    CheckField(value, "value", IsUnsigned8(value))
 end
 
 function R8L:New(name, nodeId)
@@ -69,12 +69,12 @@ end
 function R8L:ErrorValueOutputs(value)
     if value == nil then
         self.cache.errorValueOutput = self.ib:Upload(
-                                          self.ib.od["Error Value Output"])
+                                          self.ib.od["Error Value Ouput"])
         return self.cache.errorValueOutput
     else
         CheckRelayValue(value)
         self.cache.errorValueOutput = value
-        self.ib:Download(self.ib.od["Error Value Output"], value)
+        self.ib:Download(self.ib.od["Error Value Ouput"], value)
     end
 end
 
