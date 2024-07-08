@@ -6,13 +6,8 @@ R8L = {
 }
 R8L.__index = R8L
 
-local function isRelayValueOk(value)
-    return value ~= nil and type(value) == "number" and value // 1 == value and
-               0 <= value and value <= 255
-end
-
-function R8L:new(name, nodeId)
-    local ib = Ib:new()
+function R8L:New(name, nodeId)
+    local ib = Ib:New()
     ib.kind = 04;
     if name == nil then name = "r8l" end
     ib.name = name
@@ -22,22 +17,24 @@ function R8L:new(name, nodeId)
     return setmetatable({ib = ib, od = {}}, R8L)
 end
 
-function R8L:test()
-    Utils.print(self)
+function R8L.IsRelayValueOk(value)
+    return value ~= nil and type(value) == "number" and value // 1 == value and
+               0 <= value and value <= 255
 end
 
-function R8L:digitalOutput(value)
+function R8L:DigitalOutput(value)
     if value == nil then
-        self.cache.digitalOutput = self.ib:Upload(self.ib.od["Write Digital Output"])
+        self.cache.digitalOutput = self.ib:Upload(
+                                       self.ib.od["Write Digital Output"])
         return self.cache.digitalOutput
-    elseif isRelayValueOk(value) then
+    elseif R8L.IsRelayValueOk(value) then
         self.ib:Download(self.ib.od["Write Digital Output"], value)
     else
         error("Invalid value: " .. tostring(value))
     end
 end
 
-function R8L:errorModeOutput(value)
+function R8L:ErrorModeOutput(value)
     if value == nil then
         self.cache.errorModeOutput = self.ib:Upload(
                                          self.ib.od["Error Mode Output"])
@@ -50,12 +47,12 @@ function R8L:errorModeOutput(value)
     end
 end
 
-function R8L:errorValueOutput(value)
+function R8L:ErrorValueOutput(value)
     if value == nil then
         self.cache.errorValueOutput = self.ib:Upload(
                                           self.ib.od["Error Value Output"])
         return self.cache.errorValueOutput
-    elseif isRelayValueOk(value) then
+    elseif R8L.IsRelayValueOk(value) then
         self.cache.errorValueOutput = value
         self.ib:Download(self.ib.od["Error Value Output"], value)
     else
@@ -63,7 +60,7 @@ function R8L:errorValueOutput(value)
     end
 end
 
-function R8L:id()
+function R8L:Id()
     local table = self.ib:Upload(self.ib.od["ID"])
     return {left = table.ID_BRD_L, right = table.ID_BRD_R}
 end

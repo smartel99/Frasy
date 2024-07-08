@@ -12,26 +12,17 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-local SyncRequirement = {
-    scope = nil,
-    kind  = nil,
-}
+local SyncRequirement = {scope = nil, kind = nil}
 SyncRequirement.__index = SyncRequirement
 
-SyncRequirement.Kind  = {
-    Global = 1,
-    Ib     = 2,
-}
+SyncRequirement.Kind = {global = 1, ib = 2}
 
-function SyncRequirement:new(scope)
-    return setmetatable({
-                            scope = scope,
-                            kind  = SyncRequirement.Kind.Global
-                        }, SyncRequirement)
+function SyncRequirement:New(scope)
+    return setmetatable({scope = scope, kind = SyncRequirement.Kind.global},
+                        SyncRequirement)
 end
 
-function SyncRequirement:Ib() self.kind = SyncRequirement.Kind.Ib end
+function SyncRequirement:Ib() self.kind = SyncRequirement.Kind.ib end
 
 function SyncRequirement:IsMet() return true end
 

@@ -15,15 +15,15 @@
 
 Log = {}
 
-function Log.c(message) end
+function Log.C(message) end
 
-function Log.e(message) end
+function Log.E(message) end
 
-function Log.w(message) end
+function Log.W(message) end
 
-function Log.i(message) end
+function Log.I(message) end
 
-function Log.d(message) end
+function Log.D(message) end
 
-function Log.t(message) end
+function Log.T(message) end
 

@@ -21,7 +21,7 @@ local ScopeRequirement = {
 }
 ScopeRequirement.__index = ScopeRequirement
 
-function ScopeRequirement:new(orchestrator, scope)
+function ScopeRequirement:New(orchestrator, scope)
     return setmetatable({ orchestrator = orchestrator, scope = scope }, ScopeRequirement)
 end
 
@@ -37,47 +37,47 @@ end
 
 function ScopeRequirement:ToBeFirst()
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeLast()
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeBefore(other)
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeAfter(other)
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeRightBefore(other)
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeRightAfter(other)
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToPass()
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToFail()
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeComplete()
     -- Order requirement are ignore when validating
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 return ScopeRequirement

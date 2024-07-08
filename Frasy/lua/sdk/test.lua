@@ -45,11 +45,11 @@ function Sync()
 end
 
 function RequirementSpecifier(func)
-    return RuntimeRequirement:new(func)
+    return RuntimeRequirement:New(func)
 end
 
 function Expect(value, note)
-    return Expectation:new(value, note)
+    return Expectation:New(value, note)
 end
 
 function Exclusive(value, func)

@@ -61,7 +61,7 @@ local function __evaluate_ib()
     end
 end
 
-function worker.evaluate()
+function worker.Evaluate()
     Context.worker        = {}
     Context.worker.stages = {}
 
@@ -82,20 +82,20 @@ function worker.evaluate()
     end
 end
 
-function worker.count(count)
+function worker.Count(count)
     if (count ~= nil) then
         internal.count = count
     end
     return count
 end
 
-function internal.limitTo(count, specifier)
+function internal.LimitTo(count, specifier)
     assert(count ~= nil, WorkerError("Count missing"))
     assert(specifier == Team, WorkerError("Invalid specifier: " .. tostring(specifier)))
     internal.limit = { target = internal.scope, count = count, reference = specifier }
 end
 
-function worker.limit(specifier)
+function worker.Limit(specifier)
     assert(internal.limit == nil, WorkerError("Only one limit allowed"))
     if specifier == nil then
         error(WorkerError("Missing specifier"))
@@ -104,7 +104,7 @@ function worker.limit(specifier)
     else
         error(WorkerError("Unsupported limit specifier: " .. tostring(specifier)))
     end
-    return { To = internal.limitTo }
+    return { To = internal.LimitTo }
 end
 
 return worker

@@ -22,11 +22,11 @@
 --         popup:Input("Input 1"):Input("Input 2")
 --         popup:Button("Action 1", function(inputs)
 --             a1 = true
---             Log.d("Click on Action 1")
+--             Log.D("Click on Action 1")
 --         end)
 --         popup:Button("Action 2", function(inputs)
 --             a2 = true
---             Log.d("Click on Action 2")
+--             Log.D("Click on Action 2")
 --         end)
 --         popup:Text("Click on both button, and input Frasy and 42 in both inputs to close this popup")
 --         popup:Routine(function(inputs)

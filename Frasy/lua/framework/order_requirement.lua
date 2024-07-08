@@ -12,26 +12,14 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-local OrderRequirement = {
-    scope     = nil,
-    reference = nil,
-    kind      = nil,
-}
+local OrderRequirement = {scope = nil, reference = nil, kind = nil}
 OrderRequirement.__index = OrderRequirement
 
-OrderRequirement.Kind  = {
-    First        = 1,
-    Last         = 2,
-    After        = 3,
-}
+OrderRequirement.Kind = {first = 1, last = 2, after = 3}
 
-function OrderRequirement:new(parent, target, kind)
-    return setmetatable({
-                            scope     = parent,
-                            reference = target,
-                            kind      = kind
-                        }, OrderRequirement)
+function OrderRequirement:New(parent, target, kind)
+    return setmetatable({scope = parent, reference = target, kind = kind},
+                        OrderRequirement)
 end
 
 return OrderRequirement

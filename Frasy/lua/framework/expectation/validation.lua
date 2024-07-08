@@ -17,8 +17,8 @@ local ExpectationResult = require("lua/core/framework/expectation/result")
 local Expectation       = { result = nil }
 Expectation.__index     = Expectation
 
-function Expectation:new(value)
-    return setmetatable({ result = ExpectationResult:new(value) }, Expectation)
+function Expectation:New(value)
+    return setmetatable({ result = ExpectationResult:New(value) }, Expectation)
 end
 
 function Expectation:Mandatory() return self end

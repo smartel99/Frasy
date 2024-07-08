@@ -12,14 +12,11 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-local RuntimeRequirement = {
-    func = nil
-}
+local RuntimeRequirement = {func = nil}
 RuntimeRequirement.__index = RuntimeRequirement
 
-function RuntimeRequirement:new(func, reason)
-    return setmetatable({ func = func, reason = reason }, RuntimeRequirement)
+function RuntimeRequirement:New(func, reason)
+    return setmetatable({func = func, reason = reason}, RuntimeRequirement)
 end
 
 function RuntimeRequirement:IsMet()

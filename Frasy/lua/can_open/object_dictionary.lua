@@ -1,22 +1,20 @@
-local iniParser = require('lua.core.utils.ini_parser')
-local pprint = require('lua.core.utils.print')
+local IniParser = require('lua.core.utils.ini_parser')
+local PrettyPrint = require('lua.core.utils.pretty_print')
 local ObjectType = require('lua.core.can_open.types.object_type')
 local DataType = require('lua.core.can_open.types.data_type')
 
-local function extractIndex(entry) return string.match(entry, "0x(%d+)") end
+local function NormalizeParameterName(name) return name end
 
-local function normalizeParameterName(name) return name end
-
-local function makeSubIndexKey(index, subIndex)
+local function MakeSubIndexKey(index, subIndex)
     return index .. "sub" .. string.format("%X", subIndex)
 end
 
-local function isComplexEntry(field)
+local function IsComplexEntry(field)
     local ot = tonumber(field["ObjectType"])
     return ot == ObjectType.array or ot == ObjectType.record
 end
 
-local function parseVarEntry(field)
+local function ParseVarEntry(field)
     local entry = {}
     entry.__kind = "Object Dictionary Entry"
     entry.parameterName = field["ParameterName"]
@@ -32,7 +30,7 @@ local function parseVarEntry(field)
     return entry
 end
 
-local function parseComplexEntry(ini, index)
+local function ParseComplexEntry(ini, index)
     local field = ini[index]
     local entry = {}
     entry.__kind = "Object Dictionary Entry"
@@ -45,15 +43,15 @@ local function parseComplexEntry(ini, index)
         entry.__fields = {} -- used for upload/download
     end
     for i = 0, entry.subNumber - 1 do
-        local subKey = makeSubIndexKey(index, i)
+        local subKey = MakeSubIndexKey(index, i)
         local subField = ini[subKey]
-        local subEntry = parseVarEntry(subField)
+        local subEntry = ParseVarEntry(subField)
         subEntry.index = "0x" .. index
         subEntry.subIndex = string.format("%x", i)
         if (entry.objectType == ObjectType.array) then
             entry.data[i] = subEntry
         elseif (entry.objectType == ObjectType.record) then
-            local name = normalizeParameterName(subEntry.parameterName)
+            local name = NormalizeParameterName(subEntry.parameterName)
             if (entry[name] ~= nil) then
                 error("Duplicate subentry. " .. name)
             end
@@ -66,7 +64,7 @@ local function parseComplexEntry(ini, index)
     return entry
 end
 
-local function parseObjectDictionary(ini)
+local function ParseObjectDictionary(ini)
     local od = {}
     local indexes = {}
     for k, v in pairs(ini) do
@@ -77,15 +75,15 @@ local function parseObjectDictionary(ini)
     for _, index in pairs(indexes) do
         local field = ini[index]
         local entry = {}
-        if (isComplexEntry(field)) then
-            entry = parseComplexEntry(ini, index)
+        if (IsComplexEntry(field)) then
+            entry = ParseComplexEntry(ini, index)
             entry.index = "0x" .. index
         else
-            entry = parseVarEntry(field)
+            entry = ParseVarEntry(field)
             entry.index = "0x" .. index
             entry.subIndex = "0x0"
         end
-        local name = normalizeParameterName(entry.parameterName)
+        local name = NormalizeParameterName(entry.parameterName)
         if (od[name] ~= nil) then error("Duplicate entry: " .. name) end
         od[name] = entry
     end
@@ -93,12 +91,12 @@ local function parseObjectDictionary(ini)
 end
 
 return {
-    parse = function(str)
-        local ini = iniParser.parse(str)
-        return parseObjectDictionary(ini)
+    Parse = function(str)
+        local ini = IniParser.Parse(str)
+        return ParseObjectDictionary(ini)
     end,
-    loadFile = function(filename)
-        local ini = iniParser.loadFile(filename)
-        return parseObjectDictionary(ini)
+    LoadFile = function(filename)
+        local ini = IniParser.LoadFile(filename)
+        return ParseObjectDictionary(ini)
     end
 }

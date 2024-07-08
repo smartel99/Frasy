@@ -14,8 +14,8 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 Stage = {
-    Idle       = 0,
-    Generation = 1,
-    Validation = 2,
-    Execution  = 3,
+    idle       = 0,
+    generation = 1,
+    validation = 2,
+    execution  = 3,
 }

@@ -12,11 +12,11 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-local pprint = require('lua/core/utils/pprint')
+local PrettyPrint = require('lua/core/utils/pretty_print')
 
 return function(t, max_depth)
     if (type(t) == "table") then
-        print(pprint(t, 0, max_depth))
+        print(PrettyPrint(t, 0, max_depth))
     else
         print(t)
     end

@@ -12,10 +12,10 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-local pprint = require("lua.core.utils.pprint")
+local PrettyPrint = require("lua.core.utils.pretty_print")
 return function(t)
     if (type(t) == "table") then
-        return pprint(t, 0)
+        return PrettyPrint(t, 0)
     else
         return tostring(t)
     end

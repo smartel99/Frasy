@@ -18,10 +18,10 @@
 --         Popup("Sync")
 --                 :Text("Click cancel to release lock before global sync")
 --                 :Show()
---         Log.i("Before sync")
+--         Log.I("Before sync")
 --         -- Be extremely careful with this call.
 --         -- If you do not reach it on each active UUT, the software will deadlock
 --         Sync()
---         Log.i("After sync")
+--         Log.I("After sync")
 --     end)
 -- end)

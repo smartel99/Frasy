@@ -16,7 +16,7 @@
 -- Sequence("Exclusive", function()
 --     Test("T1", function()
 --         Exclusive(Team.GetLeader(), function()
---             Utils.sleep_for(1000)
+--             Utils.SleepFor(1000)
 --             error("Failure")
 --         end)
 --     end)

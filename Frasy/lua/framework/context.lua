@@ -16,7 +16,7 @@
 Context = {
     info = {
         uut          = 0,
-        stage        = Stage.Idle,
+        stage        = Stage.idle,
         time         = { start = 0, stop = 0, elapsed = 0, process = 0 },
         orchestrator = {
             version = "1.2.0",

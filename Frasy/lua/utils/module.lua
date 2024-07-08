@@ -13,10 +13,10 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 return {
-    print    = require("lua/core/utils/print"),
-    tostring = require("lua/core/utils/tostring"),
-    equals   = require("lua/core/utils/equals"),
-    dirlist  = require("lua/core/utils/dirlist"),
-    traverse  = require("lua/core/utils/traverse"),
-    linesplit = require('lua.core.utils.linesplit')
+    PrettyPrint = require("lua.core.utils.pretty_print"),
+    Print = require("lua/core/utils/print"),
+    ToString = require("lua/core/utils/tostring"),
+    Equals = require("lua/core/utils/equals"),
+    Traverse = require("lua/core/utils/traverse"),
+    LineSplit = require('lua.core.utils.linesplit')
 }

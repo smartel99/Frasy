@@ -38,10 +38,10 @@ public:
     class Interface;
 
     enum class Stage {
-        Idle       = 0,
-        Generation = 1,
-        Validation = 2,
-        Execution  = 3,
+        idle       = 0,
+        generation = 1,
+        validation = 2,
+        execution  = 3,
     };
     static std::string stage2str(Stage stage);
 
@@ -127,7 +127,7 @@ public:
 
 private:
     bool        CreateOutputDirs();
-    bool        InitLua(sol::state_view lua, std::size_t uut = 0, Stage stage = Stage::Generation);
+    bool        InitLua(sol::state_view lua, std::size_t uut = 0, Stage stage = Stage::generation);
     void        ImportExclusive(sol::state_view lua, Stage stage);
     static void ImportLog(sol::state_view lua, std::size_t uut, Stage stage);
     void        ImportPopup(sol::state_view lua, std::size_t uut, Stage stage);

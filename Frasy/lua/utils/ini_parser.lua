@@ -1,7 +1,6 @@
-local pprint = require('lua.core.utils.pprint')
-local linesplit = require('lua.core.utils.linesplit')
+local LineSplit = require('lua.core.utils.linesplit')
 
-local function parse(lines)
+local function Parse(lines)
     local content = {}
     local section = {}
     local key = nil
@@ -17,11 +16,11 @@ local function parse(lines)
 end
 
 return {
-    parse = function(content)
-        local lines = linesplit(content)
-        return parse(lines)
+    Parse = function(content)
+        local lines = LineSplit(content)
+        return Parse(lines)
     end,
-    loadFile = function(filename)
+    LoadFile = function(filename)
         local file, err = io.open(filename, "r")
         if (file) then
             local lines = {}
@@ -32,7 +31,7 @@ return {
                 goto read_line
             end
             file:close()
-            return parse(lines)
+            return Parse(lines)
         else
             error("Failed to open ini file. Error: " .. tostring(err))
         end

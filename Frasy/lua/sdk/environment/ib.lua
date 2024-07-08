@@ -7,7 +7,7 @@ local Ib = {
 }
 Ib.__index = Ib
 
-function Ib:new()
+function Ib:New()
     return setmetatable({
         kind = 0,
         nodeId = 0,
@@ -23,7 +23,7 @@ function Ib:Upload(ode)
                ode.__kind)
     Utils.print("Node id: " .. tostring(self.nodeId))
     if (ode.objectType == CanOpen.objectType.var) then
-        if (Context.info.stage ~= Stage.Execution) then return ode.value end
+        if (Context.info.stage ~= Stage.execution) then return ode.value end
         ode.value = CanOpen.__upload(self.nodeId, ode)
     elseif (ode.objectType == CanOpen.objectType.array) then
         -- do we need to update ode actual size here?
@@ -39,7 +39,7 @@ function Ib:Upload(ode)
 end
 
 function Ib:Download(ode, value)
-    if (Context.info.stage ~= Stage.Execution) then return end
+    if (Context.info.stage ~= Stage.execution) then return end
     assert(type(ode) == "table", "Ib download, invalid ode")
     assert(ode.__kind == "Object Dictionary Entry",
            "Ib download, not an Object Dictionary Entry")

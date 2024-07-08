@@ -1,4 +1,4 @@
-local function pprint(t, lvl, max_depth)
+local function PrettyPrint(t, lvl, max_depth)
     if (type(t) == "table") then
         local indent = ""
         for i = 1, lvl do indent = indent .. "  " end
@@ -11,7 +11,7 @@ local function pprint(t, lvl, max_depth)
                 str = str .. indent .. tostring(k) .. ": " .. tostring(v)
             else
                 str = str .. indent .. tostring(k) .. ": " ..
-                          pprint(v, lvl + 1, max_depth)
+                          PrettyPrint(v, lvl + 1, max_depth)
             end
         end
         return str
@@ -22,4 +22,4 @@ local function pprint(t, lvl, max_depth)
         return tostring(t)
     end
 end
-return pprint
+return PrettyPrint

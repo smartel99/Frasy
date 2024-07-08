@@ -17,13 +17,13 @@ local PopupBuilder   = { name = "", elements = {}, global = false }
 PopupBuilder.__index = PopupBuilder
 
 local ElementKind    = {
-    Text   = 0,
-    Input  = 1,
-    Button = 2,
-    Image  = 3,
+    text   = 0,
+    input  = 1,
+    button = 2,
+    image  = 3,
 }
 
-function PopupBuilder.new(name)
+function PopupBuilder:New(name)
     if name == nil then name = "" end
     return setmetatable(
             {
@@ -41,7 +41,7 @@ end
 
 function PopupBuilder:Text(text)
     table.insert(self.elements, {
-        kind  = ElementKind.Text,
+        kind  = ElementKind.text,
         value = text,
     })
     return self
@@ -51,7 +51,7 @@ function PopupBuilder:Image(path, width, height)
     if(width == nil) then width = 0 end
     if(height == nil) then height = 0 end
     table.insert(self.elements, {
-        kind = ElementKind.Image,
+        kind = ElementKind.image,
         value = path,
         width = width,
         height = height
@@ -62,7 +62,7 @@ end
 function PopupBuilder:Input(text)
     if text == nil then text = "" end
     table.insert(self.elements, {
-        kind  = ElementKind.Input,
+        kind  = ElementKind.input,
         value = text,
     })
     return self
@@ -70,7 +70,7 @@ end
 
 function PopupBuilder:Button(text, action)
     table.insert(self.elements, {
-        kind   = ElementKind.Button,
+        kind   = ElementKind.button,
         value  = text,
         action = action,
     })
@@ -83,17 +83,17 @@ function PopupBuilder:Routine(routine)
 end
 
 function PopupBuilder:Consume()
-    if (Context.info.stage == Stage.Execution) then
-        __popup.consume(self)
+    if (Context.info.stage == Stage.execution) then
+        __popup.Consume(self)
     end
 end
 
 function PopupBuilder:Show()
-    if (Context.info.stage == Stage.Execution) then
-        __popup.show(self)
+    if (Context.info.stage == Stage.execution) then
+        __popup.Show(self)
     end
 end
 
 function Popup(name)
-    return PopupBuilder.new(name)
+    return PopupBuilder:New(name)
 end

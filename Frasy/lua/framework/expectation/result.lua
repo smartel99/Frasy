@@ -21,7 +21,7 @@ local ExpectationResult   = {
 }
 ExpectationResult.__index = ExpectationResult
 
-function ExpectationResult:new(value, note)
+function ExpectationResult:New(value, note)
     return setmetatable({
                             value    = value,
                             note     = note,

@@ -21,7 +21,7 @@ local ScopeRequirement   = {
 }
 ScopeRequirement.__index = ScopeRequirement
 
-function ScopeRequirement:new(orchestrator, scope)
+function ScopeRequirement:New(orchestrator, scope)
     return setmetatable({ orchestrator = orchestrator, scope = scope }, ScopeRequirement)
 end
 
@@ -37,48 +37,48 @@ end
 
 function ScopeRequirement:ToBeFirst()
     -- Order requirement are ignored when executing
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeLast()
     -- Order requirement are ignored when executing
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeBefore(other)
     -- Order requirement are ignore when executing
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeAfter(other)
     -- Order requirement are ignore when executing
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeRightBefore(other)
     -- Order requirement are ignore when executing
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeRightAfter(other)
     -- Order requirement are ignore when executing
-    return RuntimeRequirement:new(function() return true end)
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToPass()
-    return RuntimeRequirement:new(function() return self.orchestrator.HasPassed(self.scope) end,
+    return RuntimeRequirement:New(function() return self.orchestrator.HasPassed(self.scope) end,
                                   string.format("Scope %s has not passed", self.scope:ToString()))
 end
 
 function ScopeRequirement:ToFail()
-    return RuntimeRequirement:new(function() return not self.orchestrator.HasPassed(self.scope) end,
+    return RuntimeRequirement:New(function() return not self.orchestrator.HasPassed(self.scope) end,
                                   string.format("Scope %s has passed", self.scope:ToString()))
 end
 
 function ScopeRequirement:ToBeComplete()
     -- Cannot perform multiple tests for same board for now
     -- Thus, this scope must always be done after its target
-    return RuntimeRequirement:new(function() return not self.orchestrator.HasBeenSkipped(self.scope) end,
+    return RuntimeRequirement:New(function() return not self.orchestrator.HasBeenSkipped(self.scope) end,
                                   string.format("Scope %s has been skipped", self.scope:ToString()))
 end
 

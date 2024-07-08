@@ -12,16 +12,14 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-local utils = {}
-function utils.traverse(t, ...)
-    local args = { ... }
+function Traverse(t, ...)
+    local args = {...}
     if #args == 0 or t == nil or t[args[1]] == nil then
         return t
     else
         local st = t[args[1]]
         table.remove(args, 1)
-        return utils.traverse(st, table.unpack(args))
+        return Traverse(st, table.unpack(args))
     end
 end
-return utils.traverse
+return Traverse

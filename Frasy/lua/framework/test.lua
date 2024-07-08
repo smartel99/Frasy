@@ -12,17 +12,16 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
 local ScopeResult = require("lua/core/framework/scope_result")
 
-local Test        = {
-    result       = { },
-    expectations = { },
-    func         = nil
-}
+local Test = {result = {}, expectations = {}, func = nil}
 
-function Test:new(func)
-    return setmetatable({ result = ScopeResult:new(), expectations = { }, func = func }, Test)
+function Test:New(func)
+    return setmetatable({
+        result = ScopeResult:New(),
+        expectations = {},
+        func = func
+    }, Test)
 end
 
 return Test

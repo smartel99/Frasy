@@ -24,21 +24,21 @@ if (Ibs == nil) then Ibs = {} end
 
 ---Environment
 ---@param func function Function that defines the environment.
-local function makeEnvironment(func)
+local function MakeEnvironment(func)
     func()
     -- _map.validate()
-    _team.validate()
-    _worker.evaluate()
+    _team.Validate()
+    _worker.Evaluate()
 end
 
 function TestPoint(ibs, index) return {ibs = ibs, index = index} end
 
-local function setUutCount(count)
+local function SetUutCount(count)
     Context.map.uuts = {};
     for i = 1, count do table.insert(Context.map.uuts, i) end
 end
 
-local function addTeam(...)
+local function AddTeam(...)
     Context.team.hasTeam = true
     local leader
     for index, uuts in ipairs({...}) do
@@ -50,8 +50,8 @@ local function addTeam(...)
     Context.team.teams[leader] = {...}
 end
 
-local function addUutValue(key)
-    --     assert(Context.info.stage == Stage.Generation, "AddUutValue, invalid stage")
+local function AddUutValue(key)
+    --     assert(Context.info.stage == Stage.generation, "AddUutValue, invalid stage")
     assert(type(key) == "string", "AddUutValue, argument is not a string")
     Context.map.values[key] = {}
     local t = {}
@@ -63,7 +63,7 @@ local function addUutValue(key)
     return t
 end
 
-local function addIb(board)
+local function AddIb(board)
     if (board == nil or board.ib == nil) then
         error("Invalid board: " .. tostring(board))
     end
@@ -71,14 +71,14 @@ local function addIb(board)
     assert(Context.map.ibs[board.ib.name] == nil,
            "Ib already defined. " .. board.ib.name)
     Context.map.ibs[board.ib.name] = board
-    board.ib.od = odParser.loadFile(board.ib.eds)
+    board.ib.od = odParser.LoadFile(board.ib.eds)
     return board
 end
 Environment = {
-    Make = makeEnvironment,
-    Uut = {Count = setUutCount},
-    Ib = {Add = addIb},
-    UutValue = {Add = addUutValue},
-    Team = {Add = addTeam},
+    Make = MakeEnvironment,
+    Uut = {Count = SetUutCount},
+    Ib = {Add = AddIb},
+    UutValue = {Add = AddUutValue},
+    Team = {Add = AddTeam},
     Worker = {Limit = _worker.Limit}
 }

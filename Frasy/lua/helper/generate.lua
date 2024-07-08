@@ -14,5 +14,5 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 return function(output)
     local order = Orchestrator.Generate()
-    Utils.save_as_json(order, output)
+    Utils.SaveAsJson(order, output)
 end

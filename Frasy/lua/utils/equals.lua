@@ -13,7 +13,7 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-local function equals(t1, t2)
+local function Equals(t1, t2)
     if type(t1) ~= type(t2) then
         return false
     end
@@ -35,7 +35,7 @@ local function equals(t1, t2)
         -- Check value of both table
         -- It also check that they share the same key since if they do not, one value would be nil
         for k, _ in pairs(t1) do
-            if not equals(t1[k], t2[k]) then
+            if not Equals(t1[k], t2[k]) then
                 return false
             end
         end

@@ -14,7 +14,7 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 Log = {}
-function Log.i(message)
+function Log.I(message)
     print(message)
 end
 

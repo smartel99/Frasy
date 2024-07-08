@@ -22,7 +22,7 @@ local ScopeRequirement   = {
 }
 ScopeRequirement.__index = ScopeRequirement
 
-function ScopeRequirement:new(orchestrator, scope)
+function ScopeRequirement:New(orchestrator, scope)
     return setmetatable({ orchestrator = orchestrator, scope = scope }, ScopeRequirement)
 end
 
@@ -39,61 +39,61 @@ function ScopeRequirement:Value(name)
 end
 
 function ScopeRequirement:ToBeFirst()
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.scope, nil, OrderRequirement.Kind.First))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.scope, nil, OrderRequirement.Kind.first))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeLast()
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.scope, nil, OrderRequirement.Kind.Last))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.scope, nil, OrderRequirement.Kind.last))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeBefore()
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.orchestrator.GetScope(), self.scope,
-                                                               OrderRequirement.Kind.After))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.orchestrator.GetScope(), self.scope,
+                                                               OrderRequirement.Kind.after))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeAfter()
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.scope, self.orchestrator.GetScope(),
-                                                               OrderRequirement.Kind.After))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.scope, self.orchestrator.GetScope(),
+                                                               OrderRequirement.Kind.after))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeRightBefore()
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.orchestrator.GetScope(), self.scope,
-                                                               OrderRequirement.Kind.After))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.orchestrator.GetScope(), self.scope,
+                                                               OrderRequirement.Kind.after))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeRightAfter()
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.scope, self.orchestrator.GetScope(),
-                                                               OrderRequirement.Kind.After))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.scope, self.orchestrator.GetScope(),
+                                                               OrderRequirement.Kind.after))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToPass()
     -- Cannot perform multiple tests for same board for now
     -- Thus, the current test must always be after the requested scope
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.orchestrator.GetScope(), self.scope,
-                                                               OrderRequirement.Kind.After))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.orchestrator.GetScope(), self.scope,
+                                                               OrderRequirement.Kind.after))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToFail()
     -- Cannot perform multiple tests for same board for now
     -- Thus, the current test must always be after the requested scope
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.orchestrator.GetScope(), self.scope,
-                                                               OrderRequirement.Kind.After))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.orchestrator.GetScope(), self.scope,
+                                                               OrderRequirement.Kind.after))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 function ScopeRequirement:ToBeComplete()
     -- Cannot perform multiple tests for same board for now
     -- Thus, the current test must always be after the requested scope
-    self.orchestrator.AddOrderRequirement(OrderRequirement:new(self.orchestrator.GetScope(), self.scope,
-                                                               OrderRequirement.Kind.After))
-    return RuntimeRequirement:new(function() return true end)
+    self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.orchestrator.GetScope(), self.scope,
+                                                               OrderRequirement.Kind.after))
+    return RuntimeRequirement:New(function() return true end)
 end
 
 return ScopeRequirement

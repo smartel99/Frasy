@@ -37,25 +37,25 @@ for index, what in pairs(exceptions) do
     }
 end
 
-local function populationException(exception, what)
+local function PopulateException(exception, what)
     return {
         code = exception.code,
         what = exception.what .. (what ~= nil and (": " .. what) or "")
     }
 end
 
-function UnmetRequirement(what) return populationException(exceptions_values.UnmetRequirement, what) end
-function UnmetExpectation(what) return populationException(exceptions_values.UnmetExpectation, what) end
-function NestedScope(what) return populationException(exceptions_values.NestedScope, what) end
-function BadScope(what) return populationException(exceptions_values.BadScope, what) end
-function AlreadyDefined(what) return populationException(exceptions_values.AlreadyDefined, what) end
-function NotFound(what) return populationException(exceptions_values.NotFound, what) end
-function InvalidRequirement(what) return populationException(exceptions_values.InvalidRequirement, what) end
-function InvalidStage(what) return populationException(exceptions_values.InvalidStage, what) end
-function MapperError(what) return populationException(exceptions_values.MapperError, what) end
-function TeamError(what) return populationException(exceptions_values.TeamError, what) end
-function WorkerError(what) return populationException(exceptions_values.WorkerError, what) end
-function GenerationError(what) return populationException(exceptions_values.GenerationError, what) end
+function UnmetRequirement(what) return PopulateException(exceptions_values.UnmetRequirement, what) end
+function UnmetExpectation(what) return PopulateException(exceptions_values.UnmetExpectation, what) end
+function NestedScope(what) return PopulateException(exceptions_values.NestedScope, what) end
+function BadScope(what) return PopulateException(exceptions_values.BadScope, what) end
+function AlreadyDefined(what) return PopulateException(exceptions_values.AlreadyDefined, what) end
+function NotFound(what) return PopulateException(exceptions_values.NotFound, what) end
+function InvalidRequirement(what) return PopulateException(exceptions_values.InvalidRequirement, what) end
+function InvalidStage(what) return PopulateException(exceptions_values.InvalidStage, what) end
+function MapperError(what) return PopulateException(exceptions_values.MapperError, what) end
+function TeamError(what) return PopulateException(exceptions_values.TeamError, what) end
+function WorkerError(what) return PopulateException(exceptions_values.WorkerError, what) end
+function GenerationError(what) return PopulateException(exceptions_values.GenerationError, what) end
 function GenericError(what)
     if(what == nil) then what = exceptions_values.GenericError.what end
     return {

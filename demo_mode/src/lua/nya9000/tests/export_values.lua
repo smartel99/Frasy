@@ -22,7 +22,7 @@
 --     Test("U7", function()
 --         Requires(Test("Power Up"):ToPass()) -- This is important, to ensure that the value actually exists!
 --         local voltage = Test("Power Up"):Value("voltage")
---         Log.d(string.format("Voltage from Power Up: %d", voltage))
+--         Log.D(string.format("Voltage from Power Up: %d", voltage))
 --     end)
 -- end)
 
@@ -32,6 +32,6 @@
 
 -- --     Test("Test", function()
 -- --         local voltage = Sequence("Test"):Test("Power Up"):Value("voltage")
--- --         Log.d(string.format("Voltage from Test:Power Up: %d", voltage))
+-- --         Log.D(string.format("Voltage from Test:Power Up: %d", voltage))
 -- --     end)
 -- -- end)

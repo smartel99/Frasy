@@ -110,9 +110,9 @@ function Team.__fail() end
 
 -- not exposed to user
 local team = {}
-function team.validate()
+function team.Validate()
     if not Context.team.hasTeam then
-        Log.d("Team Not enabled")
+        Log.D("Team Not enabled")
         return
     end
 
@@ -122,7 +122,7 @@ function team.validate()
     end
     assert(playersCount == #Context.map.uuts,
         TeamError(string.format("Expected %d players, got %d", #Context.map.uuts, playersCount)))
-    Log.d("Team OK!")
+    Log.D("Team OK!")
 end
 
 return team

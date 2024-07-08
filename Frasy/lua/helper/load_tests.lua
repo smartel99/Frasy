@@ -14,7 +14,7 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 return function(directory)
-    local files = Utils.dirlist(directory)
+    local files = Utils.DirList(directory)
     for _, file in ipairs(files) do require(file) end
     Context.orchestrator.enable_list = {}
 end

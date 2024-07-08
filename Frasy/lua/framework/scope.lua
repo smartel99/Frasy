@@ -12,19 +12,16 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-
-local Scope   = {
-    sequence = nil,
-    test     = nil
-}
+local Scope = {sequence = nil, test = nil}
 Scope.__index = Scope;
 
-function Scope:new(sequence, test)
-    return setmetatable({ sequence = sequence, test = test }, Scope)
+function Scope:New(sequence, test)
+    return setmetatable({sequence = sequence, test = test}, Scope)
 end
 
 function Scope:ToString()
-    return "{S:" .. tostring(self.sequence) .. ", T: " .. tostring(self.test) .. "}"
+    return "{S:" .. tostring(self.sequence) .. ", T: " .. tostring(self.test) ..
+               "}"
 end
 
 return Scope
