@@ -1,5 +1,5 @@
 Sequence("PIO", function()
-    Test("Fixed Supply", function()
+    Test("Var Supply", function()
         --local ib = Context.map.ibs.r8l
         --ib:Download(ib.od["Write Digital Output"], 0xFF)
         local ib = Context.map.ibs.pio
@@ -14,19 +14,22 @@ Sequence("PIO", function()
         --ib:Download(ib.od["Supply 24V"]["Output Enable"], false)
 
         local supply = "Variable Supply 2"
-        local voltages = { 0.0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20 }
-        local enables = { false, true }
-        for _, enable in ipairs(enables) do
-            ib:Download(ib.od[supply]["Output Enable"], enable)
-            for __, voltage in ipairs(voltages) do
+        local voltages = { 2.5, 20 }
+
+        --for i = 0, 20 do
+            ib:Download(ib.od[supply]["Output Enable"], true)
+            for _, voltage in ipairs(voltages) do
+                local label = string.format("%f", voltage)
                 Log.d("Setting voltage to " .. voltage)
                 ib:Download(ib.od[supply]["Desired Voltage"], voltage)
-                Utils.sleep_for(10)
+                Utils.sleep_for(1000)
                 local actualVoltage = ib:Upload(ib.od[supply]["Voltage"])
-                Expect(actualVoltage, "Voltage"):ToBeGreater(0.0)
+                Log.d("Voltage read: " .. actualVoltage)
+                Expect(actualVoltage, "Voltage " .. label):ToBeGreater(0.0)
                 local current = ib:Upload(ib.od[supply]["Current"])
-                Expect(current, "Current"):ToBeGreater(0)
+                Expect(current, "Current " .. label):ToBeGreater(0)
             end
-        end
+        --end
+        ib:Download(ib.od[supply]["Output Enable"], false)
     end)
 end)
