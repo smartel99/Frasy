@@ -62,10 +62,11 @@ function PIO:CurrentLimit(supply, value)
         error("Invalid supply: " .. tostring(value))
     end
     local odName = PIO.SupplyEnumToOdName(supply)
+    local od = self.id.od[odName]["Current Limit"]
     if value == nil then
-        return self.id:Upload(self.id.od[odName]["Current Limit"])
+        return self.id:Upload(od)
     elseif PIO.IsCurrentLimitOk(value) then
-        self.id:Download(self.id.od[odName]["Current Limit"], value)
+        self.id:Download(od, value)
     else
         error("Invalid value: " .. tostring(value))
     end
@@ -84,10 +85,11 @@ function PIO:DesiredVoltage(supply, value)
         error("Invalid supply: " .. tostring(value))
     end
     local odName = PIO.SupplyEnumToOdName(supply)
+    local od = self.id.od[odName]["Desired Voltage"]
     if value == nil then
-        return self.id:Upload(self.id.od[odName]["Desired Voltage"])
+        return self.id:Upload(od)
     elseif PIO.IsDesiredVoltageOk(value) then
-        self.id:Download(self.id.od[odName]["Desired Voltage"], value)
+        self.id:Download(od, value)
     else
         error("Invalid value: " .. tostring(value))
     end
@@ -106,10 +108,11 @@ function PIO:OuputEnable(supply, value)
         error("Invalid supply: " .. tostring(value))
     end
     local odName = PIO.SupplyEnumToOdName(supply)
+    local od = self.id.od[odName]["Output Enable"]
     if value == nil then
-        return self.id:Upload(self.id.od[odName]["Output Enable"])
+        return self.id:Upload(od)
     elseif type(value) == "boolean" then
-        self.id:Download(self.id.od[odName]["Output Enable"], value)
+        self.id:Download(od, value)
     else
         error("Invalid value: " .. tostring(value))
     end
@@ -118,30 +121,33 @@ end
 function PIO:GpioIn() return self.id:Upload(self.id.od["GPIO"]["Input Port"]) end
 
 function PIO:GpioOut(value)
+    local od = self.id.od["GPIO"]["Output Port"]
     if value == nil then
-        return self.id:Upload(self.id.od["GPIO"]["Output Port"])
+        return self.id:Upload(od)
     elseif PIO.IsGpioValueOk(value) then
-        self.id:Download(self.id.od["GPIO"]["Output Port"], value)
+        self.id:Download(od, value)
     else
         error("Invalid value: " .. tostring(value))
     end
 end
 
 function PIO:GpioPolarity(value)
+    local od = self.id.od["GPIO"]["Polarity Inversion"]
     if value == nil then
-        return self.id.Upload(self.id.od["GPIO"]["Polarity Inversion"])
+        return self.id.Upload(od)
     elseif isGpioValueOk(value) then
-        self.id.Download(self.id.od["GPIO"]["Polarity Inversion"], value)
+        self.id.Download(od, value)
     else
         error("Invalid value: " .. tostring(value))
     end
 end
 
 function PIO:GpioConfiguration(value)
+    local od = self.id.od["GPIO"]["Configuration"]
     if value == nil then
-        return self.id:Upload(self.id.od["GPIO"]["Configuration"])
+        return self.id:Upload(od)
     elseif PIO.IsGpioValueOk(value) then
-        self.id:Download(self.id.od["GPIO"]["Configuration"], value)
+        self.id:Download(od, value)
     else
         error("Invalid value: " .. tostring(value))
     end
