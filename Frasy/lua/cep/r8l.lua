@@ -1,10 +1,19 @@
 local Ib = require("lua/core/sdk/environment/ib")
+local Bitwise = require("lua.core.utils.bitwise")
+local IsIntegerIn = require("lua.core.utils.is_integer.is_integer_in")
+local IsInteger8 = require("lua.core.utils.is_integer.is_integer_8")
+local CheckField = require("lua.core.utils.check_field")
 
-R8L = {
-    ib = nil,
-    cache = {digitalOutput = 0, errorModeOutput = false, errorValueOutput = 0}
-}
+R8L = {ib = nil, cache = {digitalOutput = 0, errorValueOutput = 0}}
 R8L.__index = R8L
+
+local function CheckIndex(index)
+    CheckField(index, "index", IsIntegerIn(index, 0, 7))
+end
+
+local function IsRelayValueOk(value)
+    CheckField(value, "value", IsInteger8(value))
+end
 
 function R8L:New(name, nodeId)
     local ib = Ib:New()
@@ -14,49 +23,69 @@ function R8L:New(name, nodeId)
     if nodeId == nil then nodeId = ib.kind end
     ib.nodeId = nodeId
     ib.eds = "lua/core/cep/eds/r8l_1.0.0.eds"
-    return setmetatable({ib = ib, od = {}}, R8L)
+    return setmetatable({
+        ib = ib,
+        cache = {digitalOutput = 0, errorValueOutput = 0}
+    }, R8L)
 end
 
-function R8L.IsRelayValueOk(value)
-    return value ~= nil and type(value) == "number" and value // 1 == value and
-               0 <= value and value <= 255
+function R8L:LoadCache()
+    self:DigitalOutputs()
+    self:ErrorValueOutputs()
 end
 
-function R8L:DigitalOutput(value)
+function R8L:DigitalOutputs(value)
+    local od = self.ib.od["Write Digital Output"]
     if value == nil then
-        self.cache.digitalOutput = self.ib:Upload(
-                                       self.ib.od["Write Digital Output"])
+        self.cache.digitalOutput = self.ib:Upload(od)
         return self.cache.digitalOutput
-    elseif R8L.IsRelayValueOk(value) then
-        self.ib:Download(self.ib.od["Write Digital Output"], value)
     else
-        error("Invalid value: " .. tostring(value))
+        CheckRelayValue(value)
+        self.cache.digitalOutput = value
+        self.ib:Download(od, value)
+    end
+end
+
+function R8L:DigitalOutput(index, value)
+    CheckIndex(index)
+    if value == nil then
+        return Bitwise.Extract(index, self:DigitalOutputs())
+    else
+        CheckRelayValue(value)
+        self:DigitalOutputs(Bitwise.Inject(index, value,
+                                           self.cache.digitalOutput))
     end
 end
 
 function R8L:ErrorModeOutput(value)
     if value == nil then
-        self.cache.errorModeOutput = self.ib:Upload(
-                                         self.ib.od["Error Mode Output"])
-        return self.cache.errorModeOutput
-    elseif type(value) == "boolean" then
-        self.cache.errorModeOutput = value
-        self.ib:Download(self.ib.od["Error Mode Output"], value)
+        return self.ib:Upload(self.ib.od["Error Mode Output"])
     else
-        error("Invalid value: " .. tostring(value))
+        CheckField(value, "value", IsBoolean(value))
+        self.ib:Download(self.ib.od["Error Mode Output"], value)
     end
 end
 
-function R8L:ErrorValueOutput(value)
+function R8L:ErrorValueOutputs(value)
     if value == nil then
         self.cache.errorValueOutput = self.ib:Upload(
                                           self.ib.od["Error Value Output"])
         return self.cache.errorValueOutput
-    elseif R8L.IsRelayValueOk(value) then
+    else
+        CheckRelayValue(value)
         self.cache.errorValueOutput = value
         self.ib:Download(self.ib.od["Error Value Output"], value)
+    end
+end
+
+function R8L:ErrorValueOutput(index, value)
+    CheckIndex(index)
+    if value == nil then
+        return Bitwise.Extract(index, self:ErrorValueOutputs())
     else
-        error("Invalid value: " .. tostring(value))
+        CheckRelayValue(value)
+        self:ErrorValueOutputs(Bitwise.Inject(index, value,
+                                              self.cache.errorValueOutput))
     end
 end
 
