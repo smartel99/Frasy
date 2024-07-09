@@ -14,6 +14,14 @@ local function IsComplexEntry(field)
     return ot == ObjectType.array or ot == ObjectType.record
 end
 
+local function ParseNumber(field)
+    if type(field) == "string" and #field ~= 0 then
+        return tonumber(field)
+    else
+        return nil
+    end
+end
+
 local function ParseVarEntry(field)
     local entry = {}
     entry.__kind = "Object Dictionary Entry"
@@ -23,10 +31,10 @@ local function ParseVarEntry(field)
     entry.accessType = field["AccessType"]
     entry.defaultValue = field["DefaultValue"]
     entry.pdoMapping = tonumber(field["PDOMapping"])
-    entry.defaultValue = field["DefaultValue"]
+    entry.defaultValue = ParseNumber(field["DefaultValue"])
     entry.value = entry.defaultValue
-    entry.highLimit = field["HighLimit"]
-    entry.lowLimit = field["LowLimit"]
+    entry.highLimit = ParseNumber(field["HighLimit"])
+    entry.lowLimit = ParseNumber(field["LowLimit"])
     return entry
 end
 

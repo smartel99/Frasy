@@ -468,10 +468,23 @@ end
 
 -- Impedances
 DAQ.ImpedanceModeEnum = {resistor = 0, capacitor = 1, inductor = 2}
-DAQ.ImpendanceShapeEnum = {automatic = 0, dc = 1, sine = 2, triangle = 3, ramp = 4, noise = 5}
-DAQ.ImpedanceRangeResistorEnum = {automatic = 0, r100 = 1, r4k99 = 2, r100k = 3, r1M = 4}
+DAQ.ImpedanceShapeEnum = {
+    automatic = 0,
+    dc = 1,
+    sine = 2,
+    triangle = 3,
+    ramp = 4,
+    noise = 5
+}
+DAQ.ImpedanceRangeResistorEnum = {
+    automatic = 0,
+    r100 = 1,
+    r4k99 = 2,
+    r100k = 3,
+    r1M = 4
+}
 DAQ.ImpedanceDefaults = {
-    shape = DAQ.ImpendanceShapeEnum.automatic,
+    shape = DAQ.ImpedanceShapeEnum.automatic,
     rangeResistor = DAQ.ImpedanceRangeResistorEnum.automatic,
     frequency = 0,
     amplitude = 0,
@@ -522,8 +535,11 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     CheckField("expected value", expectedValue, IsIntegerInOd(expectedValue, odExpectedValue))
     CheckField("favorSpeed", favorSpeed, IsBoolean(favorSpeed))
 
-    if (rangeResistor == 0 or (frequency == 0 and shape ~= DAQ.ImpedanceShapeEnum.dc)) and expectedValue == 0 then
-        error("Expected Value cannot be set to automatic when Range Resistor or Frequency are as well")
+    if (rangeResistor == 0 or
+        (frequency == 0 and shape ~= DAQ.ImpedanceShapeEnum.dc)) and
+        expectedValue == 0 then
+        error(
+            "Expected Value cannot be set to automatic when Range Resistor or Frequency are as well")
     end
 
     self.ib:Download(odMode, mode)
@@ -630,9 +646,12 @@ function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay, samplesT
         rguards = self:RequestRouting({table.unpack(guards), DAQ.RoutingPointsEnum.GUARD})
     end
 
-    local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor, DAQ.ImpedanceShapeEnum.dc, range,
-                                   DAQ.ImpedanceDefaults.frequency, voltage, delay // 1, samplesToTake,
-                                   DAQ.ImpedanceDefaults.expectedValue, favorSpeed)
+    local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor,
+                                   DAQ.ImpedanceShapeEnum.dc, range,
+                                   DAQ.ImpedanceDefaults.frequency, voltage,
+                                   delay // 1, samplesToTake,
+                                   DAQ.ImpedanceDefaults.expectedValue,
+                                   favorSpeed)
 
     -- cleanup
     self:ClearBus(rimpp)

@@ -1,5 +1,19 @@
 local Ib = require("lua/core/sdk/environment/ib")
-PIO = {ib = nil, cache = {}}
+local IsFloatInOd = require("lua.core.utils.is_float.is_float_in_od")
+local IsUnsigned = require("lua.core.utils.is_unsigned.is_unsigned")
+local IsUnsigned8 = require("lua.core.utils.is_unsigned.is_unsigned_8")
+local IsUnsigned16 = require("lua.core.utils.is_unsigned.is_unsigned_16")
+local IsUnsignedIn = require("lua.core.utils.is_unsigned.is_unsigned_in")
+local IsUnsignedInOd = require("lua.core.utils.is_unsigned.is_unsigned_in_od")
+local Bitwise = require("lua.core.utils.bitwise")
+local CheckField = require("lua.core.utils.check_field")
+PIO = {
+    ib = nil,
+    cache = {
+        gpio = {input = 0, output = 0, polarity = 0, configuration = 0x0FFF}
+    }
+}
+PIO.__index = PIO
 
 PIO.SupplyEnum = {
     p3v3 = 1,
@@ -10,40 +24,65 @@ PIO.SupplyEnum = {
     pVariable2 = 6
 }
 
-function PIO.IsSupplyEnumOk(supply)
-    return p3v3 <= supply and supply <= pVariable2
+PIO.GpioIndexMax = 11
+
+PIO.GpioPolarityEnum = {regular = 0, inverted = 1}
+
+PIO.GpioConfigurationEnum = {output = 0, input = 1}
+
+local function CheckSupplyEnum(supply)
+    CheckField(supply, "supply", IsIntegerIn(supply, PIO.SupplyEnum.p3v3,
+                                             PIO.SupplyEnum.pVariable2))
 end
 
-function PIO.IsVariableSupplyEnumOk(supply)
-    return supply == pVariable1 or supply == pVariable2
+local function CheckVariableSupplyEnum(supply)
+    CheckField(supply, "supply", IsIntegerIn(supply, PIO.SupplyEnum.pVariable1,
+                                             PIO.SupplyEnum.pVariable2))
 end
 
-function PIO.IsCurrentLimitOk(value)
-    return value ~= nil and type(value) == "number" and value // 1 == value and
-               0 <= value and value <= 1100
-end
-
-function PIO.IsDesiredVoltageOk(value)
-    return
-        value ~= nil and type(value) == "number" and 1.08 <= value and value <=
-            20.02
-end
-
-function PIO.IsGpioValueOk(value)
-    return value ~= nil and type(value) == "number" and value // 1 == value and
-               0 <= value and value <= 0xfff
-end
-
-function PIO.SupplyEnumToOdName(supply)
+local function SupplyEnumToOdName(supply)
     local names = {
         "Supply 3V3", "Supply 5V", "Supply 12V", "Supply 24V",
         "Variable Supply 1", "Variable Supply 2"
     }
-    if PIO.IsSupplyEnumOk(supply) then
-        return names[supply]
-    else
-        error("Invalid supply: " .. tostring(value))
+    CheckSupplyEnum(supply)
+    return names[supply]
+end
+
+local function CheckGpioIndex(index)
+    CheckField(index, "gpio index", IsUnsignedIn(index, 0, PIO.GpioIndexMax))
+end
+
+local function CheckGpioValue(value)
+    -- CheckField(value, "value", IsUnsignedIn(value, 0, 0x3FF))
+    CheckField(value, "value", IsUnsigned16(value)) -- Because OD is badly set
+end
+
+local function NormalizeGpioValueOutput(value, configuration)
+    for index = 0, PIO.GpioIndexMax do
+        if Bitwise.Extract(index, configuration) ==
+            PIO.GpioConfigurationEnum.output then
+            value = Bitwise.Inject(index, Bitwise.Extract(index, value), value)
+        else
+            value = Bitwise.Inject(index, 0, value)
+        end
     end
+    return value
+end
+
+local function MergeGpioValues(input, output, configuration)
+    local merge = 0
+    for index = 0, PIO.GpioIndexMax do
+        local field
+        if Bitwise.Extract(index, configuration) ==
+            PIO.GpioConfigurationEnum.input then
+            field = input
+        else
+            field = output
+        end
+        merge = merge | (Bitwise.Extract(index, field) << index)
+    end
+    return merge
 end
 
 function PIO:New(name, nodeId)
@@ -54,95 +93,137 @@ function PIO:New(name, nodeId)
     if nodeId == nil then nodeId = ib.kind end
     ib.nodeId = nodeId
     ib.eds = "lua/core/cep/eds/pio_1.0.0.eds"
-    return setmetatable({ib = ib, cache = {}}, PIO)
+    return setmetatable({
+        ib = ib,
+        cache = {gpio = {polarity = 0, configuration = 0x3FF}}
+    }, PIO)
+end
+
+function PIO:LoadCache()
+    self:GpioValues()
+    self:GpioPolarities()
+    self:GpioConfigurations()
 end
 
 function PIO:CurrentLimit(supply, value)
-    if not PIO.IsSupplyEnumOk(supply) then
-        error("Invalid supply: " .. tostring(value))
-    end
-    local odName = PIO.SupplyEnumToOdName(supply)
+    CheckSupplyEnum(supply)
+    local odName = SupplyEnumToOdName(supply)
+    local od = self.ib.od[odName]["Current Limit"]
     if value == nil then
-        return self.id:Upload(self.id.od[odName]["Current Limit"])
-    elseif PIO.IsCurrentLimitOk(value) then
-        self.id:Download(self.id.od[odName]["Current Limit"], value)
+        return self.ib:Upload(od)
     else
-        error("Invalid value: " .. tostring(value))
+        CheckField(value, "current limit", IsIntegerInOd(value, od))
+        self.ib:Download(od, value)
     end
 end
 
 function PIO:Current(supply)
-    if not PIO.IsSupplyEnumOk(supply) then
-        error("Invalid supply: " .. tostring(value))
-    end
-    local odName = PIO.SupplyEnumToOdName(supply)
-    return self.id:Upload(self.id.od[odName]["Current"])
+    CheckSupplyEnum(supply)
+    local odName = SupplyEnumToOdName(supply)
+    return self.ib:Upload(self.ib.od[odName]["Current"])
 end
 
 function PIO:DesiredVoltage(supply, value)
-    if not PIO.IsVariableSupplyEnumOk(supply) then
-        error("Invalid supply: " .. tostring(value))
-    end
-    local odName = PIO.SupplyEnumToOdName(supply)
+    CheckVariableSupplyEnum(supply)
+    local odName = SupplyEnumToOdName(supply)
+    local od = self.ib.od[odName]["Desired Voltage"]
     if value == nil then
-        return self.id:Upload(self.id.od[odName]["Desired Voltage"])
-    elseif PIO.IsDesiredVoltageOk(value) then
-        self.id:Download(self.id.od[odName]["Desired Voltage"], value)
+        return self.ib:Upload(od)
     else
-        error("Invalid value: " .. tostring(value))
+        CheckField(value, "desired voltage", IsFloatInOd(value, od))
+        self.ib:Download(od, value)
     end
 end
 
 function PIO:Voltage(supply)
-    if not PIO.IsSupplyEnumOk(supply) then
-        error("Invalid supply: " .. tostring(value))
-    end
-    local odName = PIO.SupplyEnumToOdName(supply)
-    return self.id:Upload(self.id.od[odName]["Voltage"])
+    CheckSupplyEnum(supply)
+    local odName = SupplyEnumToOdName(supply)
+    return self.ib:Upload(self.ib.od[odName]["Voltage"])
 end
 
 function PIO:OuputEnable(supply, value)
-    if not PIO.IsSupplyEnumOk(supply) then
-        error("Invalid supply: " .. tostring(value))
-    end
-    local odName = PIO.SupplyEnumToOdName(supply)
+    CheckSupplyEnum(supply)
+    local odName = SupplyEnumToOdName(supply)
+    local od = self.ib.od[odName]["Output Enable"]
     if value == nil then
-        return self.id:Upload(self.id.od[odName]["Output Enable"])
-    elseif type(value) == "boolean" then
-        self.id:Download(self.id.od[odName]["Output Enable"], value)
+        return self.ib:Upload(od)
     else
-        error("Invalid value: " .. tostring(value))
+        CheckField(value, "output enable", IsBoolean(value))
+        self.ib:Download(od, value)
     end
 end
 
-function PIO:GpioIn() return self.id:Upload(self.id.od["GPIO"]["Input Port"]) end
-
-function PIO:GpioOut(value)
+function PIO:GpioValues(value)
+    local odIn = self.ib.od["GPIO"]["Input Port"]
+    local odOut = self.ib.od["GPIO"]["Output Port"]
     if value == nil then
-        return self.id:Upload(self.id.od["GPIO"]["Output Port"])
-    elseif PIO.IsGpioValueOk(value) then
-        self.id:Download(self.id.od["GPIO"]["Output Port"], value)
+        local input = self.ib:Upload(odIn)
+        output = self.ib:Upload(odOut)
+        self.cache.gpio.output = output
+        return MergeGpioValues(input, output, self.cache.gpio.configuration)
     else
-        error("Invalid value: " .. tostring(value))
+        CheckGpioValue(value)
+        self.cache.gpio.output = NormalizeGpioValueOutput(value, self.cache.gpio
+                                                              .configuration)
+        self.ib:Download(odOut, self.cache.gpio.output)
     end
 end
 
-function PIO:GpioPolarity(value)
+function PIO:GpioValue(index, value)
+    CheckGpioIndex(index)
     if value == nil then
-        return self.id.Upload(self.id.od["GPIO"]["Polarity Inversion"])
-    elseif isGpioValueOk(value) then
-        self.id.Download(self.id.od["GPIO"]["Polarity Inversion"], value)
+        return Bitwise.Extract(index, self:GpioValues())
     else
-        error("Invalid value: " .. tostring(value))
+        CheckGpioValue(value)
+        self:GpioValues(Bitwise.Inject(index, value, self.cache.gpio.output))
+    end
+
+end
+
+function PIO:GpioPolarities(value)
+    local od = self.ib.od["GPIO"]["Polarity Inversion"]
+    if value == nil then
+        value = self.ib:Upload(od)
+        self.cache.gpio.polarity = value
+        return value
+    else
+        CheckGpioValue(value)
+        self.cache.gpio.polarity = value
+        self.ib:Download(od, value)
     end
 end
 
-function PIO:GpioConfiguration(value)
+function PIO:GpioPolarity(index, value)
+    CheckGpioIndex(index)
     if value == nil then
-        return self.id:Upload(self.id.od["GPIO"]["Configuration"])
-    elseif PIO.IsGpioValueOk(value) then
-        self.id:Download(self.id.od["GPIO"]["Configuration"], value)
+        return Bitwise.Extract(index, self:GpioPolarities())
     else
-        error("Invalid value: " .. tostring(value))
+        CheckGpioValue(value)
+        self:GpioPolarities(Bitwise.Inject(index, value,
+                                           self.cache.gpio.polarity))
+    end
+end
+
+function PIO:GpioConfigurations(value)
+    local od = self.ib.od["GPIO"]["Configuration"]
+    if value == nil then
+        value = self.ib:Upload(od)
+        self.cache.gpio.configuration = value
+        return value
+    else
+        CheckGpioValue(value)
+        self.cache.gpio.configuration = value
+        self.ib:Download(od, value)
+    end
+end
+
+function PIO:GpioConfiguration(index, value)
+    CheckGpioIndex(index)
+    if value == nil then
+        return Bitwise.Extract(index, self:GpioConfigurations())
+    else
+        CheckGpioValue(value)
+        self:GpioConfigurations(Bitwise.Inject(index, value,
+                                               self.cache.gpio.configuration))
     end
 end
