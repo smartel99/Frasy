@@ -12,8 +12,13 @@ local IsFloatInOd = function(value, od) return IsFloatIn(value, od.LowLimit, od.
 local TimeoutFunction = require("lua.core.utils.timeout")
 
 DAQ = {ib = nil, cache = {io = {mode = 0, value = 0}}}
+---@class DAQ
 DAQ.__index = DAQ
 
+---Instantiates a DAQ card.
+---@param name string|nil Name of the card
+---@param nodeId integer|nil ID of the Node
+---@return DAQ
 function DAQ:New(name, nodeId)
     local ib = Ib:New()
     ib.kind = 02;
@@ -164,6 +169,9 @@ function DAQ:DacEnable(state)
     end
 end
 
+---Gets or sets the amplitude of the DAC, in volt.
+---@param amplitude number|nil
+---@return number
 function DAQ:DacAmplitude(amplitude)
     local od = self.id.od["DAC"]["Amplitude"]
     if amplitude == nil then
@@ -369,6 +377,15 @@ local function AdcChannelToInt(channel)
         [DAQ.AdcChannelEnum.adc2] = 2,
         [DAQ.AdcChannelEnum.adc3] = 3,
         [DAQ.AdcChannelEnum.adc4] = 4
+    }
+    return indexes[channel]
+end
+local function AdcChannelToTestPoint(channel)
+    local indexes = {
+        [DAQ.AdcChannelEnum.adc1] = nil,
+        [DAQ.AdcChannelEnum.adc2] = DAQ.RoutingPointsEnum.ADC_CH1,
+        [DAQ.AdcChannelEnum.adc3] = DAQ.RoutingPointsEnum.ADC_CH2,
+        [DAQ.AdcChannelEnum.adc4] = nil
     }
     return indexes[channel]
 end
@@ -604,15 +621,26 @@ DAQ.MeasureVoltageDefault = {
     gain = DAQ.AdcChannelGainEnum.g1,
     sampleRate = DAQ.AdcSampleRateEnum.f250Hz
 }
+
+---Measures a voltage on one or more points.
+---@param points table|DAQ_TestPoints
+---@param channel DAQ_AdcChannelEnum|nil
+---@param samplesToTake integer|nil
+---@param gain DAQ_AdcChannelGainEnum|nil
+---@param sampleRate DAQ_AdcSampleRateEnum|nil
+---@return DAQ_AdcChannelResults
 function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     points = PointToPoints(points)
     if IsPointsOk(points) then error("Invalid points") end
     if channel == nil then channel = DAQ.MeasureVoltageDefault.channel end
+    CheckField(channel, "Channel", function(ch) return ch == DAQ.AdcChannelEnum.adc2 or ch == DAQ.AdcChannelEnum.adc3 end)
     if samplesToTake == nil then samples = DAQ.MeasureVoltageDefault.samplesToTake end
     if gain == nil then gain = DAQ.MeasureVoltageDefault.gain end
     if sampleRate == nil then sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
 
     local route = self:RequestRouting({table.unpack(points), channel})
+    table.insert(points, channel)
+    local route = self:RequestRouting(points)
 
     self:AdcChannelGain(channel, gain)
     self:AdcChannelSampleRate(channel, sampleRate)
