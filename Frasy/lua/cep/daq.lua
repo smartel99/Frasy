@@ -419,8 +419,16 @@ end
 -- I2C
 ---@enum DAQ_I2CGpioEnum
 DAQ.I2CGpioEnum = {
-
 }
+
+-- SPI
+DAQ.SpiGpioEnum = {
+    mosi = 0,
+    miso = 1,
+    sck = 2,
+}
+function DAQ:SpiMode()
+end
 
 -- ADC
 ---@enum DAQ_AdcChannelEnum

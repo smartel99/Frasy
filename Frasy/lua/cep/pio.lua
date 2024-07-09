@@ -10,7 +10,7 @@ local CheckField = require("lua.core.utils.check_field")
 PIO = {
     ib = nil,
     cache = {
-        gpio = {input = 0, output = 0, polarity = 0, configuration = 0x0FFF}
+        gpio = { input = 0, output = 0, polarity = 0, configuration = 0x0FFF }
     }
 }
 PIO.__index = PIO
@@ -26,26 +26,25 @@ PIO.SupplyEnum = {
 
 PIO.GpioIndexMax = 11
 
-PIO.GpioPolarityEnum = {regular = 0, inverted = 1}
+PIO.GpioPolarityEnum = { regular = 0, inverted = 1 }
 
-PIO.GpioConfigurationEnum = {output = 0, input = 1}
+PIO.GpioConfigurationEnum = { output = 0, input = 1 }
 
 local function CheckSupplyEnum(supply)
     CheckField(supply, "supply", IsIntegerIn(supply, PIO.SupplyEnum.p3v3,
-                                             PIO.SupplyEnum.pVariable2))
+        PIO.SupplyEnum.pVariable2))
 end
 
 local function CheckVariableSupplyEnum(supply)
     CheckField(supply, "supply", IsIntegerIn(supply, PIO.SupplyEnum.pVariable1,
-                                             PIO.SupplyEnum.pVariable2))
+        PIO.SupplyEnum.pVariable2))
 end
 
-local function SupplyEnumToOdName(supply)
+function PIO.SupplyEnumToOdName(supply)
     local names = {
         "Supply 3V3", "Supply 5V", "Supply 12V", "Supply 24V",
         "Variable Supply 1", "Variable Supply 2"
     }
-    CheckSupplyEnum(supply)
     return names[supply]
 end
 
@@ -95,7 +94,7 @@ function PIO:New(name, nodeId)
     ib.eds = "lua/core/cep/eds/pio_1.0.0.eds"
     return setmetatable({
         ib = ib,
-        cache = {gpio = {polarity = 0, configuration = 0x3FF}}
+        cache = { gpio = { polarity = 0, configuration = 0x3FF } }
     }, PIO)
 end
 
@@ -107,7 +106,7 @@ end
 
 function PIO:CurrentLimit(supply, value)
     CheckSupplyEnum(supply)
-    local odName = SupplyEnumToOdName(supply)
+    local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Current Limit"]
     if value == nil then
         return self.ib:Upload(od)
@@ -119,13 +118,13 @@ end
 
 function PIO:Current(supply)
     CheckSupplyEnum(supply)
-    local odName = SupplyEnumToOdName(supply)
+    local odName = PIO.SupplyEnumToOdName(supply)
     return self.ib:Upload(self.ib.od[odName]["Current"])
 end
 
 function PIO:DesiredVoltage(supply, value)
     CheckVariableSupplyEnum(supply)
-    local odName = SupplyEnumToOdName(supply)
+    local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Desired Voltage"]
     if value == nil then
         return self.ib:Upload(od)
@@ -137,13 +136,13 @@ end
 
 function PIO:Voltage(supply)
     CheckSupplyEnum(supply)
-    local odName = SupplyEnumToOdName(supply)
+    local odName = PIO.SupplyEnumToOdName(supply)
     return self.ib:Upload(self.ib.od[odName]["Voltage"])
 end
 
-function PIO:OuputEnable(supply, value)
+function PIO:OutputEnable(supply, value)
     CheckSupplyEnum(supply)
-    local odName = SupplyEnumToOdName(supply)
+    local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Output Enable"]
     if value == nil then
         return self.ib:Upload(od)
@@ -164,7 +163,7 @@ function PIO:GpioValues(value)
     else
         CheckGpioValue(value)
         self.cache.gpio.output = NormalizeGpioValueOutput(value, self.cache.gpio
-                                                              .configuration)
+            .configuration)
         self.ib:Download(odOut, self.cache.gpio.output)
     end
 end
@@ -177,7 +176,6 @@ function PIO:GpioValue(index, value)
         CheckGpioValue(value)
         self:GpioValues(Bitwise.Inject(index, value, self.cache.gpio.output))
     end
-
 end
 
 function PIO:GpioPolarities(value)
@@ -200,7 +198,7 @@ function PIO:GpioPolarity(index, value)
     else
         CheckGpioValue(value)
         self:GpioPolarities(Bitwise.Inject(index, value,
-                                           self.cache.gpio.polarity))
+            self.cache.gpio.polarity))
     end
 end
 
@@ -224,6 +222,6 @@ function PIO:GpioConfiguration(index, value)
     else
         CheckGpioValue(value)
         self:GpioConfigurations(Bitwise.Inject(index, value,
-                                               self.cache.gpio.configuration))
+            self.cache.gpio.configuration))
     end
 end
