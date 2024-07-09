@@ -1,3 +1,4 @@
 return function(value, od)
-    return type(value) == "number" and od.LowLimit <= value and value <= od.HighLimit
+    Utils.Print(od)
+    return type(value) == "number" and od.lowLimit <= value and value <= od.highLimit
 end
