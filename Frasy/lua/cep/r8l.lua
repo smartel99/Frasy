@@ -7,13 +7,9 @@ local CheckField = require("lua.core.utils.check_field")
 R8L = {ib = nil, cache = {digitalOutput = 0, errorValueOutput = 0}}
 R8L.__index = R8L
 
-local function CheckIndex(index)
-    CheckField(index, "index", IsIntegerIn(index, 0, 7))
-end
+local function CheckIndex(index) CheckField(index, "index", IsIntegerIn(index, 0, 7)) end
 
-local function CheckRelayValue(value)
-    CheckField(value, "value", IsUnsigned8(value))
-end
+local function CheckRelayValue(value) CheckField(value, "value", IsUnsigned8(value)) end
 
 function R8L:New(name, nodeId)
     local ib = Ib:New()
@@ -23,10 +19,7 @@ function R8L:New(name, nodeId)
     if nodeId == nil then nodeId = ib.kind end
     ib.nodeId = nodeId
     ib.eds = "lua/core/cep/eds/r8l_1.0.0.eds"
-    return setmetatable({
-        ib = ib,
-        cache = {digitalOutput = 0, errorValueOutput = 0}
-    }, R8L)
+    return setmetatable({ib = ib, cache = {digitalOutput = 0, errorValueOutput = 0}}, R8L)
 end
 
 function R8L:LoadCache()
@@ -52,8 +45,7 @@ function R8L:DigitalOutput(index, value)
         return Bitwise.Extract(index, self:DigitalOutputs())
     else
         CheckRelayValue(value)
-        self:DigitalOutputs(Bitwise.Inject(index, value,
-                                           self.cache.digitalOutput))
+        self:DigitalOutputs(Bitwise.Inject(index, value, self.cache.digitalOutput))
     end
 end
 
@@ -68,8 +60,7 @@ end
 
 function R8L:ErrorValueOutputs(value)
     if value == nil then
-        self.cache.errorValueOutput = self.ib:Upload(
-                                          self.ib.od["Error Value Ouput"])
+        self.cache.errorValueOutput = self.ib:Upload(self.ib.od["Error Value Ouput"])
         return self.cache.errorValueOutput
     else
         CheckRelayValue(value)
@@ -84,8 +75,7 @@ function R8L:ErrorValueOutput(index, value)
         return Bitwise.Extract(index, self:ErrorValueOutputs())
     else
         CheckRelayValue(value)
-        self:ErrorValueOutputs(Bitwise.Inject(index, value,
-                                              self.cache.errorValueOutput))
+        self:ErrorValueOutputs(Bitwise.Inject(index, value, self.cache.errorValueOutput))
     end
 end
 
