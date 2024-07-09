@@ -8,8 +8,8 @@ Description=
 CreationTime=1:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=9:12AM
-ModificationDate=07-04-2024
+ModificationTime=5:07PM
+ModificationDate=07-09-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -683,7 +683,7 @@ PDOMapping=0
 ParameterName=Routing
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0xB
+SubNumber=0xC
 
 [6000sub0]
 ParameterName=Highest sub-index supported
@@ -691,7 +691,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x0A
+DefaultValue=0x0B
 PDOMapping=0
 
 [6000sub1]
@@ -781,6 +781,15 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0001
 AccessType=wo
+DefaultValue=0
+PDOMapping=0
+
+[6000subB]
+ParameterName=Last Result
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=ro
 DefaultValue=0
 PDOMapping=0
 
@@ -1058,7 +1067,7 @@ PDOMapping=0
 ParameterName=ADC
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0xC
+SubNumber=0x14
 
 [600Asub0]
 ParameterName=Highest sub-index supported
@@ -1066,7 +1075,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x0B
+DefaultValue=0x13
 PDOMapping=0
 
 [600Asub1]
@@ -1115,6 +1124,24 @@ DefaultValue=0
 PDOMapping=0
 
 [600Asub6]
+ParameterName=Channel 3 Gain
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[600Asub7]
+ParameterName=Channel 4 Gain
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[600Asub8]
 ParameterName=Channel 1 Min
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1123,7 +1150,7 @@ AccessType=ro
 DefaultValue=0
 PDOMapping=0
 
-[600Asub7]
+[600Asub9]
 ParameterName=Channel 1 Average
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1132,7 +1159,7 @@ AccessType=ro
 DefaultValue=0
 PDOMapping=0
 
-[600Asub8]
+[600AsubA]
 ParameterName=Channel 1 Max
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1141,7 +1168,7 @@ AccessType=ro
 DefaultValue=0
 PDOMapping=0
 
-[600Asub9]
+[600AsubB]
 ParameterName=Channel 2 Min
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1150,7 +1177,7 @@ AccessType=ro
 DefaultValue=0
 PDOMapping=0
 
-[600AsubA]
+[600AsubC]
 ParameterName=Channel 2 Average
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1159,8 +1186,62 @@ AccessType=ro
 DefaultValue=0
 PDOMapping=0
 
-[600AsubB]
+[600AsubD]
 ParameterName=Channel 2 Max
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[600AsubE]
+ParameterName=Channel 3 Min
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[600AsubF]
+ParameterName=Channel 3 Average
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[600Asub10]
+ParameterName=Channel 3 Max
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[600Asub11]
+ParameterName=Channel 4 Min
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[600Asub12]
+ParameterName=Channel 4 Average
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[600Asub13]
+ParameterName=Channel 4 Max
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0008
