@@ -2,19 +2,13 @@ local Ib = require("lua/core/sdk/environment/ib")
 local IsBoolean = require("lua.core.utils.is_boolean")
 local IsInteger = require("lua.core.utils.is_integer.is_integer")
 local IsIntegerIn = require("lua.core.utils.is_integer.is_integer_in")
-local IsIntegerInOd = function(value, od)
-    return IsIntegerIn(value, od.LowLimit, od.HighLimit)
-end
+local IsIntegerInOd = function(value, od) return IsIntegerIn(value, od.LowLimit, od.HighLimit) end
 local IsUnsigned = require("lua.core.utils.is_unsigned.is_unsigned")
 local IsUnsignedIn = require("lua.core.utils.is_unsigned.is_unsigned_in")
-local IsUnsignedInOd = function(value, od)
-    return IsUnsignedIn(value, od.LowLimit, od.HighLimit)
-end
+local IsUnsignedInOd = function(value, od) return IsUnsignedIn(value, od.LowLimit, od.HighLimit) end
 local IsFloat = require("lua.core.utils.is_float.is_float")
 local IsFloatIn = require("lua.core.utils.is_float.is_float_in")
-local IsFloatInOd = function(value, od)
-    return IsFloatIn(value, od.LowLimit, od.HighLimit)
-end
+local IsFloatInOd = function(value, od) return IsFloatIn(value, od.LowLimit, od.HighLimit) end
 local TimeoutFunction = require("lua.core.utils.timeout")
 
 DAQ = {ib = nil, cache = {io = {mode = 0, value = 0}}}
@@ -31,9 +25,7 @@ function DAQ:New(name, nodeId)
     return setmetatable({ib = ib, cache = {io = {mode = 0, value = 0}}}, DAQ)
 end
 
-local function CheckField(name, value, predicate)
-    assert(predicate, "Invalid " .. name .. ": " .. tostring(value))
-end
+local function CheckField(name, value, predicate) assert(predicate, "Invalid " .. name .. ": " .. tostring(value)) end
 
 -- Routing
 DAQ.RoutingBusEnum = {all = 0, bus1 = 1, bus2 = 2, bus3 = 3, bus4 = 4}
@@ -132,15 +124,11 @@ local function RoutingBusEnumToString(bus)
 end
 
 function DAQ:RequestRouting(points)
-    if type(points) ~= "table" then
-        error("Invalid points: " .. tostring(points))
-    end
+    if type(points) ~= "table" then error("Invalid points: " .. tostring(points)) end
     if #points < 2 then error("Invalid points count: " .. tostring(#points)) end
     local sPoints = {}
     for k, v in ipairs(points) do
-        if not IsInteger(v) then
-            error("Invalid point: [" .. k .. "] " .. tostring(v))
-        end
+        if not IsInteger(v) then error("Invalid point: [" .. k .. "] " .. tostring(v)) end
         table.insert(sPoints, v)
     end
     table.insert(sPoints, 0)
@@ -153,27 +141,18 @@ function DAQ:GetBusState(bus)
     if not IsIntegerIn(bus, DAQ.RoutingBusEnum.bus1, DAQ.RoutingBusEnum.bus4) then
         error("Invalid bus: " .. tostring(bus))
     end
-    return self.id:Upload(self.id.od["Routing"][RoutingBusEnumToString(bus) ..
-                              " State"])
+    return self.id:Upload(self.id.od["Routing"][RoutingBusEnumToString(bus) .. " State"])
 end
 
 function DAQ:ClearBus(bus)
     if not IsIntegerIn(bus, DAQ.RoutingBusEnum.all, DAQ.RoutingBusEnum.bus4) then
         error("Invalid bus: " .. tostring(bus))
     end
-    self.id:Download(self.id.od["Routing"]["Clear " ..
-                         RoutingBusEnumToString(bus)], true)
+    self.id:Download(self.id.od["Routing"]["Clear " .. RoutingBusEnumToString(bus)], true)
 end
 
 -- DAC
-DAQ.DacShape = {
-    dc = 0,
-    sine = 1,
-    sawtooth = 2,
-    triangle = 3,
-    square = 4,
-    noise = 5
-}
+DAQ.DacShape = {dc = 0, sine = 1, sawtooth = 2, triangle = 3, square = 4, noise = 5}
 
 function DAQ:DacEnable(state)
     local od = self.id.od["DAC"]["Enable"]
@@ -210,8 +189,7 @@ function DAQ:DacShape(shape)
     if shape == nil then
         return self.id:Upload(od)
     else
-        CheckField("shape", shape,
-                   IsUnsignedIn(shape, DAQ.DacShape.dc, DAQ.DacShape.noise))
+        CheckField("shape", shape, IsUnsignedIn(shape, DAQ.DacShape.dc, DAQ.DacShape.noise))
         self.ib:Download(od, shape)
     end
 end
@@ -220,16 +198,13 @@ end
 DAQ.IoEnum = {a = 1, b = 2}
 DAQ.IoModeEnum = {input = 0, output = 1}
 DAQ.IoValueEnum = {low = 0, high = 1}
-local function CheckIo(io)
-    CheckField("io", io, IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.b))
-end
+local function CheckIo(io) CheckField("io", io, IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.b)) end
 local function ExtractIoEntry(io, value)
     if io == DAQ.IoEnum.a then
         return value & 1
     else
         return (value >> 1) & 1
     end
-
 end
 local function InjectIoEntry(io, value, cache)
     if io == DAQ.IoEnum.a then
@@ -252,6 +227,7 @@ function DAQ:IoModes(value)
         self.ib:Download(od, value)
     end
 end
+
 function DAQ:IoMode(io, mode)
     CheckIo(io)
     if mode == nil then
@@ -272,6 +248,7 @@ function DAQ:IoValues(value)
         self.ib:Download(od, value)
     end
 end
+
 function DAQ:IoValue(io, value)
     CheckIo(io)
     if mode == nil then
@@ -282,15 +259,7 @@ function DAQ:IoValue(io, value)
 end
 
 -- Signaling
-DAQ.SignalingModeEnum = {
-    off = 0,
-    idle = 1,
-    standby = 2,
-    busy = 3,
-    concern = 4,
-    lockOut = 5,
-    custom = 6
-}
+DAQ.SignalingModeEnum = {off = 0, idle = 1, standby = 2, busy = 3, concern = 4, lockOut = 5, custom = 6}
 DAQ.SignalingBuzzerPatternEnum = {
     off = 0,
     on100msPer3s = 1,
@@ -330,9 +299,8 @@ function DAQ:SignalingBuzzerMode(pattern, duration)
     elseif pattern ~= nil and duration == nil then
         error("Invalid duration, nil")
     else
-        CheckField("pattern", pattern,
-                   IsIntegerIn(pattern, DAQ.SignalingBuzzerPatternEnum.off,
-                               DAQ.SignalingBuzzerPatternEnum.on125msPer250ms))
+        CheckField("pattern", pattern, IsIntegerIn(pattern, DAQ.SignalingBuzzerPatternEnum.off,
+                                                   DAQ.SignalingBuzzerPatternEnum.on125msPer250ms))
         CheckField("duration", duration, IsIntegerIn(duration, 0, 255))
         self.id:Download(od, pattern | (duration << 8))
     end
@@ -359,6 +327,7 @@ function DAQ:InternalCanStandby(state)
         self.ib:Download(od, state)
     end
 end
+
 function DAQ:InternalCanTerminationResistor(state)
     local od = self.ib.od["Internal CAN"]["Termination Resistor"]
     if state == nil then
@@ -404,12 +373,10 @@ local function AdcChannelToInt(channel)
     return indexes[channel]
 end
 local function CheckAdcChannel(channel)
-    CheckField("channel", channel, IsIntegerIn(channel, DAQ.AdcChannelEnum.adc1,
-                                               DAQ.AdcChannelEnum.adc4))
+    CheckField("channel", channel, IsIntegerIn(channel, DAQ.AdcChannelEnum.adc1, DAQ.AdcChannelEnum.adc4))
 end
 local function GetAdcChannelOb(channel, affix)
-    return self.ib.od["ADC"]["Channel " .. AdcChannelToInt(channel) .. " " ..
-               affix]
+    return self.ib.od["ADC"]["Channel " .. AdcChannelToInt(channel) .. " " .. affix]
 end
 
 function DAQ:AdcIdCheck() return self.ib:Upload(self.ib.od["ADC"]["ID Check"]) end
@@ -451,11 +418,7 @@ function DAQ:AdcChannelResults(channel)
     local obMax = GetAdcChannelOb(channel, "Max")
     local obAvg = GetAdcChannelOb(channel, "Average")
 
-    return {
-        min = self.ib:Upload(odMin),
-        max = self.ib:Upload(odMax),
-        average = self.ib:Upload(odAvg)
-    }
+    return {min = self.ib:Upload(odMin), max = self.ib:Upload(odMax), average = self.ib:Upload(odAvg)}
 end
 
 function DAQ:AdcChannelAverage(channel)
@@ -499,30 +462,14 @@ function DAQ:AdcCalibration()
                 r1M = f(ob["Channel 2 Offset 1M"])
             }
         },
-        [3] = {
-            gain = f(ob["Channel 3 Gain"]),
-            offset = f(ob["Channel 3 Offset"])
-        }
+        [3] = {gain = f(ob["Channel 3 Gain"]), offset = f(ob["Channel 3 Offset"])}
     }
 end
 
 -- Impedances
 DAQ.ImpedanceModeEnum = {resistor = 0, capacitor = 1, inductor = 2}
-DAQ.ImpendanceShapeEnum = {
-    automatic = 0,
-    dc = 1,
-    sine = 2,
-    triangle = 3,
-    ramp = 4,
-    noise = 5
-}
-DAQ.ImpedanceRangeResistorEnum = {
-    automatic = 0,
-    r100 = 1,
-    r4k99 = 2,
-    r100k = 3,
-    r1M = 4
-}
+DAQ.ImpendanceShapeEnum = {automatic = 0, dc = 1, sine = 2, triangle = 3, ramp = 4, noise = 5}
+DAQ.ImpedanceRangeResistorEnum = {automatic = 0, r100 = 1, r4k99 = 2, r100k = 3, r1M = 4}
 DAQ.ImpedanceDefaults = {
     shape = DAQ.ImpendanceShapeEnum.automatic,
     rangeResistor = DAQ.ImpedanceRangeResistorEnum.automatic,
@@ -534,16 +481,14 @@ DAQ.ImpedanceDefaults = {
     favorSpeed = false
 }
 
-function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
-                        samplesToTake, expectedValue, favorSpeed)
+function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay, samplesToTake, expectedValue,
+                        favorSpeed)
     CheckField("mode", mode, IsIntegerInOd(mode, odMode))
 
     local od = self.ib.od["Impedances"]
     local odTrigger = od["Trigger"]
 
-    if self.ib:Upload(odTrigger) then
-        error("Impedance measure already running")
-    end
+    if self.ib:Upload(odTrigger) then error("Impedance measure already running") end
 
     local odMode = od["Mode"]
     local odShape = od["Shape"]
@@ -560,37 +505,25 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     local odVout = od["Vout"]
 
     if shape == nil then shape = DAQ.ImpedanceDefaults.shape end
-    if rangeResistor == nil then
-        rangeResistor = DAQ.ImpedanceDefaults.rangeResistor
-    end
+    if rangeResistor == nil then rangeResistor = DAQ.ImpedanceDefaults.rangeResistor end
     if frequency == nil then frequency = DAQ.ImpedanceDefaults.frequency end
     if amplitude == nil then amplitude = DAQ.ImpedanceDefaults.amplitude end
     if delay == nil then delay = DAQ.ImpedanceDefaults.delay end
-    if samplesToTake == nil then
-        samplesToTake = DAQ.ImpedanceDefaults.samplesToTake
-    end
-    if expectedValue == nil then
-        expectedValue = DAQ.ImpedanceDefaults.expectedValue
-    end
+    if samplesToTake == nil then samplesToTake = DAQ.ImpedanceDefaults.samplesToTake end
+    if expectedValue == nil then expectedValue = DAQ.ImpedanceDefaults.expectedValue end
     if favorSpeed == nil then favorSpeed = DAQ.ImpedanceDefaults.favorSpeed end
 
     CheckField("shape", shape, IsIntegerInOd(shape, odShape))
-    CheckField("range Resistor", rangeResistor,
-               IsIntegerInOd(rangeResistor, odRangeResistor))
+    CheckField("range Resistor", rangeResistor, IsIntegerInOd(rangeResistor, odRangeResistor))
     CheckField("frequency", frequency, IsIntegerInOd(frequency, odFrequency))
     CheckField("amplitude", amplitude, IsFloatInOd(amplitude, odAmplitude))
     CheckField("delay", delay, IsIntegerInOd(delay, odDelay))
-    CheckField("samples to take", samplesToTake,
-               IsIntegerInod(samplesToTake, odSamplesToTake))
-    CheckField("expected value", expectedValue,
-               IsIntegerInOd(expectedValue, odExpectedValue))
+    CheckField("samples to take", samplesToTake, IsIntegerInOd(samplesToTake, odSamplesToTake))
+    CheckField("expected value", expectedValue, IsIntegerInOd(expectedValue, odExpectedValue))
     CheckField("favorSpeed", favorSpeed, IsBoolean(favorSpeed))
 
-    if (rangeResistor == 0 or
-        (frequency == 0 and shape ~= DAQ.ImpendanceShapeEnum.dc)) and
-        expectedValue == 0 then
-        error(
-            "Expected Value cannot be set to automatic when Range Resistor or Frequency are as well")
+    if (rangeResistor == 0 or (frequency == 0 and shape ~= DAQ.ImpedanceShapeEnum.dc)) and expectedValue == 0 then
+        error("Expected Value cannot be set to automatic when Range Resistor or Frequency are as well")
     end
 
     self.ib:Download(odMode, mode)
@@ -613,18 +546,12 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     end
 
     if shape == 0 then shape = self.ib:Upload(odShape) end
-    if rangeResistor == 0 then
-        rangeResistor = self.ib:Upload(odRangeResistor)
-    end
+    if rangeResistor == 0 then rangeResistor = self.ib:Upload(odRangeResistor) end
     if frequency == 0 then frequency = self.ib:Upload(odFrequency) end
     if amplitude == 0 then amplitude = self.ib:Upload(odAmplitude) end
     if delay == 0 then delay = self.ib:Upload(odDelay) end
-    if samplesToTake == 0 then
-        samplesToTake = self.ib:Upload(odSamplesToTake)
-    end
-    if expectedValue == 0 then
-        expectedValue = self.ib:Upload(odExpectedValue)
-    end
+    if samplesToTake == 0 then samplesToTake = self.ib:Upload(odSamplesToTake) end
+    if expectedValue == 0 then expectedValue = self.ib:Upload(odExpectedValue) end
 
     return {
         mode = mode,
@@ -651,14 +578,12 @@ end
 
 local function IsPointsOk(points)
     if type(points) ~= table and #points == 0 then return false end
-    for _, v in ipairs(points) do
-        if not IsIntegerIn(points, 0, 75) then return false end
-    end
+    for _, v in ipairs(points) do if not IsIntegerIn(points, 0, 75) then return false end end
     return true
 end
 
 DAQ.MeasureVoltageDefault = {
-    channel = DAQ.AdcChannelEnum.adc1,
+    channel = DAQ.AdcChannelEnum.adc2,
     samplesToTake = 10,
     gain = DAQ.AdcChannelGainEnum.g1,
     sampleRate = DAQ.AdcSampleRateEnum.f250Hz
@@ -667,15 +592,11 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     points = PointToPoints(points)
     if IsPointsOk(points) then error("Invalid points") end
     if channel == nil then channel = DAQ.MeasureVoltageDefault.channel end
-    if samplesToTake == nil then
-        samples = DAQ.MeasureVoltageDefault.samplesToTake
-    end
+    if samplesToTake == nil then samples = DAQ.MeasureVoltageDefault.samplesToTake end
     if gain == nil then gain = DAQ.MeasureVoltageDefault.gain end
-    if sampleRate == nil then
-        sampleRate = DAQ.MeasureVoltageDefault.sampleRate
-    end
+    if sampleRate == nil then sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
 
-    local route = self:Routing({table.unpack(points), channel})
+    local route = self:RequestRouting({table.unpack(points), channel})
 
     self:AdcChannelGain(channel, gain)
     self:AdcChannelSampleRate(channel, sampleRate)
@@ -697,31 +618,21 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     return self:AdcChannelResults(channel)
 end
 
-function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay,
-                             samplesToTake, favorSpeed)
+function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay, samplesToTake, favorSpeed)
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
 
-    local rimpp = self:Routing({
-        table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P,
-        DAQ.RoutingPointsEnum.ADC_CH1
-    })
-    local rimpn =
-        self:Routing({table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N})
+    local rimpp = self:RequestRouting({table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1})
+    local rimpn = self:RequestRouting({table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N})
     local rguards = nil
     if guards ~= nil then
         guards = PointToPoints(guards)
-        rguards = self:Routing({
-            table.unpack(guards), DAQ.RoutingPointsEnum.GUARD
-        })
+        rguards = self:RequestRouting({table.unpack(guards), DAQ.RoutingPointsEnum.GUARD})
     end
 
-    local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor,
-                                   DAQ.ImpendanceShapeEnum.dc, range,
-                                   DAQ.ImpedanceDefaults.frequency, voltage,
-                                   delay // 1, samplesToTake,
-                                   DAQ.ImpedanceDefaults.expectedValue,
-                                   favorSpeed)
+    local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor, DAQ.ImpedanceShapeEnum.dc, range,
+                                   DAQ.ImpedanceDefaults.frequency, voltage, delay // 1, samplesToTake,
+                                   DAQ.ImpedanceDefaults.expectedValue, favorSpeed)
 
     -- cleanup
     self:ClearBus(rimpp)
@@ -730,4 +641,3 @@ function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay,
 
     return result
 end
-
