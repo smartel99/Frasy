@@ -1,3 +1,10 @@
+---@class Ib
+---@field kind integer
+---@field nodeId integer
+---@field eds string
+---@field name string
+---@field od table
+---@field private __kind string
 local Ib = {
     kind = 0,
     nodeId = 0,

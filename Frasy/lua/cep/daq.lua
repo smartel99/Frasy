@@ -1,3 +1,4 @@
+---@type Ib
 local Ib = require("lua/core/sdk/environment/ib")
 local IsBoolean = require("lua/core/utils/is_boolean")
 local IsInteger = require("lua/core/utils/is_integer/is_integer")
@@ -13,12 +14,13 @@ local TimeoutFunction = require("lua/core/utils/timeout")
 local CheckField = require("lua/core/utils/check_field")
 
 ---@class DAQ
+---@field ib? Ib
 DAQ = { ib = nil, cache = { io = { mode = 0, value = 0 } } }
 DAQ.__index = DAQ
 
 ---Instantiates a DAQ card.
----@param name string|nil Name of the card
----@param nodeId integer|nil ID of the Node
+---@param name? string Name of the card
+---@param nodeId? integer ID of the Node
 ---@return DAQ
 function DAQ:New(name, nodeId)
     local ib = Ib:New()
@@ -37,7 +39,10 @@ function DAQ:LoadCache()
 end
 
 -- Routing
+---@enum DAQ_RoutingBusEnum
 DAQ.RoutingBusEnum = { all = 0, bus1 = 1, bus2 = 2, bus3 = 3, bus4 = 4 }
+
+---@enum DAQ_RoutingPointsEnum
 DAQ.RoutingPointsEnum = {
     -- FORMAT COMPLY TO XDD
     NONE = 0,
@@ -118,6 +123,7 @@ DAQ.RoutingPointsEnum = {
     GUARD = 75
 
 }
+
 local function RoutingBusEnumToString(bus)
     if not IsIntegerIn(bus, DAQ.RoutingBusEnum.all, DAQ.RoutingBusEnum.bus4) then
         error("Invalid bus: " .. tostring(bus))
@@ -132,6 +138,9 @@ local function RoutingBusEnumToString(bus)
     return names[bus]
 end
 
+---Requests a connection between different points of the board.
+---@param points DAQ_RoutingPointsEnum[]
+---@return DAQ_RoutingBusEnum
 function DAQ:RequestRouting(points)
     if type(points) ~= "table" then error("Invalid points: " .. tostring(points)) end
     if #points < 2 then error("Invalid points count: " .. tostring(#points)) end
@@ -141,32 +150,41 @@ function DAQ:RequestRouting(points)
         table.insert(sPoints, v)
     end
     table.insert(sPoints, 0)
-    self.id:Download(self.id.od["Routing"]["Request Routing"], sPoints)
+    self.ib:Download(self.ib.od["Routing"]["Request Routing"], sPoints)
     -- Might need a delay
-    return self.id:Upload(self.id.od["Routing"]["Last Result"])
+    return self.ib:Upload(self.ib.od["Routing"]["Last Result"]) --[[@as DAQ_RoutingBusEnum]]
 end
 
+---Gets the state of a bus.
+---@param bus DAQ_RoutingBusEnum
+---@return DAQ_RoutingPointsEnum[]
 function DAQ:GetBusState(bus)
     if not IsIntegerIn(bus, DAQ.RoutingBusEnum.bus1, DAQ.RoutingBusEnum.bus4) then
         error("Invalid bus: " .. tostring(bus))
     end
-    return self.id:Upload(self.id.od["Routing"][RoutingBusEnumToString(bus) .. " State"])
+    return self.ib:Upload(self.ib.od["Routing"][RoutingBusEnumToString(bus) .. " State"]) --[[@as DAQ_RoutingPointsEnum[] ]]
 end
 
+---Clears a bus.
+---@param bus DAQ_RoutingBusEnum
 function DAQ:ClearBus(bus)
     if not IsIntegerIn(bus, DAQ.RoutingBusEnum.all, DAQ.RoutingBusEnum.bus4) then
         error("Invalid bus: " .. tostring(bus))
     end
-    self.id:Download(self.id.od["Routing"]["Clear " .. RoutingBusEnumToString(bus)], true)
+    self.ib:Download(self.ib.od["Routing"]["Clear " .. RoutingBusEnumToString(bus)], true)
 end
 
 -- DAC
+---@enum DAQ_DacShape
 DAQ.DacShape = { dc = 0, sine = 1, sawtooth = 2, triangle = 3, square = 4, noise = 5 }
 
+---Toggles the DAC, or get the current state of the DAC.
+---@param state? boolean The desired state.
+---@return nil|boolean state
 function DAQ:DacEnable(state)
-    local od = self.id.od["DAC"]["Enable"]
+    local od = self.ib.od["DAC"]["Enable"]
     if state == nil then
-        return self.id:Upload(od)
+        return self.ib:Upload(od)
     else
         CheckField(state, "enable", IsBoolean(state))
         self.ib:Download(od, state)
@@ -174,32 +192,38 @@ function DAQ:DacEnable(state)
 end
 
 ---Gets or sets the amplitude of the DAC, in volt.
----@param amplitude number|nil
----@return number
+---@param amplitude? number
+---@return nil|number
 function DAQ:DacAmplitude(amplitude)
-    local od = self.id.od["DAC"]["Amplitude"]
+    local od = self.ib.od["DAC"]["Amplitude"]
     if amplitude == nil then
-        return self.id:Upload(od)
+        return self.ib:Upload(od)
     else
         CheckField(amplitude, "amplitude", IsFloatInOd(amplitude, od))
         self.ib:Download(od, amplitude)
     end
 end
 
-function DAQ:dacFrequency(frequency)
-    local od = self.id.od["DAC"]["Frequency"]
+---Sets the frequency of the DAC, or gets the current frequency of the DAC.
+---@param frequency? integer
+---@return nil|number
+function DAQ:DacFrequency(frequency)
+    local od = self.ib.od["DAC"]["Frequency"]
     if frequency == nil then
-        return self.id:Upload(od)
+        return self.ib:Upload(od)
     else
         CheckField(frequency, "frequency", IsUnsignedInOd(frequency, od))
         self.ib:Download(od, frequency)
     end
 end
 
+---Gets or set the shape of the waveform being output on the DAC.
+---@param shape? DAQ_DacShape
+---@return nil|DAQ_DacShape
 function DAQ:DacShape(shape)
-    local od = self.id.od["DAC"]["Shape"]
+    local od = self.ib.od["DAC"]["Shape"]
     if shape == nil then
-        return self.id:Upload(od)
+        return self.ib:Upload(od)
     else
         CheckField(shape, "shape", IsUnsignedIn(shape, DAQ.DacShape.dc, DAQ.DacShape.noise))
         self.ib:Download(od, shape)
@@ -207,8 +231,11 @@ function DAQ:DacShape(shape)
 end
 
 -- IO
+---@enum DAQ_IoEnum
 DAQ.IoEnum = { a = 1, b = 2 }
+---@enum DAQ_IoModeEnum
 DAQ.IoModeEnum = { input = 0, output = 1 }
+---@enum DAQ_IoValueEnum
 DAQ.IoValueEnum = { low = 0, high = 1 }
 local function CheckIo(io) CheckField(io, "io", IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.b)) end
 local function ExtractIoEntry(io, value)
@@ -228,6 +255,9 @@ local function InjectIoEntry(io, value, cache)
     end
 end
 
+---Gets or set the mode of the IOs.
+---@param value? DAQ_IoModeEnum
+---@return nil|DAQ_IoModeEnum
 function DAQ:IoModes(value)
     CheckIo(io)
     local od = self.ib.od["IO"]["Mode"]
@@ -240,15 +270,22 @@ function DAQ:IoModes(value)
     end
 end
 
+---Gets or sets the mode of an IO.
+---@param io DAQ_IoEnum
+---@param mode? DAQ_IoModeEnum
+---@return nil|DAQ_IoModeEnum
 function DAQ:IoMode(io, mode)
     CheckIo(io)
     if mode == nil then
         return ExtractIoEntry(io, self:IoModes())
     else
-        self:IoModes(InjectIoEntry(io, value, self.cache.io.mode))
+        self:IoModes(InjectIoEntry(io, mode, self.cache.io.mode))
     end
 end
 
+---Gets or sets the state of the IOs.
+---@param value? DAQ_IoValueEnum
+---@return nil|DAQ_IoValueEnum
 function DAQ:IoValues(value)
     CheckIo(io)
     local od = self.ib.od["IO"]["Value"]
@@ -261,9 +298,13 @@ function DAQ:IoValues(value)
     end
 end
 
+---Gets or sets the state of an IO.
+---@param io DAQ_IoEnum
+---@param value? DAQ_IoValueEnum
+---@return nil|DAQ_IoValueEnum
 function DAQ:IoValue(io, value)
     CheckIo(io)
-    if mode == nil then
+    if value == nil then
         return ExtractIoEntry(io, self:IoValues())
     else
         self:IoValues(InjectIoEntry(io, value, self.cache.io.value))
@@ -271,7 +312,9 @@ function DAQ:IoValue(io, value)
 end
 
 -- Signaling
+---@enum DAQ_SignalingModeEnum
 DAQ.SignalingModeEnum = { off = 0, idle = 1, standby = 2, busy = 3, concern = 4, lockOut = 5, custom = 6 }
+---@enum DAQ_SignalingBuzzerPatternEnum
 DAQ.SignalingBuzzerPatternEnum = {
     off = 0,
     on100msPer3s = 1,
@@ -281,6 +324,9 @@ DAQ.SignalingBuzzerPatternEnum = {
     on125msPer250ms = 5
 }
 
+---Gets or set the signaling mode.
+---@param mode? DAQ_SignalingModeEnum
+---@return nil|DAQ_SignalingModeEnum
 function DAQ:SignalingMode(mode)
     local od = self.ib.od["Signaling"]["Mode"]
     if mode == nil then
@@ -291,16 +337,27 @@ function DAQ:SignalingMode(mode)
     end
 end
 
+---Gets or set the idle time.
+---@param minutes? integer
+---@return nil|integer
 function DAQ:SignalingIdleTime(minutes)
     local od = self.ib.od["Signaling"]["Idle Time"]
     if minutes == nil then
         return self.ib:Upload(od)
     else
         CheckField(minutes, "idle time", IsIntegerInOd(minutes, od))
-        self.id:Download(od, minutes)
+        self.ib:Download(od, minutes)
     end
 end
 
+---@class SignalingBuzzerModeReturn
+---@field pattern DAQ_SignalingBuzzerPatternEnum
+---@field duration integer
+
+---Gets or set the signaling buzzer mode.
+---@param pattern? DAQ_SignalingBuzzerPatternEnum
+---@param duration? integer
+---@return nil|SignalingBuzzerModeReturn
 function DAQ:SignalingBuzzerMode(pattern, duration)
     local od = self.ib.od["Signaling"]["Buzzer Mode"]
     if pattern == nil and duration == nil then
@@ -314,11 +371,14 @@ function DAQ:SignalingBuzzerMode(pattern, duration)
         CheckField(pattern, "pattern", IsIntegerIn(pattern, DAQ.SignalingBuzzerPatternEnum.off,
             DAQ.SignalingBuzzerPatternEnum.on125msPer250ms))
         CheckField(duration, "duration", IsIntegerIn(duration, 0, 255))
-        self.id:Download(od, pattern | (duration << 8))
+        self.ib:Download(od, pattern | (duration << 8))
     end
 end
 
 -- UUT Ground
+---Gets or sets the state of the UUT ground.
+---@param state? boolean
+---@return nil|boolean
 function DAQ:UutGround(state)
     local od = self.ib.od["UUT Ground"]
     if state == nil then
@@ -330,6 +390,9 @@ function DAQ:UutGround(state)
 end
 
 -- Internal Can
+---Gets or set the state of the internal CAN's standby signal.
+---@param state? boolean
+---@return nil|boolean
 function DAQ:InternalCanStandby(state)
     local od = self.ib.od["Internal CAN"]["Standby"]
     if state == nil then
@@ -340,6 +403,9 @@ function DAQ:InternalCanStandby(state)
     end
 end
 
+---Gets or sets the state of the internal CAN's termincation resistor.
+---@param state? boolean
+---@return nil|boolean
 function DAQ:InternalCanTerminationResistor(state)
     local od = self.ib.od["Internal CAN"]["Termination Resistor"]
     if state == nil then
@@ -351,12 +417,15 @@ function DAQ:InternalCanTerminationResistor(state)
 end
 
 -- I2C
+---@enum DAQ_I2CGpioEnum
 DAQ.I2CGpioEnum = {
 
 }
 
 -- ADC
-DAQ.AdcChannelEnum = { adc1, adc2, adc3, adc4 }
+---@enum DAQ_AdcChannelEnum
+DAQ.AdcChannelEnum = { adc1 = 1, adc2 = 2, adc3 = 3, adc4 = 4 }
+---@enum DAQ_AdcSampleRateEnum
 DAQ.AdcSampleRateEnum = {
     f250Hz = 0,
     f500Hz = 1,
@@ -379,7 +448,11 @@ DAQ.AdcSampleRateEnum = {
     f85333Hz = 18,
     f128000Hz = 19
 }
+---@enum DAQ_AdcChannelGainEnum
 DAQ.AdcChannelGainEnum = { g1 = 0, g2 = 1, g4 = 2, g8 = 3, g16 = 4 }
+---Translates a channel to its corresponding integer.
+---@param channel DAQ_AdcChannelEnum
+---@return integer
 local function AdcChannelToInt(channel)
     local indexes = {
         [DAQ.AdcChannelEnum.adc1] = 1,
@@ -389,6 +462,10 @@ local function AdcChannelToInt(channel)
     }
     return indexes[channel]
 end
+
+---Translates a channel to its corresponding test point.
+---@param channel DAQ_AdcChannelEnum
+---@return DAQ_RoutingPointsEnum|nil
 local function AdcChannelToTestPoint(channel)
     local indexes = {
         [DAQ.AdcChannelEnum.adc1] = nil,
@@ -401,99 +478,145 @@ end
 local function CheckAdcChannel(channel)
     CheckField(channel, "channel", IsIntegerIn(channel, DAQ.AdcChannelEnum.adc1, DAQ.AdcChannelEnum.adc4))
 end
-local function GetAdcChannelOb(channel, affix)
+
+---@private
+---Gets the object dictionary entry of a channel.
+---@param channel DAQ_AdcChannelEnum
+---@param affix string
+---@return any
+function DAQ:GetAdcChannelOb(channel, affix)
     return self.ib.od["ADC"]["Channel " .. AdcChannelToInt(channel) .. " " .. affix]
 end
 
-function DAQ:AdcIdCheck() return self.ib:Upload(self.ib.od["ADC"]["ID Check"]) end
+---Gets the value read by the ID Check ADC channel.
+---@return number
+function DAQ:AdcIdCheck() return self.ib:Upload(self.ib.od["ADC"]["ID Check"]) --[[@as number]] end
 
+---Gets or sets the number of samples to take on the ADC.
+---@param count? integer
+---@return integer?
 function DAQ:AdcSamplesToTake(count)
-    local ob = self.ib.od["ADC"]["Samples to Take"]
+    local od = self.ib.od["ADC"]["Samples to Take"]
     if count == nil then
-        return self.ib:Upload(ob)
+        return self.ib:Upload(od)
     else
-        CheckField(count, "count", IsIntegerInOd(count, ob))
-        self.ib:Download(ob, count)
+        CheckField(count, "count", IsIntegerInOd(count, od))
+        self.ib:Download(od, count)
     end
 end
 
+---Gets or sets the sample rate of the ADC.
+---@param sampleRate DAQ_AdcSampleRateEnum
+---@return DAQ_AdcSampleRateEnum|nil
 function DAQ:AdcSampleRate(sampleRate)
-    local ob = self.ib.od["ADC"]["Sample Rate"]
+    local od = self.ib.od["ADC"]["Sample Rate"]
     if sampleRate == nil then
         return self.ib:Upload(od)
     else
         CheckField(sampleRate, "sample rate", IsIntegerInOd(sampleRate, od))
-        self.ib:Download(ob, sampleRate)
+        self.ib:Download(od, sampleRate)
     end
 end
 
+---Gets or sets the gain on a channel of the ADC.
+---@param channel DAQ_AdcChannelEnum
+---@param gain? DAQ_AdcChannelGainEnum
+---@return DAQ_AdcChannelGainEnum?
 function DAQ:AdcChannelGain(channel, gain)
     CheckAdcChannel(channel)
-    local ob = GetAdcChannelOb(channel, "Gain")
+    local od = self:GetAdcChannelOb(channel, "Gain")
     if gain == nil then
-        return self.ib:Upload(ob)
+        return self.ib:Upload(od)
     else
         CheckField(gain, "gain", IsIntegerInOd(gain, od))
-        self.ib:Download(ob, gain)
+        self.ib:Download(od, gain)
     end
 end
 
+---@class DAQ_AdcChannelResults
+---@field min number
+---@field average number
+---@field max number
+
+---Gets the results for one of the channels of the ADC.
+---@param channel DAQ_AdcChannelEnum
+---@return DAQ_AdcChannelResults
 function DAQ:AdcChannelResults(channel)
     CheckAdcChannel(channel)
-    local obMin = GetAdcChannelOb(channel, "Min")
-    local obMax = GetAdcChannelOb(channel, "Max")
-    local obAvg = GetAdcChannelOb(channel, "Average")
+    local odMin = self:GetAdcChannelOb(channel, "Min")
+    local odMax = self:GetAdcChannelOb(channel, "Max")
+    local odAvg = self:GetAdcChannelOb(channel, "Average")
 
-    return { min = self.ib:Upload(odMin), max = self.ib:Upload(odMax), average = self.ib:Upload(odAvg) }
+    return {
+        min = self.ib:Upload(odMin) --[[@as number]],
+        max = self.ib:Upload(odMax) --[[@as number]],
+        average = self.ib:Upload(odAvg) --[[@as number]]
+    }
 end
 
+---Gets the average value read on a channel.
+---@param channel DAQ_AdcChannelEnum
+---@return number
 function DAQ:AdcChannelAverage(channel)
     CheckAdcChannel(channel)
-    local ob = GetAdcChannelOb(channel, "Average")
-    return self.ib:Upload(odAvg)
+    local od = self:GetAdcChannelOb(channel, "Average")
+    return self.ib:Upload(od) --[[@as number]]
 end
 
+---@class AdcComplexCalibration
+---@field gain {r100: number, r4k99: number, r100k: number, r1M: number}
+---@field offset {r100: number, r4k99: number, r100k: number, r1M: number}
+
+---@class AdcMoreComplexCalibration
+---@field gain {base: number, r100: number, r4k99: number, r100k: number, r1M: number}
+---@field offset {base: number, r100: number, r4k99: number, r100k: number, r1M: number}
+
 -- ADC Calibration
+---Gets the calibration table.
+---@return [AdcComplexCalibration, AdcMoreComplexCalibration, {gain: number, offset: number}]
 function DAQ:AdcCalibration()
-    local ob = self.ib.od["ADC Calibration"]
-    local function f(od) return self.ib:Upload(od) end
+    local od = self.ib.od["ADC Calibration"]
+    ---@return number
+    local function f(od) return self.ib:Upload(od) --[[@as number]] end
     return {
         [1] = {
             gain = {
-                r100 = f(ob["Channel 1 Gain 100R"]),
-                r4k99 = f(ob["Channel 1 Gain 4k99"]),
-                r100k = f(ob["Channel 1 Gain 100k"]),
-                r1M = f(ob["Channel 1 Gain 1M"])
+                r100 = f(od["Channel 1 Gain 100R"]),
+                r4k99 = f(od["Channel 1 Gain 4k99"]),
+                r100k = f(od["Channel 1 Gain 100k"]),
+                r1M = f(od["Channel 1 Gain 1M"])
             },
             offset = {
-                r100 = f(ob["Channel 1 Offset 100R"]),
-                r4k99 = f(ob["Channel 1 Offset 4k99"]),
-                r100k = f(ob["Channel 1 Offset 100k"]),
-                r1M = f(ob["Channel 1 Offset 1M"])
+                r100 = f(od["Channel 1 Offset 100R"]),
+                r4k99 = f(od["Channel 1 Offset 4k99"]),
+                r100k = f(od["Channel 1 Offset 100k"]),
+                r1M = f(od["Channel 1 Offset 1M"])
             }
         },
         [2] = {
             gain = {
-                base = f(ob["Channel 2 Gain"]),
-                r100 = f(ob["Channel 2 Gain 100R"]),
-                r4k99 = f(ob["Channel 2 Gain 4k99"]),
-                r100k = f(ob["Channel 2 Gain 100k"]),
-                r1M = f(ob["Channel 2 Gain 1M"])
+                base = f(od["Channel 2 Gain"]),
+                r100 = f(od["Channel 2 Gain 100R"]),
+                r4k99 = f(od["Channel 2 Gain 4k99"]),
+                r100k = f(od["Channel 2 Gain 100k"]),
+                r1M = f(od["Channel 2 Gain 1M"])
             },
             offset = {
-                base = f(ob["Channel 2 Offset"]),
-                r100 = f(ob["Channel 2 Offset 100R"]),
-                r4k99 = f(ob["Channel 2 Offset 4k99"]),
-                r100k = f(ob["Channel 2 Offset 100k"]),
-                r1M = f(ob["Channel 2 Offset 1M"])
+                base = f(od["Channel 2 Offset"]),
+                r100 = f(od["Channel 2 Offset 100R"]),
+                r4k99 = f(od["Channel 2 Offset 4k99"]),
+                r100k = f(od["Channel 2 Offset 100k"]),
+                r1M = f(od["Channel 2 Offset 1M"])
             }
         },
-        [3] = { gain = f(ob["Channel 3 Gain"]), offset = f(ob["Channel 3 Offset"]) }
+        [3] = { gain = f(od["Channel 3 Gain"]), offset = f(od["Channel 3 Offset"]) }
     }
 end
 
 -- Impedances
+---@enum DAQ_ImpedanceModeEnum
 DAQ.ImpedanceModeEnum = { resistor = 0, capacitor = 1, inductor = 2 }
+---@enum DAQ_ImpedanceShapeEnum
 DAQ.ImpedanceShapeEnum = {
     automatic = 0,
     dc = 1,
@@ -502,6 +625,7 @@ DAQ.ImpedanceShapeEnum = {
     ramp = 4,
     noise = 5
 }
+---@enum DAQ_ImpedanceRangeResistorEnum
 DAQ.ImpedanceRangeResistorEnum = {
     automatic = 0,
     r100 = 1,
@@ -509,6 +633,9 @@ DAQ.ImpedanceRangeResistorEnum = {
     r100k = 3,
     r1M = 4
 }
+---@class DAQ_ImpedanceDefaults
+---@field shape DAQ_ImpedanceShapeEnum
+---@field rangeResistor DAQ_ImpedanceRangeResistorEnum
 DAQ.ImpedanceDefaults = {
     shape = DAQ.ImpedanceShapeEnum.automatic,
     rangeResistor = DAQ.ImpedanceRangeResistorEnum.automatic,
@@ -520,16 +647,41 @@ DAQ.ImpedanceDefaults = {
     favorSpeed = false
 }
 
+---@class DAQ_ImpedanceResults
+---@field mode DAQ_ImpedanceModeEnum
+---@field shape DAQ_ImpedanceShapeEnum
+---@field rangeResistor DAQ_ImpedanceRangeResistorEnum
+---@field frequency integer
+---@field amplitude integer
+---@field delay integer
+---@field samplesToTake integer
+---@field expectedValue number
+---@field favorSpeed boolean
+---@field confidence integer
+---@field value number
+---@field vin number
+---@field vout number
+
+---Measures an impedance.
+---@param mode DAQ_ImpedanceModeEnum
+---@param shape DAQ_ImpedanceShapeEnum?
+---@param rangeResistor DAQ_ImpedanceRangeResistorEnum?
+---@param frequency integer?
+---@param amplitude number?
+---@param delay integer?
+---@param samplesToTake integer?
+---@param expectedValue number?
+---@param favorSpeed boolean
+---@return DAQ_ImpedanceResults
 function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay, samplesToTake, expectedValue,
                         favorSpeed)
-    CheckField(mode, "mode", IsIntegerInOd(mode, odMode))
-
     local od = self.ib.od["Impedances"]
     local odTrigger = od["Trigger"]
 
     if self.ib:Upload(odTrigger) then error("Impedance measure already running") end
 
     local odMode = od["Mode"]
+    CheckField(mode, "mode", IsIntegerInOd(mode, odMode))
     local odShape = od["Shape"]
     local odRangeResistor = od["Range Resistor"]
     local odFrequency = od["Frequency"]
@@ -597,25 +749,27 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
 
     return {
         mode = mode,
-        shape = shape,
-        rangeResistor = rangeResistor,
-        frequency = frequency,
-        amplitude = amplitude,
-        delay = delay,
-        samplesToTake = samplesToTake,
-        expectedValue = expectedValue,
+        shape = shape --[[@as DAQ_ImpedanceShapeEnum]],
+        rangeResistor = rangeResistor --[[@as DAQ_ImpedanceRangeResistorEnum]],
+        frequency = frequency --[[@as integer]],
+        amplitude = amplitude --[[@as number]],
+        delay = delay --[[@as integer]],
+        samplesToTake = samplesToTake --[[@as integer]],
+        expectedValue = expectedValue --[[@as number]],
         favorSpeed = favorSpeed,
-        confidence = self.ib:Upload(odConfidence),
-        value = self.ib:Upload(odValue),
-        vin = self.ib:Upload(odVin),
-        vout = self.ib:Upload(odVout)
+        confidence = self.ib:Upload(odConfidence) --[[@as integer]],
+        value = self.ib:Upload(odValue) --[[@as number]],
+        vin = self.ib:Upload(odVin) --[[@as number]],
+        vout = self.ib:Upload(odVout) --[[@as number]]
     }
 end
 
 -- High level functions
+---@param point DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
+---@return DAQ_RoutingPointsEnum[]
 local function PointToPoints(point)
     if type(point) == "number" then return { point } end
-    return point
+    return point --[[@as DAQ_RoutingPointsEnum[] ]]
 end
 
 local function IsPointsOk(points)
@@ -625,20 +779,21 @@ local function IsPointsOk(points)
 end
 
 DAQ.MeasureVoltageDefault = {
-    channel = DAQ.AdcChannelEnum.adc2,
+    channel = DAQ.AdcChannelEnum.adc2 --[[@as DAQ_AdcChannelEnum]],
     samplesToTake = 10,
-    gain = DAQ.AdcChannelGainEnum.g1,
-    sampleRate = DAQ.AdcSampleRateEnum.f250Hz
+    gain = DAQ.AdcChannelGainEnum.g1 --[[@as DAQ_AdcChannelGainEnum]],
+    sampleRate = DAQ.AdcSampleRateEnum.f250Hz --[[@as DAQ_AdcSampleRateEnum]]
 }
 
 ---Measures a voltage on one or more points.
----@param points table|DAQ_TestPoints
+---@param points DAQ_RoutingPointsEnum[]|DAQ_RoutingPointsEnum
 ---@param channel DAQ_AdcChannelEnum|nil
 ---@param samplesToTake integer|nil
 ---@param gain DAQ_AdcChannelGainEnum|nil
 ---@param sampleRate DAQ_AdcSampleRateEnum|nil
 ---@return DAQ_AdcChannelResults
 function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
+    ---@type DAQ_RoutingPointsEnum[]
     points = PointToPoints(points)
     if IsPointsOk(points) then error("Invalid points") end
     if channel == nil then channel = DAQ.MeasureVoltageDefault.channel end
@@ -651,13 +806,13 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     local route = self:RequestRouting(points)
 
     self:AdcChannelGain(channel, gain)
-    self:AdcChannelSampleRate(channel, sampleRate)
+    self:AdcSampleRate(sampleRate)
     self:AdcSamplesToTake(samplesToTake)
 
     while samplesToTake ~= 0 do
         local previous = samplesToTake
         TimeoutFunction(function()
-            local current = self:AdcSamplesToTake()
+            local current = self:AdcSamplesToTake() --[[@as integer]]
             local same = current == previous
             previous = current
             return same
@@ -670,6 +825,16 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     return self:AdcChannelResults(channel)
 end
 
+---Measures a resistor.
+---@param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
+---@param impN DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
+---@param range DAQ_ImpedanceRangeResistorEnum?
+---@param guards DAQ_RoutingPointsEnum[]
+---@param voltage number?
+---@param delay integer?
+---@param samplesToTake integer?
+---@param favorSpeed boolean
+---@return DAQ_ImpedanceResults
 function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay, samplesToTake, favorSpeed)
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
