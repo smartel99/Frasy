@@ -94,7 +94,7 @@ function Expectation:ToBeInPercentage(expected, percentage)
     self.result.method = "ToBeInPercentage"
     self.result.expected = expected
     self.result.percentage = percentage
-    self.result.deviation = expected * percentage
+    self.result.deviation = expected * percentage / 100
     self.result.pass =
         (self.result.value >= (expected - self.result.deviation)) and
             (self.result.value <= (expected + self.result.deviation))
