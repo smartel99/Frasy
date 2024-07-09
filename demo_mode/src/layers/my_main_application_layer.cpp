@@ -85,10 +85,8 @@ void MyMainApplicationLayer::renderControlRoom()
     ImGui::TableNextColumn();
 
     static const ImVec2 buttonSize = ImVec2 {100.0f, 100.0f};
-    static const ImVec2 buttonUv0  = ImVec2 {0.0f, 1.0f};
-    static const ImVec2 buttonUv1  = ImVec2 {1.0f, 0.0f};
 
-    if (ImGui::ImageButton(reinterpret_cast<void*>(texture), buttonSize, buttonUv0, buttonUv1)) {
+    if (ImGui::ImageButton(reinterpret_cast<void*>(texture), buttonSize)) {
         m_resultViewer->setVisibility(false);    // Close the result viewer while we run the test.
         doTests();
         m_testJustFinished = false;
