@@ -1,9 +1,12 @@
 local Ib = require("lua/core/sdk/environment/ib")
-local Bitwise = require("lua.core.utils.bitwise")
-local IsIntegerIn = require("lua.core.utils.is_integer.is_integer_in")
-local IsUnsigned8 = require("lua.core.utils.is_unsigned.is_unsigned_8")
-local CheckField = require("lua.core.utils.check_field")
+local Bitwise = require("lua/core/utils/bitwise")
+local IsBoolean = require("lua/core/utils/is_boolean")
+local IsIntegerIn = require("lua/core/utils/is_integer/is_integer_in")
+local IsUnsigned8 = require("lua/core/utils/is_unsigned/is_unsigned_8")
+local CheckField = require("lua/core/utils/check_field")
 
+---@class R8L
+---@field ib Ib?
 R8L = {ib = nil, cache = {digitalOutput = 0, errorValueOutput = 0}}
 R8L.__index = R8L
 
@@ -11,6 +14,10 @@ local function CheckIndex(index) CheckField(index, "index", IsIntegerIn(index, 0
 
 local function CheckRelayValue(value) CheckField(value, "value", IsUnsigned8(value)) end
 
+---Creates a new R8L
+---@param name string?
+---@param nodeId integer?
+---@return R8L
 function R8L:New(name, nodeId)
     local ib = Ib:New()
     ib.kind = 04;
@@ -79,8 +86,14 @@ function R8L:ErrorValueOutput(index, value)
     end
 end
 
+---@class R8L_Id
+---@field ID_BRD_L number
+---@field ID_BRD_R number
+
+---Gets the IDs read by the board.
+---@return {left: number, right: number}
 function R8L:Id()
-    local table = self.ib:Upload(self.ib.od["ID"])
+    local table = self.ib:Upload(self.ib.od["ID"]) --[[@as R8L_Id]]
     return {left = table.ID_BRD_L, right = table.ID_BRD_R}
 end
 

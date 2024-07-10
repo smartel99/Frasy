@@ -1,10 +1,14 @@
 local Ib = require("lua/core/sdk/environment/ib")
 local IsBoolean = require("lua/core/utils/is_boolean")
+local IsIntegerInOd = require("lua/core/utils/is_integer_in_od")
 local IsFloatInOd = require("lua/core/utils/is_float/is_float_in_od")
 local IsUnsigned16 = require("lua/core/utils/is_unsigned/is_unsigned_16")
 local IsUnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in")
 local Bitwise = require("lua/core/utils/bitwise")
 local CheckField = require("lua/core/utils/check_field")
+
+---@class PIO
+---@field ib Ib?
 PIO = {
     ib = nil,
     cache = {
@@ -155,7 +159,7 @@ function PIO:GpioValues(value)
     local odOut = self.ib.od["GPIO"]["Output Port"]
     if value == nil then
         local input = self.ib:Upload(odIn)
-        output = self.ib:Upload(odOut)
+        local output = self.ib:Upload(odOut)
         self.cache.gpio.output = output
         return MergeGpioValues(input, output, self.cache.gpio.configuration)
     else

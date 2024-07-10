@@ -14,6 +14,8 @@ local Ib = {
 }
 Ib.__index = Ib
 
+---Creates a new instrumentation board.
+---@return Ib
 function Ib:New()
     return setmetatable({
         kind = 0,
@@ -23,11 +25,14 @@ function Ib:New()
     }, Ib)
 end
 
+---Upload (fetches) an entry from the node.
+---@param ode OdEntry
+---@return OdEntryType
 function Ib:Upload(ode)
     assert(type(ode) == "table", "Ib upload, invalid ode")
     assert(ode.__kind == "Object Dictionary Entry",
-           "Ib upload, argument is not an Object Dictionary Entry. " ..
-               ode.__kind)
+        "Ib upload, argument is not an Object Dictionary Entry. " ..
+        ode.__kind)
     if (ode.objectType == CanOpen.objectType.var) then
         if (Context.info.stage ~= Stage.execution) then return ode.value end
         ode.value = CanOpen.__upload(self.nodeId, ode)
@@ -35,6 +40,7 @@ function Ib:Upload(ode)
         -- do we need to update ode actual size here?
         -- I feel like this should be done by the user who's
         -- manipulating the entry
+        --FIXME wtf is going on?
         for i = 1, ode.data[0].value do self:Upload(v) end
     elseif (ode.objectType == CanOpen.objectType.record) then
         for k, v in ipairs(ode.__fields) do self:Upload(ode[v]) end
@@ -44,17 +50,22 @@ function Ib:Upload(ode)
     return ode.value
 end
 
+---Download (sends) an entry to the node.
+---@param ode OdEntry
+---@param value OdEntryType|OdEntryArrayType
 function Ib:Download(ode, value)
     if (Context.info.stage ~= Stage.execution) then return end
     assert(type(ode) == "table", "Ib download, invalid ode")
     assert(ode.__kind == "Object Dictionary Entry",
-           "Ib download, not an Object Dictionary Entry")
+        "Ib download, not an Object Dictionary Entry")
     if (ode.objectType == CanOpen.objectType.var) then
         CanOpen.__download(self.nodeId, ode, value)
     elseif (ode.objectType == CanOpen.objectType.array) then
-        for k, v in ipairs(value) do Ib:Download(ode.data[k], v) end
+        for k, v in ipairs(value --[[@as OdEntryArrayType]]) do Ib:Download(ode.data[k], v) end
     elseif (ode.objectType == CanOpen.objectType.record) then
-        for k, v in pairs(ode.__fields) do Ib:Download(ode[v], value[v]) end
+        for k, v in pairs(ode.__fields) do
+            Ib:Download(ode[v], value[v])
+        end
     else
         error("Ib download, invalid object type")
     end

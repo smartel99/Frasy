@@ -13,8 +13,16 @@ local IsFloatInOd = require("lua/core/utils/is_float/is_float_in_od")
 local TimeoutFunction = require("lua/core/utils/timeout")
 local CheckField = require("lua/core/utils/check_field")
 
+---@class DAQ_CacheIo
+---@field mode DAQ_IoModeEnum
+---@field value DAQ_IoValueEnum
+
+---@class DAQ_Cache
+---@field io DAQ_CacheIo
+
 ---@class DAQ
 ---@field ib? Ib
+---@field cache DAQ_Cache
 DAQ = { ib = nil, cache = { io = { mode = 0, value = 0 } } }
 DAQ.__index = DAQ
 
@@ -184,7 +192,7 @@ DAQ.DacShape = { dc = 0, sine = 1, sawtooth = 2, triangle = 3, square = 4, noise
 function DAQ:DacEnable(state)
     local od = self.ib.od["DAC"]["Enable"]
     if state == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as boolean]]
     else
         CheckField(state, "enable", IsBoolean(state))
         self.ib:Download(od, state)
@@ -197,7 +205,7 @@ end
 function DAQ:DacAmplitude(amplitude)
     local od = self.ib.od["DAC"]["Amplitude"]
     if amplitude == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as number]]
     else
         CheckField(amplitude, "amplitude", IsFloatInOd(amplitude, od))
         self.ib:Download(od, amplitude)
@@ -210,7 +218,7 @@ end
 function DAQ:DacFrequency(frequency)
     local od = self.ib.od["DAC"]["Frequency"]
     if frequency == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as number]]
     else
         CheckField(frequency, "frequency", IsUnsignedInOd(frequency, od))
         self.ib:Download(od, frequency)
@@ -223,7 +231,7 @@ end
 function DAQ:DacShape(shape)
     local od = self.ib.od["DAC"]["Shape"]
     if shape == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as DAQ_DacShape]]
     else
         CheckField(shape, "shape", IsUnsignedIn(shape, DAQ.DacShape.dc, DAQ.DacShape.noise))
         self.ib:Download(od, shape)
@@ -262,7 +270,7 @@ function DAQ:IoModes(value)
     CheckIo(io)
     local od = self.ib.od["IO"]["Mode"]
     if (value == nil) then
-        self.cache.io.mode = self.ib:Upload(od)
+        self.cache.io.mode = self.ib:Upload(od) --[[@as DAQ_IoModeEnum]]
         return self.cache.io.mode
     else
         self.cache.io.mode = value
@@ -290,7 +298,7 @@ function DAQ:IoValues(value)
     CheckIo(io)
     local od = self.ib.od["IO"]["Value"]
     if (value == nil) then
-        self.cache.io.value = self.ib:Upload(od)
+        self.cache.io.value = self.ib:Upload(od) --[[@as DAQ_IoValueEnum]]
         return self.cache.io.value
     else
         self.cache.io.value = value
@@ -330,7 +338,7 @@ DAQ.SignalingBuzzerPatternEnum = {
 function DAQ:SignalingMode(mode)
     local od = self.ib.od["Signaling"]["Mode"]
     if mode == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as DAQ_SignalingModeEnum]]
     else
         CheckField(mode, "mode", IsIntegerInOd(mode, od))
         self.ib:Download(od, mode)
@@ -343,7 +351,7 @@ end
 function DAQ:SignalingIdleTime(minutes)
     local od = self.ib.od["Signaling"]["Idle Time"]
     if minutes == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as integer]]
     else
         CheckField(minutes, "idle time", IsIntegerInOd(minutes, od))
         self.ib:Download(od, minutes)
@@ -382,7 +390,7 @@ end
 function DAQ:UutGround(state)
     local od = self.ib.od["UUT Ground"]
     if state == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as boolean]]
     else
         CheckField(state, "state", IsBoolean(state))
         self.ib:Download(od, state)
@@ -396,7 +404,7 @@ end
 function DAQ:InternalCanStandby(state)
     local od = self.ib.od["Internal CAN"]["Standby"]
     if state == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as boolean]]
     else
         CheckField(state, "state", IsBoolean(state))
         self.ib:Download(od, state)
@@ -409,7 +417,7 @@ end
 function DAQ:InternalCanTerminationResistor(state)
     local od = self.ib.od["Internal CAN"]["Termination Resistor"]
     if state == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as boolean]]
     else
         CheckField(state, "state", IsBoolean(state))
         self.ib:Download(od, state)
@@ -506,7 +514,7 @@ function DAQ:AdcIdCheck() return self.ib:Upload(self.ib.od["ADC"]["ID Check"]) -
 function DAQ:AdcSamplesToTake(count)
     local od = self.ib.od["ADC"]["Samples to Take"]
     if count == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as integer]]
     else
         CheckField(count, "count", IsIntegerInOd(count, od))
         self.ib:Download(od, count)
@@ -519,7 +527,7 @@ end
 function DAQ:AdcSampleRate(sampleRate)
     local od = self.ib.od["ADC"]["Sample Rate"]
     if sampleRate == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as DAQ_AdcSampleRateEnum]]
     else
         CheckField(sampleRate, "sample rate", IsIntegerInOd(sampleRate, od))
         self.ib:Download(od, sampleRate)
@@ -534,7 +542,7 @@ function DAQ:AdcChannelGain(channel, gain)
     CheckAdcChannel(channel)
     local od = self:GetAdcChannelOb(channel, "Gain")
     if gain == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as DAQ_AdcChannelGainEnum]]
     else
         CheckField(gain, "gain", IsIntegerInOd(gain, od))
         self.ib:Download(od, gain)
@@ -747,13 +755,13 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
         if deadline <= 0 then error("Impedance timeout") end
     end
 
-    if shape == 0 then shape = self.ib:Upload(odShape) end
-    if rangeResistor == 0 then rangeResistor = self.ib:Upload(odRangeResistor) end
-    if frequency == 0 then frequency = self.ib:Upload(odFrequency) end
-    if amplitude == 0 then amplitude = self.ib:Upload(odAmplitude) end
-    if delay == 0 then delay = self.ib:Upload(odDelay) end
-    if samplesToTake == 0 then samplesToTake = self.ib:Upload(odSamplesToTake) end
-    if expectedValue == 0 then expectedValue = self.ib:Upload(odExpectedValue) end
+    if shape == 0 then shape = self.ib:Upload(odShape) --[[@as DAQ_ImpedanceShapeEnum]] end
+    if rangeResistor == 0 then rangeResistor = self.ib:Upload(odRangeResistor) --[[@as DAQ_ImpedanceRangeResistorEnum]] end
+    if frequency == 0 then frequency = self.ib:Upload(odFrequency) --[[@as integer]] end
+    if amplitude == 0 then amplitude = self.ib:Upload(odAmplitude) --[[@as number]] end
+    if delay == 0 then delay = self.ib:Upload(odDelay) --[[@as integer]] end
+    if samplesToTake == 0 then samplesToTake = self.ib:Upload(odSamplesToTake) --[[@as integer]] end
+    if expectedValue == 0 then expectedValue = self.ib:Upload(odExpectedValue) --[[@as integer]] end
 
     return {
         mode = mode,

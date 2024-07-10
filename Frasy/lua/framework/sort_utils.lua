@@ -61,7 +61,7 @@ function Sort.HasMetDependencies(requirement, scopes)
 end
 
 --- Sort a list of scope based on their requirements
---- @param scope table list of scopes to sort
+--- @param scopes table list of scopes to sort
 --- @param first string name of the scope to run first, can be nil
 --- @param last string name of the scope to run last, can be nil
 --- @param requirements table list of scopes dependencies

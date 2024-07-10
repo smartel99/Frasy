@@ -45,4 +45,4 @@ local function Equals(t1, t2)
     end
 end
 
-return equals
+return Equals

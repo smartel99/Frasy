@@ -22,15 +22,39 @@ local function ParseNumber(field)
     end
 end
 
+---@alias OdEntryType number|integer|string|boolean|nil
+---@alias OdEntryArrayType number[]|integer[]|string[]|boolean[]
+
+---@class OdEntry
+---@field __kind string
+---@field __fields string[]?
+---@field parameterName string
+---@field objectType integer?
+---@field dataType integer?
+---@field accessType string
+---@field defaultValue OdEntryType
+---@field pdoMapping integer?
+---@field value OdEntryType
+---@field highLimit OdEntryType
+---@field lowLimit OdEntryType
+---@field index integer?
+---@field subIndex string?
+---@field data OdEntryArrayType?
+
+---Parses a field into a Object Dictionary entry.
+---@param field table
+---@return OdEntry
 local function ParseVarEntry(field)
-    local entry = {}
-    entry.__kind = "Object Dictionary Entry"
-    entry.parameterName = field["ParameterName"]
+    ---@type OdEntry
+    local entry = {
+        __kind = "Object Dictionary Entry",
+        parameterName = field["ParameterName"],
+        accessType = field["AccessType"]
+    }
     entry.objectType = tonumber(field["ObjectType"])
     entry.dataType = tonumber(field["DataType"])
-    entry.accessType = field["AccessType"]
-    entry.defaultValue = field["DefaultValue"]
     entry.pdoMapping = tonumber(field["PDOMapping"])
+    --FIXME defaultValue may be a string (or just not a number). Parse according to dataType.
     entry.defaultValue = ParseNumber(field["DefaultValue"])
     entry.value = entry.defaultValue
     entry.highLimit = ParseNumber(field["HighLimit"])
