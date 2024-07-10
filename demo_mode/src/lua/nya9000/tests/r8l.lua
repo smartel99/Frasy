@@ -1,8 +1,16 @@
---Sequence("R8L", function()
---    Test("Download", function()
---        local ib = Context.map.ibs.r8l
---        ib:Download(ib.od["Write Digital Output"], 0xFF)
---        Utils.SleepFor(100)
---        ib:Download(ib.od["Write Digital Output"], 0x00)
---    end)
---end)
+-- Sequence("R8L", function()
+--     Test("Relays", function()
+--         local r8l = Context.map.ibs.r8l
+--         r8l:DigitalOutputs(0)
+--         for i = 0, 7 do
+--             r8l:DigitalOutput(i, 1)
+--             Popup("Relay")
+--                 :Text("Relay " .. tostring(i) .. " is closed")
+--                 :Show()
+--             r8l:DigitalOutput(i, 0)
+--             Popup("Relay")
+--                 :Text("Relay " .. tostring(i) .. " is closed")
+--                 :Show()
+--         end
+--     end)
+-- end)

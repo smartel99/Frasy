@@ -1,35 +1,52 @@
---Sequence("PIO", function()
---    Test("Var Supply", function()
---        --local ib = Context.map.ibs.r8l
---        --ib:Download(ib.od["Write Digital Output"], 0xFF)
---        local ib = Context.map.ibs.pio
---        --ib:Download(ib.od["Supply 3V3"]["Output Enable"], true)
---        --ib:Download(ib.od["Supply 5V"]["Output Enable"], true)
---        --ib:Download(ib.od["Supply 12V"]["Output Enable"], true)
---        --ib:Download(ib.od["Supply 24V"]["Output Enable"], true)
---        --Utils.SleepFor(5000)
---        --ib:Download(ib.od["Supply 3V3"]["Output Enable"], false)
---        --ib:Download(ib.od["Supply 5V"]["Output Enable"], false)
---        --ib:Download(ib.od["Supply 12V"]["Output Enable"], false)
---        --ib:Download(ib.od["Supply 24V"]["Output Enable"], false)
---
---        local supply = "Variable Supply 2"
---        local voltages = { 2.5, 20 }
---
---        --for i = 0, 20 do
---            ib:Download(ib.od[supply]["Output Enable"], true)
---            for _, voltage in ipairs(voltages) do
---                local label = string.format("%f", voltage)
---                Log.D("Setting voltage to " .. voltage)
---                ib:Download(ib.od[supply]["Desired Voltage"], voltage)
---                Utils.SleepFor(1000)
---                local actualVoltage = ib:Upload(ib.od[supply]["Voltage"])
---                Log.D("Voltage read: " .. actualVoltage)
---                Expect(actualVoltage, "Voltage " .. label):ToBeGreater(0.0)
---                local current = ib:Upload(ib.od[supply]["Current"])
---                Expect(current, "Current " .. label):ToBeGreater(0)
---            end
---        --end
---        ib:Download(ib.od[supply]["Output Enable"], false)
---    end)
---end)
+-- Sequence("PIO", function()
+--     local pio = Context.map.ibs.pio
+--     Test("Static Supply", function()
+--         local voltages = {
+--             [PIO.SupplyEnum.p3v3] = 3.3,
+--             [PIO.SupplyEnum.p5v] = 5,
+--             [PIO.SupplyEnum.p12v] = 12,
+--             [PIO.SupplyEnum.p24v] = 24
+--         }
+
+--         for supply = PIO.SupplyEnum.p3v3, PIO.SupplyEnum.p24v do
+--             pio:OutputEnable(supply, true)
+--             Utils.SleepFor(100)
+--             Expect(pio:Voltage(supply)):ToBeInPercentage(voltages[supply], 10)
+--             Popup("Supply"):Text(PIO.SupplyEnumToOdName(supply) .. " is ON"):Show()
+--             pio:OutputEnable(supply, false)
+--             Popup("Supply"):Text(PIO.SupplyEnumToOdName(supply) .. " is OFF"):Show()
+--         end
+--     end)
+
+--     Test("Variable Supply", function()
+--         Requires(Test():ToBeFirst())
+--         local voltages = {
+--             5, 10, 15, 20
+--         }
+--         for supply = PIO.SupplyEnum.pVariable1, PIO.SupplyEnum.pVariable2 do
+--             pio:OutputEnable(supply, true)
+
+--             for index = 1, #voltages do
+--                 local voltage = voltages[index]
+--                 pio:DesiredVoltage(supply, voltage)
+--                 Utils.SleepFor(100)
+--                 Expect(pio:Voltage(supply)):ToBeInPercentage(voltage, 10)
+--                 Popup("Supply"):Text(PIO.SupplyEnumToOdName(supply) .. " is ON @ " .. tostring(voltage) .. "V"):Show()
+--             end
+
+--             pio:OutputEnable(supply, false)
+--             Popup("Supply"):Text(PIO.SupplyEnumToOdName(supply) .. " is OFF"):Show()
+--         end
+--     end)
+
+--     Test("IOEXP", function()
+--         pio:GpioConfigurations(0)
+--         pio:GpioValues(0)
+
+--         for i = 0, 11 do
+--             pio:GpioValue(i, 1)
+--             Popup("GPIO"):Text("IOEXP " .. tostring(i) .. " is HIGH"):Show()
+--             pio:GpioValue(i, 0)
+--         end
+--     end)
+-- end)
