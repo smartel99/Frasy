@@ -810,8 +810,7 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     if gain == nil then gain = DAQ.MeasureVoltageDefault.gain end
     if sampleRate == nil then sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
 
-    table.insert(points, AdcChannelToTestPoint(channel))
-    local route = self:RequestRouting(points)
+    local route = self:RequestRouting({ table.unpack(points), AdcChannelToTestPoint(channel) })
 
     self:AdcChannelGain(channel, gain)
     self:AdcSampleRate(sampleRate)
