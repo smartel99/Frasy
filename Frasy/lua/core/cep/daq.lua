@@ -430,12 +430,51 @@ DAQ.I2CGpioEnum = {
 }
 
 -- SPI
+---@enum DAQ_SpiGpioEnum
 DAQ.SpiGpioEnum = {
     mosi = 0,
     miso = 1,
     sck = 2,
 }
-function DAQ:SpiMode()
+---@enum DAQ_SpiModeEnum
+DAQ.SpiModeEnum = {
+    gpio = 0,
+    spi = 1,
+}
+
+--- Property for SPI mode
+--- If mode is nil, act as a Setter, Getter otherwise
+---@param mode DAQ_SpiModeEnum?
+---@return DAQ_SpiModeEnum? mode
+function DAQ:SpiMode(mode)
+    --- TODO
+end
+
+--- Property for SPI GPIO Configuration
+--- Valid only when SPI is set into gpio mode
+--- If value is nil, act as a Setter, Getter otherwise
+---@param value number?
+---@return number? state
+function DAQ:SpiGpioConfigurations(value)
+    --- TODO
+end
+
+--- Property for SPI GPIO Values
+--- Valid only when SPI is set into gpio mode
+--- If value is nil, act as a Setter, Getter otherwise
+--- @param value number?
+--- @return number? state
+function DAQ:SpiGpioValues(value)
+    --- TODO
+end
+
+
+--- Property for SPI GPIO Values
+--- Valid only when SPI is set into gpio mode
+--- If value is nil, act as a Setter, Getter otherwise
+--- @param value number?
+--- @return number? state
+function DAQ:SpiGpioPolarities(value)
 end
 
 -- ADC
@@ -509,7 +548,7 @@ end
 function DAQ:AdcIdCheck() return self.ib:Upload(self.ib.od["ADC"]["ID Check"]) --[[@as number]] end
 
 ---Gets or sets the number of samples to take on the ADC.
----@param count? integer
+---@param count integer?
 ---@return integer?
 function DAQ:AdcSamplesToTake(count)
     local od = self.ib.od["ADC"]["Samples to Take"]
@@ -536,7 +575,7 @@ end
 
 ---Gets or sets the gain on a channel of the ADC.
 ---@param channel DAQ_AdcChannelEnum
----@param gain? DAQ_AdcChannelGainEnum
+---@param gain DAQ_AdcChannelGainEnum?
 ---@return DAQ_AdcChannelGainEnum?
 function DAQ:AdcChannelGain(channel, gain)
     CheckAdcChannel(channel)
