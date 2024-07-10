@@ -69,9 +69,9 @@ end
 
 -- TODO handle negatives
 function Expectation:ToBeNear(expected, deviation)
-    self.result.parameters.method = "ToBeNear"
-    self.result.parameters.expected = expected
-    self.result.parameters.deviation = deviation
+    self.result.method = "ToBeNear"
+    self.result.expected = expected
+    self.result.deviation = deviation
     self.result.pass = expected - deviation <= self.result.value and
                            self.result.value <= expected + deviation
     Orchestrator.AddExpectationResult(self.result)

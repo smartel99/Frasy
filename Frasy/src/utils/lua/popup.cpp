@@ -75,7 +75,8 @@ void Popup::Routine(bool once)
 
 void Popup::Render()
 {
-    ImGui::SetNextWindowFocus();    // Note: Forcing focus will prevent user to be able to open the top menu
+    // ImGui::SetNextWindowFocus();    // Note: Forcing focus will prevent user to be able to open the top menu
+    // It's even worse, it block everything. To never be used again!
     ImGui::Begin(m_name.c_str(),
                  nullptr,
                  ImGuiWindowFlags_NoResize |              //

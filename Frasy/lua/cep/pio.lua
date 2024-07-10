@@ -1,12 +1,10 @@
 local Ib = require("lua/core/sdk/environment/ib")
-local IsFloatInOd = require("lua.core.utils.is_float.is_float_in_od")
-local IsUnsigned = require("lua.core.utils.is_unsigned.is_unsigned")
-local IsUnsigned8 = require("lua.core.utils.is_unsigned.is_unsigned_8")
-local IsUnsigned16 = require("lua.core.utils.is_unsigned.is_unsigned_16")
-local IsUnsignedIn = require("lua.core.utils.is_unsigned.is_unsigned_in")
-local IsUnsignedInOd = require("lua.core.utils.is_unsigned.is_unsigned_in_od")
-local Bitwise = require("lua.core.utils.bitwise")
-local CheckField = require("lua.core.utils.check_field")
+local IsBoolean = require("lua/core/utils/is_boolean")
+local IsFloatInOd = require("lua/core/utils/is_float/is_float_in_od")
+local IsUnsigned16 = require("lua/core/utils/is_unsigned/is_unsigned_16")
+local IsUnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in")
+local Bitwise = require("lua/core/utils/bitwise")
+local CheckField = require("lua/core/utils/check_field")
 PIO = {
     ib = nil,
     cache = {
@@ -31,12 +29,12 @@ PIO.GpioPolarityEnum = { regular = 0, inverted = 1 }
 PIO.GpioConfigurationEnum = { output = 0, input = 1 }
 
 local function CheckSupplyEnum(supply)
-    CheckField(supply, "supply", IsIntegerIn(supply, PIO.SupplyEnum.p3v3,
+    CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.p3v3,
         PIO.SupplyEnum.pVariable2))
 end
 
 local function CheckVariableSupplyEnum(supply)
-    CheckField(supply, "supply", IsIntegerIn(supply, PIO.SupplyEnum.pVariable1,
+    CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.pVariable1,
         PIO.SupplyEnum.pVariable2))
 end
 
