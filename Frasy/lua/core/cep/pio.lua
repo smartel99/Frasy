@@ -1,6 +1,6 @@
 local Ib = require("lua/core/sdk/environment/ib")
 local IsBoolean = require("lua/core/utils/is_boolean")
-local IsIntegerInOd = require("lua/core/utils/is_integer_in_od")
+local IsIntegerInOd = require("lua/core/utils/is_integer/is_integer_in_od")
 local IsFloatInOd = require("lua/core/utils/is_float/is_float_in_od")
 local IsUnsigned16 = require("lua/core/utils/is_unsigned/is_unsigned_16")
 local IsUnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in")
