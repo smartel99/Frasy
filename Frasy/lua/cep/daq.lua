@@ -180,7 +180,7 @@ DAQ.DacShape = { dc = 0, sine = 1, sawtooth = 2, triangle = 3, square = 4, noise
 
 ---Toggles the DAC, or get the current state of the DAC.
 ---@param state? boolean The desired state.
----@return nil|boolean state
+---@return boolean? state
 function DAQ:DacEnable(state)
     local od = self.ib.od["DAC"]["Enable"]
     if state == nil then
@@ -193,7 +193,7 @@ end
 
 ---Gets or sets the amplitude of the DAC, in volt.
 ---@param amplitude? number
----@return nil|number
+---@return number?
 function DAQ:DacAmplitude(amplitude)
     local od = self.ib.od["DAC"]["Amplitude"]
     if amplitude == nil then
@@ -206,7 +206,7 @@ end
 
 ---Sets the frequency of the DAC, or gets the current frequency of the DAC.
 ---@param frequency? integer
----@return nil|number
+---@return number?
 function DAQ:DacFrequency(frequency)
     local od = self.ib.od["DAC"]["Frequency"]
     if frequency == nil then
@@ -219,7 +219,7 @@ end
 
 ---Gets or set the shape of the waveform being output on the DAC.
 ---@param shape? DAQ_DacShape
----@return nil|DAQ_DacShape
+---@return DAQ_DacShape?
 function DAQ:DacShape(shape)
     local od = self.ib.od["DAC"]["Shape"]
     if shape == nil then
@@ -257,7 +257,7 @@ end
 
 ---Gets or set the mode of the IOs.
 ---@param value? DAQ_IoModeEnum
----@return nil|DAQ_IoModeEnum
+---@return DAQ_IoModeEnum?
 function DAQ:IoModes(value)
     CheckIo(io)
     local od = self.ib.od["IO"]["Mode"]
@@ -273,7 +273,7 @@ end
 ---Gets or sets the mode of an IO.
 ---@param io DAQ_IoEnum
 ---@param mode? DAQ_IoModeEnum
----@return nil|DAQ_IoModeEnum
+---@return DAQ_IoModeEnum?
 function DAQ:IoMode(io, mode)
     CheckIo(io)
     if mode == nil then
@@ -285,7 +285,7 @@ end
 
 ---Gets or sets the state of the IOs.
 ---@param value? DAQ_IoValueEnum
----@return nil|DAQ_IoValueEnum
+---@return DAQ_IoValueEnum?
 function DAQ:IoValues(value)
     CheckIo(io)
     local od = self.ib.od["IO"]["Value"]
@@ -301,7 +301,7 @@ end
 ---Gets or sets the state of an IO.
 ---@param io DAQ_IoEnum
 ---@param value? DAQ_IoValueEnum
----@return nil|DAQ_IoValueEnum
+---@return DAQ_IoValueEnum?
 function DAQ:IoValue(io, value)
     CheckIo(io)
     if value == nil then
@@ -326,7 +326,7 @@ DAQ.SignalingBuzzerPatternEnum = {
 
 ---Gets or set the signaling mode.
 ---@param mode? DAQ_SignalingModeEnum
----@return nil|DAQ_SignalingModeEnum
+---@return DAQ_SignalingModeEnum?
 function DAQ:SignalingMode(mode)
     local od = self.ib.od["Signaling"]["Mode"]
     if mode == nil then
@@ -339,7 +339,7 @@ end
 
 ---Gets or set the idle time.
 ---@param minutes? integer
----@return nil|integer
+---@return integer?
 function DAQ:SignalingIdleTime(minutes)
     local od = self.ib.od["Signaling"]["Idle Time"]
     if minutes == nil then
@@ -357,7 +357,7 @@ end
 ---Gets or set the signaling buzzer mode.
 ---@param pattern? DAQ_SignalingBuzzerPatternEnum
 ---@param duration? integer
----@return nil|SignalingBuzzerModeReturn
+---@return SignalingBuzzerModeReturn?
 function DAQ:SignalingBuzzerMode(pattern, duration)
     local od = self.ib.od["Signaling"]["Buzzer Mode"]
     if pattern == nil and duration == nil then
@@ -378,7 +378,7 @@ end
 -- UUT Ground
 ---Gets or sets the state of the UUT ground.
 ---@param state? boolean
----@return nil|boolean
+---@return boolean?
 function DAQ:UutGround(state)
     local od = self.ib.od["UUT Ground"]
     if state == nil then
@@ -392,7 +392,7 @@ end
 -- Internal Can
 ---Gets or set the state of the internal CAN's standby signal.
 ---@param state? boolean
----@return nil|boolean
+---@return boolean?
 function DAQ:InternalCanStandby(state)
     local od = self.ib.od["Internal CAN"]["Standby"]
     if state == nil then
@@ -405,7 +405,7 @@ end
 
 ---Gets or sets the state of the internal CAN's termincation resistor.
 ---@param state? boolean
----@return nil|boolean
+---@return boolean?
 function DAQ:InternalCanTerminationResistor(state)
     local od = self.ib.od["Internal CAN"]["Termination Resistor"]
     if state == nil then
@@ -515,7 +515,7 @@ end
 
 ---Gets or sets the sample rate of the ADC.
 ---@param sampleRate DAQ_AdcSampleRateEnum
----@return DAQ_AdcSampleRateEnum|nil
+---@return DAQ_AdcSampleRateEnum?
 function DAQ:AdcSampleRate(sampleRate)
     local od = self.ib.od["ADC"]["Sample Rate"]
     if sampleRate == nil then
@@ -795,10 +795,10 @@ DAQ.MeasureVoltageDefault = {
 
 ---Measures a voltage on one or more points.
 ---@param points DAQ_RoutingPointsEnum[]|DAQ_RoutingPointsEnum
----@param channel DAQ_AdcChannelEnum|nil
----@param samplesToTake integer|nil
----@param gain DAQ_AdcChannelGainEnum|nil
----@param sampleRate DAQ_AdcSampleRateEnum|nil
+---@param channel DAQ_AdcChannelEnum?
+---@param samplesToTake integer?
+---@param gain DAQ_AdcChannelGainEnum?
+---@param sampleRate DAQ_AdcSampleRateEnum?
 ---@return DAQ_AdcChannelResults
 function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     ---@type DAQ_RoutingPointsEnum[]
