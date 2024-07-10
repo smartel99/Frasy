@@ -76,7 +76,8 @@ local function ParseObjectDictionary(ini)
     local od = {}
     local indexes = {}
     for k, v in pairs(ini) do
-        local index = string.match(k, "^%d+$")
+        -- Match the [xxxx] line that denotes the address of an entry, but not the sub-entries.
+        local index = string.match(k, "^[0-9A-F]+$")
         if (index ~= nil) then table.insert(indexes, index) end
     end
 
