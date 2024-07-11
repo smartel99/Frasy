@@ -260,13 +260,32 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
     }
 
     auto send = [this, &node]<typename T>() {
-        if (ImGui::Button("Send##download")) {
-            m_downloadRequestQueue.push_back(
-              node.sdoInterface()->downloadData(static_cast<uint16_t>(m_downloadRequestIndex),
-                                                static_cast<uint8_t>(m_downloadRequestSubIndex),
-                                                std::get<T>(m_downloadRequestData),
-                                                m_downloadRequestTimeout,
-                                                m_downloadRequestIsBlock));
+        auto handle = [this, &node]<typename TT>(const TT& data) {
+            if (ImGui::Button("Send##download")) {
+                m_downloadRequestQueue.push_back(
+                  node.sdoInterface()->downloadData(static_cast<uint16_t>(m_downloadRequestIndex),
+                                                    static_cast<uint8_t>(m_downloadRequestSubIndex),
+                                                    data,
+                                                    m_downloadRequestTimeout,
+                                                    m_downloadRequestIsBlock));
+            }
+        };
+
+        using DataArray = std::array<char, 128>;
+        if constexpr (std::same_as<T, DataArray>) {
+            const auto& data = std::get<DataArray>(m_downloadRequestData);
+            std::vector<uint8_t> vec;
+            vec.reserve(data.size());
+            const auto* ptr = data.data();
+            while(*ptr != 0) {
+                vec.push_back(*ptr);
+                ptr++;
+            }
+            vec.push_back(0);
+            handle(vec);
+        }
+        else {
+            handle(std::get<T>(m_downloadRequestData));
         }
     };
 
