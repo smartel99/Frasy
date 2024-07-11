@@ -178,6 +178,6 @@ project "Demo"
    postbuildcommands {
        "{CMD_COPYDIR} " .. FrasyDir .. "/Frasy/assets bin/" .. outputdir .. "/%{prj.name}/assets",
        "{CMD_RMDIR} bin/" .. outputdir .. "/%{prj.name}/lua",
-       "{CMD_COPYDIR} " .. FrasyDir .. "/Frasy/lua bin/" .. outputdir .. "/%{prj.name}/lua/core",
-       "{CMD_COPYDIR} src/lua bin/" .. outputdir .. "/%{prj.name}/lua/user",
+       "{CMD_COPYDIR} " .. FrasyDir .. "/Frasy/lua/core bin/" .. outputdir .. "/%{prj.name}/lua/core",
+       "{CMD_COPYDIR} src/lua/user bin/" .. outputdir .. "/%{prj.name}/lua/user",
    }
