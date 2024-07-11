@@ -885,7 +885,7 @@ end
 ---@param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
 ---@param impN DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
 ---@param range DAQ_ImpedanceRangeResistorEnum?
----@param guards DAQ_RoutingPointsEnum[]
+---@param guards DAQ_RoutingPointsEnum[]?
 ---@param voltage number?
 ---@param delay integer?
 ---@param samplesToTake integer?

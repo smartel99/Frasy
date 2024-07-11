@@ -124,6 +124,7 @@ public:
     [[nodiscard]] UutState GetUutState(std::size_t uut) const;
     void                   setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
     void                   setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
+    void                   setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
 
 private:
     bool        CreateOutputDirs();
@@ -166,6 +167,10 @@ private:
 
     std::function<void(sol::state_view lua)>       m_loadUserFunctions = [](sol::state_view lua) {};
     std::function<sol::table(sol::state_view lua)> m_loadUserBoards    = [](sol::state_view lua) {
+        return lua.create_table();
+    };
+    std::function<sol::table(sol::state_view lua)> m_loadUserValues = [](sol::state_view lua) {
+        // Values will be available at Context.values.gui
         return lua.create_table();
     };
     Models::Solution m_solution = {};

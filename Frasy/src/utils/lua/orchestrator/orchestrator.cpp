@@ -157,6 +157,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["Context"]["info"]["uut"]     = uut;
         lua["Context"]["info"]["version"] = "0.1.0";
         std::atomic_thread_fence(std::memory_order_release);
+        lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
 
         // Utils
         lua.require_file("Utils", "lua/core/utils/module.lua");
@@ -703,6 +704,12 @@ void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_v
 {
     m_loadUserBoards = callback;
 }
+
+void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback)
+{
+    m_loadUserValues = callback;
+}
+
 // </editor-fold>
 
 
