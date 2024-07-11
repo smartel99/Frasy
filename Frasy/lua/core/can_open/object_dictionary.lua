@@ -31,6 +31,7 @@ end
 ---@field parameterName string
 ---@field objectType integer?
 ---@field dataType integer?
+---@field stringLengthMin integer?
 ---@field accessType string
 ---@field defaultValue OdEntryType
 ---@field pdoMapping integer?
@@ -53,6 +54,7 @@ local function ParseVarEntry(field)
     }
     entry.objectType = tonumber(field["ObjectType"])
     entry.dataType = tonumber(field["DataType"])
+    entry.stringLengthMin = tonumber(field["StringLengthMin"])
     entry.pdoMapping = tonumber(field["PDOMapping"])
     --FIXME defaultValue may be a string (or just not a number). Parse according to dataType.
     entry.defaultValue = ParseNumber(field["DefaultValue"])

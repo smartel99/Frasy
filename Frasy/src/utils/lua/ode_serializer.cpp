@@ -118,23 +118,20 @@ std::vector<uint8_t> serializeOdeValue(const sol::table& ode, const sol::object&
 
         case DataType::visibleString: {
             auto str = value.as<std::string>();
-            // TODO We need to zero-pad the string to match the field's length. This information is not in the OD entry.
-            // auto fieldLen = ode["<len>"].get<uint32_t>();
-            // if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
+            auto fieldLen = ode["StringLengthMin"].get<uint32_t>();
+            if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
             return std::vector<uint8_t>(str.begin(), str.end());
         }
         case DataType::octetString: {
             auto str = value.as<std::string>();
-            // TODO We need to zero-pad the string to match the field's length. This information is not in the OD entry.
-            // auto fieldLen = ode["<len>"].get<uint32_t>();
-            // if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
+            auto fieldLen = ode["StringLengthMin"].get<uint32_t>();
+            if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
             return std::vector<uint8_t>(str.begin(), str.end());
         }
         case DataType::unicodeString: {
             auto str = value.as<std::string>();
-            // TODO We need to zero-pad the string to match the field's length. This information is not in the OD entry.
-            // auto fieldLen = ode["<len>"].get<uint32_t>();
-            // if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
+            auto fieldLen = ode["StringLengthMin"].get<uint32_t>();
+            if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
             return std::vector<uint8_t>(str.begin(), str.end());
         }
         case DataType::domain: return value.as<std::vector<uint8_t>>();
