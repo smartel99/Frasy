@@ -44,11 +44,16 @@ Device& Device::operator=(Device&& o) noexcept
     m_queue = std::move(o.m_queue);
     m_muted = o.m_muted.load();
 
-    serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
-    m_device.setTimeout(timeout);
-    m_device.setBaudrate(921600);
-    m_device.setPort(o.m_device.getPort());
-    if (reopen) { open(); }
+    try {
+        serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
+        m_device.setTimeout(timeout);
+        m_device.setBaudrate(921'600);
+        m_device.setPort(o.m_device.getPort());
+        if (reopen) { open(); }
+    }
+    catch (std::exception& e) {
+        BR_LOG_ERROR(m_label, "Unable to configure port '{}': {}", o.m_device.getPort(), e.what());
+    }
     return *this;
 }
 
