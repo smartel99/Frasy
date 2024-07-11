@@ -258,7 +258,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             }
             auto result = request.future.get();
             if (result != CO_SDO_RT_ok_communicationEnd) {
-                throw sol::error(std::format("Request failed: {}", result));
+                throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}", static_cast<int>(result), result, request.abortCode()));
             }
         };
 
