@@ -158,8 +158,9 @@ function DAQ:RequestRouting(points)
         if not IsInteger(v) then error("Invalid point: [" .. k .. "] " .. tostring(v)) end
         table.insert(sPoints, v)
     end
+    table.insert(sPoints, 0)
 
-    local sPointsAsStr = StringizeValues(table.unpack(sPoints), 0)
+    local sPointsAsStr = StringizeValues(table.unpack(sPoints))
     self.ib:Download(self.ib.od["Routing"]["Request Routing"], sPointsAsStr)
     -- Might need a delay
     return self.ib:Upload(self.ib.od["Routing"]["Last Result"]) --[[@as DAQ_RoutingBusEnum]]
@@ -469,7 +470,6 @@ end
 function DAQ:SpiGpioValues(value)
     --- TODO
 end
-
 
 --- Property for SPI GPIO Values
 --- Valid only when SPI is set into gpio mode
@@ -854,12 +854,18 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     points = PointToPoints(points)
     if IsPointsOk(points) then error("Invalid points") end
     if channel == nil then channel = DAQ.MeasureVoltageDefault.channel end
-    CheckField(channel, "Channel", function(ch) return ch == DAQ.AdcChannelEnum.adc2 or ch == DAQ.AdcChannelEnum.adc3 end)
+    CheckField(channel, "Channel", channel == DAQ.AdcChannelEnum.adc2 or channel == DAQ.AdcChannelEnum.adc3)
     if samplesToTake == nil then samplesToTake = DAQ.MeasureVoltageDefault.samplesToTake end
     if gain == nil then gain = DAQ.MeasureVoltageDefault.gain end
     if sampleRate == nil then sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
 
     local route = self:RequestRouting({ table.unpack(points), AdcChannelToTestPoint(channel) })
+
+    if route == -1 then
+        error("Unable to connect points to ADC!")
+    else
+        Log.D("Using bus "..route)
+    end
 
     self:AdcChannelGain(channel, gain)
     self:AdcSampleRate(sampleRate)
