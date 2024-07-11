@@ -235,7 +235,8 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
         // Get the first pending request in the queue.
         {
             std::unique_lock lock {m_downloadLock};
-            m_downloadCv.wait(lock, stopToken, [this] { return !m_pendingDownloadRequests.empty(); });
+            m_downloadCv.wait(lock, stopToken, [this]{ return !m_pendingDownloadRequests.empty(); });
+            // If we got out of the wait because of the stopToken, we don't want to handle an empty object.
             if (m_pendingDownloadRequests.empty()) { continue; }
             request = m_pendingDownloadRequests.front();
             m_pendingDownloadRequests.pop();

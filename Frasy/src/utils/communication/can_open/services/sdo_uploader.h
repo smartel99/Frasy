@@ -56,8 +56,8 @@ struct SdoUploadRequest {
             cancel();
             return;
         }
-        promise.set_value(res);
         status = SdoRequestStatus::Complete;
+        promise.set_value(res);
     }
 
     void cancel()
@@ -68,8 +68,8 @@ struct SdoUploadRequest {
     void abort(CO_SDO_abortCode_t code)
     {
         abortCode = code;
-        promise.set_value(std::unexpected {CO_SDO_RT_endedWithClientAbort});
         status    = SdoRequestStatus::Cancelled;
+        promise.set_value(std::unexpected {CO_SDO_RT_endedWithClientAbort});
     }
 };
 

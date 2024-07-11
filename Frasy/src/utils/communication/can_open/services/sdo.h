@@ -80,12 +80,7 @@ public:
     {
         SdoDownloadDataResult result;
         result.m_request = std::make_unique<SdoDownloadRequest>(
-          SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, [&data] {
-              std::vector<uint8_t> tmp {};
-              tmp.reserve(data.size());
-              tmp.insert(tmp.begin(), data.begin(), data.end());
-              return tmp;
-          }());
+          SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, data);
 
         result.future = result.m_request->promise.get_future();
 

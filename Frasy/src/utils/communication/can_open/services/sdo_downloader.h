@@ -54,8 +54,8 @@ struct SdoDownloadRequest {
             cancel();
             return;
         }
-        promise.set_value(res);
         status = SdoRequestStatus::Complete;
+        promise.set_value(res);
     }
 
     void cancel() { abort(CO_SDO_AB_GENERAL); }
@@ -63,8 +63,8 @@ struct SdoDownloadRequest {
     void abort(CO_SDO_abortCode_t code)
     {
         abortCode = code;
-        promise.set_value(CO_SDO_RT_endedWithClientAbort);
         status    = SdoRequestStatus::Cancelled;
+        promise.set_value(CO_SDO_RT_endedWithClientAbort);
     }
 };
 
