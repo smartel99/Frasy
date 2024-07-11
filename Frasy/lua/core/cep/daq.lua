@@ -12,6 +12,7 @@ local IsFloatIn = require("lua/core/utils/is_float/is_float_in")
 local IsFloatInOd = require("lua/core/utils/is_float/is_float_in_od")
 local TimeoutFunction = require("lua/core/utils/timeout")
 local CheckField = require("lua/core/utils/check_field")
+local StringizeValues = require("lua/core/utils/stringize_values")
 
 ---@class DAQ_CacheIo
 ---@field mode DAQ_IoModeEnum
@@ -157,8 +158,9 @@ function DAQ:RequestRouting(points)
         if not IsInteger(v) then error("Invalid point: [" .. k .. "] " .. tostring(v)) end
         table.insert(sPoints, v)
     end
-    table.insert(sPoints, 0)
-    self.ib:Download(self.ib.od["Routing"]["Request Routing"], sPoints)
+
+    local sPointsAsStr = StringizeValues(table.unpack(sPoints), 0)
+    self.ib:Download(self.ib.od["Routing"]["Request Routing"], sPointsAsStr)
     -- Might need a delay
     return self.ib:Upload(self.ib.od["Routing"]["Last Result"]) --[[@as DAQ_RoutingBusEnum]]
 end
@@ -201,7 +203,7 @@ end
 
 ---Gets or sets the amplitude of the DAC, in volt.
 ---@param amplitude? number
----@return number?
+---@return number? amplitude
 function DAQ:DacAmplitude(amplitude)
     local od = self.ib.od["DAC"]["Amplitude"]
     if amplitude == nil then

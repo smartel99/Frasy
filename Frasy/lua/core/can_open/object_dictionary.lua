@@ -22,7 +22,7 @@ local function ParseNumber(field)
     end
 end
 
----@alias OdEntryType number|integer|string|boolean|nil
+---@alias OdEntryType number|integer|string|boolean|table|nil
 ---@alias OdEntryArrayType number[]|integer[]|string[]|boolean[]
 
 ---@class OdEntry

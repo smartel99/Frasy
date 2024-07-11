@@ -8,8 +8,8 @@ Description=
 CreationTime=1:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=5:07PM
-ModificationDate=07-09-2024
+ModificationTime=12:35PM
+ModificationDate=07-10-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -1093,6 +1093,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0006
 AccessType=rw
+HighLimit=1000
+LowLimit=0
 DefaultValue=0
 PDOMapping=0
 
@@ -1102,6 +1104,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+HighLimit=19
+LowLimit=0
 DefaultValue=10
 PDOMapping=0
 
@@ -1111,6 +1115,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+HighLimit=4
+LowLimit=0
 DefaultValue=0
 PDOMapping=0
 
@@ -1120,6 +1126,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+HighLimit=4
+LowLimit=0
 DefaultValue=0
 PDOMapping=0
 
@@ -1129,6 +1137,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+HighLimit=4
+LowLimit=0
 DefaultValue=0
 PDOMapping=0
 
@@ -1138,6 +1148,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+HighLimit=4
+LowLimit=0
 DefaultValue=0
 PDOMapping=0
 
