@@ -12,7 +12,7 @@ local CheckField = require("lua/core/utils/check_field")
 PIO = {
     ib = nil,
     cache = {
-        gpio = { input = 0, output = 0, polarity = 0, configuration = 0x0FFF }
+        gpio = { output = 0, polarity = 0, configuration = 0x0FFF }
     }
 }
 PIO.__index = PIO
@@ -96,7 +96,7 @@ function PIO:New(name, nodeId)
     ib.eds = "lua/core/cep/eds/pio_1.0.0.eds"
     return setmetatable({
         ib = ib,
-        cache = { gpio = { polarity = 0, configuration = 0x3FF } }
+        cache = { gpio = { output = 0, polarity = 0, configuration = 0x3FF } }
     }, PIO)
 end
 

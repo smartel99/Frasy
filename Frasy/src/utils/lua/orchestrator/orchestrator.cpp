@@ -251,7 +251,8 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             auto sValue            = serializeOdeValue(ode, value);
             auto request           = interface->downloadData(index, subIndex, sValue);
             request.future.wait();
-            if (request.status() != CanOpen::SdoRequestStatus::Complete) {
+            if (request.status() != CanOpen::SdoRequestStatus::Complete &&
+                  request.status() != CanOpen::SdoRequestStatus::Cancelled) {
                 throw sol::error(std::format("Request failed: {}", request.status()));
             }
             auto result = request.future.get();
