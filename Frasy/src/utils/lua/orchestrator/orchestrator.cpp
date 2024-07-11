@@ -253,12 +253,13 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             auto request           = interface->downloadData(index, subIndex, sValue);
             request.future.wait();
             if (request.status() != CanOpen::SdoRequestStatus::Complete &&
-                  request.status() != CanOpen::SdoRequestStatus::Cancelled) {
+                request.status() != CanOpen::SdoRequestStatus::Cancelled) {
                 throw sol::error(std::format("Request failed: {}", request.status()));
             }
             auto result = request.future.get();
             if (result != CO_SDO_RT_ok_communicationEnd) {
-                throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}", static_cast<int>(result), result, request.abortCode()));
+                throw sol::error(std::format(
+                  "Request failed with code {}: {}\nExtra: {}", static_cast<int>(result), result, request.abortCode()));
             }
         };
 
