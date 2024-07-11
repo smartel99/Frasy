@@ -235,7 +235,7 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
         // Get the first pending request in the queue.
         {
             std::unique_lock lock {m_downloadLock};
-            m_downloadCv.wait(lock, stopToken, [this]{ return !m_pendingDownloadRequests.empty(); });
+            m_downloadCv.wait(lock, stopToken, [this] { return !m_pendingDownloadRequests.empty(); });
             // If we got out of the wait because of the stopToken, we don't want to handle an empty object.
             if (m_pendingDownloadRequests.empty()) { continue; }
             request = m_pendingDownloadRequests.front();
@@ -273,6 +273,12 @@ void SdoManager::handleDownloadRequest(SdoDownloadRequest& request)
     auto     last  = steady_clock::now();
     uint32_t delta = 0;
     // Upload the data.
+    size_t lastTransSize = -1;
+    // Write a first bunch of data into the buffer.
+    size_t totalBytesWritten =
+      CO_SDOclientDownloadBufWrite(m_sdoClient,
+                                   request.data.data() + request.sizeTransferred,
+                                   request.data.size() - std::min(request.sizeTransferred, request.data.size()));
     do {
         if (request.status == SdoRequestStatus::CancelRequested) {
             request.cancel();
@@ -280,18 +286,25 @@ void SdoManager::handleDownloadRequest(SdoDownloadRequest& request)
         }
         uint32_t timeToSleep = 1'000;    // 1ms
 
-        // Fill data.
-        size_t written = CO_SDOclientDownloadBufWrite(
-          m_sdoClient, request.data.data() + request.sizeTransferred, request.data.size() - request.sizeTransferred);
-        bool bufferComplete = request.sizeTransferred + written == request.data.size();
+        // Fill data if we need to send the next packet.
+        size_t written = 0;
+        if (request.sizeTransferred == totalBytesWritten) {
+            written = CO_SDOclientDownloadBufWrite(m_sdoClient,
+                                                   request.data.data() + request.sizeTransferred,
+                                                   request.data.size() -
+                                                     std::min(request.sizeTransferred, request.data.size()));
+            totalBytesWritten += written;
+            BR_LOG_DEBUG(
+              s_cliTag, "Written {} more bytes to buffer. ({}/{})", written, totalBytesWritten, request.data.size());
+        }
+        bool bufferPartial = totalBytesWritten < request.data.size();
 
-        size_t transfered = 0;
-        ret               = CO_SDOclientDownload(m_sdoClient,
+        ret = CO_SDOclientDownload(m_sdoClient,
                                    delta,
                                    request.abortCode != CO_SDO_AB_NONE && request.status != SdoRequestStatus::OnGoing,
-                                   bufferComplete,
+                                   bufferPartial,
                                    &request.abortCode,
-                                   &transfered,
+                                   &request.sizeTransferred,
                                    &timeToSleep);
         if (ret < 0) {
             // < 0 = error code, we gotta stop.
@@ -299,7 +312,14 @@ void SdoManager::handleDownloadRequest(SdoDownloadRequest& request)
             return;
         }
 
-        request.sizeTransferred += transfered;
+        if (request.sizeTransferred != lastTransSize) {
+            lastTransSize = request.sizeTransferred;
+            BR_LOG_DEBUG(s_cliTag,
+                         "Transfered {} bytes over to remote node. ({}/{})",
+                         request.sizeTransferred,
+                         request.sizeTransferred,
+                         request.data.size());
+        }
 
         delta = duration_cast<microseconds>(steady_clock::now() - last).count();
         last  = steady_clock::now();
