@@ -18,5 +18,5 @@ return {
     ToString = require("lua/core/utils/tostring"),
     Equals = require("lua/core/utils/equals"),
     Traverse = require("lua/core/utils/traverse"),
-    LineSplit = require('lua.core.utils.linesplit')
+    LineSplit = require("lua.core.utils.linesplit"),
 }
