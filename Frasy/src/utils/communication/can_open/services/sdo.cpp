@@ -19,6 +19,7 @@
 
 #include "../can_open.h"
 #include "../to_string.h"
+#include <tuple>
 
 #include <Brigerad/Core/Log.h>
 #include <Brigerad/Debug/Instrumentor.h>
@@ -84,11 +85,12 @@ OD_entry_t SdoManager::makeSdoClientOdEntry() const
     return {static_cast<uint16_t>(s_sdoClientBaseAddress + m_nodeId), 0x04, ODT_REC, m_odObjRecord.get(), nullptr};
 }
 
-SdoUploadDataResult SdoManager::uploadData(uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs, bool isBlock)
+SdoUploadDataResult SdoManager::uploadData(
+  uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs, uint8_t tries, bool isBlock)
 {
     SdoUploadDataResult result;
     result.m_request = std::make_shared<SdoUploadRequest>(
-      SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs);
+      SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, tries);
 
     result.future = result.m_request->promise.get_future();
 
@@ -149,22 +151,39 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
         }
 
         request->status = SdoRequestStatus::OnGoing;
-        handleUploadRequest(*request);
+
+        CO_SDO_return_t lastReturn = CO_SDO_RT_ok_communicationEnd;
+        for (int i = 0; i < request->tries; ++i) {
+            auto [handlerCode, coCode] = handleUploadRequest(*request);
+            lastReturn                 = coCode;
+            if (handlerCode == HandlerReturnCode::ok) {
+                request->markAsComplete(std::span(request->data));
+                break;
+            }
+            if (handlerCode == HandlerReturnCode::cancel) {
+                request->cancel();
+                break;
+            }
+            BR_APP_WARN("SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, Try {}, CO code {}",
+                        request->nodeId,
+                        request->index,
+                        request->subIndex,
+                        i,
+                        coCode);
+        }
+        if (request->status == SdoRequestStatus::OnGoing) { request->markAsComplete(std::unexpected(lastReturn)); }
     }
 
     m_isUploadWorkerActive = false;
 }
 
-void SdoManager::handleUploadRequest(SdoUploadRequest& request)
+std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUploadRequest(SdoUploadRequest& request)
 {
     BR_PROFILE_FUNCTION();
     // Initiate the upload.
     auto ret =
       CO_SDOclientUploadInitiate(m_sdoClient, request.index, request.subIndex, request.sdoTimeoutMs, request.isBlock);
-    if (ret != CO_SDO_RT_ok_communicationEnd) {
-        request.markAsComplete(std::unexpected(ret));
-        return;
-    }
+    if (ret != CO_SDO_RT_ok_communicationEnd) { return std::make_tuple(HandlerReturnCode::error, ret); }
 
     using std::chrono::duration_cast;
     using std::chrono::microseconds;
@@ -175,10 +194,9 @@ void SdoManager::handleUploadRequest(SdoUploadRequest& request)
     // Upload the data.
     do {
         if (request.status == SdoRequestStatus::CancelRequested) {
-            request.cancel();
-            return;
+            return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_RT_ok_communicationEnd);
         }
-        uint32_t timeToSleep = 1'000;    // 1ms
+        uint32_t timeToSleep = 1000;    // 1ms
 
         // Check and update the status of the upload.
         ret = CO_SDOclientUpload(m_sdoClient,
@@ -191,8 +209,7 @@ void SdoManager::handleUploadRequest(SdoUploadRequest& request)
 
         if (ret < 0) {
             // < 0 = error code, we gotta stop.
-            request.markAsComplete(std::unexpected(ret));
-            return;
+            return std::make_tuple(HandlerReturnCode::error, ret);
         }
 
         if (ret == CO_SDO_RT_uploadDataBufferFull) {
@@ -213,7 +230,7 @@ void SdoManager::handleUploadRequest(SdoUploadRequest& request)
                  request.nodeId,
                  request.index,
                  request.subIndex);
-    request.markAsComplete(std::span {request.data});
+    return std::make_tuple(HandlerReturnCode::ok, ret);
 }
 
 void SdoManager::readUploadBufferIntoRequest(SdoUploadRequest& request)
@@ -249,21 +266,40 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
         }
 
         request->status = SdoRequestStatus::OnGoing;
-        handleDownloadRequest(*request);
+        for (uint8_t i = 1; i <= request->tries; ++i) {
+            auto [handlerCode, coCode] = handleDownloadRequest(*request);
+            if (handlerCode == HandlerReturnCode::ok) {
+                request->markAsComplete(coCode);
+                break;
+            }
+            if (handlerCode == HandlerReturnCode::cancel) {
+                request->cancel();
+                break;
+            }
+            BR_APP_WARN("SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, Try {}, CO code {}",
+                        request->nodeId,
+                        request->index,
+                        request->subIndex,
+                        i,
+                        (int)coCode);
+            if (i == request->tries) { request->markAsComplete(coCode); }
+        }
     }
 
     m_isDownloadWorkerActive = false;
 }
 
-void SdoManager::handleDownloadRequest(SdoDownloadRequest& request)
+std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDownloadRequest(
+  SdoDownloadRequest& request)
 {
     BR_PROFILE_FUNCTION();
     // Initiate the download.
     auto ret = CO_SDOclientDownloadInitiate(
       m_sdoClient, request.index, request.subIndex, request.data.size(), request.sdoTimeoutMs, request.isBlock);
     if (ret != CO_SDO_RT_ok_communicationEnd) {
-        request.markAsComplete(ret);
-        return;
+        return std::make_tuple(HandlerReturnCode::error, ret);
+        // request.markAsComplete(ret);
+        // return;
     }
 
     using std::chrono::duration_cast;
@@ -279,12 +315,12 @@ void SdoManager::handleDownloadRequest(SdoDownloadRequest& request)
       CO_SDOclientDownloadBufWrite(m_sdoClient,
                                    request.data.data() + request.sizeTransferred,
                                    request.data.size() - std::min(request.sizeTransferred, request.data.size()));
+    uint8_t tries = request.tries;
     do {
         if (request.status == SdoRequestStatus::CancelRequested) {
-            request.cancel();
-            return;
+            return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_return_t::CO_SDO_RT_ok_communicationEnd);
         }
-        uint32_t timeToSleep = 1'000;    // 1ms
+        uint32_t timeToSleep = 1000;    // 1ms
 
         // Fill data if we need to send the next packet.
         size_t written = 0;
@@ -308,8 +344,7 @@ void SdoManager::handleDownloadRequest(SdoDownloadRequest& request)
                                    &timeToSleep);
         if (ret < 0) {
             // < 0 = error code, we gotta stop.
-            request.markAsComplete(ret);
-            return;
+            return std::make_tuple(HandlerReturnCode::error, ret);
         }
 
         if (request.sizeTransferred != lastTransSize) {
@@ -326,7 +361,7 @@ void SdoManager::handleDownloadRequest(SdoDownloadRequest& request)
         std::this_thread::sleep_for(microseconds {timeToSleep});
     } while (ret != CO_SDO_RT_ok_communicationEnd);
 
-    request.markAsComplete(ret);
+    return std::make_tuple(HandlerReturnCode::ok, ret);
 }
 
 void SdoManager::setNodeId(uint8_t nodeId)

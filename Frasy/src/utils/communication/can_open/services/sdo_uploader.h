@@ -34,11 +34,12 @@ namespace Frasy::CanOpen {
 
 struct SdoUploadRequest {
     SdoRequestStatus status       = SdoRequestStatus::Unknown;
-    uint8_t                nodeId       = 0;
-    uint16_t               index        = 0;
-    uint8_t                subIndex     = 0;
-    bool                   isBlock      = false;
-    uint16_t               sdoTimeoutMs = 1000;
+    uint8_t          nodeId       = 0;
+    uint16_t         index        = 0;
+    uint8_t          subIndex     = 0;
+    bool             isBlock      = false;
+    uint16_t         sdoTimeoutMs = 1000;
+    uint8_t          tries        = 5;
 
     //! Total size of the data which will be transferred. It is optionally used by the server.
     size_t sizeIndicated = 0;
@@ -60,10 +61,7 @@ struct SdoUploadRequest {
         promise.set_value(res);
     }
 
-    void cancel()
-    {
-        abort(CO_SDO_AB_GENERAL);
-    }
+    void cancel() { abort(CO_SDO_AB_GENERAL); }
 
     void abort(CO_SDO_abortCode_t code)
     {
@@ -74,11 +72,11 @@ struct SdoUploadRequest {
 };
 
 struct SdoUploadDataResult {
-    [[nodiscard]] SdoRequestStatus status() const { return m_request->status; }
-    [[nodiscard]] uint8_t                nodeId() const { return m_request->nodeId; }
-    [[nodiscard]] uint16_t               index() const { return m_request->index; }
-    [[nodiscard]] uint8_t                subIndex() const { return m_request->subIndex; }
-    [[nodiscard]] CO_SDO_abortCode_t     abortCode() const { return m_request->abortCode; }
+    [[nodiscard]] SdoRequestStatus   status() const { return m_request->status; }
+    [[nodiscard]] uint8_t            nodeId() const { return m_request->nodeId; }
+    [[nodiscard]] uint16_t           index() const { return m_request->index; }
+    [[nodiscard]] uint8_t            subIndex() const { return m_request->subIndex; }
+    [[nodiscard]] CO_SDO_abortCode_t abortCode() const { return m_request->abortCode; }
     //! Total size of the data which will be transferred. It is optionally used by the server.
     [[nodiscard]] size_t sizeIndicated() const { return m_request->sizeIndicated; }
     //! Number of bytes that has been sent so far.
