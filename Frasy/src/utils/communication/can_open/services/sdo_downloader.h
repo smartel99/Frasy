@@ -38,7 +38,7 @@ struct SdoDownloadRequest {
     uint8_t          subIndex     = 0;
     bool             isBlock      = false;
     uint16_t         sdoTimeoutMs = 1000;
-    uint8_t          tries        = 5;
+    uint8_t          retries      = 5;    // number of time it will retry the transfer if needed.
 
     std::vector<uint8_t> data;
 

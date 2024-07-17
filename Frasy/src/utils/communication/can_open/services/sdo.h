@@ -68,18 +68,18 @@ public:
      * can be used to keep track of the transfer. On failure, returns the reason.
      */
     SdoUploadDataResult uploadData(
-      uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs = 1000, uint8_t tries = 5, bool isBlock = false);
+      uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs = 1000, uint8_t retries = 5, bool isBlock = false);
 
     SdoDownloadDataResult downloadData(uint16_t                    index,
                                        uint8_t                     subIndex,
                                        const std::vector<uint8_t>& data,
                                        uint16_t                    sdoTimeoutTimeMs = 1000,
-                                       uint8_t                     tries            = 5,
+                                       uint8_t                     retries          = 5,
                                        bool                        isBlock          = false)
     {
         SdoDownloadDataResult result;
         result.m_request = std::make_unique<SdoDownloadRequest>(
-          SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, tries, data);
+          SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, retries, data);
 
         result.future = result.m_request->promise.get_future();
 

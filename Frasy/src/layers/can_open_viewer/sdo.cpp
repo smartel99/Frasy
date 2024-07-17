@@ -118,7 +118,7 @@ void Sdo::renderUploadRequestMaker(CanOpen::Node& node)
     ImGui::SliderInt("Index##upload", &m_uploadRequestIndex, 0, 65535, "0x%04x");
     ImGui::SliderInt("Sub Index##upload", &m_uploadRequestSubIndex, 0, 255, "0x%02x");
     ImGui::SliderInt("Timeout##upload", &m_uploadRequestTimeout, 0, 65535, "%d ms");
-    ImGui::SliderInt("Tries##upload", &m_uploadRequestTries, 1, 255, "%d");
+    ImGui::SliderInt("Retries##upload", &m_uploadRequestTries, 0, 255, "%d");
     ImGui::Checkbox("Is Block##upload", &m_uploadRequestIsBlock);
     if (ImGui::Button("Send##upload")) {
         m_uploadRequestQueue.push_back(node.sdoInterface()->uploadData(static_cast<uint16_t>(m_uploadRequestIndex),
@@ -230,7 +230,7 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
     ImGui::SliderInt("Index##download", &m_downloadRequestIndex, 0, 65535, "0x%04x");
     ImGui::SliderInt("Sub Index##download", &m_downloadRequestSubIndex, 0, 255, "0x%02x");
     ImGui::SliderInt("Timeout##download", &m_downloadRequestTimeout, 0, 65535, "%d ms");
-    ImGui::SliderInt("Tries##download", &m_downloadRequestTries, 1, 255, "%d");
+    ImGui::SliderInt("Retries##download", &m_downloadRequestTries, 0, 255, "%d");
     ImGui::Checkbox("Is Block##download", &m_downloadRequestIsBlock);
     if (ImGui::BeginCombo("Type##download", toString(m_downloadRequestType).data())) {
         for (VarType type = VarType::Boolean; type < VarType::Max; type++) {

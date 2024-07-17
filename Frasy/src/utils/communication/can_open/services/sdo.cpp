@@ -86,11 +86,11 @@ OD_entry_t SdoManager::makeSdoClientOdEntry() const
 }
 
 SdoUploadDataResult SdoManager::uploadData(
-  uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs, uint8_t tries, bool isBlock)
+  uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs, uint8_t retries, bool isBlock)
 {
     SdoUploadDataResult result;
     result.m_request = std::make_shared<SdoUploadRequest>(
-      SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, tries);
+      SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, retries);
 
     result.future = result.m_request->promise.get_future();
 
@@ -153,7 +153,7 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
         request->status = SdoRequestStatus::OnGoing;
 
         CO_SDO_return_t lastReturn = CO_SDO_RT_ok_communicationEnd;
-        for (int i = 0; i < request->tries; ++i) {
+        for (int i = 0; i <= request->retries; ++i) {
             auto [handlerCode, coCode] = handleUploadRequest(*request);
             lastReturn                 = coCode;
             if (handlerCode == HandlerReturnCode::ok) {
@@ -164,11 +164,12 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
                 request->cancel();
                 break;
             }
-            BR_APP_WARN("SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, Try {}, CO code {}",
+            BR_APP_WARN("SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, attempt {}, abort code {}, CO code {}",
                         request->nodeId,
                         request->index,
                         request->subIndex,
-                        i,
+                        i + 1,
+                        request->abortCode,
                         coCode);
         }
         if (request->status == SdoRequestStatus::OnGoing) { request->markAsComplete(std::unexpected(lastReturn)); }
@@ -266,7 +267,7 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
         }
 
         request->status = SdoRequestStatus::OnGoing;
-        for (uint8_t i = 1; i <= request->tries; ++i) {
+        for (uint8_t i = 0; i <= request->retries; ++i) {
             auto [handlerCode, coCode] = handleDownloadRequest(*request);
             if (handlerCode == HandlerReturnCode::ok) {
                 request->markAsComplete(coCode);
@@ -276,13 +277,14 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
                 request->cancel();
                 break;
             }
-            BR_APP_WARN("SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, Try {}, CO code {}",
+            BR_APP_WARN("SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, attempt {}, abort code {}, CO code {}",
                         request->nodeId,
                         request->index,
                         request->subIndex,
-                        i,
-                        (int)coCode);
-            if (i == request->tries) { request->markAsComplete(coCode); }
+                        i + 1,
+                        request->abortCode,
+                        coCode);
+            if (i == request->retries) { request->markAsComplete(coCode); }
         }
     }
 
@@ -315,7 +317,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
       CO_SDOclientDownloadBufWrite(m_sdoClient,
                                    request.data.data() + request.sizeTransferred,
                                    request.data.size() - std::min(request.sizeTransferred, request.data.size()));
-    uint8_t tries = request.tries;
+    uint8_t tries = request.retries;
     do {
         if (request.status == SdoRequestStatus::CancelRequested) {
             return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_return_t::CO_SDO_RT_ok_communicationEnd);
