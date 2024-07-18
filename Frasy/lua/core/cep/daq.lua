@@ -1,5 +1,6 @@
 ---@type Ib
 local Ib = require("lua/core/sdk/environment/ib")
+local Bitwise = require("lua/core/utils/bitwise")
 local IsBoolean = require("lua/core/utils/is_boolean")
 local IsInteger = require("lua/core/utils/is_integer/is_integer")
 local IsIntegerIn = require("lua/core/utils/is_integer/is_integer_in")
@@ -243,34 +244,18 @@ end
 
 -- IO
 ---@enum DAQ_IoEnum
-DAQ.IoEnum = { a = 1, b = 2 }
+DAQ.IoEnum = { a = 1, b = 2, spiUutSck = 3, spiUutMosi = 4, spiUutMiso = 5, i2cUutScl = 6, i2cUutSda = 7, uartUutTx = 8, uartUutRx = 9 }
 ---@enum DAQ_IoModeEnum
 DAQ.IoModeEnum = { input = 0, output = 1 }
 ---@enum DAQ_IoValueEnum
 DAQ.IoValueEnum = { low = 0, high = 1 }
-local function CheckIo(io) CheckField(io, "io", IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.b)) end
-local function ExtractIoEntry(io, value)
-    if io == DAQ.IoEnum.a then
-        return value & 1
-    else
-        return (value >> 1) & 1
-    end
-end
-local function InjectIoEntry(io, value, cache)
-    if io == DAQ.IoEnum.a then
-        cache = cache & 0x2
-        return cache | (value & 1)
-    else
-        cache = cache & 0x1
-        return cache | ((value << 1) & 1)
-    end
-end
+
+local function CheckIo(io) CheckField(io, "io", IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.uartUutRx)) end
 
 ---Gets or set the mode of the IOs.
 ---@param value? DAQ_IoModeEnum
 ---@return DAQ_IoModeEnum?
 function DAQ:IoModes(value)
-    CheckIo(io)
     local od = self.ib.od["IO"]["Mode"]
     if (value == nil) then
         self.cache.io.mode = self.ib:Upload(od) --[[@as DAQ_IoModeEnum]]
@@ -288,9 +273,9 @@ end
 function DAQ:IoMode(io, mode)
     CheckIo(io)
     if mode == nil then
-        return ExtractIoEntry(io, self:IoModes())
+        return Bitwise.Extract(io, self:IoModes())
     else
-        self:IoModes(InjectIoEntry(io, mode, self.cache.io.mode))
+        self:IoModes(Bitwise.Inject(io, mode, self.cache.io.mode))
     end
 end
 
@@ -298,7 +283,6 @@ end
 ---@param value? DAQ_IoValueEnum
 ---@return DAQ_IoValueEnum?
 function DAQ:IoValues(value)
-    CheckIo(io)
     local od = self.ib.od["IO"]["Value"]
     if (value == nil) then
         self.cache.io.value = self.ib:Upload(od) --[[@as DAQ_IoValueEnum]]
@@ -316,9 +300,9 @@ end
 function DAQ:IoValue(io, value)
     CheckIo(io)
     if value == nil then
-        return ExtractIoEntry(io, self:IoValues())
+        return Bitwise.Extract(io, self:IoValues())
     else
-        self:IoValues(InjectIoEntry(io, value, self.cache.io.value))
+        self:IoValues(Bitwise.Inject(io, value, self.cache.io.value))
     end
 end
 
@@ -864,7 +848,7 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     if route == -1 then
         error("Unable to connect points to ADC!")
     else
-        Log.D("Using bus "..route)
+        Log.D("Using bus " .. route)
     end
 
     self:AdcChannelGain(channel, gain)

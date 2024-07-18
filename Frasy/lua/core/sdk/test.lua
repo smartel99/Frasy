@@ -24,6 +24,12 @@ function Sequence(name, func)
     end
 end
 
+---Defines a test to be ran, or fetches informations about a test.
+---
+---Must be called from within a Sequence.
+---@param name string Name of the test. This will appear in the log.
+---@param func function Body of the test.
+---@return table?
 function Test(name, func)
     if func == nil then
         return Orchestrator.GetTestScopeRequirement(name)

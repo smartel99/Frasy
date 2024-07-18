@@ -13,9 +13,18 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
+---@class PopupBuilder
+---@field name string Name of the popup, appears in the ImGui window.
+---@field elements table Elements of the popup.
+---@field global boolean
+---@field New function
+---@field Global function
+---@field Show function
+
 local PopupBuilder   = { name = "", elements = {}, global = false }
 PopupBuilder.__index = PopupBuilder
 
+---@enum ElementKind
 local ElementKind    = {
     text   = 0,
     input  = 1,
@@ -23,6 +32,9 @@ local ElementKind    = {
     image  = 3,
 }
 
+---Creates a new popup.
+---@param name string Name to be displayed.
+---@return PopupBuilder
 function PopupBuilder:New(name)
     if name == nil then name = "" end
     return setmetatable(
@@ -88,12 +100,16 @@ function PopupBuilder:Consume()
     end
 end
 
+---Displays the popup.
 function PopupBuilder:Show()
     if (Context.info.stage == Stage.execution) then
         __popup.Show(self)
     end
 end
 
+---Creates a new popup
+---@param name string? Name of the popup.
+---@return PopupBuilder
 function Popup(name)
     return PopupBuilder:New(name)
 end
