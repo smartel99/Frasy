@@ -244,7 +244,7 @@ end
 
 -- IO
 ---@enum DAQ_IoEnum
-DAQ.IoEnum = { a = 1, b = 2, spiUutSck = 3, spiUutMosi = 4, spiUutMiso = 5, i2cUutScl = 6, i2cUutSda = 7, uartUutTx = 8, uartUutRx = 9 }
+DAQ.IoEnum = { a = 0, b = 1, spiUutSck = 2, spiUutMosi = 3, spiUutMiso = 4, i2cUutScl = 5, i2cUutSda = 6, uartUutTx = 7, uartUutRx = 8 }
 ---@enum DAQ_IoModeEnum
 DAQ.IoModeEnum = { input = 0, output = 1 }
 ---@enum DAQ_IoValueEnum

@@ -51,7 +51,7 @@ Sequence("DAQ", function()
         ---@type DAQ
         local daq = Context.map.ibs.daq
 
-        daq:IoModes(0x1F)
+        daq:IoModes(0x1FF)
 
         for _, io in ipairs(ios) do
             daq:IoValue(DAQ.IoEnum[io], DAQ.IoValueEnum.high)
