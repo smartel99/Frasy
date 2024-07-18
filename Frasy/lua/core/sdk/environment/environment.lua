@@ -17,13 +17,13 @@ local _team = require("lua/core/sdk/environment/team")
 local _ib = require("lua/core/sdk/environment/ib")
 
 if (Context.map == nil) then
-    Context.map = {uuts = {}, ibs = {}, team = {}, values = {}}
+    Context.map = { uuts = {}, ibs = {}, team = {}, values = {}, onReport = function(report) return report end }
 end
 
 if (Ibs == nil) then Ibs = {} end
 
----Environment
----@param func function Function that defines the environment.
+--- Environment
+--- @param func function Function that defines the environment.
 local function MakeEnvironment(func)
     func()
     -- _map.validate()
@@ -31,7 +31,7 @@ local function MakeEnvironment(func)
     _worker.Evaluate()
 end
 
-function TestPoint(ibs, index) return {ibs = ibs, index = index} end
+function TestPoint(ibs, index) return { ibs = ibs, index = index } end
 
 local function SetUutCount(count)
     Context.map.uuts = {};
@@ -41,13 +41,13 @@ end
 local function AddTeam(...)
     Context.team.hasTeam = true
     local leader
-    for index, uuts in ipairs({...}) do
+    for index, uuts in ipairs({ ... }) do
         if index == 1 then leader = uuts end
         assert(Context.team.players[uuts] == nil, TeamError(
-                   string.format("Player %d is already in team %d", uuts, leader)))
-        Context.team.players[uuts] = {leader = leader, position = index}
+            string.format("Player %d is already in team %d", uuts, leader)))
+        Context.team.players[uuts] = { leader = leader, position = index }
     end
-    Context.team.teams[leader] = {...}
+    Context.team.teams[leader] = { ... }
 end
 
 local function AddUutValue(key)
@@ -67,18 +67,24 @@ local function AddIb(board)
     if (board == nil or board.ib == nil) then
         error("Invalid board: " .. tostring(board))
     end
-    local odParser = require('lua.core.can_open.object_dictionary')
+    local odParser = require("lua.core.can_open.object_dictionary")
     assert(Context.map.ibs[board.ib.name] == nil,
-           "Ib already defined. " .. board.ib.name)
+        "Ib already defined. " .. board.ib.name)
     Context.map.ibs[board.ib.name] = board
     board.ib.od = odParser.LoadFile(board.ib.eds)
     return board
 end
+
+local function SetOnReport(fun)
+    Context.map.onReport = fun
+end
+
 Environment = {
     Make = MakeEnvironment,
-    Uut = {Count = SetUutCount},
-    Ib = {Add = AddIb},
-    UutValue = {Add = AddUutValue},
-    Team = {Add = AddTeam},
-    Worker = {Limit = _worker.Limit}
+    Uut = { Count = SetUutCount },
+    Ib = { Add = AddIb },
+    UutValue = { Add = AddUutValue },
+    Team = { Add = AddTeam },
+    Worker = { Limit = _worker.Limit },
+    SetOnReport = SetOnReport,
 }

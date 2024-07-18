@@ -63,9 +63,13 @@ void Popup::Routine(bool once)
     using namespace std::chrono_literals;
     if (once) { m_consumed = true; }
     do {
-        if (m_routine) {
+        if (m_routine && m_routine != sol::nil) {
             std::lock_guard lock {m_luaMutex};
-                            (*m_routine)(m_inputs);
+            auto            result = (*m_routine)(m_inputs);
+            if (!result.valid()) {
+                sol::error err = result;
+                BR_LUA_ERROR(err.what());
+            }
         }
         else {
             std::this_thread::sleep_for(10ms);

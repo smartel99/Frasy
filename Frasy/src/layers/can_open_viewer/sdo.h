@@ -77,6 +77,7 @@ private:
     int  m_uploadRequestIndex    = 0;
     int  m_uploadRequestSubIndex = 0;
     int  m_uploadRequestTimeout  = 1000;
+    int  m_uploadRequestTries    = 5;
     bool m_uploadRequestIsBlock  = false;
 
     std::vector<CanOpen::SdoUploadDataResult> m_uploadRequestQueue;
@@ -85,21 +86,22 @@ private:
     int     m_downloadRequestIndex    = 0;
     int     m_downloadRequestSubIndex = 0;
     int     m_downloadRequestTimeout  = 1000;
+    int     m_downloadRequestTries    = 5;
     bool    m_downloadRequestIsBlock  = false;
     VarType m_downloadRequestType     = VarType::Boolean;
-std::variant<bool,
-             int8_t,
-             int16_t,
-             int32_t,
-             int64_t,
-             uint8_t,
-             uint16_t,
-             uint32_t,
-             uint64_t,
-             float,
-             double,
-             std::array<char, 128>>
-  m_downloadRequestData = false;
+    std::variant<bool,
+                 int8_t,
+                 int16_t,
+                 int32_t,
+                 int64_t,
+                 uint8_t,
+                 uint16_t,
+                 uint32_t,
+                 uint64_t,
+                 float,
+                 double,
+                 std::array<char, 128>>
+      m_downloadRequestData = false;
 
     std::vector<CanOpen::SdoDownloadDataResult> m_downloadRequestQueue;
     std::vector<FulfilledSdoRequest>            m_downloadRequestHistory;

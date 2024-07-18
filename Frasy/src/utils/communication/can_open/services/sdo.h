@@ -49,7 +49,7 @@ class SdoManager {
     friend Node;
 
 public:
-    SdoManager();
+             SdoManager();
     explicit SdoManager(uint8_t nodeId);
 
     [[nodiscard]] bool   hasUploadRequestsPending() const;
@@ -67,20 +67,19 @@ public:
      * @return On success, returns a future on which the entire data transfered can be received, as well as values that
      * can be used to keep track of the transfer. On failure, returns the reason.
      */
-    SdoUploadDataResult uploadData(uint16_t index,
-                                   uint8_t  subIndex,
-                                   uint16_t sdoTimeoutTimeMs = 1000,
-                                   bool     isBlock          = false);
+    SdoUploadDataResult uploadData(
+      uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs = 1000, uint8_t retries = 5, bool isBlock = false);
 
     SdoDownloadDataResult downloadData(uint16_t                    index,
                                        uint8_t                     subIndex,
                                        const std::vector<uint8_t>& data,
                                        uint16_t                    sdoTimeoutTimeMs = 1000,
+                                       uint8_t                     retries          = 5,
                                        bool                        isBlock          = false)
     {
         SdoDownloadDataResult result;
         result.m_request = std::make_unique<SdoDownloadRequest>(
-          SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, data);
+          SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, retries, data);
 
         result.future = result.m_request->promise.get_future();
 
@@ -104,8 +103,12 @@ public:
 
     template<typename T>
         requires std::is_trivially_copyable_v<T>
-    SdoDownloadDataResult downloadData(
-      uint16_t index, uint8_t subIndex, const T& data, uint16_t sdoTimeoutTimeMs = 1000, bool isBlock = false)
+    SdoDownloadDataResult downloadData(uint16_t index,
+                                       uint8_t  subIndex,
+                                       const T& data,
+                                       uint16_t sdoTimeoutTimeMs = 1000,
+                                       uint8_t  tries            = 5,
+                                       bool     isBlock          = false)
     {
         return downloadData(
           index,
@@ -116,10 +119,17 @@ public:
               return tmp;
           }(),
           sdoTimeoutTimeMs,
+          tries,
           isBlock);
     }
 
 private:
+    enum class HandlerReturnCode : uint8_t {
+        ok,
+        error,
+        cancel,
+    };
+
     [[nodiscard]] bool isAbleToMakeUploadRequests() const
     {
         return m_isUploadWorkerActive && m_isDownloadWorkerActive && m_nodeId != s_noNodeId && m_sdoClient != nullptr;
@@ -128,12 +138,12 @@ private:
     void startWorkers();
     void stopWorkers();
 
-    void uploadWorkerThread(const std::stop_token& stopToken);
-    void handleUploadRequest(SdoUploadRequest& request);
-    void readUploadBufferIntoRequest(SdoUploadRequest& request);
+    void                                           uploadWorkerThread(const std::stop_token& stopToken);
+    std::tuple<HandlerReturnCode, CO_SDO_return_t> handleUploadRequest(SdoUploadRequest& request);
+    void                                           readUploadBufferIntoRequest(SdoUploadRequest& request);
 
-    void downloadWorkerThread(const std::stop_token& stopToken);
-    void handleDownloadRequest(SdoDownloadRequest& request);
+    void                                           downloadWorkerThread(const std::stop_token& stopToken);
+    std::tuple<HandlerReturnCode, CO_SDO_return_t> handleDownloadRequest(SdoDownloadRequest& request);
 
     void setNodeId(uint8_t nodeId);
     void setSdoClient(CO_SDOclient_t* sdoClient);

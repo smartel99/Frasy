@@ -118,11 +118,13 @@ void Sdo::renderUploadRequestMaker(CanOpen::Node& node)
     ImGui::SliderInt("Index##upload", &m_uploadRequestIndex, 0, 65535, "0x%04x");
     ImGui::SliderInt("Sub Index##upload", &m_uploadRequestSubIndex, 0, 255, "0x%02x");
     ImGui::SliderInt("Timeout##upload", &m_uploadRequestTimeout, 0, 65535, "%d ms");
+    ImGui::SliderInt("Retries##upload", &m_uploadRequestTries, 0, 255, "%d");
     ImGui::Checkbox("Is Block##upload", &m_uploadRequestIsBlock);
     if (ImGui::Button("Send##upload")) {
         m_uploadRequestQueue.push_back(node.sdoInterface()->uploadData(static_cast<uint16_t>(m_uploadRequestIndex),
                                                                        static_cast<uint8_t>(m_uploadRequestSubIndex),
                                                                        static_cast<uint16_t>(m_uploadRequestTimeout),
+                                                                       m_uploadRequestTries,
                                                                        m_uploadRequestIsBlock));
     }
 }
@@ -228,6 +230,7 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
     ImGui::SliderInt("Index##download", &m_downloadRequestIndex, 0, 65535, "0x%04x");
     ImGui::SliderInt("Sub Index##download", &m_downloadRequestSubIndex, 0, 255, "0x%02x");
     ImGui::SliderInt("Timeout##download", &m_downloadRequestTimeout, 0, 65535, "%d ms");
+    ImGui::SliderInt("Retries##download", &m_downloadRequestTries, 0, 255, "%d");
     ImGui::Checkbox("Is Block##download", &m_downloadRequestIsBlock);
     if (ImGui::BeginCombo("Type##download", toString(m_downloadRequestType).data())) {
         for (VarType type = VarType::Boolean; type < VarType::Max; type++) {
@@ -267,17 +270,18 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
                                                     static_cast<uint8_t>(m_downloadRequestSubIndex),
                                                     data,
                                                     m_downloadRequestTimeout,
+                                                    m_downloadRequestTries,
                                                     m_downloadRequestIsBlock));
             }
         };
 
         using DataArray = std::array<char, 128>;
         if constexpr (std::same_as<T, DataArray>) {
-            const auto& data = std::get<DataArray>(m_downloadRequestData);
+            const auto&          data = std::get<DataArray>(m_downloadRequestData);
             std::vector<uint8_t> vec;
             vec.reserve(data.size());
             const auto* ptr = data.data();
-            while(*ptr != 0) {
+            while (*ptr != 0) {
                 vec.push_back(*ptr);
                 ptr++;
             }
