@@ -188,7 +188,7 @@ end
 
 -- DAC
 ---@enum DAQ_DacShape
-DAQ.DacShape = { dc = 0, sine = 1, sawtooth = 2, triangle = 3, square = 4, noise = 5 }
+DAQ.DacShapeEnum = { dc = 0, sine = 1, sawtooth = 2, triangle = 3, square = 4, noise = 5 }
 
 ---Toggles the DAC, or get the current state of the DAC.
 ---@param state? boolean The desired state.
@@ -237,7 +237,7 @@ function DAQ:DacShape(shape)
     if shape == nil then
         return self.ib:Upload(od) --[[@as DAQ_DacShape]]
     else
-        CheckField(shape, "shape", IsUnsignedIn(shape, DAQ.DacShape.dc, DAQ.DacShape.noise))
+        CheckField(shape, "shape", IsUnsignedIn(shape, DAQ.DacShapeEnum.dc, DAQ.DacShapeEnum.noise))
         self.ib:Download(od, shape)
     end
 end
