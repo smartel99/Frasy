@@ -21,7 +21,14 @@ local Sort = {}
 function Sort.AddEdgeRequirement(edge, requirement)
     if requirement.reference ~= nil then error(InvalidRequirement()) end
     if requirement.scope.test ~= nil then
-        if edge.tests[requirement.scope.sequence] ~= nil then error(InvalidRequirement()) end
+        if edge.tests[requirement.scope.sequence] == requirement.scope.test then return end
+        if edge.tests[requirement.scope.sequence] ~= nil then
+            error(InvalidRequirement(
+                "Edge requirement exception.\r\n" ..
+                "Sequence: " .. Utils.ToString(requirement.scope.sequence) .. "\r\n" ..
+                "Requesting: " .. Utils.ToString(requirement.scope.test) .. "\r\n" ..
+                "Taken by: " .. Utils.ToString(edge.tests[requirement.scope.sequence])))
+        end
         edge.tests[requirement.scope.sequence] = requirement.scope.test
     else
         if edge.sequence ~= nil then error(InvalidRequirement()) end
@@ -66,7 +73,7 @@ end
 --- @param last string name of the scope to run last, can be nil
 --- @param requirements table list of scopes dependencies
 function Sort.SortScopes(scopes, first, last, requirements)
-    if scopes == nil then return { } end
+    if scopes == nil then return {} end
 
     local order = {}
 
@@ -103,7 +110,7 @@ function Sort.SortScopes(scopes, first, last, requirements)
 end
 
 function Sort.Sectionize(stages, requirements)
-    if stages == nil then return { } end
+    if stages == nil then return {} end
 
     local outputSections = {}
     local currentSection = {}
@@ -165,11 +172,11 @@ function Sort.CombineSectionized(sectionizedSequences, sectionizedTests)
                 end
             end
             if #currentSequenceStage ~= 0 then
-            table.insert(currentSection, currentSequenceStage)
+                table.insert(currentSection, currentSequenceStage)
             end
         end
         if #currentSection ~= 0 then
-        table.insert(output, currentSection)
+            table.insert(output, currentSection)
         end
     end
     return output

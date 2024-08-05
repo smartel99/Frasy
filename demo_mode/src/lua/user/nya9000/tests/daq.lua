@@ -48,7 +48,7 @@ Sequence("DAQ", function()
     -- end)
 
     Test("IO Outputs", function()
-        ---@type DAQ
+        --- @type DAQ
         local daq = Context.map.ibs.daq
 
         daq:IoModes(0x1FF)
@@ -61,6 +61,24 @@ Sequence("DAQ", function()
             daq:IoValue(DAQ.IoEnum[io], DAQ.IoValueEnum.low)
             local popupLow = Popup(io .. " Low"):Text("Check that IO is Low")
             popupLow:Show()
+        end
+    end)
+
+    Test("Routing", function()
+        if Context.info.stage ~= Stage.execution then return end
+        local daq = Context.map.ibs.daq
+        for i = DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX6_B3 do
+            if not (i == DAQ.RoutingPointsEnum.MUX1_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX2_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX3_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX4_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX5_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX6_OUT) then
+                local route = daq:RequestRouting({ DAQ.RoutingPointsEnum.P3V3, i })
+                Popup("Routing"):Text("Point " .. tostring(DAQ.RoutingPointsEnumToString(i))):Text("Connected"):Show()
+                daq:ClearBus(route)
+                Popup("Routing"):Text("Point " .. tostring(DAQ.RoutingPointsEnumToString(i))):Text("Disconnected"):Show()
+            end
         end
     end)
 end)
