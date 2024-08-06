@@ -198,7 +198,6 @@ function Orchestrator.Generate()
                 sequence.func()
                 sd[sName] = {}
                 td[sName] = {}
-                table.insert(sn, sName)
                 tn[sName] = {}
                 local _, err = xpcall(function()
                     local hasFailedTests = true
@@ -233,6 +232,7 @@ function Orchestrator.Generate()
                     end
                 end, ErrorHandler)
                 if err == nil then
+                    table.insert(sn, sName)
                     hasProgressOnSequences = true
                     completedSequences[sName] = 0
                 else
