@@ -834,6 +834,8 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     CheckField(frequency, "frequency", IsIntegerInOd(frequency, odFrequency))
     CheckField(amplitude, "amplitude", IsFloatInOd(amplitude, odAmplitude))
     CheckField(samplesToTake, "samples to take", IsIntegerInOd(samplesToTake, odSamplesToTake))
+    CheckField(delay, "delay", IsIntegerIn(delay, 0, 4294967296))
+    CheckField(expectedValue, "expected value", IsIntegerIn(expectedValue, 0, 4294967296))
     CheckField(favorSpeed, "favorSpeed", IsBoolean(favorSpeed))
 
     if (rangeResistor == 0 or
@@ -929,8 +931,6 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
 
     if route == -1 then
         error("Unable to connect points to ADC!")
-    else
-        Log.D("Using bus " .. route)
     end
 
     self:AdcChannelGain(channel, gain)
@@ -975,6 +975,7 @@ function DAQ:MeasureResistor(impP, impN, expectedValue, range, guards, voltage, 
         guards = PointToPoints(guards)
         rguards = self:RequestRouting({ table.unpack(guards), DAQ.RoutingPointsEnum.GUARD })
     end
+
 
     local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor,
         DAQ.ImpedanceShapeEnum.dc, range,
