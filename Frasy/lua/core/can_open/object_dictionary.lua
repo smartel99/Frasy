@@ -1,7 +1,6 @@
-local IniParser = require('lua.core.utils.ini_parser')
-local PrettyPrint = require('lua.core.utils.pretty_print')
-local ObjectType = require('lua.core.can_open.types.object_type')
-local DataType = require('lua.core.can_open.types.data_type')
+local IniParser = require("lua.core.utils.ini_parser")
+local ObjectType = require("lua.core.can_open.types.object_type")
+local DataType = require("lua.core.can_open.types.data_type")
 
 local function NormalizeParameterName(name) return name end
 
@@ -22,31 +21,35 @@ local function ParseNumber(field)
     end
 end
 
----@alias OdEntryType number|integer|string|boolean|table|nil
----@alias OdEntryArrayType number[]|integer[]|string[]|boolean[]
+local function IsNumber(dataType)
+    return dataType <= DataType.real64 and DataType.integer8 <= dataType
+end
 
----@class OdEntry
----@field __kind string
----@field __fields string[]?
----@field parameterName string
----@field objectType integer?
----@field dataType integer?
----@field stringLengthMin integer?
----@field accessType string
----@field defaultValue OdEntryType
----@field pdoMapping integer?
----@field value OdEntryType
----@field highLimit OdEntryType
----@field lowLimit OdEntryType
----@field index integer?
----@field subIndex string?
----@field data OdEntryArrayType?
+--- @alias OdEntryType number|integer|string|boolean|table|nil
+--- @alias OdEntryArrayType number[]|integer[]|string[]|boolean[]
 
----Parses a field into a Object Dictionary entry.
----@param field table
----@return OdEntry
+--- @class OdEntry
+--- @field __kind string
+--- @field __fields string[]?
+--- @field parameterName string
+--- @field objectType integer?
+--- @field dataType integer?
+--- @field stringLengthMin integer?
+--- @field accessType string
+--- @field defaultValue OdEntryType
+--- @field pdoMapping integer?
+--- @field value OdEntryType
+--- @field highLimit OdEntryType
+--- @field lowLimit OdEntryType
+--- @field index integer?
+--- @field subIndex string?
+--- @field data OdEntryArrayType?
+
+--- Parses a field into a Object Dictionary entry.
+--- @param field table
+--- @return OdEntry
 local function ParseVarEntry(field)
-    ---@type OdEntry
+    --- @type OdEntry
     local entry = {
         __kind = "Object Dictionary Entry",
         parameterName = field["ParameterName"],
@@ -56,8 +59,17 @@ local function ParseVarEntry(field)
     entry.dataType = tonumber(field["DataType"])
     entry.stringLengthMin = tonumber(field["StringLengthMin"])
     entry.pdoMapping = tonumber(field["PDOMapping"])
-    --FIXME defaultValue may be a string (or just not a number). Parse according to dataType.
-    entry.defaultValue = ParseNumber(field["DefaultValue"])
+    if entry.dataType == DataType.boolean then
+        entry.defaultValue = ParseNumber(field["DefaultValue"] ~= 0)
+        if entry.defaultValue == nil then entry.defaultValue = false end
+    elseif IsNumber(entry.dataType) then
+        -- TODO cap number to type
+        entry.defaultValue = ParseNumber(field["DefaultValue"])
+        if entry.defaultValue == nil then entry.defaultValue = 0 end
+    else
+        entry.defaultValue = ParseNumber(field["DefaultValue"])
+        if entry.defaultValue == nil then entry.defaultValue = "" end
+    end
     entry.value = entry.defaultValue
     entry.highLimit = ParseNumber(field["HighLimit"])
     entry.lowLimit = ParseNumber(field["LowLimit"])

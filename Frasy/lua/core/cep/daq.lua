@@ -931,8 +931,6 @@ function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
 
     if route == -1 then
         error("Unable to connect points to ADC!")
-    else
-        Log.D("Using bus " .. route)
     end
 
     self:AdcChannelGain(channel, gain)
@@ -976,6 +974,7 @@ function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay, samplesT
         guards = PointToPoints(guards)
         rguards = self:RequestRouting({ table.unpack(guards), DAQ.RoutingPointsEnum.GUARD })
     end
+
 
     local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor,
         DAQ.ImpedanceShapeEnum.dc, range,
