@@ -833,9 +833,9 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     CheckField(rangeResistor, "range Resistor", IsIntegerInOd(rangeResistor, odRangeResistor))
     CheckField(frequency, "frequency", IsIntegerInOd(frequency, odFrequency))
     CheckField(amplitude, "amplitude", IsFloatInOd(amplitude, odAmplitude))
-    CheckField(delay, "delay", IsIntegerInOd(delay, odDelay))
-    CheckField(samplesToTake, "samples to take", IsIntegerInOd(samplesToTake, odSamplesToTake))
-    CheckField(expectedValue, "expected value", IsIntegerInOd(expectedValue, odExpectedValue))
+    CheckField(delay, "delay", IsIntegerIn(delay, 0, 4294967296))
+    CheckField(samplesToTake, "samples to take", IsIntegerIn(samplesToTake, 0, 4294967296))
+    CheckField(expectedValue, "expected value", IsIntegerIn(expectedValue, 0, 4294967296))
     CheckField(favorSpeed, "favorSpeed", IsBoolean(favorSpeed))
 
     if (rangeResistor == 0 or
