@@ -8,8 +8,8 @@ Description=
 CreationTime=1:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=12:35PM
-ModificationDate=07-10-2024
+ModificationTime=2:29PM
+ModificationDate=08-07-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -932,7 +932,7 @@ PDOMapping=0
 ParameterName=IO
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x3
+SubNumber=0x4
 
 [6002sub0]
 ParameterName=Highest sub-index supported
@@ -941,7 +941,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x02
+DefaultValue=0x03
 PDOMapping=0
 
 [6002sub1]
@@ -959,6 +959,16 @@ ParameterName=Value
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0006
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6002sub3]
+ParameterName=Alternate Function
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
 AccessType=rw
 StringLengthMin=0
 DefaultValue=0
@@ -1616,6 +1626,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0001
 AccessType=rw
+HighLimit=true
+LowLimit=false
 StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
@@ -1638,7 +1650,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-HighLimit=5
+HighLimit=6
 LowLimit=0
 StringLengthMin=0
 DefaultValue=0
@@ -1696,6 +1708,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+HighLimit=1000
+LowLimit=0
 StringLengthMin=0
 DefaultValue=0
 PDOMapping=0

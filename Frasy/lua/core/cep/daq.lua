@@ -833,9 +833,7 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     CheckField(rangeResistor, "range Resistor", IsIntegerInOd(rangeResistor, odRangeResistor))
     CheckField(frequency, "frequency", IsIntegerInOd(frequency, odFrequency))
     CheckField(amplitude, "amplitude", IsFloatInOd(amplitude, odAmplitude))
-    CheckField(delay, "delay", IsIntegerInOd(delay, odDelay))
     CheckField(samplesToTake, "samples to take", IsIntegerInOd(samplesToTake, odSamplesToTake))
-    CheckField(expectedValue, "expected value", IsIntegerInOd(expectedValue, odExpectedValue))
     CheckField(favorSpeed, "favorSpeed", IsBoolean(favorSpeed))
 
     if (rangeResistor == 0 or
@@ -958,6 +956,7 @@ end
 --- Measures a resistor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
 --- @param impN DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
+--- @param expectedValue integer? Expected value to be read. Required if range if set to automatic
 --- @param range DAQ_ImpedanceRangeResistorEnum?
 --- @param guards DAQ_RoutingPointsEnum[]?
 --- @param voltage number?
@@ -965,7 +964,7 @@ end
 --- @param samplesToTake integer?
 --- @param favorSpeed boolean?
 --- @return DAQ_ImpedanceResults
-function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay, samplesToTake, favorSpeed)
+function DAQ:MeasureResistor(impP, impN, expectedValue, range, guards, voltage, delay, samplesToTake, favorSpeed)
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
 
@@ -981,7 +980,7 @@ function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay, samplesT
         DAQ.ImpedanceShapeEnum.dc, range,
         DAQ.ImpedanceDefaults.frequency, voltage,
         delay, samplesToTake,
-        DAQ.ImpedanceDefaults.expectedValue,
+        expectedValue,
         favorSpeed)
 
     -- cleanup

@@ -85,7 +85,7 @@ Sequence("DAQ", function()
         ---@type DAQ
         local daq = Context.map.ibs.daq
 
-        local imp = daq:MeasureResistor(DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX2_A0)
+        local imp = daq:MeasureResistor(DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX2_A0, 1000000)
 
         Utils.Print(imp)
     end)
