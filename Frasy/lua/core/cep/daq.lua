@@ -963,7 +963,7 @@ end
 --- @param voltage number?
 --- @param delay integer?
 --- @param samplesToTake integer?
---- @param favorSpeed boolean
+--- @param favorSpeed boolean?
 --- @return DAQ_ImpedanceResults
 function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay, samplesToTake, favorSpeed)
     impP = PointToPoints(impP)
@@ -980,7 +980,7 @@ function DAQ:MeasureResistor(impP, impN, range, guards, voltage, delay, samplesT
     local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor,
         DAQ.ImpedanceShapeEnum.dc, range,
         DAQ.ImpedanceDefaults.frequency, voltage,
-        delay // 1, samplesToTake,
+        delay, samplesToTake,
         DAQ.ImpedanceDefaults.expectedValue,
         favorSpeed)
 

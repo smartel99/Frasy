@@ -326,7 +326,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
 
         // Fill data if we need to send the next packet.
         size_t written = 0;
-        if (request.sizeTransferred == totalBytesWritten) {
+        if (request.sizeTransferred == totalBytesWritten && totalBytesWritten < request.data.size()) {
             written = CO_SDOclientDownloadBufWrite(m_sdoClient,
                                                    request.data.data() + request.sizeTransferred,
                                                    request.data.size() -
