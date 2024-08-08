@@ -17,6 +17,7 @@
 #include <Brigerad/Core/File.h>
 #include <frasy_interpreter.h>
 #include <imgui/imgui.h>
+#include <utils/imgui/table.h>
 
 #define CREATE_TEXTURE(texture, path)                                                                                  \
     do {                                                                                                               \
@@ -96,6 +97,7 @@ void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F5)) { makeResultAnalyzerVisible(); }
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F6)) { makeTestViewerVisible(); }
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F7)) { makeCanOpenViewerVisible(); }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F8)) { m_renderProfiler = true; }
     m_logWindow->onUpdate(ts);
     m_deviceViewer->onUpdate(ts);
     m_canOpenViewer->onUpdate(ts);
@@ -123,6 +125,7 @@ void MainApplicationLayer::onImGuiRender()
             if (ImGui::MenuItem("Result Analyzer", "F5")) { makeResultAnalyzerVisible(); }
             if (ImGui::MenuItem("Test Viewer", "F6")) { makeTestViewerVisible(); }
             if (ImGui::MenuItem("CANopen Viewer", "F7")) { makeCanOpenViewerVisible(); }
+            if (ImGui::MenuItem("Lua Profiler", "F8")) { m_renderProfiler = true; }
             ImGui::Separator();
             if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
             if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }
@@ -138,6 +141,7 @@ void MainApplicationLayer::onImGuiRender()
         ImGui::EndMainMenuBar();
 
         if (m_renderAbout) { renderAbout(); }
+        if (m_renderProfiler) { renderProfiler(); }
     }
 
     PresetControlRoomOptions();
@@ -213,6 +217,101 @@ void MainApplicationLayer::renderAbout()
     ImGui::Text("%s version %s", version.description, version.versionStr);
     ImGui::TextUnformatted(version.author);
     ImGui::TextUnformatted(version.copyright);
+
+    ImGui::End();
+}
+
+void MainApplicationLayer::renderProfiler()
+{
+    if (m_orchestrator.isRunning()) {
+        m_renderProfiler = false;
+        return;
+    }
+    ImGui::Begin("Lua Profiler", &m_renderProfiler);
+
+    const auto& profileEvents = Profiler::get().getEvents();
+
+    if (ImGui::Button("Reset")) { Profiler::get().reset(); }
+    float totalTime = static_cast<float>(Profiler::get().getTotalTime().count());
+    ImGui::Text("Total time: %fus", totalTime);
+
+    float indent = 0.0f;
+    Widget::Table("profile events", 7)
+      .ColumnHeader("Name")
+      .ColumnHeader("Hit Count")
+      .ColumnHeader("Total Time")
+      .ColumnHeader("Average Time")
+      .ColumnHeader("Source", ImGuiTableColumnFlags_DefaultHide)
+      .ColumnHeader("Min Time")
+      .ColumnHeader("Max Time")
+      .ScrollFreeze()
+      .FinishHeader()
+      .Content(profileEvents,
+               [&indent, &totalTime](this auto const& self, Widget::Table& table, const ProfileEvent& event) -> void {
+                   bool renderChilds = false;
+
+                   table.CellContent(
+                     [&renderChilds, &indent](const std::string& name) -> void {
+                         if (indent != 0.0f) { ImGui::Indent(indent); }
+                         const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+                         ImGui::PushStyleColor(ImGuiCol_Header, bg);
+                         ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
+                         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
+                         ImGui::PushID(static_cast<const void*>(name.c_str()));
+                         if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
+                         ImGui::PopID();
+                         ImGui::PopStyleColor(3);
+                         if (indent != 0.0f) { ImGui::Unindent(indent); }
+                     },
+                     event.header.name);
+                   table.CellContentTextWrapped("{}", event.hitCount);
+                   table.CellContentTextWrapped("{:0.2}% ({})",
+                                                (static_cast<float>(event.totalTime.count()) / totalTime) * 100.0f,
+                                                event.totalTime);
+                   table.CellContentTextWrapped(
+                     "{:0.2}% ({})", (static_cast<float>(event.avgTime.count()) / totalTime) * 100.0f, event.avgTime);
+                   table.CellContentTextWrapped("{}:{}", event.header.source, event.header.currentLine);
+                   table.CellContentTextWrapped(
+                     "{:0.2}% ({})", (static_cast<float>(event.minTime.count()) / totalTime) * 100.0f, event.minTime);
+                   table.CellContentTextWrapped(
+                     "{:0.2}% ({})", (static_cast<float>(event.maxTime.count()) / totalTime) * 100.0f, event.maxTime);
+
+                   if (renderChilds) {
+                       indent += ImGui::GetStyle().IndentSpacing;
+                       for (auto&& child : event.childs) {
+                           self(table, child);
+                       }
+                       indent -= ImGui::GetStyle().IndentSpacing;
+                   }
+               });
+
+    // auto renderEvent = [](this auto const& renderEvent, const ProfileEvent& event) -> void {
+    // ImGui::Bullet();
+    // ImGui::Text("%s - %0.6fs (%s:%d)",
+    //             event.header.name.c_str(),
+    //             event.totalTime.count() / 1'000'000.0f,
+    //             event.header.source.c_str(),
+    //             event.header.currentLine);
+    // for (auto&& child : event.childs) {
+    //     ImGui::Indent();
+    //     renderEvent(child);
+    //     ImGui::Unindent();
+    // }
+    //     if (ImGui::TreeNode(&event,
+    //                         "%s - %0.6fs (%s:%d)",
+    //                         event.header.name.c_str(),
+    //                         event.totalTime.count() / 1'000'000.0f,
+    //                         event.header.source.c_str(),
+    //                         event.header.currentLine)) {
+    //         for (auto&& child : event.childs) {
+    //             renderEvent(child);
+    //         }
+    //         ImGui::TreePop();
+    //     }
+    // };
+    // for (auto&& event : profileEvents) {
+    //     renderEvent(event);
+    // }
 
     ImGui::End();
 }

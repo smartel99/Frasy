@@ -85,7 +85,10 @@ Sequence("DAQ", function()
         ---@type DAQ
         local daq = Context.map.ibs.daq
 
-        local imp = daq:MeasureResistor(DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX2_A0, 1000000)
+        local start = os.clock()
+        local imp = daq:MeasureResistor(DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX2_A0, 1)
+        local delta = os.clock() - start
+        Log.D("Measured impedance in " .. delta .. " seconds")
 
         Utils.Print(imp)
     end)

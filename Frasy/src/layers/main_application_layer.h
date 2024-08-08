@@ -43,11 +43,11 @@ class LogWindow;
 
 class MainApplicationLayer : public Brigerad::Layer, public TestViewer::Interface {
 public:
-    MainApplicationLayer()                                       = default;
-    MainApplicationLayer(const MainApplicationLayer&)            = delete;
-    MainApplicationLayer& operator=(const MainApplicationLayer&) = delete;
-    MainApplicationLayer(MainApplicationLayer&&)                 = delete;
-    MainApplicationLayer& operator=(MainApplicationLayer&&)      = delete;
+                          MainApplicationLayer()                            = default;
+                          MainApplicationLayer(const MainApplicationLayer&) = delete;
+    MainApplicationLayer& operator=(const MainApplicationLayer&)            = delete;
+                          MainApplicationLayer(MainApplicationLayer&&)      = delete;
+    MainApplicationLayer& operator=(MainApplicationLayer&&)                 = delete;
 
     ~MainApplicationLayer() override = default;
 
@@ -68,6 +68,7 @@ protected:
     virtual void makeResultAnalyzerVisible();
     virtual void makeTestViewerVisible();
     void         renderAbout();
+    void         renderProfiler();
 
 private:
     void generate() override;
@@ -75,8 +76,9 @@ private:
     void setSequenceEnable(const std::string& sequence, bool enable) override;
 
 protected:
-    bool m_renderAbout = false;
-    bool m_noMove      = true;
+    bool m_renderAbout    = false;
+    bool m_renderProfiler = false;
+    bool m_noMove         = true;
 
     std::unique_ptr<LogWindow>            m_logWindow      = nullptr;
     std::unique_ptr<DeviceViewer>         m_deviceViewer   = nullptr;

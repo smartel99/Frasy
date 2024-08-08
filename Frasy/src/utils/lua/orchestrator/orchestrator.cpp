@@ -276,6 +276,23 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         for (auto& [k, v] : userIbs) {
             ibs[k] = v;
         }
+
+        lua_sethook(
+          lua.lua_state(),
+          [](lua_State* state, lua_Debug* ar) {
+              lua_getinfo(state, "nSl", ar);
+              if (ar->name == nullptr) { ar->name = "<unknown>"; }
+              if (ar->source == nullptr) { ar->source = "<unknown>"; }
+              if (ar->event == LUA_HOOKCALL) {
+                  Profiler::get().reportCallEvent({ar->name, ar->source, ar->currentline});
+              }
+              else if (ar->event == LUA_HOOKRET) {
+                  Profiler::get().reportReturnEvent({ar->name, ar->source, ar->currentline});
+              }
+          },
+          LUA_MASKCALL | LUA_MASKRET,
+          0);
+
         return true;
     }
     catch (std::exception& e) {

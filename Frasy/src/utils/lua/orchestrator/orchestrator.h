@@ -24,6 +24,7 @@
 #include "../map.h"
 #include "utils/commands/built_in/command_info/reply.h"
 #include "utils/lua/popup.h"
+#include "../profile_events.h"
 #include "utils/models/solution.h"
 
 #include <functional>
