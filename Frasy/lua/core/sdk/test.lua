@@ -34,7 +34,8 @@ function Test(name, func)
     if func == nil then
         return Orchestrator.GetTestScopeRequirement(name)
     else
-        Orchestrator.CreateTest(name, func)
+        local ar = debug.getinfo(2, "nSl")
+        Orchestrator.CreateTest(name, func, ar.source, ar.currentline)
     end
 end
 

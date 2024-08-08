@@ -32,31 +32,25 @@
 #include <thread>
 
 
-namespace Brigerad
-{
-struct ProfileResult
-{
+namespace Brigerad {
+struct ProfileResult {
     std::string Name;
     long long   Start, End;
     uint32_t    ThreadID;
 };
 
-struct InstrumentationSession
-{
+struct InstrumentationSession {
     std::string                                                 Name;
     std::chrono::time_point<std::chrono::high_resolution_clock> EndPoint;
 
     InstrumentationSession(const std::string& name, long long duration = 0) : Name(name)
     {
-        EndPoint =
-          duration != 0
-            ? std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(duration)
-            : std::chrono::time_point<std::chrono::high_resolution_clock>::max();
+        EndPoint = duration != 0 ? std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(duration)
+                                 : std::chrono::time_point<std::chrono::high_resolution_clock>::max();
     }
 };
 
-class Instrumentor
-{
+class Instrumentor {
 private:
     InstrumentationSession* m_currentSession;
     std::ofstream           m_outputStream;
@@ -65,9 +59,7 @@ private:
 public:
     Instrumentor() : m_currentSession(nullptr), m_profileCount(0) {}
 
-    void BeginSession(const std::string& name,
-                      const std::string& filepath = "results.json",
-                      long long          duration = 0)
+    void BeginSession(const std::string& name, const std::string& filepath = "results.json", long long duration = 0)
     {
         m_outputStream.open(filepath);
         WriteHeader();
@@ -93,20 +85,16 @@ public:
         std::replace(name.begin(), name.end(), '"', '\'');
 
         m_outputStream << '{' << R"("cat":"function",)"
-                       << R"("dur":)" << (result.End - result.Start) << ',' << R"("name":")" << name
-                       << R"(",)"
+                       << R"("dur":)" << (result.End - result.Start) << ',' << R"("name":")" << name << R"(",)"
                        << R"("ph":"X",)"
                        << R"("pid":0,)"
-                       << R"("tid":)" << result.ThreadID << ',' << R"("ts":)" << result.Start
-                       << '}';
+                       << R"("tid":)" << result.ThreadID << ',' << R"("ts":)" << result.Start << '}';
 
         m_outputStream.flush();
 
-        if (result.End >=
-            std::chrono::time_point_cast<std::chrono::microseconds>(m_currentSession->EndPoint)
-              .time_since_epoch()
-              .count())
-        {
+        if (result.End >= std::chrono::time_point_cast<std::chrono::microseconds>(m_currentSession->EndPoint)
+                            .time_since_epoch()
+                            .count()) {
             EndSession();
             return;
         }
@@ -132,13 +120,9 @@ public:
 };
 
 
-class InstrumentationTimer
-{
+class InstrumentationTimer {
 public:
-    InstrumentationTimer(const char* name) : m_name(name), m_stopped(false)
-    {
-        m_startTimepoint = GetTime();
-    }
+    InstrumentationTimer(const char* name) : m_name(name), m_stopped(false) { m_startTimepoint = GetTime(); }
 
     ~InstrumentationTimer()
     {
@@ -149,12 +133,10 @@ public:
     {
         auto endTimepoint = GetTime();
 
-        long long start = std::chrono::time_point_cast<std::chrono::microseconds>(m_startTimepoint)
-                            .time_since_epoch()
-                            .count();
-        long long end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint)
-                          .time_since_epoch()
-                          .count();
+        long long start =
+          std::chrono::time_point_cast<std::chrono::microseconds>(m_startTimepoint).time_since_epoch().count();
+        long long end =
+          std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch().count();
 
         uint32_t threadID = (uint32_t)std::hash<std::thread::id> {}(std::this_thread::get_id());
         Instrumentor::Get().WriteProfile({m_name, start, end, threadID});
@@ -187,8 +169,7 @@ private:
 /**
  * @brief Initialize a profiling session.
  */
-#    define BR_PROFILE_BEGIN_SESSION(name, filepath)                                               \
-        ::Brigerad::Instrumentor::Get().BeginSession(name, filepath)
+#    define BR_PROFILE_BEGIN_SESSION(name, filepath) ::Brigerad::Instrumentor::Get().BeginSession(name, filepath)
 /**
  * @brief End a profiling session and
  *        dump it into the file set in BR_PROFILE_BEGIN_SESSION.
@@ -197,9 +178,9 @@ private:
 /**
  * @brief Measure the execution time of the current scope.
  */
-#define BR_PROFILE_SCOPE_NAME_HELPER(line) timer##line
-#define BR_PROFILE_SCOPE_NAME(line)    BR_PROFILE_SCOPE_NAME_HELPER(line)
-#    define BR_PROFILE_SCOPE(name) ::Brigerad::InstrumentationTimer BR_PROFILE_SCOPE_NAME(__LINE__)(name)
+#    define BR_PROFILE_SCOPE_NAME_HELPER(line) timer##line
+#    define BR_PROFILE_SCOPE_NAME(line)        BR_PROFILE_SCOPE_NAME_HELPER(line)
+#    define BR_PROFILE_SCOPE(name)             ::Brigerad::InstrumentationTimer BR_PROFILE_SCOPE_NAME(__LINE__)(name)
 /**
  * @brief Measure the execution time of the current function.
  */

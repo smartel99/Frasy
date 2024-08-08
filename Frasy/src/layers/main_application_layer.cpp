@@ -251,19 +251,30 @@ void MainApplicationLayer::renderProfiler()
                    bool renderChilds = false;
 
                    table.CellContent(
-                     [&renderChilds, &indent](const std::string& name) -> void {
+                     [&renderChilds, &indent](const std::string& name, bool hasChilds) -> void {
                          if (indent != 0.0f) { ImGui::Indent(indent); }
-                         const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-                         ImGui::PushStyleColor(ImGuiCol_Header, bg);
-                         ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
-                         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
-                         ImGui::PushID(static_cast<const void*>(name.c_str()));
-                         if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
-                         ImGui::PopID();
-                         ImGui::PopStyleColor(3);
+                         if (!hasChilds) { ImGui::Text(name.c_str()); }
+                         else {
+                             const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+                             ImGui::PushStyleColor(ImGuiCol_Header, bg);
+                             ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
+                             ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
+                             ImGui::PushID(static_cast<const void*>(name.c_str()));
+                             if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
+                             ImGui::PopID();
+                             ImGui::PopStyleColor(3);
+                         }
+                         if (ImGui::IsItemHovered()) {
+                             ImGui::BeginTooltip();
+                             ImGui::PushTextWrapPos(800.0f);
+                             ImGui::Text(name.c_str());
+                             ImGui::PopTextWrapPos();
+                             ImGui::EndTooltip();
+                         }
                          if (indent != 0.0f) { ImGui::Unindent(indent); }
                      },
-                     event.header.name);
+                     event.header.name,
+                     !event.childs.empty());
                    table.CellContentTextWrapped("{}", event.hitCount);
                    table.CellContentTextWrapped("{:0.2}% ({})",
                                                 (static_cast<float>(event.totalTime.count()) / totalTime) * 100.0f,

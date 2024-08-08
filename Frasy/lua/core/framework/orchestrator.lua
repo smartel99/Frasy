@@ -131,6 +131,7 @@ function Orchestrator.RunTest(scope)
     test.expectations = {}
     test.result.time = {}
     test.result.time.start = os.clock()
+    __profileStartEvent(scope.test, test.source, test.line)
     if test.result.enabled then
         local status, err = xpcall(test.func, ErrorHandler)
         if not status then
@@ -161,6 +162,7 @@ function Orchestrator.RunTest(scope)
         test.result.skipped = true
         test.result.reason = "Disabled"
     end
+    __profileEndEvent(scope.test, test.source, test.line)
     test.result.time.stop = os.clock()
     test.result.time.elapsed = test.result.time.stop - test.result.time.start -- Might change in the future
     test.result.time.process = test.result.time.stop - test.result.time.start
@@ -429,11 +431,11 @@ function Orchestrator.CreateSequence(name, func)
     Context.orchestrator.values[name] = {}
 end
 
-function Orchestrator.CreateTest(name, func)
+function Orchestrator.CreateTest(name, func, source, line)
     if not Orchestrator.IsInSequence() then error(BadScope()) end
     if Orchestrator.IsInTest() then error(NestedScope()) end
     Context.orchestrator.sequences[Context.orchestrator.scope.sequence].tests[name] =
-        Test:New(func)
+        Test:New(func, name, source, line)
     Context.orchestrator.values[Context.orchestrator.scope.sequence][name] = {}
 end
 

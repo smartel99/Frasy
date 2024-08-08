@@ -88,6 +88,7 @@ OD_entry_t SdoManager::makeSdoClientOdEntry() const
 SdoUploadDataResult SdoManager::uploadData(
   uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs, uint8_t retries, bool isBlock)
 {
+    FRASY_PROFILE_FUNCTION();
     SdoUploadDataResult result;
     result.m_request = std::make_shared<SdoUploadRequest>(
       SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, retries);

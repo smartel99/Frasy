@@ -64,23 +64,23 @@ Sequence("DAQ", function()
     --     end
     -- end)
 
-    -- Test("Routing", function()
-    --     if Context.info.stage ~= Stage.execution then return end
-    --     local daq = Context.map.ibs.daq
-    --     for i = DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX6_B3 do
-    --         if not (i == DAQ.RoutingPointsEnum.MUX1_OUT or
-    --                 i == DAQ.RoutingPointsEnum.MUX2_OUT or
-    --                 i == DAQ.RoutingPointsEnum.MUX3_OUT or
-    --                 i == DAQ.RoutingPointsEnum.MUX4_OUT or
-    --                 i == DAQ.RoutingPointsEnum.MUX5_OUT or
-    --                 i == DAQ.RoutingPointsEnum.MUX6_OUT) then
-    --             local route = daq:RequestRouting({ DAQ.RoutingPointsEnum.P3V3, i })
-    --             Popup("Routing"):Text("Point " .. tostring(DAQ.RoutingPointsEnumToString(i))):Text("Connected"):Show()
-    --             daq:ClearBus(route)
-    --             Popup("Routing"):Text("Point " .. tostring(DAQ.RoutingPointsEnumToString(i))):Text("Disconnected"):Show()
-    --         end
-    --     end
-    -- end)
+    Test("Routing", function()
+        if Context.info.stage ~= Stage.execution then return end
+        local daq = Context.map.ibs.daq
+        for i = DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX6_B3 do
+            if not (i == DAQ.RoutingPointsEnum.MUX1_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX2_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX3_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX4_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX5_OUT or
+                    i == DAQ.RoutingPointsEnum.MUX6_OUT) then
+                local route = daq:RequestRouting({ DAQ.RoutingPointsEnum.P3V3, i })
+                Popup("Routing"):Text("Point " .. tostring(DAQ.RoutingPointsEnumToString(i))):Text("Connected"):Show()
+                daq:ClearBus(route)
+                Popup("Routing"):Text("Point " .. tostring(DAQ.RoutingPointsEnumToString(i))):Text("Disconnected"):Show()
+            end
+        end
+    end)
     Test("Resistance Measurements", function()
         ---@type DAQ
         local daq = Context.map.ibs.daq

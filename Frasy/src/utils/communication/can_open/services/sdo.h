@@ -34,6 +34,7 @@
 #include <span>
 #include <string>
 #include <thread>
+#include <utils/lua/profile_events.h>
 
 namespace Frasy::CanOpen {
 class Node;
@@ -77,8 +78,9 @@ public:
                                        uint8_t                     retries          = 5,
                                        bool                        isBlock          = false)
     {
+        FRASY_PROFILE_FUNCTION();
         SdoDownloadDataResult result;
-        result.m_request = std::make_unique<SdoDownloadRequest>(
+        result.m_request = std::make_shared<SdoDownloadRequest>(
           SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, retries, data);
 
         result.future = result.m_request->promise.get_future();
@@ -110,6 +112,7 @@ public:
                                        uint8_t  tries            = 5,
                                        bool     isBlock          = false)
     {
+        FRASY_PROFILE_FUNCTION();
         return downloadData(
           index,
           subIndex,
