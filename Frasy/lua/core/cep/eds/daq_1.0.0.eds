@@ -645,7 +645,7 @@ ObjectType=0x7
 DataType=0x0006
 AccessType=rw
 StringLengthMin=0
-DefaultValue=100
+DefaultValue=1000
 PDOMapping=0
 
 [1019]
