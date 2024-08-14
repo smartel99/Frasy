@@ -252,6 +252,32 @@ public:
     }
 
     template<typename T, typename... Args>
+    static void CellContentTextTooltip(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
+    {
+        CellContent(
+          [](const std::format_string<T, Args...>& _fmt, T&& _t, Args&&... _args) {
+              std::string line = std::format(_fmt, std::forward<T>(_t), std::forward<Args>(_args)...);
+              ImGui::Text("%s", line.c_str());
+              if (ImGui::IsItemHovered()) {
+                  ImGui::BeginTooltip();
+                  ImGui::PushTextWrapPos(800.0f);
+                  ImGui::Text(line.c_str());
+                  ImGui::PopTextWrapPos();
+                  ImGui::EndTooltip();
+              }
+          },
+          fmt,
+          std::forward<T>(t),
+          std::forward<Args>(args)...);
+    }
+
+    template<typename T>
+    static void CellContentTextTooltip(T&& t)
+    {
+        CellContentTextTooltip("{}", std::forward<T>(t));
+    }
+
+    template<typename T, typename... Args>
     static void CellContentTextWrapped(std::format_string<T, Args...> fmt, T&& t, Args&&... args)
     {
         CellContent(

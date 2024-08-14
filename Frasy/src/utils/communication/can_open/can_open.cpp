@@ -21,12 +21,15 @@
 #include "Brigerad/Utils/dialogs/error.h"
 #include "real_od.h"
 
+#include "../../lua/profile_events.h"
+
 #include <Brigerad.h>
 
 #include <array>
 #include <chrono>
 
 #include <processthreadsapi.h>
+
 #define EARLY_EXIT(msg, ...)                                                                                           \
     do {                                                                                                               \
         m_device.close();                                                                                              \
@@ -325,9 +328,12 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
         m_isRunning = true;
         // While loop,
         while (reset == CO_RESET_NOT && !stopToken.stop_requested()) {
+            // FRASY_PROFILE_SCOPE("CANopen task");
             reset = mainLoop();
-            std::this_thread::sleep_for(std::chrono::microseconds(m_sleepForUs));
+            {
+                // FRASY_PROFILE_SCOPE("Sleep");
                 std::this_thread::sleep_for(std::chrono::microseconds(std::max(m_sleepForUs, 1U)));
+            }
         }
     }
     // Terminate CANopen,
@@ -633,6 +639,7 @@ void           CanOpen::emRxCallback(void*          arg,
 
 void CanOpen::hbConsumerPreCallback(void* arg)
 {
+    FRASY_PROFILE_FUNCTION();
     BR_CORE_ASSERT(arg != nullptr, "Arg pointer null in hbConsumerPreCallback");
     CanOpen* that = static_cast<CanOpen*>(arg);
 }

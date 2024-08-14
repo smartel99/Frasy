@@ -159,6 +159,7 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
             request = m_pendingUploadRequests.front();
             m_pendingUploadRequests.pop();
         }
+        FRASY_PROFILE_SCOPE("Upload Request Handling");
 
         // If it was cancelled before it became active, ditch the request.
         if (request->status == SdoRequestStatus::CancelRequested) {
@@ -170,6 +171,7 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
 
         CO_SDO_return_t lastReturn = CO_SDO_RT_ok_communicationEnd;
         for (int i = 0; i <= request->retries; ++i) {
+            FRASY_PROFILE_SCOPE("Upload Request Retries");
             auto [handlerCode, coCode] = handleUploadRequest(*request);
             lastReturn                 = coCode;
             if (handlerCode == HandlerReturnCode::ok) {
@@ -196,7 +198,7 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
 
 std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUploadRequest(SdoUploadRequest& request)
 {
-    BR_PROFILE_FUNCTION();
+    FRASY_PROFILE_FUNCTION();
     // Initiate the upload.
     auto ret =
       CO_SDOclientUploadInitiate(m_sdoClient, request.index, request.subIndex, request.sdoTimeoutMs, request.isBlock);
@@ -210,20 +212,23 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
     uint32_t delta = 0;
     // Upload the data.
     do {
+        FRASY_PROFILE_SCOPE("SDO Upload Loop");
         if (request.status == SdoRequestStatus::CancelRequested) {
             return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_RT_ok_communicationEnd);
         }
-        uint32_t timeToSleep = 1000;    // 1ms
         uint32_t timeToSleep = 1'000;    // 1ms
 
         // Check and update the status of the upload.
-        ret = CO_SDOclientUpload(m_sdoClient,
-                                 delta,
-                                 request.abortCode != CO_SDO_AB_NONE && request.status != SdoRequestStatus::OnGoing,
-                                 &request.abortCode,
-                                 &request.sizeIndicated,
-                                 &request.sizeTransferred,
-                                 &timeToSleep);
+        {
+            FRASY_PROFILE_SCOPE("CO_SDOclientUpload");
+            ret = CO_SDOclientUpload(m_sdoClient,
+                                     delta,
+                                     request.abortCode != CO_SDO_AB_NONE && request.status != SdoRequestStatus::OnGoing,
+                                     &request.abortCode,
+                                     &request.sizeIndicated,
+                                     &request.sizeTransferred,
+                                     &timeToSleep);
+        }
 
         if (ret < 0) {
             // < 0 = error code, we gotta stop.
@@ -236,10 +241,12 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
             timeToSleep = 0;
         }
 
-        delta = duration_cast<microseconds>(steady_clock::now() - last).count();
-        last  = steady_clock::now();
-        std::this_thread::sleep_for(microseconds {timeToSleep});
+        {
+            FRASY_PROFILE_SCOPE("Sleep");
+            delta = duration_cast<microseconds>(steady_clock::now() - last).count();
+            last  = steady_clock::now();
             Sleep(1);
+        }
     } while (ret != CO_SDO_RT_ok_communicationEnd);
 
     readUploadBufferIntoRequest(request);
@@ -254,6 +261,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
 
 void SdoManager::readUploadBufferIntoRequest(SdoUploadRequest& request)
 {
+    FRASY_PROFILE_FUNCTION();
     size_t read = 0;
     do {
         uint8_t tmp[16] = {};
@@ -277,6 +285,7 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
             request = m_pendingDownloadRequests.front();
             m_pendingDownloadRequests.pop();
         }
+        FRASY_PROFILE_SCOPE("Download Request Handling");
 
         // If it was cancelled before it became active, ditch the request.
         if (request->status == SdoRequestStatus::CancelRequested) {
@@ -312,7 +321,7 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
 std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDownloadRequest(
   SdoDownloadRequest& request)
 {
-    BR_PROFILE_FUNCTION();
+    FRASY_PROFILE_FUNCTION();
     // Initiate the download.
     auto ret = CO_SDOclientDownloadInitiate(
       m_sdoClient, request.index, request.subIndex, request.data.size(), request.sdoTimeoutMs, request.isBlock);
@@ -337,8 +346,9 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
                                    request.data.size() - std::min(request.sizeTransferred, request.data.size()));
     uint8_t tries = request.retries;
     do {
+        FRASY_PROFILE_SCOPE("SDO Download Loop");
         if (request.status == SdoRequestStatus::CancelRequested) {
-            return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_return_t::CO_SDO_RT_ok_communicationEnd);
+            return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_RT_ok_communicationEnd);
         }
         uint32_t timeToSleep = 1000;    // 1ms
 
@@ -355,13 +365,17 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
         }
         bool bufferPartial = totalBytesWritten < request.data.size();
 
-        ret = CO_SDOclientDownload(m_sdoClient,
+        {
+            FRASY_PROFILE_SCOPE("CO_SDOclientDownload");
+            ret =
+              CO_SDOclientDownload(m_sdoClient,
                                    delta,
                                    request.abortCode != CO_SDO_AB_NONE && request.status != SdoRequestStatus::OnGoing,
                                    bufferPartial,
                                    &request.abortCode,
                                    &request.sizeTransferred,
                                    &timeToSleep);
+        }
         if (ret < 0) {
             // < 0 = error code, we gotta stop.
             return std::make_tuple(HandlerReturnCode::error, ret);
@@ -376,10 +390,12 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
                          request.data.size());
         }
 
-        delta = duration_cast<microseconds>(steady_clock::now() - last).count();
-        last  = steady_clock::now();
-        std::this_thread::sleep_for(microseconds {timeToSleep});
+        {
+            FRASY_PROFILE_SCOPE("Sleep");
+            delta = duration_cast<microseconds>(steady_clock::now() - last).count();
+            last  = steady_clock::now();
             Sleep(1);
+        }
     } while (ret != CO_SDO_RT_ok_communicationEnd);
 
     return std::make_tuple(HandlerReturnCode::ok, ret);

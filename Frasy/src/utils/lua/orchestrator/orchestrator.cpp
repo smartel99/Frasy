@@ -41,6 +41,8 @@
 #include <json.hpp>
 #include <stdexcept>
 
+#include <processthreadsapi.h>
+
 namespace Frasy::Lua {
 
 // <editor-fold desc="Orchestrator">
@@ -80,6 +82,9 @@ int OnPanic(lua_State* lua)
 
 bool Orchestrator::loadUserFiles(const std::string& environment, const std::string& testsDir)
 {
+    if (FAILED(SetThreadDescription(GetCurrentThread(), L"Lua File Loader"))) {
+        BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+    }
     FRASY_PROFILE_FUNCTION();
     m_popupMutex = std::make_unique<std::mutex>();
     m_state      = std::make_unique<sol::state>();
@@ -110,6 +115,9 @@ void Orchestrator::RunSolution(const std::vector<std::string>& serials, bool reg
         return;
     }
     m_running = std::async(std::launch::async, [this, &serials, regenerate, skipVerification] {
+        if (FAILED(SetThreadDescription(GetCurrentThread(), L"Solution Runner"))) {
+            BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+        }
         FRASY_PROFILE_FUNCTION();
         RunTests(serials, regenerate, skipVerification);
     });
@@ -611,6 +619,9 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
         threads.reserve(devices.size());
         for (auto& uut : devices) {
             threads.emplace_back([&, uut, team] {
+                if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                    BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                }
                 if (m_uutStates[uut] == UutState::Disabled) { return; }
                 // states[] is not yet populated, each call will modify it
                 // thus, we must have a mutex here
@@ -654,6 +665,9 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
             threads.reserve(devices.size());
             for (auto& uut : devices) {
                 threads.emplace_back([&, uut] {
+                    if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                        BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                    }
                     if (m_uutStates[uut] == UutState::Disabled) { return; }
                     mutex.lock();
                     sol::state_view lua = states[uut];
@@ -684,6 +698,9 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
         threads.reserve(devices.size());
         for (auto& uut : devices) {
             threads.emplace_back([&, uut] {
+                if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                    BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                }
                 if (m_uutStates[uut] == UutState::Disabled) { return; }
                 mutex.lock();
                 sol::state& lua = states[uut];

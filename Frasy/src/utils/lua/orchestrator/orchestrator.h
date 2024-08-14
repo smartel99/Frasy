@@ -22,9 +22,9 @@
 #include "../../communication/serial/device.h"
 #include "../../UutState.h"
 #include "../map.h"
+#include "../profile_events.h"
 #include "utils/commands/built_in/command_info/reply.h"
 #include "utils/lua/popup.h"
-#include "../profile_events.h"
 #include "utils/models/solution.h"
 
 #include <functional>
@@ -150,8 +150,8 @@ private:
     void CheckResults(const std::vector<std::size_t>& devices);
 
 private:
-    std::unique_ptr<sol::state> m_state     = nullptr;
-    std::vector<UutState>       m_uutStates = {};
+    std::unique_ptr<sol::state> m_state = nullptr;
+    std::vector<UutState>       m_uutStates;
     std::future<void>           m_running;
     Map                         m_map;
     bool                        m_generated = false;
