@@ -267,6 +267,7 @@ function DAQ:RequestRouting(points)
     local route = nil
     TryFunction(function()
         route = _requestRouting(self, sPointsAsStr)
+        Utils.SleepFor(1)
         return _checkRouting(self, sPointsAsStr, route)
     end, 5)
     return route --[[@as DAQ_RoutingBusEnum]]
@@ -969,13 +970,13 @@ function DAQ:MeasureResistor(impP, impN, expectedValue, range, guards, voltage, 
     impN = PointToPoints(impN)
 
     local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
+    Utils.SleepFor(10)
     local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
     local rguards = nil
     if guards ~= nil then
         guards = PointToPoints(guards)
         rguards = self:RequestRouting({ table.unpack(guards), DAQ.RoutingPointsEnum.GUARD })
     end
-
 
     local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor,
         DAQ.ImpedanceShapeEnum.dc, range,
