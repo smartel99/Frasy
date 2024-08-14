@@ -24,14 +24,8 @@
 #include "../dummy_table_deserializer.h"
 #include "../ode_deserializer.h"
 #include "../ode_serializer.h"
-#include "../table_deserializer.h"
-#include "../table_serializer.h"
-#include "../tag.h"
 #include "../team.h"
-#include "utils/commands/type/manager/manager.h"
 #include "utils/lua/save_as_json.h"
-#include "utils/lua/version.h"
-#include "utils/misc/serializer.h"
 
 #include <Brigerad/Utils/dialogs/warning.h>
 #include <chrono>
@@ -631,7 +625,7 @@ void Orchestrator::CheckResults(const std::vector<std::size_t>& devices)
         std::string resultFile = std::format("{}/{}/{}.json", m_outputDirectory, lastSubdirectory, uut);
         if (std::filesystem::exists(resultFile)) {
             std::ifstream ifs {resultFile};
-            std::string   content = std::string(std::istreambuf_iterator<char> {ifs}, {});
+            std::string   content = std::string(std::istreambuf_iterator {ifs}, {});
             json          data    = json::parse(content);
             bool          passed  = data["info"]["pass"];
             std::string   serial  = data["info"]["serial"];
