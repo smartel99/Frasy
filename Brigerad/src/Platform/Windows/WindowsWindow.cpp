@@ -16,6 +16,7 @@
 
 #include <dbt.h>
 #include <spdlog/fmt/fmt.h>
+#include <timeapi.h>
 #include <windows.h>
 
 namespace Brigerad {
@@ -241,14 +242,19 @@ Window* Window::Create(const WindowProps& props)
 WindowsWindow::WindowsWindow(const WindowProps& props)
 {
     BR_PROFILE_FUNCTION();
-
+    TIMECAPS capabilities;
+    if (timeGetDevCaps(&capabilities, sizeof(capabilities)) == MMSYSERR_NOERROR) {
+        m_hasChangedTimerPeriod = true;
+        m_timerPeriod           = capabilities.wPeriodMin;
+        timeBeginPeriod(m_timerPeriod);
+    }
     Init(props);
 }
 
 WindowsWindow::~WindowsWindow()
 {
     BR_PROFILE_FUNCTION();
-
+    if (m_hasChangedTimerPeriod) { timeEndPeriod(m_timerPeriod); }
     Shutdown();
 }
 
@@ -274,9 +280,7 @@ void WindowsWindow::Init(const WindowProps& props)
 #if defined(BR_DEBUG)
         if (Renderer::GetAPI() == RendererAPI::API::OpenGL) { glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE); }
 #endif
-        if(props.maximized) {
-            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-        }
+        if (props.maximized) { glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE); }
         m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
         ++s_GLFWWindowCount;
     }

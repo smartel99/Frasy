@@ -52,6 +52,9 @@ private:
     HWND        m_messageWindow;
     std::jthread m_messageThread;
     WindowData  m_data;
+
+    bool m_hasChangedTimerPeriod = false;
+    unsigned int m_timerPeriod = 0;
 };
 }    // namespace Brigerad
 #endif

@@ -26,6 +26,7 @@
 #include <array>
 #include <chrono>
 
+#include <processthreadsapi.h>
 #define EARLY_EXIT(msg, ...)                                                                                           \
     do {                                                                                                               \
         m_device.close();                                                                                              \
@@ -168,6 +169,14 @@ void CanOpen::start()
     }
     m_stopSource = {};
     m_coThread   = std::jthread([this] {
+        if (FAILED(SetThreadDescription(
+              GetCurrentThread(),
+              std::format(L"CANOpen {}", StringUtils::StringToWString(m_device.getPort())).c_str()))) {
+            BR_LOG_ERROR("CANOpen", "Unable to set thread description");
+        }
+        if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST)) {
+            BR_LOG_ERROR("CANOpen", "Unable to set thread priority!");
+        }
         addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the EDS.
         canOpenTask(m_stopSource.get_token());
         removeNode(0x01);
@@ -318,6 +327,7 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
         while (reset == CO_RESET_NOT && !stopToken.stop_requested()) {
             reset = mainLoop();
             std::this_thread::sleep_for(std::chrono::microseconds(m_sleepForUs));
+                std::this_thread::sleep_for(std::chrono::microseconds(std::max(m_sleepForUs, 1U)));
         }
     }
     // Terminate CANopen,
@@ -567,7 +577,7 @@ CO_SDOclient_t* CanOpen::findSdoClientHandle(uint8_t nodeId)
 }
 
 #pragma region Callbacks
-void CanOpen::emRxCallback(void*          arg,
+void           CanOpen::emRxCallback(void*          arg,
                            const uint16_t ident,
                            const uint16_t errorCode,
                            const uint8_t  errorRegister,
@@ -608,9 +618,8 @@ void CanOpen::emRxCallback(void*          arg,
         return;
     }
 
-    auto it = std::ranges::find_if(that->m_nodes, [&emergencyMessage](const auto& node) {
-        return node.nodeId() == emergencyMessage.nodeId;
-    });
+    auto it = std::ranges::find_if(
+      that->m_nodes, [&emergencyMessage](const auto& node) { return node.nodeId() == emergencyMessage.nodeId; });
 
     if (it == that->m_nodes.end()) {
         if (!emergencyMessage.isCritical()) { return; }

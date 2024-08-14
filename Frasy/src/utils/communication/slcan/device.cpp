@@ -17,6 +17,7 @@
 #include "device.h"
 
 #include <Brigerad.h>
+#include <utils/string_utils.h>
 
 namespace Frasy::SlCan {
 Device::Device(std::string_view port, bool open)
@@ -102,6 +103,9 @@ void Device::open()
     }
 
     m_rxThread = std::jthread([&](std::stop_token stopToken) {
+        if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL)) {
+            BR_LOG_ERROR("SlCAN", "Unable to set thread priority!");
+        }
         BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
         std::string read;
         while (!stopToken.stop_requested()) {

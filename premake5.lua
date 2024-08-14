@@ -234,7 +234,8 @@ function DefineBrigerad()
         "lua",
         "serial",
         "opengl32.lib",
-        "yaml-cpp"
+        "yaml-cpp",
+        "Winmm.lib"
     }
 
     excludes {

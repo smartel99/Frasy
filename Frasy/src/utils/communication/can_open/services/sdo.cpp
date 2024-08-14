@@ -26,6 +26,9 @@
 
 #include <CO_SDOclient.h>
 
+#include <processthreadsapi.h>
+#include <synchapi.h>
+
 namespace Frasy::CanOpen {
 
 SdoManager::SdoManager() : SdoManager(s_noNodeId)
@@ -120,8 +123,20 @@ void SdoManager::startWorkers()
 
     m_uploadWorkerThread =
       std::jthread([this](std::stop_source source) { uploadWorkerThread(source.get_token()); }, m_stopSource);
+    if (FAILED(SetThreadDescription(m_uploadWorkerThread.native_handle(), L"SDO Upload Worker"))) {
+        BR_LOG_ERROR("SDO", "Unable to set thread description");
+    }
+    if (!SetThreadPriority(m_uploadWorkerThread.native_handle(), THREAD_PRIORITY_ABOVE_NORMAL)) {
+        BR_LOG_ERROR("SDO", "Unable to set thread priority!");
+    }
     m_downloadWorkerThread =
       std::jthread([this](std::stop_source source) { downloadWorkerThread(source.get_token()); }, m_stopSource);
+    if (FAILED(SetThreadDescription(m_downloadWorkerThread.native_handle(), L"SDO Download Worker"))) {
+        BR_LOG_ERROR("SDO", "Unable to set thread description");
+    }
+    if (!SetThreadPriority(m_downloadWorkerThread.native_handle(), THREAD_PRIORITY_ABOVE_NORMAL)) {
+        BR_LOG_ERROR("SDO", "Unable to set thread priority!");
+    }
 }
 
 void SdoManager::stopWorkers()
@@ -199,6 +214,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
             return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_RT_ok_communicationEnd);
         }
         uint32_t timeToSleep = 1000;    // 1ms
+        uint32_t timeToSleep = 1'000;    // 1ms
 
         // Check and update the status of the upload.
         ret = CO_SDOclientUpload(m_sdoClient,
@@ -223,6 +239,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
         delta = duration_cast<microseconds>(steady_clock::now() - last).count();
         last  = steady_clock::now();
         std::this_thread::sleep_for(microseconds {timeToSleep});
+            Sleep(1);
     } while (ret != CO_SDO_RT_ok_communicationEnd);
 
     readUploadBufferIntoRequest(request);
@@ -362,6 +379,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
         delta = duration_cast<microseconds>(steady_clock::now() - last).count();
         last  = steady_clock::now();
         std::this_thread::sleep_for(microseconds {timeToSleep});
+            Sleep(1);
     } while (ret != CO_SDO_RT_ok_communicationEnd);
 
     return std::make_tuple(HandlerReturnCode::ok, ret);
