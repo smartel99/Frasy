@@ -20,7 +20,8 @@ function Sequence(name, func)
     if func == nil then
         return Orchestrator.GetSequenceScopeRequirement(name)
     else
-        Orchestrator.CreateSequence(name, func)
+        local ar = debug.getinfo(2, "Sl")
+        Orchestrator.CreateSequence(name, func, ar.source, ar.currentline)
     end
 end
 
@@ -34,7 +35,7 @@ function Test(name, func)
     if func == nil then
         return Orchestrator.GetTestScopeRequirement(name)
     else
-        local ar = debug.getinfo(2, "nSl")
+        local ar = debug.getinfo(2, "Sl")
         Orchestrator.CreateTest(name, func, ar.source, ar.currentline)
     end
 end

@@ -14,11 +14,17 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 local ScopeResult = require("lua/core/framework/scope_result")
 
-local Sequence = {tests = {}, result = nil, func = nil}
+local Sequence = { tests = {}, result = nil, func = nil }
 
-function Sequence:New(func)
-    return setmetatable({tests = {}, result = ScopeResult:New(), func = func},
-                        Sequence)
+function Sequence:New(func, source, line)
+    return setmetatable({
+            tests = {},
+            result = ScopeResult:New(),
+            source = source,
+            line = line,
+            func = func
+        },
+        Sequence)
 end
 
 return Sequence

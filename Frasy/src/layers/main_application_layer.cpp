@@ -17,6 +17,7 @@
 #include <Brigerad/Core/File.h>
 #include <frasy_interpreter.h>
 #include <imgui/imgui.h>
+#include <implot.h>
 #include <utils/imgui/table.h>
 
 #define CREATE_TEXTURE(texture, path)                                                                                  \
@@ -223,108 +224,183 @@ void MainApplicationLayer::renderAbout()
 
 void MainApplicationLayer::renderProfiler()
 {
-    if (m_orchestrator.isRunning()) {
-        m_renderProfiler = false;
-        return;
-    }
     ImGui::Begin("Lua Profiler", &m_renderProfiler);
 
-    const auto& profileEvents = Profiler::get().getEvents();
+    if (ImGui::Button("Reset All")) {
+        Profiler::get().reset();
+        m_profileGraphPopups.clear();
+    }
 
-    if (ImGui::Button("Reset")) { Profiler::get().reset(); }
-    float totalTime = static_cast<float>(Profiler::get().getTotalTime().count());
-    ImGui::Text("Total time: %fus", totalTime);
+    ImGui::SameLine();
+    if (ImGui::Button("Dump Trace")) { DumpProfileEvents(); }
 
-    float indent = 0.0f;
-    Widget::Table("profile events", 7)
-      .ColumnHeader("Name")
-      .ColumnHeader("Hit Count")
-      .ColumnHeader("Total Time")
-      .ColumnHeader("Average Time")
-      .ColumnHeader("Source", ImGuiTableColumnFlags_DefaultHide)
-      .ColumnHeader("Min Time")
-      .ColumnHeader("Max Time")
-      .ScrollFreeze()
-      .FinishHeader()
-      .Content(profileEvents,
-               [&indent, &totalTime](this auto const& self, Widget::Table& table, const ProfileEvent& event) -> void {
-                   bool renderChilds = false;
+    if (!ImGui::BeginTabBar("profiler_threads")) { return; }
+    for (auto&& [id, details] : Profiler::get().getEvents()) {
+        bool        isTabActive = ImGui::BeginTabItem(details.label().c_str());
+        const auto& events      = details.getEvents();
+        std::string threadId    = std::format("Thread {}", id);
 
-                   table.CellContent(
-                     [&renderChilds, &indent](const std::string& name, bool hasChilds) -> void {
-                         if (indent != 0.0f) { ImGui::Indent(indent); }
-                         if (!hasChilds) { ImGui::Text(name.c_str()); }
-                         else {
-                             const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-                             ImGui::PushStyleColor(ImGuiCol_Header, bg);
-                             ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
-                             ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
-                             ImGui::PushID(static_cast<const void*>(name.c_str()));
-                             if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
-                             ImGui::PopID();
-                             ImGui::PopStyleColor(3);
-                         }
-                         if (ImGui::IsItemHovered()) {
-                             ImGui::BeginTooltip();
-                             ImGui::PushTextWrapPos(800.0f);
-                             ImGui::Text(name.c_str());
-                             ImGui::PopTextWrapPos();
-                             ImGui::EndTooltip();
-                         }
-                         if (indent != 0.0f) { ImGui::Unindent(indent); }
-                     },
-                     event.header.name,
-                     !event.childs.empty());
-                   table.CellContentTextWrapped("{}", event.hitCount);
-                   table.CellContentTextWrapped("{:0.2}% ({})",
-                                                (static_cast<float>(event.totalTime.count()) / totalTime) * 100.0f,
-                                                event.totalTime);
-                   table.CellContentTextWrapped(
-                     "{:0.2}% ({})", (static_cast<float>(event.avgTime.count()) / totalTime) * 100.0f, event.avgTime);
-                   table.CellContentTextWrapped("{}:{}", event.header.source, event.header.currentLine);
-                   table.CellContentTextWrapped(
-                     "{:0.2}% ({})", (static_cast<float>(event.minTime.count()) / totalTime) * 100.0f, event.minTime);
-                   table.CellContentTextWrapped(
-                     "{:0.2}% ({})", (static_cast<float>(event.maxTime.count()) / totalTime) * 100.0f, event.maxTime);
+        float totalTime      = static_cast<float>(details.getTotalTime().count());
+        auto  onHoverTooltip = [&threadId, &totalTime, &top = events.front()] {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(800.0f);
+            ImGui::Text(threadId.c_str());
+            ImGui::Text("Total time: %fus", totalTime);
+            ImGui::Text("Top Function: %s", top.header.name.c_str());
+            ImGui::Text("Location: %s", top.header.source.c_str());
+            ImGui::Text("At line: %d", top.header.currentLine);
+            ImGui::PopTextWrapPos();
+            ImGui::Separator();
+            ImGui::EndTooltip();
+        };
 
-                   if (renderChilds) {
-                       indent += ImGui::GetStyle().IndentSpacing;
-                       for (auto&& child : event.childs) {
-                           self(table, child);
-                       }
-                       indent -= ImGui::GetStyle().IndentSpacing;
-                   }
-               });
+        if (ImGui::IsItemHovered() && !events.empty()) { onHoverTooltip(); }
+        if (!isTabActive) { continue; }
 
-    // auto renderEvent = [](this auto const& renderEvent, const ProfileEvent& event) -> void {
-    // ImGui::Bullet();
-    // ImGui::Text("%s - %0.6fs (%s:%d)",
-    //             event.header.name.c_str(),
-    //             event.totalTime.count() / 1'000'000.0f,
-    //             event.header.source.c_str(),
-    //             event.header.currentLine);
-    // for (auto&& child : event.childs) {
-    //     ImGui::Indent();
-    //     renderEvent(child);
-    //     ImGui::Unindent();
-    // }
-    //     if (ImGui::TreeNode(&event,
-    //                         "%s - %0.6fs (%s:%d)",
-    //                         event.header.name.c_str(),
-    //                         event.totalTime.count() / 1'000'000.0f,
-    //                         event.header.source.c_str(),
-    //                         event.header.currentLine)) {
-    //         for (auto&& child : event.childs) {
-    //             renderEvent(child);
-    //         }
-    //         ImGui::TreePop();
-    //     }
-    // };
-    // for (auto&& event : profileEvents) {
-    //     renderEvent(event);
-    // }
+        if (!ImGui::BeginTabBar(details.label().c_str())) {
+            ImGui::EndTabItem();    // details.label tab item.
+            continue;
+        }
+        isTabActive = ImGui::BeginTabItem(threadId.c_str());
+        if (ImGui::IsItemHovered() && !events.empty()) { onHoverTooltip(); }
+        if (!isTabActive) {
+            ImGui::EndTabItem();    // details.label tab item.
+            ImGui::EndTabBar();     // Threads tab bar.
+            continue;
+        }
+        if (ImGui::Button(std::format("Reset##{}", id).c_str())) {
+            Profiler::get().reset(id);
+            m_profileGraphPopups.clear();
+        }
+        ImGui::Text("Total time: %fus", totalTime);
 
+        float indent = 0.0f;
+        Widget::Table(std::format("profile events##{}", id), 8)
+          .ColumnHeader("Name")
+          .ColumnHeader("Hit Count")
+          .ColumnHeader("Total Time")
+          .ColumnHeader("Average Time")
+          .ColumnHeader("Source", ImGuiTableColumnFlags_DefaultHide)
+          .ColumnHeader("Min Time")
+          .ColumnHeader("Max Time")
+          .ColumnHeader("Graph")
+          .ScrollFreeze()
+          .FinishHeader()
+          .Content(
+            events,
+            [this, &indent, &totalTime, &id](
+              this auto const& self, Widget::Table& table, const ProfileEvent& event) -> void {
+                bool renderChilds = false;
+                table.CellContent(
+                  [&renderChilds, &indent](const std::string& name, bool hasChilds) -> void {
+                      if (indent != 0.0f) { ImGui::Indent(indent); }
+                      if (!hasChilds) { ImGui::Text(name.c_str()); }
+                      else {
+                          const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+                          ImGui::PushStyleColor(ImGuiCol_Header, bg);
+                          ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
+                          ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
+                          ImGui::PushID(static_cast<const void*>(name.c_str()));
+                          if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
+                          ImGui::PopID();
+                          ImGui::PopStyleColor(3);
+                      }
+                      if (ImGui::IsItemHovered()) {
+                          ImGui::BeginTooltip();
+                          ImGui::PushTextWrapPos(800.0f);
+                          ImGui::Text(name.c_str());
+                          ImGui::PopTextWrapPos();
+                          ImGui::EndTooltip();
+                      }
+                      if (indent != 0.0f) { ImGui::Unindent(indent); }
+                  },
+                  event.header.name,
+                  !event.childs.empty());
+                table.CellContentTextTooltip("{}", event.hitCount);
+                table.CellContentTextWrapped(
+                  "{:0.2}% ({})", (static_cast<float>(event.totalTime.count()) / totalTime) * 100.0f, event.totalTime);
+                table.CellContentTextWrapped(
+                  "{:0.2}% ({})", (static_cast<float>(event.avgTime.count()) / totalTime) * 100.0f, event.avgTime);
+                table.CellContentTextTooltip("{}:{}", event.header.source, event.header.currentLine);
+                table.CellContentTextWrapped(
+                  "{:0.2}% ({})", (static_cast<float>(event.minTime.count()) / totalTime) * 100.0f, event.minTime);
+                table.CellContentTextWrapped(
+                  "{:0.2}% ({})", (static_cast<float>(event.maxTime.count()) / totalTime) * 100.0f, event.maxTime);
+
+                table.CellContent(
+                  [this](const ProfileEvent* event) {
+                      std::string graphWindowLabel = std::format("Graph##{}", (std::uintptr_t)event);
+                      if (ImGui::Button(graphWindowLabel.c_str())) {
+                          m_profileGraphPopups.emplace_back(std::move(graphWindowLabel), event, true);
+                      }
+                  },
+                  &event);
+
+                if (renderChilds) {
+                    indent += ImGui::GetStyle().IndentSpacing;
+                    for (auto&& child : event.childs) {
+                        self(table, child);
+                    }
+                    indent -= ImGui::GetStyle().IndentSpacing;
+                }
+            });
+        ImGui::EndTabItem();
+        ImGui::EndTabBar();
+        ImGui::EndTabItem();
+    }
+    ImGui::EndTabBar();
+
+    for (auto&& event : m_profileGraphPopups) {
+        if (ImGui::Begin(event.windowName.c_str(),
+                         &event.render,
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking)) {
+            ImGui::TextWrapped("%s - %s:%d",
+                               event.event->header.name.c_str(),
+                               event.event->header.source.c_str(),
+                               event.event->header.currentLine);
+            ImGui::TextWrapped("Occurences: %d, Min Time: %dus, Average Time: %dus, Max Time: %dus",
+                               event.event->hitCount,
+                               event.event->minTime.count(),
+                               event.event->avgTime.count(),
+                               event.event->maxTime.count());
+            ImGui::Checkbox("Display as samples", &event.displayAsSamples);
+            if (ImPlot::BeginPlot("History", ImVec2(800.0f, 342.86f))) {
+                ImPlot::SetupAxes(event.displayAsSamples ? "Occurrence" : "Timestamp",
+                                  "Time (us)",
+                                  ImPlotAxisFlags_AutoFit,
+                                  ImPlotAxisFlags_AutoFit);
+                ImPlot::PlotScatterG(
+                  "History",
+                  [](int idx, void* data) -> ImPlotPoint {
+                      auto& event = *static_cast<ProfileEventInfo*>(data);
+                      try {
+                          auto& mark = event.event->history.at(idx);
+                          return {event.displayAsSamples
+                                    ? static_cast<double>(idx)
+                                    : static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                                            mark.start.time_since_epoch())
+                                                            .count()) /
+                                        1'000,
+                                  static_cast<double>(mark.delta.count())};
+                      }
+                      catch (std::exception&) {
+                          return {0, 0};
+                      }
+                  },
+                  const_cast<ProfileEventInfo*>(&event),
+                  event.event->history.size());
+
+                double average = static_cast<double>(event.event->avgTime.count());
+                ImPlot::PlotInfLines("Average", &average, 1, ImPlotInfLinesFlags_Horizontal);
+                ImPlot::EndPlot();
+            }
+
+            ImGui::End();
+        }
+    }
     ImGui::End();
+
+    std::erase_if(m_profileGraphPopups, [](const ProfileEventInfo& event) { return !event.render; });
 }
 
 void MainApplicationLayer::PresetControlRoomOptions()
@@ -356,6 +432,70 @@ void MainApplicationLayer::PresetControlRoomOptions()
         ImGui::Begin("Control Room");
     }
     ImGui::End();
+}
+
+namespace {
+
+nlohmann::json eventStackTrace(const ProfileEvent& event)
+{
+    auto j = nlohmann::json {
+      {"name", event.header.name},
+      {"category", "my app"},
+    };
+    if (event.parent != nullptr) { j["parent"] = std::format("{}", reinterpret_cast<std::uintptr_t>(event.parent)); }
+    return j;
+}
+
+void addEventToJson(nlohmann::json& j, const ProfileEvent& event, const std::thread::id& threadId)
+{
+
+    auto frameId              = std::format("{}", reinterpret_cast<std::uintptr_t>(&event));
+    j["stackFrames"][frameId] = eventStackTrace(event);
+    for (auto&& marker : event.history) {
+        j["traceEvents"] += nlohmann::json {
+          {"name", event.header.name},
+          {"ph", "X"},
+          {"pid", 0},
+          {"tid", threadId._Get_underlying_id()},
+          {"sf", frameId},
+          {"ts", std::chrono::duration_cast<std::chrono::microseconds>(marker.start.time_since_epoch()).count()},
+          {"dur", marker.delta.count()},
+        };
+    }
+
+    for (auto&& child : event.childs) {
+        addEventToJson(j, child, threadId);
+    }
+}
+
+nlohmann::json profilerMetadata(const ProfilerDetails& details)
+{
+    // Metadata for this thread.
+    return nlohmann::json {
+      {"name", "thread_name"},
+      {"ph", "M"},
+      {"pid", 0},
+      {"tid", details.threadId()._Get_underlying_id()},
+      {"args", nlohmann::json {"name", details.label()}},
+    };
+}
+}    // namespace
+
+void MainApplicationLayer::DumpProfileEvents()
+{
+    nlohmann::json j = nlohmann::json {
+      {"otherData", nlohmann::json {}},
+      {"traceEvents", nlohmann::json::array()},
+      {"stackFrames", nlohmann::json {}},
+    };
+    for (auto&& [id, profiler] : Profiler::get().getEvents()) {
+        j["traceEvents"] += profilerMetadata(profiler);
+        for (auto&& event : profiler.getEvents()) {
+            addEventToJson(j, event, profiler.threadId());
+        }
+    }
+    std::ofstream file = std::ofstream("profile_events.json");
+    file << j.dump();
 }
 
 void MainApplicationLayer::generate()

@@ -27,6 +27,8 @@
 #    include <Brigerad.h>
 #    include <Brigerad/Renderer/Texture.h>
 
+#    include <vector>
+
 
 /*****************************************************************************/
 /* Exported defines */
@@ -101,8 +103,20 @@ protected:
     Lua::Orchestrator m_orchestrator;
     Lua::Map          m_map;
 
+
 private:
-    void PresetControlRoomOptions();
+    struct ProfileEventInfo {
+        std::string         windowName;
+        const ProfileEvent* event  = nullptr;
+        bool                render = true;
+        //! When true, renders markers as sample. When false, renders them properly in time.
+        bool displayAsSamples = true;
+    };
+
+    std::vector<ProfileEventInfo> m_profileGraphPopups;
+    void                          PresetControlRoomOptions();
+
+    void DumpProfileEvents();
 };
 }    // namespace Frasy
 /*****************************************************************************/

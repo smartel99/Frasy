@@ -57,6 +57,7 @@ end
 function Orchestrator.RunSequence(sIndex, scope)
     local sequence = Context.orchestrator.sequences[scope.sequence]
     Context.orchestrator.scope = scope
+    __profileStartEvent(scope.sequence, sequence.source, sequence.line)
 
     local start = os.clock()
     if sequence.time == nil then
@@ -119,6 +120,8 @@ function Orchestrator.RunSequence(sIndex, scope)
     else
         table.insert(sequence.time, { start = start, stop = os.clock() })
     end
+
+    __profileEndEvent(scope.sequence, sequence.source, sequence.line)
 end
 
 function Orchestrator.RunTest(scope)
@@ -424,10 +427,10 @@ function Orchestrator.LoadSolution(path)
     Context.orchestrator.solution = Json.decode(file:read("*all"))
 end
 
-function Orchestrator.CreateSequence(name, func)
+function Orchestrator.CreateSequence(name, func, source, line)
     if Orchestrator.IsInSequence() then error(NestedScope()) end
     if Orchestrator.HasSequence(Scope:New(name)) then error(AlreadyDefined()) end
-    Context.orchestrator.sequences[name] = Sequence:New(func)
+    Context.orchestrator.sequences[name] = Sequence:New(func, source, line)
     Context.orchestrator.values[name] = {}
 end
 
