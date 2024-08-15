@@ -71,6 +71,9 @@ protected:
     virtual void makeTestViewerVisible();
     void         renderAbout();
     void         renderProfiler();
+    void         renderProfilerTable(const std::thread::id& id, const ProfilerDetails& details);
+    void         renderProfilerTableRow(const ProfileEvent& event, float totalTime, float indent = 0.0f);
+    void         renderProfilerGraphs();
 
 private:
     void generate() override;

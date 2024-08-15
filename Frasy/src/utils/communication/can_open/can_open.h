@@ -33,6 +33,7 @@
 
 #include <array>
 #include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <format>
 #include <functional>
@@ -106,6 +107,12 @@ private:
     void deinitNodeServices();
 
     CO_SDOclient_t* findSdoClientHandle(uint8_t nodeId);
+
+    void rxReadyCallback()
+    {
+        m_wakeupNeeded = true;
+        m_sleepOrTimeout.notify_all();
+    }
 
     /**
      * Left there just in case it's needed, but really doesn't do anything...
@@ -268,9 +275,11 @@ private:
       },
     };
 
-    std::stop_source m_stopSource;
-    std::jthread     m_coThread;
-    bool             m_isRunning = false;
+    std::stop_source            m_stopSource;
+    std::condition_variable_any m_sleepOrTimeout;
+    bool                        m_wakeupNeeded = false;
+    std::jthread                m_coThread;
+    bool                        m_isRunning = false;
 
     std::chrono::time_point<std::chrono::steady_clock> m_lastTimePoint;
     static constexpr auto                              s_autoSavePeriod = std::chrono::minutes {1};

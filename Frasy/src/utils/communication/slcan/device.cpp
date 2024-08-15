@@ -17,6 +17,7 @@
 #include "device.h"
 
 #include <Brigerad.h>
+#include <utils/lua/profile_events.h>
 #include <utils/string_utils.h>
 
 namespace Frasy::SlCan {
@@ -24,7 +25,7 @@ Device::Device(std::string_view port, bool open)
 : m_label("SlCan"),
   m_device(std::string {port},
            921600,
-           serial::Timeout::simpleTimeout(10),
+           serial::Timeout::simpleTimeout(1),
            serial::eightbits,
            serial::parity_none,
            serial::stopbits_one,
@@ -41,9 +42,12 @@ Device& Device::operator=(Device&& o) noexcept
         o.close();
     }
 
-    m_label = std::move(o.m_label);
-    m_queue = std::move(o.m_queue);
-    m_muted = o.m_muted.load();
+    m_label          = std::move(o.m_label);
+    m_queue          = std::move(o.m_queue);
+    m_muted          = o.m_muted.load();
+    m_rxMonitorFunc  = std::move(o.m_rxMonitorFunc);
+    m_txMonitorFunc  = std::move(o.m_txMonitorFunc);
+    m_rxCallbackFunc = std::move(o.m_rxCallbackFunc);
 
     try {
         serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
@@ -60,14 +64,18 @@ Device& Device::operator=(Device&& o) noexcept
 
 size_t Device::transmit(const Packet& pkt)
 {
+    FRASY_PROFILE_FUNCTION();
     BR_LOG_DEBUG(m_label, "Sending {} packet", commandToStr(pkt.command));
 
     uint8_t buff[Packet::s_mtu] = {};
     auto    size                = pkt.toSerial(&buff[0], sizeof(buff));
     if (size != -1) {
         try {
-            auto written = m_device.write(&buff[0], size);
-            m_device.flushOutput();
+            size_t written = 0;
+            {
+                FRASY_PROFILE_SCOPE("Write");
+                written = m_device.write(&buff[0], size);
+            }
             m_txMonitorFunc(pkt);
             return written;
         }
@@ -81,6 +89,7 @@ size_t Device::transmit(const Packet& pkt)
 
 Packet Device::receive()
 {
+    FRASY_PROFILE_FUNCTION();
     std::unique_lock lk {m_lock};
     m_cv.wait(lk, [this] { return !m_muted && !m_queue.empty(); });
 
@@ -103,15 +112,23 @@ void Device::open()
     }
 
     m_rxThread = std::jthread([&](std::stop_token stopToken) {
-        if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL)) {
-            BR_LOG_ERROR("SlCAN", "Unable to set thread priority!");
+        if (FAILED(SetThreadDescription(
+              GetCurrentThread(),
+              std::format(L"SlCAN RX {}", StringUtils::StringToWString(m_device.getPort())).c_str()))) {
+            BR_LOG_ERROR("SlCAN", "Unable to set thread description");
         }
         BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
         std::string read;
         while (!stopToken.stop_requested()) {
             try {
+                FRASY_PROFILE_SCOPE("RX Loop");
+                if (m_device.available() == 0) {
+                    Sleep(1);
+                    continue;
+                }
                 read.clear();
-                [[maybe_unused]] size_t len = m_device.readline(read, Packet::s_mtu, "\r");
+                // TODO this might cause problems if we don't receive a complete packet.
+                m_device.readline(read, Packet::s_mtu, "\r");
                 if (m_muted || read.empty()) { continue; }
                 BR_LOG_TRACE(m_label, "RX: {}", read);
                 std::unique_lock lock {m_lock};
@@ -121,6 +138,7 @@ void Device::open()
                 // the waiting thread only to block again (see notify_one for details)
                 lock.unlock();
                 m_cv.notify_one();
+                m_rxCallbackFunc();
             }
             catch (std::exception& e) {
                 if (!stopToken.stop_requested()) {

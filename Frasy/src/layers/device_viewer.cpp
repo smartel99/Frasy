@@ -95,6 +95,7 @@ void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& optio
 DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOpen)
 {
     m_canOpen.m_device.m_rxMonitorFunc = [this](const SlCan::Packet& pkt) {
+        FRASY_PROFILE_FUNCTION();
         m_pktRxCount++;
 
         m_packetsRxInCurrentSecond++;
@@ -106,6 +107,7 @@ DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOp
     };
 
     m_canOpen.m_device.m_txMonitorFunc = [this](const SlCan::Packet& pkt) {
+        FRASY_PROFILE_FUNCTION();
         m_pktTxCount++;
 
         m_packetsTxInCurrentSecond++;

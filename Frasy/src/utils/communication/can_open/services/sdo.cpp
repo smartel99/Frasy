@@ -241,11 +241,9 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
             timeToSleep = 0;
         }
 
-        {
-            FRASY_PROFILE_SCOPE("Sleep");
+        if (ret != CO_SDO_RT_ok_communicationEnd) {
             delta = duration_cast<microseconds>(steady_clock::now() - last).count();
             last  = steady_clock::now();
-            Sleep(1);
         }
     } while (ret != CO_SDO_RT_ok_communicationEnd);
 
@@ -353,20 +351,19 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
         uint32_t timeToSleep = 1000;    // 1ms
 
         // Fill data if we need to send the next packet.
-        size_t written = 0;
         if (request.sizeTransferred == totalBytesWritten && totalBytesWritten < request.data.size()) {
-            written = CO_SDOclientDownloadBufWrite(m_sdoClient,
-                                                   request.data.data() + request.sizeTransferred,
-                                                   request.data.size() -
-                                                     std::min(request.sizeTransferred, request.data.size()));
+            size_t written = CO_SDOclientDownloadBufWrite(m_sdoClient,
+                                                          request.data.data() + request.sizeTransferred,
+                                                          request.data.size() -
+                                                            std::min(request.sizeTransferred, request.data.size()));
             totalBytesWritten += written;
             BR_LOG_DEBUG(
               s_cliTag, "Written {} more bytes to buffer. ({}/{})", written, totalBytesWritten, request.data.size());
         }
-        bool bufferPartial = totalBytesWritten < request.data.size();
 
         {
             FRASY_PROFILE_SCOPE("CO_SDOclientDownload");
+            bool bufferPartial = totalBytesWritten < request.data.size();
             ret =
               CO_SDOclientDownload(m_sdoClient,
                                    delta,
@@ -384,17 +381,15 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
         if (request.sizeTransferred != lastTransSize) {
             lastTransSize = request.sizeTransferred;
             BR_LOG_DEBUG(s_cliTag,
-                         "Transfered {} bytes over to remote node. ({}/{})",
+                         "Transferred {} bytes over to remote node. ({}/{})",
                          request.sizeTransferred,
                          request.sizeTransferred,
                          request.data.size());
         }
 
-        {
-            FRASY_PROFILE_SCOPE("Sleep");
+        if (ret != CO_SDO_RT_ok_communicationEnd) {
             delta = duration_cast<microseconds>(steady_clock::now() - last).count();
             last  = steady_clock::now();
-            Sleep(1);
         }
     } while (ret != CO_SDO_RT_ok_communicationEnd);
 

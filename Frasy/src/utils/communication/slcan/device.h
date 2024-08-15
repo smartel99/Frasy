@@ -24,10 +24,10 @@
 
 #include <condition_variable>
 #include <cstddef>
-#include <string_view>
 #include <functional>
 #include <mutex>
 #include <queue>
+#include <string_view>
 
 namespace Frasy {
 class DeviceViewer;
@@ -69,6 +69,11 @@ public:
 
     [[nodiscard]] size_t available() const { return m_queue.size(); }
 
+    void setRxCallbackFunc(const std::function<void()>& func)
+    {
+        if (func) { m_rxCallbackFunc = func; }
+    }
+
 private:
     std::string    m_label;
     serial::Serial m_device;    //!< The physical communication interface.
@@ -83,8 +88,9 @@ private:
 
     // Things used by the device viewer for monitoring purposes.
     friend class DeviceViewer;
-    std::function<void(const Packet&)> m_rxMonitorFunc = [](const Packet&) {};
-    std::function<void(const Packet&)> m_txMonitorFunc = [](const Packet&) {};
+    std::function<void(const Packet&)> m_rxMonitorFunc  = [](const Packet&) {};
+    std::function<void(const Packet&)> m_txMonitorFunc  = [](const Packet&) {};
+    std::function<void()>              m_rxCallbackFunc = [] {};
 };
 }    // namespace Frasy::SlCan
 

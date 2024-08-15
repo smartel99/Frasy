@@ -58,10 +58,10 @@ struct ProfileEvent {
     std::chrono::microseconds       minTime   = std::chrono::microseconds(std::numeric_limits<int64_t>::max());
     std::chrono::microseconds       maxTime   = std::chrono::microseconds(std::numeric_limits<int64_t>::min());
     std::chrono::microseconds       avgTime   = std::chrono::microseconds(0);
-    std::deque<ProfileEventMarkers> history;
+    std::deque<ProfileEventMarkers> history;    //! Need fast insert/erase on front and back + pointer stability.
 
     ProfileEvent*           parent = nullptr;
-    std::list<ProfileEvent> childs;
+    std::list<ProfileEvent> childs;    //! List because of constant insertion at end + pointer stability.
 };
 
 class ProfilerDetails {
@@ -83,7 +83,7 @@ public:
 private:
     friend class Profiler;
     ProfileEvent*           m_activeEvent = nullptr;
-    std::list<ProfileEvent> m_events;
+    std::list<ProfileEvent> m_events;    //! List because of constant insertion at end + pointer stability.
     std::thread::id         m_threadId = std::this_thread::get_id();
 
 #if defined(__cpp_lib_formatters) && __cpp_lib_formatters >= 202302L
@@ -114,11 +114,14 @@ public:
 
     void reset() { m_events.clear(); }
     void reset(std::thread::id id) { m_events[id].reset(); }
+    void enable() { m_enabled = true; }
+    void disable() { m_enabled = false; }
 
     const std::map<std::thread::id, ProfilerDetails>& getEvents() const { return m_events; }
 
     void reportCallEvent(const ProfileEventHeader& header)
     {
+        if (!m_enabled) { return; }
         auto isEvent = [&header](const ProfileEvent& event) { return event.header == header; };
 
         auto  id     = std::this_thread::get_id();
@@ -154,6 +157,7 @@ public:
 
     void reportReturnEvent(const ProfileEventHeader& header)
     {
+        if (!m_enabled) { return; }
         auto id = std::this_thread::get_id();
 
         auto& event = m_events[id];
@@ -176,6 +180,7 @@ public:
             event.m_activeEvent->history.pop_front();
         }
 
+        // TODO Sorting in here ain't exactly the least intrusive approach. It sure is the easiest tho
         // Sort the whole branch back to the root
         for (auto* parent = event.m_activeEvent->parent; parent != nullptr; parent = parent->parent) {
             parent->childs.sort(m_sortFunction);
@@ -198,6 +203,7 @@ public:
     }
 
 private:
+    bool                                       m_enabled = true;
     std::map<std::thread::id, ProfilerDetails> m_events;
 
     std::function<bool(const ProfileEvent&, const ProfileEvent&)> m_sortFunction = sortByTotalTimeDesc;

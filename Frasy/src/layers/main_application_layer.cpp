@@ -224,10 +224,13 @@ void MainApplicationLayer::renderAbout()
 
 void MainApplicationLayer::renderProfiler()
 {
-    ImGui::Begin("Lua Profiler", &m_renderProfiler);
+    if (!ImGui::Begin("Lua Profiler", &m_renderProfiler)) { goto skip_render; }
 
     if (ImGui::Button("Reset All")) {
-        Profiler::get().reset();
+        Profiler& profiler = Profiler::get();
+        profiler.disable();
+        profiler.reset();
+        profiler.enable();
         m_profileGraphPopups.clear();
     }
 
@@ -236,120 +239,138 @@ void MainApplicationLayer::renderProfiler()
 
     if (!ImGui::BeginTabBar("profiler_threads")) { return; }
     for (auto&& [id, details] : Profiler::get().getEvents()) {
-        bool        isTabActive = ImGui::BeginTabItem(details.label().c_str());
-        const auto& events      = details.getEvents();
-        std::string threadId    = std::format("Thread {}", id);
-
-        float totalTime      = static_cast<float>(details.getTotalTime().count());
-        auto  onHoverTooltip = [&threadId, &totalTime, &top = events.front()] {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(800.0f);
-            ImGui::Text(threadId.c_str());
-            ImGui::Text("Total time: %fus", totalTime);
-            ImGui::Text("Top Function: %s", top.header.name.c_str());
-            ImGui::Text("Location: %s", top.header.source.c_str());
-            ImGui::Text("At line: %d", top.header.currentLine);
-            ImGui::PopTextWrapPos();
-            ImGui::Separator();
-            ImGui::EndTooltip();
-        };
-
-        if (ImGui::IsItemHovered() && !events.empty()) { onHoverTooltip(); }
-        if (!isTabActive) { continue; }
-
-        if (!ImGui::BeginTabBar(details.label().c_str())) {
-            ImGui::EndTabItem();    // details.label tab item.
-            continue;
-        }
-        isTabActive = ImGui::BeginTabItem(threadId.c_str());
-        if (ImGui::IsItemHovered() && !events.empty()) { onHoverTooltip(); }
-        if (!isTabActive) {
-            ImGui::EndTabItem();    // details.label tab item.
-            ImGui::EndTabBar();     // Threads tab bar.
-            continue;
-        }
-        if (ImGui::Button(std::format("Reset##{}", id).c_str())) {
-            Profiler::get().reset(id);
-            m_profileGraphPopups.clear();
-        }
-        ImGui::Text("Total time: %fus", totalTime);
-
-        float indent = 0.0f;
-        Widget::Table(std::format("profile events##{}", id), 8)
-          .ColumnHeader("Name")
-          .ColumnHeader("Hit Count")
-          .ColumnHeader("Total Time")
-          .ColumnHeader("Average Time")
-          .ColumnHeader("Source", ImGuiTableColumnFlags_DefaultHide)
-          .ColumnHeader("Min Time")
-          .ColumnHeader("Max Time")
-          .ColumnHeader("Graph")
-          .ScrollFreeze()
-          .FinishHeader()
-          .Content(
-            events,
-            [this, &indent, &totalTime, &id](
-              this auto const& self, Widget::Table& table, const ProfileEvent& event) -> void {
-                bool renderChilds = false;
-                table.CellContent(
-                  [&renderChilds, &indent](const std::string& name, bool hasChilds) -> void {
-                      if (indent != 0.0f) { ImGui::Indent(indent); }
-                      if (!hasChilds) { ImGui::Text(name.c_str()); }
-                      else {
-                          const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-                          ImGui::PushStyleColor(ImGuiCol_Header, bg);
-                          ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
-                          ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
-                          ImGui::PushID(static_cast<const void*>(name.c_str()));
-                          if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
-                          ImGui::PopID();
-                          ImGui::PopStyleColor(3);
-                      }
-                      if (ImGui::IsItemHovered()) {
-                          ImGui::BeginTooltip();
-                          ImGui::PushTextWrapPos(800.0f);
-                          ImGui::Text(name.c_str());
-                          ImGui::PopTextWrapPos();
-                          ImGui::EndTooltip();
-                      }
-                      if (indent != 0.0f) { ImGui::Unindent(indent); }
-                  },
-                  event.header.name,
-                  !event.childs.empty());
-                table.CellContentTextTooltip("{}", event.hitCount);
-                table.CellContentTextWrapped(
-                  "{:0.2}% ({})", (static_cast<float>(event.totalTime.count()) / totalTime) * 100.0f, event.totalTime);
-                table.CellContentTextWrapped(
-                  "{:0.2}% ({})", (static_cast<float>(event.avgTime.count()) / totalTime) * 100.0f, event.avgTime);
-                table.CellContentTextTooltip("{}:{}", event.header.source, event.header.currentLine);
-                table.CellContentTextWrapped(
-                  "{:0.2}% ({})", (static_cast<float>(event.minTime.count()) / totalTime) * 100.0f, event.minTime);
-                table.CellContentTextWrapped(
-                  "{:0.2}% ({})", (static_cast<float>(event.maxTime.count()) / totalTime) * 100.0f, event.maxTime);
-
-                table.CellContent(
-                  [this](const ProfileEvent* event) {
-                      std::string graphWindowLabel = std::format("Graph##{}", (std::uintptr_t)event);
-                      if (ImGui::Button(graphWindowLabel.c_str())) {
-                          m_profileGraphPopups.emplace_back(std::move(graphWindowLabel), event, true);
-                      }
-                  },
-                  &event);
-
-                if (renderChilds) {
-                    indent += ImGui::GetStyle().IndentSpacing;
-                    for (auto&& child : event.childs) {
-                        self(table, child);
-                    }
-                    indent -= ImGui::GetStyle().IndentSpacing;
-                }
-            });
-        ImGui::EndTabItem();
-        ImGui::EndTabBar();
-        ImGui::EndTabItem();
+        renderProfilerTable(id, details);
     }
     ImGui::EndTabBar();
 
+    renderProfilerGraphs();
+
+skip_render:
+    ImGui::End();
+}
+
+void MainApplicationLayer::renderProfilerTable(const std::thread::id& id, const ProfilerDetails& details)
+{
+    bool        isTabActive = ImGui::BeginTabItem(details.label().c_str());
+    const auto& events      = details.getEvents();
+    std::string threadId    = std::format("Thread {}", id);
+
+    float totalTime      = static_cast<float>(details.getTotalTime().count());
+    auto  onHoverTooltip = [&threadId, &totalTime, &top = events.front()] {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(800.0f);
+        ImGui::Text(threadId.c_str());
+        ImGui::Text("Total time: %fus", totalTime);
+        ImGui::Text("Top Function: %s", top.header.name.c_str());
+        ImGui::Text("Location: %s", top.header.source.c_str());
+        ImGui::Text("At line: %d", top.header.currentLine);
+        ImGui::PopTextWrapPos();
+        ImGui::Separator();
+        ImGui::EndTooltip();
+    };
+
+    if (ImGui::IsItemHovered() && !events.empty()) { onHoverTooltip(); }
+    if (!isTabActive) { return; }
+
+    if (!ImGui::BeginTabBar(details.label().c_str())) {
+        ImGui::EndTabItem();    // details.label tab item.
+        return;
+    }
+    isTabActive = ImGui::BeginTabItem(threadId.c_str());
+    if (ImGui::IsItemHovered() && !events.empty()) { onHoverTooltip(); }
+    if (!isTabActive) {
+        ImGui::EndTabItem();    // details.label tab item.
+        ImGui::EndTabBar();     // Threads tab bar.
+        return;
+    }
+    if (ImGui::Button(std::format("Reset##{}", id).c_str())) {
+        Profiler& profiler = Profiler::get();
+        profiler.disable();
+        profiler.reset();
+        profiler.enable();
+        m_profileGraphPopups.clear();
+    }
+    ImGui::Text("Total time: %fus", totalTime);
+
+    float indent = 0.0f;
+    Widget::Table(std::format("profile events##{}", id), 8)
+      .ColumnHeader("Name")
+      .ColumnHeader("Hit Count")
+      .ColumnHeader("Total Time")
+      .ColumnHeader("Average Time")
+      .ColumnHeader("Source", ImGuiTableColumnFlags_DefaultHide)
+      .ColumnHeader("Min Time")
+      .ColumnHeader("Max Time")
+      .ColumnHeader("Graph")
+      .ScrollFreeze()
+      .FinishHeader()
+      .Content(events, [this, &indent, &totalTime](Widget::Table&, const ProfileEvent& event) -> void {
+          renderProfilerTableRow(event, totalTime, indent);
+      });
+    ImGui::EndTabItem();
+    ImGui::EndTabBar();
+    ImGui::EndTabItem();
+}
+
+void MainApplicationLayer::renderProfilerTableRow(const ProfileEvent& event, float totalTime, float indent)
+{
+    bool renderChilds = false;
+    Widget::Table::CellContent(
+      [&renderChilds, &indent](const std::string& name, bool hasChilds) -> void {
+          if (indent != 0.0f) { ImGui::Indent(indent); }
+          if (!hasChilds) { ImGui::Text(name.c_str()); }
+          else {
+              const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+              ImGui::PushStyleColor(ImGuiCol_Header, bg);
+              ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
+              ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
+              ImGui::PushID(static_cast<const void*>(name.c_str()));
+              if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
+              ImGui::PopID();
+              ImGui::PopStyleColor(3);
+          }
+          if (ImGui::IsItemHovered()) {
+              ImGui::BeginTooltip();
+              ImGui::PushTextWrapPos(800.0f);
+              ImGui::Text(name.c_str());
+              ImGui::PopTextWrapPos();
+              ImGui::EndTooltip();
+          }
+          if (indent != 0.0f) { ImGui::Unindent(indent); }
+      },
+      event.header.name,
+      !event.childs.empty());
+    Widget::Table::CellContentTextTooltip("{}", event.hitCount);
+    Widget::Table::CellContentTextWrapped(
+      "{:0.2}% ({})", (static_cast<float>(event.totalTime.count()) / totalTime) * 100.0f, event.totalTime);
+    Widget::Table::CellContentTextWrapped(
+      "{:0.2}% ({})", (static_cast<float>(event.avgTime.count()) / totalTime) * 100.0f, event.avgTime);
+    Widget::Table::CellContentTextTooltip("{}:{}", event.header.source, event.header.currentLine);
+    Widget::Table::CellContentTextWrapped(
+      "{:0.2}% ({})", (static_cast<float>(event.minTime.count()) / totalTime) * 100.0f, event.minTime);
+    Widget::Table::CellContentTextWrapped(
+      "{:0.2}% ({})", (static_cast<float>(event.maxTime.count()) / totalTime) * 100.0f, event.maxTime);
+
+    Widget::Table::CellContent(
+      [this](const ProfileEvent* event) {
+          std::string graphWindowLabel = std::format("Graph##{}", reinterpret_cast<std::uintptr_t>(event));
+          if (ImGui::Button(graphWindowLabel.c_str())) {
+              m_profileGraphPopups.emplace_back(std::move(graphWindowLabel), event, true);
+          }
+      },
+      &event);
+
+    if (renderChilds) {
+        indent += ImGui::GetStyle().IndentSpacing;
+        for (auto&& child : event.childs) {
+            renderProfilerTableRow(child, totalTime, indent);
+        }
+        indent -= ImGui::GetStyle().IndentSpacing;
+    }
+}
+
+void MainApplicationLayer::renderProfilerGraphs()
+{
     for (auto&& event : m_profileGraphPopups) {
         if (ImGui::Begin(event.windowName.c_str(),
                          &event.render,
@@ -358,36 +379,38 @@ void MainApplicationLayer::renderProfiler()
                                event.event->header.name.c_str(),
                                event.event->header.source.c_str(),
                                event.event->header.currentLine);
-            ImGui::TextWrapped("Occurences: %d, Min Time: %dus, Average Time: %dus, Max Time: %dus",
+            ImGui::TextWrapped("Occurrences: %d, Min Time: %dus, Average Time: %dus, Max Time: %dus",
                                event.event->hitCount,
                                event.event->minTime.count(),
                                event.event->avgTime.count(),
                                event.event->maxTime.count());
             ImGui::Checkbox("Display as samples", &event.displayAsSamples);
+
             if (ImPlot::BeginPlot("History", ImVec2(800.0f, 342.86f))) {
                 ImPlot::SetupAxes(event.displayAsSamples ? "Occurrence" : "Timestamp",
                                   "Time (us)",
                                   ImPlotAxisFlags_AutoFit,
                                   ImPlotAxisFlags_AutoFit);
+
                 ImPlot::PlotScatterG(
                   "History",
                   [](int idx, void* data) -> ImPlotPoint {
                       auto& event = *static_cast<ProfileEventInfo*>(data);
                       try {
-                          auto& mark = event.event->history.at(idx);
+                          const auto& [start, end, delta] = event.event->history.at(idx);
                           return {event.displayAsSamples
                                     ? static_cast<double>(idx)
-                                    : static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                                                            mark.start.time_since_epoch())
-                                                            .count()) /
+                                    : static_cast<double>(
+                                        std::chrono::duration_cast<std::chrono::milliseconds>(start.time_since_epoch())
+                                          .count()) /
                                         1'000,
-                                  static_cast<double>(mark.delta.count())};
+                                  static_cast<double>(delta.count())};
                       }
                       catch (std::exception&) {
                           return {0, 0};
                       }
                   },
-                  const_cast<ProfileEventInfo*>(&event),
+                  &event,
                   event.event->history.size());
 
                 double average = static_cast<double>(event.event->avgTime.count());
@@ -398,7 +421,6 @@ void MainApplicationLayer::renderProfiler()
             ImGui::End();
         }
     }
-    ImGui::End();
 
     std::erase_if(m_profileGraphPopups, [](const ProfileEventInfo& event) { return !event.render; });
 }
@@ -438,17 +460,13 @@ namespace {
 
 nlohmann::json eventStackTrace(const ProfileEvent& event)
 {
-    auto j = nlohmann::json {
-      {"name", event.header.name},
-      {"category", "my app"},
-    };
+    auto j = nlohmann::json {{"name", event.header.name}};
     if (event.parent != nullptr) { j["parent"] = std::format("{}", reinterpret_cast<std::uintptr_t>(event.parent)); }
     return j;
 }
 
 void addEventToJson(nlohmann::json& j, const ProfileEvent& event, const std::thread::id& threadId)
 {
-
     auto frameId              = std::format("{}", reinterpret_cast<std::uintptr_t>(&event));
     j["stackFrames"][frameId] = eventStackTrace(event);
     for (auto&& marker : event.history) {

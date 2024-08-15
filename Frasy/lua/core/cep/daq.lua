@@ -233,7 +233,7 @@ end
 
 local function _requestRouting(daq, points)
     daq.ib:Download(daq.ib.od["Routing"]["Request Routing"], points)
-    Utils.SleepFor(1)
+    Utils.SleepFor(35)  -- Routing takes about 33ms on the DAQ
     return daq.ib:Upload(daq.ib.od["Routing"]["Last Result"]) --[[@as DAQ_RoutingBusEnum]]
 end
 
@@ -267,7 +267,7 @@ function DAQ:RequestRouting(points)
     local route = nil
     TryFunction(function()
         route = _requestRouting(self, sPointsAsStr)
-        Utils.SleepFor(1)
+        -- Utils.SleepFor(1)
         return _checkRouting(self, sPointsAsStr, route)
     end, 5)
     return route --[[@as DAQ_RoutingBusEnum]]

@@ -26,6 +26,8 @@
 
 #include "utils/communication/slcan/device.h"
 
+#include "utils/lua/profile_events.h"
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -47,33 +49,40 @@ std::mutex CO_OD_mutex;
 
 int CO_LOCK_CAN_SEND(CO_CANmodule_t* CANmodule)
 {
+    FRASY_PROFILE_FUNCTION();
     CO_SEND_mutex.lock();
     return 0;    // Always assume success.
 }
+
 void CO_UNLOCK_CAN_SEND(CO_CANmodule_t* CANmodule)
 {
+    FRASY_PROFILE_FUNCTION();
     CO_SEND_mutex.unlock();
 }
 
 int CO_LOCK_EMCY([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
+    FRASY_PROFILE_FUNCTION();
     CO_EMCY_mutex.lock();
     return 0;    // Always assume success.
 }
 
 void CO_UNLOCK_EMCY([[maybe_unsed]] CO_CANmodule_t* CANmodule)
 {
+    FRASY_PROFILE_FUNCTION();
     CO_EMCY_mutex.unlock();
 }
 
 int CO_LOCK_OD([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
+    FRASY_PROFILE_FUNCTION();
     CO_OD_mutex.lock();
     return 0;    // Always assume success.
 }
 
 void CO_UNLOCK_OD([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
+    FRASY_PROFILE_FUNCTION();
     CO_OD_mutex.unlock();
 }
 #endif
@@ -234,6 +243,7 @@ CO_CANtx_t* CO_CANtxBufferInit(
  * flag. Re-transmit undelivered message inside CO_CANmodule_process(). */
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
 {
+    FRASY_PROFILE_FUNCTION();
     CO_ReturnError_t err = CO_ERROR_NO;
 
     if (CANmodule == nullptr || buffer == nullptr) { return CO_ERROR_ILLEGAL_ARGUMENT; }
@@ -248,24 +258,26 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
     }
 
     auto packet = Frasy::SlCan::Packet {*buffer};
-    CO_LOCK_CAN_SEND(CANmodule);
-    size_t written = interface->transmit(packet);
-    if (written == packet.sizeOfSerialPacket()) {
-        /* success */
-        if (buffer->bufferFull) {
-            buffer->bufferFull = false;
-            CANmodule->CANtxCount--;
+    {
+        CO_LOCK_CAN_SEND(CANmodule);
+        size_t written = interface->transmit(packet);
+        if (written == packet.sizeOfSerialPacket()) {
+            /* success */
+            if (buffer->bufferFull) {
+                buffer->bufferFull = false;
+                CANmodule->CANtxCount--;
+            }
         }
-    }
-    else {
-        /* Send failed, message will be re-sent by CO_CANmodule_process() */
-        if (!buffer->bufferFull) {
-            buffer->bufferFull = true;
-            CANmodule->CANtxCount++;
+        else {
+            /* Send failed, message will be re-sent by CO_CANmodule_process() */
+            if (!buffer->bufferFull) {
+                buffer->bufferFull = true;
+                CANmodule->CANtxCount++;
+            }
+            err = CO_ERROR_TX_BUSY;
         }
-        err = CO_ERROR_TX_BUSY;
+        CO_UNLOCK_CAN_SEND(CANmodule);
     }
-    CO_UNLOCK_CAN_SEND(CANmodule);
 
     return err;
 }
@@ -281,6 +293,7 @@ void CO_CANclearPendingSyncPDOs([[nodiscard]] CO_CANmodule_t* CANmodule)
 /******************************************************************************/
 void CO_CANmodule_process(CO_CANmodule_t* CANmodule)
 {
+    FRASY_PROFILE_FUNCTION();
     if (CANmodule == nullptr || CANmodule->interface == nullptr) { return; }
 
     /* recall CO_CANsend(), if message was unsent before */
@@ -305,6 +318,7 @@ void CO_CANmodule_process(CO_CANmodule_t* CANmodule)
 
 void CO_CANpollReceive(CO_CANmodule_t* canModule)
 {
+    FRASY_PROFILE_FUNCTION();
     if (canModule == nullptr || canModule->interface == nullptr) { return; }
 
     auto& interface = *static_cast<Frasy::SlCan::Device*>(canModule->interface);

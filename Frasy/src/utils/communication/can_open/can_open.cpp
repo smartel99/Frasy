@@ -141,6 +141,7 @@ void CanOpen::open(std::string_view port)
     m_port = port;
     try {
         m_device = SlCan::Device {port};
+        m_device.setRxCallbackFunc([this] { rxReadyCallback(); });
     }
     catch (std::exception& e) {
         BR_LOG_ERROR(m_tag, "Error occurred while opening {}: {}", port, e.what());
@@ -328,12 +329,26 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
         m_isRunning = true;
         // While loop,
         while (reset == CO_RESET_NOT && !stopToken.stop_requested()) {
-            // FRASY_PROFILE_SCOPE("CANopen task");
+            FRASY_PROFILE_SCOPE("CANopen task");
+            // A conditional variable is used here in place of std::this_thread::sleep_for in order to obtain a delay
+            // that can be cancelled from elsewhere.
+            // Although we're asking for a sleep duration of a minimum of 1 microsecond, we're actually getting a 1
+            // millisecond delay. The delay gets cancelled upon reception of a CAN message.
+            // Since std::condition_variable requires a lock, we give it a fake lock so it's happy and we're not losing
+            // any time acquiring and releasing it.
+            struct {
+                void lock() {}
+                void unlock() {}
+            } fakeLock;
+            m_sleepOrTimeout.wait_for(
+              fakeLock, stopToken, std::chrono::microseconds(std::max(m_sleepForUs, 1U)), [this] {
+                  if (m_wakeupNeeded) {
+                      m_wakeupNeeded = false;
+                      return true;
+                  }
+                  return false;
+              });
             reset = mainLoop();
-            {
-                // FRASY_PROFILE_SCOPE("Sleep");
-                std::this_thread::sleep_for(std::chrono::microseconds(std::max(m_sleepForUs, 1U)));
-            }
         }
     }
     // Terminate CANopen,
@@ -708,6 +723,7 @@ void CanOpen::lssMasterPreCallback(void* arg)
 
 void CanOpen::sdoClientPreCallback(void* arg)
 {
+    FRASY_PROFILE_FUNCTION();
     BR_CORE_ASSERT(arg != nullptr, "Arg pointer null in sdoClientPreCallback");
     CanOpen* that = static_cast<CanOpen*>(arg);
     BR_LOG_DEBUG(that->m_tag, "SDO Client pre callback");

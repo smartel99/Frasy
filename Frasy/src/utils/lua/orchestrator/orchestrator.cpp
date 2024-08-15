@@ -244,7 +244,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
               auto [index, subIndex] = getIndexAndSubIndex(ode);
               {
                   FRASY_PROFILE_SCOPE("Upldoad loop");
-                  auto request = interface->uploadData(index, subIndex, 100);
+                  auto request = interface->uploadData(index, subIndex, 20);
                   request.future.wait();
                   if (request.status() != CanOpen::SdoRequestStatus::Complete &&
                       request.status() != CanOpen::SdoRequestStatus::Cancelled) {
@@ -271,7 +271,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             auto sValue            = serializeOdeValue(ode, value);
             {
                 FRASY_PROFILE_SCOPE("Download Loop");
-                auto request = interface->downloadData(index, subIndex, sValue, 100);
+                auto request = interface->downloadData(index, subIndex, sValue, 20);
                 request.future.wait();
                 if (request.status() != CanOpen::SdoRequestStatus::Complete &&
                     request.status() != CanOpen::SdoRequestStatus::Cancelled) {
