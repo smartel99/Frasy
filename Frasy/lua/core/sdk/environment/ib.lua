@@ -21,7 +21,7 @@ function Ib:New()
         kind = 0,
         nodeId = 0,
         eds = "",
-        name = name
+        name = ""
     }, Ib)
 end
 

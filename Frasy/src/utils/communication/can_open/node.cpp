@@ -18,8 +18,6 @@
 
 #include "can_open.h"
 
-#include <Brigerad.h>
-
 #include <cstdint>
 #include <string_view>
 
@@ -45,7 +43,7 @@ void Node::addEmergency(EmergencyMessage em)
         });
         if (it == m_emHistory.end()) {
             // Not a message intended to clear an active error, but rather an active error itself. Might not actually be
-            m_emHistory.push_back(std::move(em));
+            m_emHistory.push_back(em);
             return;
         }
 
@@ -53,7 +51,7 @@ void Node::addEmergency(EmergencyMessage em)
         it->resolutionTime = EmergencyMessage::timestamp_t::clock::now();
     }
     else {
-        m_emHistory.push_back(std::move(em));
+        m_emHistory.push_back(em);
     }
 }
 

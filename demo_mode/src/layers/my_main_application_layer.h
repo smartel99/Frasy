@@ -68,7 +68,8 @@ private:
     ProductInfo& getActiveProduct()
     {
         auto it =
-          std::find_if(m_products.begin(), m_products.end(), [active = m_activeProduct](const ProductInfo& product) {
+          std::ranges::find_if(
+          m_products, [active = m_activeProduct](const ProductInfo& product) {
               return product.name == active;
           });
         BR_ASSERT(it != m_products.end(), "Active product ('{}') not found!", m_activeProduct);

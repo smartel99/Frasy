@@ -23,7 +23,6 @@
 #include <CO_NMT_Heartbeat.h>
 
 #include <cstdint>
-#include <optional>
 
 namespace Frasy::CanOpen {
 class HbConsumer {
@@ -62,7 +61,7 @@ private:
      */
     [[nodiscard]] int8_t getIdxByNodeId(uint8_t nodeId) const { return CO_HBconsumer_getIdxByNodeId(m_co, nodeId); }
 
-    CO_HBconsumer_t* m_co;
+    CO_HBconsumer_t* m_co    = nullptr;
     int8_t           m_index = -1;
 };
 }    // namespace Frasy::CanOpen

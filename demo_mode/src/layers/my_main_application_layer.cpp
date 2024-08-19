@@ -47,7 +47,7 @@ void MyMainApplicationLayer::onUpdate(Brigerad::Timestep ts)
 void MyMainApplicationLayer::renderControlRoom()
 {
 
-    if (m_activeProduct.empty() || m_map.uuts.size() == 0 || m_map.ibs.size() == 0) {
+    if (m_activeProduct.empty() || m_map.uuts.empty() || m_map.ibs.empty()) {
         ImGui::Begin("Control Room");
         if (ImGui::Button("Reload")) { loadProducts(); }
         ImGui::End();
@@ -127,7 +127,7 @@ void MyMainApplicationLayer::renderControlRoom()
 
     static constexpr std::size_t          unteamedUutsPerLine = 4;
     std::vector<std::vector<std::size_t>> uutLines            = {};
-    if (m_map.teams.size() == 0) {
+    if (m_map.teams.empty()) {
         auto it = m_map.uuts.begin();
         uutLines.emplace_back();
         while (it != m_map.uuts.end()) {
@@ -142,26 +142,25 @@ void MyMainApplicationLayer::renderControlRoom()
         }
     }
     ImGui::BeginTable("UUT", unteamedUutsPerLine);
-    for (std::size_t i = 0; i < uutLines.size(); ++i) {
-        const auto&         line       = uutLines[i];
-        static const ImVec2 buttonSize = ImVec2 {80.0f, 80.0f};
+    for (const auto& line : uutLines) {
+        static constexpr ImVec2 uutButtonSize = ImVec2 {80.0f, 80.0f};
         ImGui::TableNextRow();
         for (const auto& uut : line) {
             ImGui::TableNextColumn();
             ImGui::PushID(std::format("UUT{}", uut).c_str());
             ImGui::Text("UUT %zu", uut);
             auto     state = m_orchestrator.GetUutState(uut);
-            uint64_t texture {};
+            uint64_t uutTexture {};
             switch (state) {
-                case Frasy::UutState::Disabled: texture = m_disabled->getRenderId(); break;
-                case Frasy::UutState::Idle: texture = m_idle->getRenderId(); break;
-                case Frasy::UutState::Waiting: texture = m_waiting->getRenderId(); break;
-                case Frasy::UutState::Running: texture = m_testing->getRenderId(); break;
-                case Frasy::UutState::Passed: texture = m_pass->getRenderId(); break;
-                case Frasy::UutState::Failed: texture = m_fail->getRenderId(); break;
-                case Frasy::UutState::Error: texture = m_error->getRenderId(); break;
+                case Frasy::UutState::Disabled: uutTexture = m_disabled->getRenderId(); break;
+                case Frasy::UutState::Idle: uutTexture = m_idle->getRenderId(); break;
+                case Frasy::UutState::Waiting: uutTexture = m_waiting->getRenderId(); break;
+                case Frasy::UutState::Running: uutTexture = m_testing->getRenderId(); break;
+                case Frasy::UutState::Passed: uutTexture = m_pass->getRenderId(); break;
+                case Frasy::UutState::Failed: uutTexture = m_fail->getRenderId(); break;
+                case Frasy::UutState::Error: uutTexture = m_error->getRenderId(); break;
             }
-            if (ImGui::ImageButton(reinterpret_cast<void*>(texture), buttonSize)) {
+            if (ImGui::ImageButton(reinterpret_cast<void*>(uutTexture), uutButtonSize)) {
                 m_orchestrator.ToggleUut(uut);
             }
             ImGui::PopID();
@@ -227,21 +226,19 @@ void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
                                               const std::string& envPath,
                                               const std::string& testPath)
 {
-    {
-        if (m_orchestrator.loadUserFiles(envPath, testPath)) {
-            m_activeProduct = name;
-            m_map           = m_orchestrator.getMap();
-            for (const auto& ib : m_map.ibs) {
-                m_canOpen.addNode(ib.nodeId);
-            }
-            m_canOpen.reset();    // CANopen needs to be reloaded on environment changes.
+    if (m_orchestrator.loadUserFiles(envPath, testPath)) {
+        m_activeProduct = name;
+        m_map           = m_orchestrator.getMap();
+        for (const auto& ib : m_map.ibs) {
+            m_canOpen.addNode(ib.nodeId, ib.name, ib.edsPath);
         }
-        else {
-            Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");
-            makeLogWindowVisible();
-            BR_LOG_ERROR("APP", "Unable to initialize orchestrator!");
-            m_map = {};
-        }
+        m_canOpen.reset();    // CANopen needs to be reloaded on environment changes.
+    }
+    else {
+        Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");
+        makeLogWindowVisible();
+        BR_LOG_ERROR("APP", "Unable to initialize orchestrator!");
+        m_map = {};
     }
 }
 
@@ -283,8 +280,7 @@ std::vector<MyMainApplicationLayer::ProductInfo> MyMainApplicationLayer::detectP
 
 bool MyMainApplicationLayer::shouldRegenerate()
 {
-    auto it = std::find_if(
-      m_products.begin(), m_products.end(), [&](const auto& item) { return item.name == m_activeProduct; });
+    auto it = std::ranges::find_if(m_products, [&](const auto& item) { return item.name == m_activeProduct; });
 
     auto currentModifiedTimes = getProductFileModificationTimes(it->testPath);
     if (std::ranges::any_of(currentModifiedTimes,
@@ -307,8 +303,7 @@ void MyMainApplicationLayer::loadProducts()
     // Re-select the previously selected products, if it still exists.
     Frasy::Config cfg         = Frasy::FrasyInterpreter::Get().getConfig().getField("Demo");
     auto          lastProduct = cfg.getField<std::string>("LastProduct");
-    auto          it =
-      std::find_if(m_products.begin(), m_products.end(), [&](const auto& item) { return item.name == lastProduct; });
+    auto          it = std::ranges::find_if(m_products, [&](const auto& item) { return item.name == lastProduct; });
     if (it != m_products.end()) { makeOrchestrator(it->name, it->environmentPath, it->testPath); }
     else {
         const auto& [envPath, testPath, name, modified] = m_products.front();

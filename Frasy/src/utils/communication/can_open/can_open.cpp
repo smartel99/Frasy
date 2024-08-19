@@ -167,7 +167,7 @@ void CanOpen::reset()
 
 void CanOpen::start()
 {
-    if (m_port == "") {
+    if (m_port.empty()) {
         BR_LOG_WARN(m_tag, "Ignoring CanOpen Start on empty port");
         return;
     }
@@ -214,6 +214,7 @@ Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view e
 
     Node* node = &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {}", nodeId) : name, edsPath);
     m_sdoClientODEntries.push_back(node->sdoInterface()->makeSdoClientOdEntry());
+    // TODO Node should contain the OD, so its Heartbeat Producer time should be fetched from it.
 
     // Node will not be usable until we restart CANopen.
 
@@ -538,7 +539,7 @@ CO_NMT_reset_cmd_t CanOpen::mainLoop()
     if (now - m_lastSaveTime > s_autoSavePeriod) {
         m_lastSaveTime = now;
         auto ret       = CO_storageWindows_auto_process(&m_storage, false);
-        if (ret != 0) { BR_LOG_ERROR(m_tag, "Unable to save persistance data on fields: {:08x}", ret); }
+        if (ret != 0) { BR_LOG_ERROR(m_tag, "Unable to save persistence data on fields: {:08x}", ret); }
     }
     auto cmd   = CO_process(m_co, true, deltaUs.count(), &m_sleepForUs);
     m_greenLed = CO_LED_GREEN(m_co->LEDs, CO_LED_CANopen);
@@ -553,7 +554,7 @@ bool CanOpen::deinit()
     uint32_t ret     = CO_storageWindows_auto_process(&m_storage, true);
     if (ret != 0) {
         success = false;
-        BR_LOG_ERROR(m_tag, "Unable to save persistance data on fields: {:08x}", ret);
+        BR_LOG_ERROR(m_tag, "Unable to save persistence data on fields: {:08x}", ret);
     }
 
     // Remove all the nodes' hooks to CAN open, for they are now invalid.

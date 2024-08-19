@@ -17,11 +17,15 @@
 #ifndef IB_H
 #define IB_H
 
+#include <string>
+
 namespace Frasy::Lua {
 struct IbView {
-    int     kind;
-    int     nodeId;
+    int         kind;
+    int         nodeId;
+    std::string name;
+    std::string edsPath;
 };
-}
+}    // namespace Frasy::Lua
 
-#endif //IB_H
+#endif    // IB_H
