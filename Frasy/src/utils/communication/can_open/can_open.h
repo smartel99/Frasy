@@ -84,6 +84,8 @@ public:
     void               removeNode(uint8_t nodeId);
     void               removeNode(const Node& node);
     void               clearNodes();
+    void               resetNodes() const;
+    void               resetNode(uint8_t nodeId) const;
     bool               isNodeRegistered(uint8_t nodeId);
     bool               isNodeOnNetwork(uint8_t nodeId);
 

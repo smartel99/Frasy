@@ -44,6 +44,10 @@ function DAQ:New(name, nodeId)
     return setmetatable({ ib = ib, cache = { io = { mode = 0, value = 0 } } }, DAQ)
 end
 
+function DAQ:Reset()
+    self.ib:Reset()
+end
+
 function DAQ:LoadCache()
     self:IoModes()
     self:IoValues()

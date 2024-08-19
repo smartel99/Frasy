@@ -278,6 +278,8 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             }
         };
 
+        lua["CanOpen"]["__reset"] = [&](std::size_t nodeId) { m_canOpen->resetNode(nodeId); };
+
         // User functions
         m_loadUserFunctions(lua);
 

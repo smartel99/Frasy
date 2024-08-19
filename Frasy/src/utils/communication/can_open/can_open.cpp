@@ -244,6 +244,18 @@ void CanOpen::clearNodes()
     m_nodes.clear();
 }
 
+void CanOpen::resetNodes() const
+{
+    for (const auto& node : m_nodes) {
+        resetNode(node.nodeId());
+    }
+}
+
+void CanOpen::resetNode(uint8_t nodeId) const
+{
+    CO_NMT_sendCommand(m_co->NMT, CO_NMT_RESET_NODE, nodeId);
+}
+
 bool CanOpen::isNodeRegistered(uint8_t nodeId)
 {
     return std::ranges::any_of(m_nodes, [nodeId](const auto& node) { return node.nodeId() == nodeId; });
