@@ -104,8 +104,6 @@ protected:
 
     CanOpen::CanOpen  m_canOpen;
     Lua::Orchestrator m_orchestrator;
-    Lua::Map          m_map;
-
 
 private:
     struct ProfileEventInfo {

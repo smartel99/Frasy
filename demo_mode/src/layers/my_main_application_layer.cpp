@@ -46,8 +46,8 @@ void MyMainApplicationLayer::onUpdate(Brigerad::Timestep ts)
 
 void MyMainApplicationLayer::renderControlRoom()
 {
-
-    if (m_activeProduct.empty() || m_map.uuts.empty() || m_map.ibs.empty()) {
+    const auto& map = m_orchestrator.getMap();
+    if (m_activeProduct.empty() || map.uuts.empty() || map.ibs.empty()) {
         ImGui::Begin("Control Room");
         if (ImGui::Button("Reload")) { loadProducts(); }
         ImGui::End();
@@ -117,7 +117,7 @@ void MyMainApplicationLayer::renderControlRoom()
         else {
             // If we just finished the test, check if any UUT have failed.
             m_testJustFinished = true;
-            if (std::ranges::any_of(m_map.uuts, [this](const auto& uut) {
+            if (std::ranges::any_of(map.uuts, [this](const auto& uut) {
                     return m_orchestrator.GetUutState(uut) == Frasy::UutState::Failed;
                 })) {
                 m_resultViewer->setVisibility(true);
@@ -127,17 +127,17 @@ void MyMainApplicationLayer::renderControlRoom()
 
     static constexpr std::size_t          unteamedUutsPerLine = 4;
     std::vector<std::vector<std::size_t>> uutLines            = {};
-    if (m_map.teams.empty()) {
-        auto it = m_map.uuts.begin();
+    if (map.teams.empty()) {
+        auto it = map.uuts.begin();
         uutLines.emplace_back();
-        while (it != m_map.uuts.end()) {
+        while (it != map.uuts.end()) {
             if (uutLines.back().size() == unteamedUutsPerLine) { uutLines.emplace_back(); }
             uutLines.back().push_back(*it);
             ++it;
         }
     }
     else {
-        for (const auto& team : m_map.teams) {
+        for (const auto& team : map.teams) {
             uutLines.emplace_back(team);
         }
     }
@@ -227,18 +227,28 @@ void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
                                               const std::string& testPath)
 {
     if (m_orchestrator.loadUserFiles(envPath, testPath)) {
+        m_canOpen.stop();
+        m_canOpen.clearNodes();
         m_activeProduct = name;
-        m_map           = m_orchestrator.getMap();
-        for (const auto& ib : m_map.ibs) {
+        const auto& map = m_orchestrator.getMap();
+        for (const auto& ib : map.ibs) {
             m_canOpen.addNode(ib.nodeId, ib.name, ib.edsPath);
+            if (uint16_t period = ib.od["Producer heartbeat time"]["value"].get_or<uint16_t>(0); period != 0) {
+                // Make frasy aware of a new heartbeat producer, if this node is such a thing.
+                // We add a grace period to the beat's period to compensate for the inevitable variability in timing.
+                m_canOpen.setNodeHeartbeatProdTime(ib.nodeId, period + (period / 2));
+            }
+            else {
+                BR_APP_WARN("Node {} ('{}') is not a heartbeat producer!", ib.nodeId, ib.name);
+            }
         }
-        m_canOpen.reset();    // CANopen needs to be reloaded on environment changes.
+        m_canOpen.start();
+        // m_canOpen.reset();    // CANopen needs to be reloaded on environment changes.
     }
     else {
         Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");
         makeLogWindowVisible();
         BR_LOG_ERROR("APP", "Unable to initialize orchestrator!");
-        m_map = {};
     }
 }
 

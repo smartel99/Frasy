@@ -93,6 +93,15 @@ public:
 
     CO_t* nativeHandle() { return m_co; }
 
+    /**
+     *
+     * @param nodeId ID of the node.
+     * @param heartbeatTimeMs Time interval (in milliseconds) between each heartbeat produced by that node.
+     *
+     * @note CANOpen needs to be restarted for the node to be monitored.
+     */
+    void setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs);
+
 private:
     void canOpenTask(std::stop_token stopToken);
 

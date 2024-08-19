@@ -54,7 +54,7 @@
 #define OD_CNT_ARR_1003 16
 #define OD_CNT_ARR_1010 6
 #define OD_CNT_ARR_1011 6
-#define OD_CNT_ARR_1016 8
+#define OD_CNT_ARR_1016 255
 #define OD_CNT_ARR_2110 16
 #define OD_CNT_ARR_2111 16
 #define OD_CNT_ARR_2112 16

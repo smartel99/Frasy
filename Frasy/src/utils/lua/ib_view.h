@@ -17,6 +17,8 @@
 #ifndef IB_H
 #define IB_H
 
+#include <sol/sol.hpp>
+
 #include <string>
 
 namespace Frasy::Lua {
@@ -25,6 +27,8 @@ struct IbView {
     int         nodeId;
     std::string name;
     std::string edsPath;
+
+    sol::table od;    //!< Object dictionary loaded in lua.
 };
 }    // namespace Frasy::Lua
 

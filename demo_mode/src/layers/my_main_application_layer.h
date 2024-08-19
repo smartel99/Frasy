@@ -35,11 +35,11 @@ class MyMainApplicationLayer final : public Frasy::MainApplicationLayer {
     };
 
 public:
-    MyMainApplicationLayer()                                         = default;
-    MyMainApplicationLayer(const MyMainApplicationLayer&)            = delete;
-    MyMainApplicationLayer& operator=(const MyMainApplicationLayer&) = delete;
-    MyMainApplicationLayer(MyMainApplicationLayer&&)                 = delete;
-    MyMainApplicationLayer& operator=(MyMainApplicationLayer&&)      = delete;
+                            MyMainApplicationLayer()                              = default;
+                            MyMainApplicationLayer(const MyMainApplicationLayer&) = delete;
+    MyMainApplicationLayer& operator=(const MyMainApplicationLayer&)              = delete;
+                            MyMainApplicationLayer(MyMainApplicationLayer&&)      = delete;
+    MyMainApplicationLayer& operator=(MyMainApplicationLayer&&)                   = delete;
 
     ~MyMainApplicationLayer() override = default;
 
@@ -67,11 +67,8 @@ private:
 
     ProductInfo& getActiveProduct()
     {
-        auto it =
-          std::ranges::find_if(
-          m_products, [active = m_activeProduct](const ProductInfo& product) {
-              return product.name == active;
-          });
+        auto it = std::ranges::find_if(
+          m_products, [active = m_activeProduct](const ProductInfo& product) { return product.name == active; });
         BR_ASSERT(it != m_products.end(), "Active product ('{}') not found!", m_activeProduct);
         return *it;
     }

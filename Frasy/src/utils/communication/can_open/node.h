@@ -27,6 +27,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <memory>
 
 namespace Frasy::CanOpen {
 class CanOpen;
@@ -67,7 +68,7 @@ private:
     std::string m_name;
     std::string m_edsPath;
 
-    HbConsumer m_hbConsumer {};
+    HbConsumer m_hbConsumer;
     std::unique_ptr<SdoManager> m_sdoManager;
 
     std::vector<EmergencyMessage> m_emHistory;

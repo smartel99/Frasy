@@ -27,6 +27,7 @@
 
 #include <array>
 #include <chrono>
+#include <utility>
 
 #include <processthreadsapi.h>
 
@@ -313,6 +314,59 @@ void CanOpen::scanForDevices()
     auto taken = static_cast<float>(duration_cast<milliseconds>(steady_clock::now() - start).count()) / 1000.0f;
     BR_LOG_INFO(m_tag, "Scan complete! Found {} nodes in {} seconds and {} passes", nodesFound.size(), taken, passes);
     BR_LOG_INFO(m_tag, "Found: {:x}", fmt::join(scanPass.found.addr, ", "));
+}
+
+void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
+{
+    // Linear-search for the first free slot in 0x1060 entry searching for duplicates,
+    // Set the time in that entry,
+    // Increment the number of producers.
+    // If heartbeatTimeMs is 0, the entry needs to be deleted.
+
+#define ENTRY_ID(entry) (uint8_t)(((entry) & 0x00FF0000) >> 16)
+    if (heartbeatTimeMs == 0) {
+        size_t pos = 0;
+        // Find the entry:
+        for (pos = 0; pos < OD_PERSIST_COMM.x1016_consumerHeartbeatTime_sub0; ++pos) {
+            if (ENTRY_ID(OD_PERSIST_COMM.x1016_consumerHeartbeatTime[pos]) == nodeId) {
+                BR_LOG_DEBUG(m_tag, "Cleared heartbeat producer time for node {}", nodeId);
+                OD_PERSIST_COMM.x1016_consumerHeartbeatTime[pos] = 0;
+                // Fill the void left by this violent removal.
+                --OD_PERSIST_COMM.x1016_consumerHeartbeatTime_sub0;
+                std::swap(
+                  OD_PERSIST_COMM.x1016_consumerHeartbeatTime[pos],
+                  OD_PERSIST_COMM.x1016_consumerHeartbeatTime[OD_PERSIST_COMM.x1016_consumerHeartbeatTime_sub0]);
+                break;
+            }
+        }
+    }
+    else {
+        bool updatedEntry = false;
+        bool heartbeatSet = false;
+        for (uint32_t& entry : OD_PERSIST_COMM.x1016_consumerHeartbeatTime) {
+            if (ENTRY_ID(entry) == nodeId) {
+                updatedEntry = true;
+                heartbeatSet = true;
+                entry        = (entry & 0xFFFF0000) | heartbeatTimeMs;
+                break;
+            }
+            if (entry == 0) {
+                // New entry.
+                heartbeatSet = true;
+                entry        = static_cast<uint32_t>(nodeId) << 16 | heartbeatTimeMs;
+                ++OD_PERSIST_COMM.x1016_consumerHeartbeatTime_sub0;
+                break;
+            }
+        }
+        if (heartbeatSet) {
+            BR_LOG_DEBUG(
+              m_tag, "{} node {}'s heartbeat time to {} ms", updatedEntry ? "Updated" : "Set", nodeId, heartbeatTimeMs);
+        }
+        else {
+            BR_LOG_ERROR(m_tag, "Unable to find a producer slot for node {}'s heartbeat!", nodeId);
+        }
+    }
+#undef ENTRY_ID
 }
 
 void CanOpen::canOpenTask(std::stop_token stopToken)

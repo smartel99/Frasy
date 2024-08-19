@@ -80,10 +80,10 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
         BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
     }
     FRASY_PROFILE_FUNCTION();
+    m_map        = {};    // IBs contain a sol::table that needs to be released before the state is reset.
     m_popupMutex = std::make_unique<std::mutex>();
     m_state      = std::make_unique<sol::state>();
     m_state->set_panic(&OnPanic);
-    m_map         = {};
     m_generated   = false;
     m_environment = environment;
     m_testsDir    = testsDir;
@@ -856,7 +856,8 @@ void           Orchestrator::PopulateMap()
         m_map.ibs.emplace_back(static_cast<int>(ib["ib"]["kind"].get<std::size_t>()),
                                static_cast<int>(ib["ib"]["nodeId"].get<std::size_t>()),
                                ib["ib"]["name"].get<std::string>(),
-                               ib["ib"]["eds"].get<std::string>());
+                               ib["ib"]["eds"].get<std::string>(),
+                               ib["ib"]["od"].get<sol::table>());
     }
 
     for (auto& [k, v] : (*m_state)["Context"]["map"]["uuts"].get<sol::table>()) {
