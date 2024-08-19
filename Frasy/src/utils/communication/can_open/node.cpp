@@ -34,6 +34,12 @@ Node::Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_
 {
 }
 
+void Node::reset() const
+{
+    m_canOpen->resetNode(m_nodeId);
+}
+
+
 void Node::addEmergency(EmergencyMessage em)
 {
     if (em.errorCode == CO_EMC_NO_ERROR) {

@@ -41,6 +41,7 @@ public:
     [[nodiscard]] uint8_t          nodeId() const { return m_nodeId; }
     [[nodiscard]] std::string_view name() const { return m_name; }
     [[nodiscard]] CanOpen*         bus() const { return m_canOpen; }
+    void reset() const;
 
     constexpr bool operator==(const Node& o) const
     {

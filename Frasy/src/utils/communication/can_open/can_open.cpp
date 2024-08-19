@@ -229,6 +229,18 @@ void CanOpen::clearNodes()
     m_nodes.clear();
 }
 
+void CanOpen::resetNodes() const
+{
+    for (const auto& node : m_nodes) {
+        resetNode(node.nodeId());
+    }
+}
+
+void CanOpen::resetNode(uint8_t nodeId) const
+{
+    CO_NMT_sendCommand(m_co->NMT, CO_NMT_RESET_NODE, nodeId);
+}
+
 bool CanOpen::isNodeRegistered(uint8_t nodeId)
 {
     return std::ranges::any_of(m_nodes, [nodeId](const auto& node) { return node.nodeId() == nodeId; });
@@ -567,7 +579,7 @@ CO_SDOclient_t* CanOpen::findSdoClientHandle(uint8_t nodeId)
 }
 
 #pragma region Callbacks
-void CanOpen::emRxCallback(void*          arg,
+void           CanOpen::emRxCallback(void*          arg,
                            const uint16_t ident,
                            const uint16_t errorCode,
                            const uint8_t  errorRegister,
@@ -608,9 +620,8 @@ void CanOpen::emRxCallback(void*          arg,
         return;
     }
 
-    auto it = std::ranges::find_if(that->m_nodes, [&emergencyMessage](const auto& node) {
-        return node.nodeId() == emergencyMessage.nodeId;
-    });
+    auto it = std::ranges::find_if(
+      that->m_nodes, [&emergencyMessage](const auto& node) { return node.nodeId() == emergencyMessage.nodeId; });
 
     if (it == that->m_nodes.end()) {
         if (!emergencyMessage.isCritical()) { return; }

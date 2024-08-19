@@ -29,6 +29,10 @@ function R8L:New(name, nodeId)
     return setmetatable({ib = ib, cache = {digitalOutput = 0, errorValueOutput = 0}}, R8L)
 end
 
+function R8L:Reset()
+    self.ib:Reset()
+end
+
 function R8L:LoadCache()
     self:DigitalOutputs()
     self:ErrorValueOutputs()

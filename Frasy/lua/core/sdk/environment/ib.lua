@@ -71,4 +71,8 @@ function Ib:Download(ode, value)
     end
 end
 
+function Ib:Reset()
+    CanOpen.__reset(self.nodeId)
+end
+
 return Ib
