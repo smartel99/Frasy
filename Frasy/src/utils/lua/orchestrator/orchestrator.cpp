@@ -241,7 +241,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
               if (node == nullptr) { throw sol::error("Invalid node id"); }
               auto* interface        = node->sdoInterface();
               auto [index, subIndex] = getIndexAndSubIndex(ode);
-              auto request           = interface->uploadData(index, subIndex, 20);
+              auto request           = interface->uploadData(index, subIndex, 100);
               request.future.wait();
               if (request.status() != CanOpen::SdoRequestStatus::Complete &&
                   request.status() != CanOpen::SdoRequestStatus::Cancelled) {
@@ -265,7 +265,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             auto* interface        = node->sdoInterface();
             auto [index, subIndex] = getIndexAndSubIndex(ode);
             auto sValue            = serializeOdeValue(ode, value);
-            auto request           = interface->downloadData(index, subIndex, sValue, 20);
+            auto request           = interface->downloadData(index, subIndex, sValue, 100);
             request.future.wait();
             if (request.status() != CanOpen::SdoRequestStatus::Complete &&
                 request.status() != CanOpen::SdoRequestStatus::Cancelled) {
