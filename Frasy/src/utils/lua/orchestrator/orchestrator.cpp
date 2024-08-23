@@ -35,6 +35,7 @@
 #include <json.hpp>
 #include <stdexcept>
 
+#include "../../version.h"
 #include <processthreadsapi.h>
 
 namespace Frasy::Lua {
@@ -162,7 +163,11 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         lua["Context"]["info"]["stage"]   = lua["Stage"][stage2str(stage)];
         lua["Context"]["info"]["uut"]     = uut;
-        lua["Context"]["info"]["version"] = "0.1.0";
+        lua["Context"]["info"]["version"] = lua.create_table();
+        lua["Context"]["info"]["version"]["frasy"] =
+          fmt::format("{}.{}.{}-{}", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD);
+        lua["Context"]["info"]["version"]["orchestrator"] = "1.1.0";
+        lua["Context"]["info"]["version"]["scripts"]      = "0.0.1";
         std::atomic_thread_fence(std::memory_order_release);
         lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
 
@@ -416,235 +421,282 @@ void Orchestrator::RunTests(const std::vector<std::string>& serials, bool regene
 bool Orchestrator::RunStageGenerate(bool regenerate)
 {
     FRASY_PROFILE_FUNCTION();
-    if (m_generated && !regenerate) { return true; }
+    try {
+        if (m_generated && !regenerate) { return true; }
 
-    sol::state lua;
-    InitLua(lua, 1);
-    // LoadIb(lua);
-    LoadEnvironment(lua, m_environment);
-    LoadTests(lua, m_testsDir);
-    sol::protected_function run = lua.script_file("lua/core/helper/generate.lua");
-    run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-    auto result                 = run(solutionFile);
-    if (!result.valid()) {
-        sol::error err = result;
-        lua["Log"]["E"](err.what());
-    }
-    else {
-        lua["Log"]["I"]("Success");
-    }
-    if (result.valid()) {
-        using json               = nlohmann::json;
-        std::ifstream os         = std::ifstream(std::string(solutionFile));
-        json          generation = json::parse(os);
-        m_solution.Clear();
+        sol::state lua;
+        InitLua(lua, 1);
+        // LoadIb(lua);
+        LoadEnvironment(lua, m_environment);
+        LoadTests(lua, m_testsDir);
+        sol::protected_function run = lua.script_file("lua/core/helper/generate.lua");
+        run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
+        auto result                 = run(solutionFile);
+        if (!result.valid()) {
+            sol::error err = result;
+            lua["Log"]["E"](err.what());
+        }
+        else {
+            lua["Log"]["I"]("Success");
+        }
+        if (result.valid()) {
+            using json               = nlohmann::json;
+            std::ifstream os         = std::ifstream(std::string(solutionFile));
+            json          generation = json::parse(os);
+            m_solution.Clear();
 
-        // Solution
-        // - Section
-        // - - Section stage
-        // - - - Sequence (Actually a subsequence)
-        // - - - - Sequence name
-        // - - - - Sequence stage
-        // - - - - - Test
+            // Solution
+            // - Section
+            // - - Section stage
+            // - - - Sequence (Actually a subsequence)
+            // - - - - Sequence name
+            // - - - - Sequence stage
+            // - - - - - Test
 
-        m_solution.sections.reserve(generation.size());
-        for (const auto& gSc : generation) {
-            // Section
-            m_solution.sections.emplace_back();
-            auto& sc = m_solution.sections.back();
-            sc.reserve(gSc.size());
-            for (const auto& gScS : gSc) {
-                // Section stage
-                sc.emplace_back();
-                auto& scs = sc.back();
-                scs.reserve(gScS.size());
-                for (const auto& gSq : gScS) {
-                    // Sequence
-                    scs.emplace_back();
-                    auto& sq = scs.back();
-                    sq.first = gSq["name"];
-                    sq.second.reserve(gSq["tests"].size());
-                    if (!m_solution.sequences.contains(sq.first)) { m_solution.sequences[sq.first] = {}; }
-                    for (const auto& gSqS : gSq["tests"]) {
-                        // Sequence stages
-                        sq.second.emplace_back();
-                        auto& sqs = sq.second.back();
-                        sqs.reserve(gSqS.size());
-                        for (const auto& gT : gSqS) {
-                            sqs.push_back(gT);
-                            m_solution.sequences[sq.first].tests[gT] = {};
+            m_solution.sections.reserve(generation.size());
+            for (const auto& gSc : generation) {
+                // Section
+                m_solution.sections.emplace_back();
+                auto& sc = m_solution.sections.back();
+                sc.reserve(gSc.size());
+                for (const auto& gScS : gSc) {
+                    // Section stage
+                    sc.emplace_back();
+                    auto& scs = sc.back();
+                    scs.reserve(gScS.size());
+                    for (const auto& gSq : gScS) {
+                        // Sequence
+                        scs.emplace_back();
+                        auto& sq = scs.back();
+                        sq.first = gSq["name"];
+                        sq.second.reserve(gSq["tests"].size());
+                        if (!m_solution.sequences.contains(sq.first)) { m_solution.sequences[sq.first] = {}; }
+                        for (const auto& gSqS : gSq["tests"]) {
+                            // Sequence stages
+                            sq.second.emplace_back();
+                            auto& sqs = sq.second.back();
+                            sqs.reserve(gSqS.size());
+                            for (const auto& gT : gSqS) {
+                                sqs.push_back(gT);
+                                m_solution.sequences[sq.first].tests[gT] = {};
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    m_generated = result.valid();
-    return m_generated;
+        m_generated = result.valid();
+        return m_generated;
+    }
+    catch (const std::exception& err) {
+        BR_LUA_ERROR("Exception during Generate stage. {}", err.what());
+        return false;
+    }
 }
 
 bool Orchestrator::RunStageVerify(sol::state_view team)
 {
     FRASY_PROFILE_FUNCTION();
-    bool hasTeam = team["Team"]["HasTeam"]();
-    auto stages  = team["Context"]["worker"]["stages"].get<std::vector<sol::object>>();
+    try {
+        bool hasTeam = team["Team"]["HasTeam"]();
+        auto stages  = team["Context"]["worker"]["stages"].get<std::vector<sol::object>>();
 
-    for (sol::object& stage : stages) {
-        std::map<std::size_t, Team> teams;
-        auto                        devices = stage.as<std::vector<std::size_t>>();
-        if (hasTeam) {
+        for (sol::object& stage : stages) {
+            std::map<std::size_t, Team> teams;
+            auto                        devices = stage.as<std::vector<std::size_t>>();
+            if (hasTeam) {
+                for (auto& uut : devices) {
+                    std::size_t leader      = team["Context"]["team"]["players"][uut]["leader"];
+                    auto        teamPlayers = team["Context"]["team"]["teams"][leader].get<std::vector<std::size_t>>();
+                    if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
+                }
+            }
+            std::vector<std::thread>    threads;
+            std::mutex                  mutex;
+            std::map<std::size_t, bool> results;
             for (auto& uut : devices) {
-                std::size_t leader      = team["Context"]["team"]["players"][uut]["leader"];
-                auto        teamPlayers = team["Context"]["team"]["teams"][leader].get<std::vector<std::size_t>>();
-                if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
+                if (m_uutStates[uut] == UutState::Disabled) { continue; }
+                threads.emplace_back([&, uut, team] {
+                    sol::state lua;
+                    InitLua(lua, uut, Stage::validation);
+                    // LoadIb(lua);
+                    LoadEnvironment(lua, m_environment);
+                    LoadTests(lua, m_testsDir);
+                    if (hasTeam) {
+                        std::lock_guard lock {mutex};
+                        int             leader   = team["Context"]["team"]["players"][uut]["leader"];
+                        int             position = team["Context"]["team"]["players"][uut]["position"];
+                        teams[leader].InitializeState(lua, uut, position, uut == leader);
+                    }
+                    sol::protected_function load_solution =
+                      lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
+                    load_solution.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
+                    auto rls                    = load_solution(solutionFile);
+                    if (!rls.valid()) {
+                        sol::error err = rls;
+                        lua["Log"]["e"](err.what());
+                        std::lock_guard lock {mutex};
+                        results[uut] = false;
+                        return;
+                    }
+
+                    sol::protected_function verify = lua.script("return function() Orchestrator.Validate() end");
+                    verify.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
+                    auto rv                        = verify();
+                    if (!rv.valid()) {
+                        sol::error err = rv;
+                        lua["Log"]["e"](err.what());
+                        std::lock_guard lock {mutex};
+                        results[uut] = false;
+                        return;
+                    }
+
+                    std::lock_guard lock {mutex};
+                    results[uut] = true;
+                    return;
+                });
+            }
+            for (auto& thread : threads) {
+                thread.join();
+            }
+            size_t expectedResults =
+              std::accumulate(devices.begin(), devices.end(), size_t(0), [&](size_t tot, const auto& uut) {
+                  return tot + (m_uutStates[uut] == UutState::Disabled ? 0 : 1);
+              });
+            if (results.size() != expectedResults) {
+                BR_LUA_ERROR("Missing results from validation");
+                return false;
+            }
+            if (std::ranges::any_of(results, [](const auto entry) { return !entry.second; })) {
+                BR_LUA_ERROR("Not all UUT passed validation");
+                return false;
             }
         }
-        std::vector<std::thread>    threads;
-        std::mutex                  mutex;
-        std::map<std::size_t, bool> results;
-        for (auto& uut : devices) {
-            if (m_uutStates[uut] == UutState::Disabled) { continue; }
-            threads.emplace_back([&, uut, team] {
-                sol::state lua;
-                InitLua(lua, uut, Stage::validation);
-                // LoadIb(lua);
-                LoadEnvironment(lua, m_environment);
-                LoadTests(lua, m_testsDir);
-                if (hasTeam) {
-                    std::lock_guard lock {mutex};
-                    int             leader   = team["Context"]["team"]["players"][uut]["leader"];
-                    int             position = team["Context"]["team"]["players"][uut]["position"];
-                    teams[leader].InitializeState(lua, uut, position, uut == leader);
-                }
-                sol::protected_function load_solution =
-                  lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
-                load_solution.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                auto rls                    = load_solution(solutionFile);
-                if (!rls.valid()) {
-                    sol::error err = rls;
-                    lua["Log"]["e"](err.what());
-                    std::lock_guard lock {mutex};
-                    results[uut] = false;
-                    return;
-                }
-
-                sol::protected_function verify = lua.script("return function() Orchestrator.Validate() end");
-                verify.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-                auto rv                        = verify();
-                if (!rv.valid()) {
-                    sol::error err = rv;
-                    lua["Log"]["e"](err.what());
-                    std::lock_guard lock {mutex};
-                    results[uut] = false;
-                    return;
-                }
-
-                std::lock_guard lock {mutex};
-                results[uut] = true;
-                return;
-            });
-        }
-        for (auto& thread : threads) {
-            thread.join();
-        }
-        size_t expectedResults =
-          std::accumulate(devices.begin(), devices.end(), size_t(0), [&](size_t tot, const auto& uut) {
-              return tot + (m_uutStates[uut] == UutState::Disabled ? 0 : 1);
-          });
-        if (results.size() != expectedResults) {
-            BR_LUA_ERROR("Missing results from validation");
-            return false;
-        }
-        if (std::ranges::any_of(results, [](const auto entry) { return !entry.second; })) {
-            BR_LUA_ERROR("Not all UUT passed validation");
-            return false;
-        }
+        return true;
     }
-    return true;
+    catch (const std::exception& err) {
+        BR_LUA_ERROR("Exception duration Verify stage. {}", err.what());
+        return false;
+    }
 }
 
 void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::string>& serials)
 {
-    FRASY_PROFILE_FUNCTION();
-    bool        hasTeam  = team["Team"]["HasTeam"]();
-    auto        stages   = team["Context"]["worker"]["stages"].get<std::vector<sol::object>>();
-    std::size_t uutCount = team["Context"]["map"]["uuts"].get<sol::table>().size();
-
-    std::map<std::size_t, Team>       teams;
-    std::map<std::size_t, sol::state> states;
-    std::mutex                        mutex;
-    std::map<std::size_t, bool>       results;
-
-    for (std::size_t uut = 0; uut <= uutCount; ++uut) {
-        states[uut] = sol::state();
-    }
-
-    auto hasCrashed = [&]() {
+    try {
         FRASY_PROFILE_FUNCTION();
-        if (std::ranges::any_of(results, [](const auto& kvp) { return !kvp.second; })) {
-            for (std::size_t uut = 1; uut <= uutCount; ++uut) {
-                UpdateUutState(results[uut] ? UutState::Idle : UutState::Error, {uut}, false);
-            }
-            return true;
-        }
-        return false;
-    };
+        bool        hasTeam  = team["Team"]["HasTeam"]();
+        auto        stages   = team["Context"]["worker"]["stages"].get<std::vector<sol::object>>();
+        std::size_t uutCount = team["Context"]["map"]["uuts"].get<sol::table>().size();
 
-    // Initialize lua states and teams
-    for (sol::object& stage : stages) {
-        auto devices = stage.as<std::vector<std::size_t>>();
-        UpdateUutState(UutState::Running, devices);
-        if (hasTeam) {
+        std::map<std::size_t, Team>       teams;
+        std::map<std::size_t, sol::state> states;
+        std::mutex                        mutex;
+        std::map<std::size_t, bool>       results;
+
+        for (std::size_t uut = 0; uut <= uutCount; ++uut) {
+            states[uut] = sol::state();
+        }
+
+        auto hasCrashed = [&]() {
+            FRASY_PROFILE_FUNCTION();
+            if (std::ranges::any_of(results, [](const auto& kvp) { return !kvp.second; })) {
+                for (std::size_t uut = 1; uut <= uutCount; ++uut) {
+                    UpdateUutState(results[uut] ? UutState::Idle : UutState::Error, {uut}, false);
+                }
+                return true;
+            }
+            return false;
+        };
+
+        // Initialize lua states and teams
+        for (sol::object& stage : stages) {
+            auto devices = stage.as<std::vector<std::size_t>>();
+            UpdateUutState(UutState::Running, devices);
+            if (hasTeam) {
+                for (auto& uut : devices) {
+                    std::size_t leader      = team["Context"]["team"]["players"][uut]["leader"];
+                    auto        teamPlayers = team["Context"]["team"]["teams"][leader].get<std::vector<std::size_t>>();
+                    if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
+                }
+            }
+            std::vector<std::thread> threads;
+            threads.reserve(devices.size());
             for (auto& uut : devices) {
-                std::size_t leader      = team["Context"]["team"]["players"][uut]["leader"];
-                auto        teamPlayers = team["Context"]["team"]["teams"][leader].get<std::vector<std::size_t>>();
-                if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
+                threads.emplace_back([&, uut, team] {
+                    if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                        BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                    }
+                    if (m_uutStates[uut] == UutState::Disabled) { return; }
+                    // states[] is not yet populated, each call will modify it
+                    // thus, we must have a mutex here
+                    mutex.lock();
+                    sol::state_view lua = states[uut];
+                    mutex.unlock();
+                    InitLua(lua, uut, Stage::execution);
+                    lua["Context"]["info"]["serial"] = serials[uut];
+                    // LoadIb(lua);
+                    LoadEnvironment(lua, m_environment);
+                    LoadTests(lua, m_testsDir);
+                    if (hasTeam) {
+                        std::lock_guard lock {mutex};
+                        int             leader   = team["Context"]["team"]["players"][uut]["leader"];
+                        int             position = team["Context"]["team"]["players"][uut]["position"];
+                        teams[leader].InitializeState(lua, uut, position, uut == leader);
+                    }
+
+                    sol::protected_function run = lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
+                    run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
+                    auto result                 = run(solutionFile);
+                    if (!result.valid()) {
+                        sol::error err = result;
+                        lua["Log"]["E"](err.what());
+                    }
+                    results[uut] = result.valid();
+                });
             }
+            for (auto& thread : threads) {
+                thread.join();
+            }
+            UpdateUutState(UutState::Waiting, devices);
         }
-        std::vector<std::thread> threads;
-        threads.reserve(devices.size());
-        for (auto& uut : devices) {
-            threads.emplace_back([&, uut, team] {
-                if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
-                    BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
-                }
-                if (m_uutStates[uut] == UutState::Disabled) { return; }
-                // states[] is not yet populated, each call will modify it
-                // thus, we must have a mutex here
-                mutex.lock();
-                sol::state_view lua = states[uut];
-                mutex.unlock();
-                InitLua(lua, uut, Stage::execution);
-                lua["Context"]["info"]["serial"] = serials[uut];
-                // LoadIb(lua);
-                LoadEnvironment(lua, m_environment);
-                LoadTests(lua, m_testsDir);
-                if (hasTeam) {
-                    std::lock_guard lock {mutex};
-                    int             leader   = team["Context"]["team"]["players"][uut]["leader"];
-                    int             position = team["Context"]["team"]["players"][uut]["position"];
-                    teams[leader].InitializeState(lua, uut, position, uut == leader);
-                }
+        if (hasCrashed()) { return; }
 
-                sol::protected_function run = lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
-                run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-                auto result                 = run(solutionFile);
-                if (!result.valid()) {
-                    sol::error err = result;
-                    lua["Log"]["E"](err.what());
+        for (std::size_t is = 1; is <= m_solution.sections.size(); ++is) {
+            for (sol::object& stage : stages) {
+                auto devices = stage.as<std::vector<std::size_t>>();
+                UpdateUutState(UutState::Running, devices);
+                std::vector<std::thread> threads;
+                threads.reserve(devices.size());
+                for (auto& uut : devices) {
+                    threads.emplace_back([&, uut] {
+                        if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                            BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                        }
+                        if (m_uutStates[uut] == UutState::Disabled) { return; }
+                        mutex.lock();
+                        sol::state_view lua = states[uut];
+                        mutex.unlock();
+                        sol::protected_function run =
+                          lua.script("return function(is) Orchestrator.ExecuteSection(is) end");
+                        run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
+                        auto result       = run(is);
+                        if (!result.valid()) {
+                            sol::error err = result;
+                            BR_LUA_ERROR(err.what());
+                            lua["Log"]["e"](err.what());
+                        }
+                        results[uut] = result.valid();
+                    });
                 }
-                results[uut] = result.valid();
-            });
+                for (auto& thread : threads) {
+                    thread.join();
+                }
+                UpdateUutState(UutState::Waiting, devices);
+            }
+            if (hasCrashed()) { return; }
         }
-        for (auto& thread : threads) {
-            thread.join();
-        }
-        UpdateUutState(UutState::Waiting, devices);
-    }
-    if (hasCrashed()) { return; }
 
-    for (std::size_t is = 1; is <= m_solution.sections.size(); ++is) {
         for (sol::object& stage : stages) {
             auto devices = stage.as<std::vector<std::size_t>>();
             UpdateUutState(UutState::Running, devices);
@@ -657,15 +709,15 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
                     }
                     if (m_uutStates[uut] == UutState::Disabled) { return; }
                     mutex.lock();
-                    sol::state_view lua = states[uut];
+                    sol::state& lua = states[uut];
                     mutex.unlock();
-                    sol::protected_function run = lua.script("return function(is) Orchestrator.ExecuteSection(is) end");
-                    run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-                    auto result                 = run(is);
+                    sol::protected_function run =
+                      lua.script("return function(dir) Orchestrator.CompileExecutionResults(dir) end");
+                    run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
+                    auto result       = run(std::format("{}/{}", m_outputDirectory, lastSubdirectory));
                     if (!result.valid()) {
                         sol::error err = result;
-                        BR_LUA_ERROR(err.what());
-                        lua["Log"]["e"](err.what());
+                        lua["Log"]["E"](err.what());
                     }
                     results[uut] = result.valid();
                 });
@@ -673,45 +725,16 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
             for (auto& thread : threads) {
                 thread.join();
             }
-            UpdateUutState(UutState::Waiting, devices);
         }
         if (hasCrashed()) { return; }
-    }
 
-    for (sol::object& stage : stages) {
-        auto devices = stage.as<std::vector<std::size_t>>();
-        UpdateUutState(UutState::Running, devices);
-        std::vector<std::thread> threads;
-        threads.reserve(devices.size());
-        for (auto& uut : devices) {
-            threads.emplace_back([&, uut] {
-                if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
-                    BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
-                }
-                if (m_uutStates[uut] == UutState::Disabled) { return; }
-                mutex.lock();
-                sol::state& lua = states[uut];
-                mutex.unlock();
-                sol::protected_function run =
-                  lua.script("return function(dir) Orchestrator.CompileExecutionResults(dir) end");
-                run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                auto result       = run(std::format("{}/{}", m_outputDirectory, lastSubdirectory));
-                if (!result.valid()) {
-                    sol::error err = result;
-                    lua["Log"]["E"](err.what());
-                }
-                results[uut] = result.valid();
-            });
-        }
-        for (auto& thread : threads) {
-            thread.join();
+        for (sol::object& stage : stages) {
+            auto devices = stage.as<std::vector<std::size_t>>();
+            CheckResults(devices);
         }
     }
-    if (hasCrashed()) { return; }
-
-    for (sol::object& stage : stages) {
-        auto devices = stage.as<std::vector<std::size_t>>();
-        CheckResults(devices);
+    catch (const std::exception& e) {
+        BR_LOG_ERROR("Orchestrator", "Exception during Excecute stage: {}", e.what());
     }
 }
 

@@ -247,7 +247,7 @@ ResultViewer::OverallTestResult ResultViewer::LoadResults(const std::string& pat
       .Duration     = json.at("info").at("time").at("process").get<double>(),
       .Date         = json.at("info").at("date").get<std::string>(),
       .Passed       = json.at("info").at("pass").get<bool>(),
-      .Version      = json.at("info").at("version").get<std::string>(),
+      .Version      = json.at("info").at("version").at("scripts").get<std::string>(),
       .Uut          = json.at("info").at("uut").get<int>(),
       .Sequences    = LoadSequences(json.at("sequences")),
     };
