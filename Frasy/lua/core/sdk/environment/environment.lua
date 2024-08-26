@@ -79,8 +79,18 @@ local function SetOnReport(fun)
     Context.map.onReport = fun
 end
 
+local function ScriptVersion(version)
+    if version == nil then return Context.info.version.scripts end
+    if type(version) == "number" or type(version) == "string" then
+        Context.info.version.scripts = tostring(version)
+    else
+        error("Invalid version type. Must be a number or a string. " .. type(version))
+    end
+end
+
 Environment = {
     Make = MakeEnvironment,
+    ScriptVersion = ScriptVersion,
     Uut = { Count = SetUutCount },
     Ib = { Add = AddIb },
     UutValue = { Add = AddUutValue },

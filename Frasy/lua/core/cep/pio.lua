@@ -100,6 +100,10 @@ function PIO:New(name, nodeId)
     }, PIO)
 end
 
+function PIO:Reset()
+    self.ib:Reset()
+end
+
 function PIO:LoadCache()
     self:GpioValues()
     self:GpioPolarities()

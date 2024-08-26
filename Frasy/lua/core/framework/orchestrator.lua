@@ -370,7 +370,11 @@ end
 function Orchestrator.CompileExecutionResults(outputDir)
     local report = {}
     report.info = {
-        version = Context.info.version,
+        version = {
+            frasy = Context.info.version.frasy,
+            orchestrator = Context.info.version.orchestrator,
+            scripts = Context.info.version.scripts
+        },
         operator = Context.info.operator,
         serial = Context.info.serial,
         uut = Context.info.uut,
@@ -385,7 +389,14 @@ function Orchestrator.CompileExecutionResults(outputDir)
     }
     report.ib = {}
     for k, ib in pairs(Context.map.ibs) do
-        report.ib[k] = { kind = ib.ib.kind, nodeId = ib.ib.nodeId, eds = ib.ib.eds }
+        report.ib[k] = {
+            kind = ib.ib.kind,
+            nodeId = ib.ib.nodeId,
+            eds = ib.ib.eds,
+            software = ib.ib:SoftwareVersion(),
+            hardware = ib.ib:HardwareVersion(),
+            serial = tostring(ib.ib:Serial()),
+        }
     end
 
     report.sequences = {}
