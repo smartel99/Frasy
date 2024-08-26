@@ -1,7 +1,7 @@
 /**
- * @file    markdown.h
+ * @file    keyValue.h
  * @author  Paul Thomas
- * @date    8/22/2024
+ * @date    8/26/2024
  * @brief
  *
  * @copyright
@@ -12,20 +12,20 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details. You should have received a copy of the GNU General Public License
- * along with this program.
- * If not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+ * along with this program. If not, see <a
+ * href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
 
-#ifndef FRASY_REPORT_FORMATTER_MARKDOWN_H
-#define FRASY_REPORT_FORMATTER_MARKDOWN_H
+#ifndef KEYVALUE_H
+#define KEYVALUE_H
 
 #include "formatter.h"
 #include <sol/sol.hpp>
 
 namespace Frasy::Report::Formatter {
-class Markdown final : public Formatter {
+class KeyValue final : public Formatter {
 public:
-         Markdown(sol::state_view& lua, std::ofstream& output, const sol::table& result);
+         KeyValue(sol::state_view& lua, std::ofstream& output, const sol::table& result);
     void reportInfo() override;
     void reportVersion() override;
     void reportIb(const std::string& name) override;
@@ -40,10 +40,12 @@ public:
     void reportToBeLesser() override;
     void reportToBeNear() override;
 
-    static constexpr auto endline = "  \n";
+    static constexpr auto endline = "\n";
 
 private:
     void reportSectionBaseResult(const sol::table& section) const override;
+    std::string m_sectionPrefix;
 };
-};        // namespace Frasy::Report::Formatter
-#endif    // FRASY_REPORT_FORMATTER_MARKDOWN_H
+};    // namespace Frasy::Report::Formatter
+
+#endif    // KEYVALUE_H
