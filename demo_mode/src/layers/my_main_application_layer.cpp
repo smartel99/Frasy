@@ -236,6 +236,7 @@ void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
             if (uint16_t period = ib.od["Producer heartbeat time"]["value"].get_or<uint16_t>(0); period != 0) {
                 // Make frasy aware of a new heartbeat producer, if this node is such a thing.
                 // We add a grace period to the beat's period to compensate for the inevitable variability in timing.
+                // TODO Fix heartbeat issues.
                 m_canOpen.setNodeHeartbeatProdTime(ib.nodeId, period + (period / 2));
             }
             else {

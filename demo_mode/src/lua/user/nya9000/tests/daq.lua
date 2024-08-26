@@ -64,36 +64,36 @@ Sequence("DAQ", function()
     --     end
     -- end)
 
-    Test("Routing", function()
-        if Context.info.stage ~= Stage.execution then return end
-        --- @type DAQ
-        local daq = Context.map.ibs.daq
-        for run = 0, 100 do
-            for i = DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX6_B3 do
-                if not (i == DAQ.RoutingPointsEnum.MUX1_OUT or
-                        i == DAQ.RoutingPointsEnum.MUX2_OUT or
-                        i == DAQ.RoutingPointsEnum.MUX3_OUT or
-                        i == DAQ.RoutingPointsEnum.MUX4_OUT or
-                        i == DAQ.RoutingPointsEnum.MUX5_OUT or
-                        i == DAQ.RoutingPointsEnum.MUX6_OUT) then
-                    local route = daq:RequestRouting({ DAQ.RoutingPointsEnum.P3V3, i })
-                    daq:ClearBus(route)
-                end
-            end
-        end
-    end)
-
-    -- Test("Resistance Measurements", function()
-    --     ---@type DAQ
+    -- Test("Routing", function()
+    --     if Context.info.stage ~= Stage.execution then return end
+    --     --- @type DAQ
     --     local daq = Context.map.ibs.daq
-
-    --     local start = os.clock()
-    -- local imp = daq:MeasureResistor(DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX4_B3, 5000)
-    --     local delta = os.clock() - start
-    --     Log.D("Measured impedance in " .. delta .. " seconds")
-
-    --     Utils.Print(imp)
+    --     for run = 0, 100 do
+    --         for i = DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX6_B3 do
+    --             if not (i == DAQ.RoutingPointsEnum.MUX1_OUT or
+    --                     i == DAQ.RoutingPointsEnum.MUX2_OUT or
+    --                     i == DAQ.RoutingPointsEnum.MUX3_OUT or
+    --                     i == DAQ.RoutingPointsEnum.MUX4_OUT or
+    --                     i == DAQ.RoutingPointsEnum.MUX5_OUT or
+    --                     i == DAQ.RoutingPointsEnum.MUX6_OUT) then
+    --                 local route = daq:RequestRouting({ DAQ.RoutingPointsEnum.P3V3, i })
+    --                 daq:ClearBus(route)
+    --             end
+    --         end
+    --     end
     -- end)
+
+    Test("Resistance Measurements", function()
+        ---@type DAQ
+        local daq = Context.map.ibs.daq
+
+        local start = os.clock()
+    local imp = daq:MeasureResistor(DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX4_B3, 5000)
+        local delta = os.clock() - start
+        Log.D("Measured impedance in " .. delta .. " seconds")
+
+        Utils.Print(imp)
+    end)
 
     -- Test("Upload", function()
     --     local daq = Context.map.ibs.daq
@@ -117,5 +117,29 @@ Sequence("DAQ", function()
     --         daq.ib:Download(daq.ib.od["IO"]["Mode"], 0)
     --         daq.ib:Upload(daq.ib.od["Routing"]["Last Result"])
     --     end
+    -- end)
+
+    -- Test("Test ADC failure", function()
+    --     ---@type DAQ
+    --     local daq = Context.map.ibs.daq
+
+    --     local doTest = true
+    --     local i = 0
+    --     local result
+    --     while doTest do
+    --         i = i + 1
+    --         daq:AdcSampleRate(DAQ.AdcSampleRateEnum.f32000Hz)
+    --         result = daq:MeasureVoltage(DAQ.RoutingPointsEnum.P3V3, nil, 1000, nil, DAQ.AdcSampleRateEnum.f32000Hz)
+    --         if result.max == 0 or i >= 200 then doTest = false end
+    --     end
+    -- end)
+
+    -- Test("2.048V", function()
+    --     ---@type DAQ
+    --     local daq = Context.map.ibs.daq
+    --     local route = daq:RequestRouting({ DAQ.RoutingPointsEnum.P3V3, DAQ.RoutingPointsEnum.IMP_N })
+    --     local popupLow = Popup("dac"):Text("asdfasdfasdf")
+    --     popupLow:Show()
+    --     daq:ClearBus(route)
     -- end)
 end)
