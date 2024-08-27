@@ -148,9 +148,9 @@ void CanOpen::open(std::string_view port)
         BR_LOG_ERROR(m_tag, "Error occurred while opening {}: {}", port, e.what());
         return;
     }
-    if (!m_device.isOpen()) {
-        BR_LOG_ERROR(m_tag, "Unable to open '{}'", port);
-        return;
+    if (!m_device.isOpen()) { BR_LOG_ERROR(m_tag, "Unable to open '{}'", port); }
+    else {
+        reset();
     }
 }
 
