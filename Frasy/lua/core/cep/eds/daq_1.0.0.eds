@@ -8,8 +8,8 @@ Description=
 CreationTime=1:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=2:29PM
-ModificationDate=08-07-2024
+ModificationTime=3:13PM
+ModificationDate=08-29-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -978,7 +978,7 @@ PDOMapping=0
 ParameterName=Signaling
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x4
+SubNumber=0xC
 
 [6003sub0]
 ParameterName=Highest sub-index supported
@@ -987,7 +987,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x03
+DefaultValue=0x0B
 PDOMapping=0
 
 [6003sub1]
@@ -996,6 +996,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+HighLimit=9
+LowLimit=0
 StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
@@ -1018,6 +1020,102 @@ DataType=0x0006
 AccessType=rw
 StringLengthMin=0
 DefaultValue=5
+PDOMapping=0
+
+[6003sub4]
+ParameterName=LED 1 Color
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+HighLimit=0xFFFFFFFF
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub5]
+ParameterName=LED 2 Color
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+HighLimit=0xFFFFFFFF
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub6]
+ParameterName=LED 3 Color
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+HighLimit=0xFFFFFFFF
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub7]
+ParameterName=LED 4 Color
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+HighLimit=0xFFFFFFFF
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub8]
+ParameterName=LED 5 Color
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+HighLimit=0xFFFFFFFF
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub9]
+ParameterName=LED 6 Color
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+HighLimit=0xFFFFFFFF
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003subA]
+ParameterName=LED 7 Color
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+HighLimit=0xFFFFFFFF
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003subB]
+ParameterName=LED 8 Color
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+HighLimit=0xFFFFFFFF
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
 PDOMapping=0
 
 [6004]
@@ -1775,4 +1873,16 @@ DefaultValue=0
 PDOMapping=0
 
 [ManufacturerObjects]
-SupportedObjects=0
+SupportedObjects=1
+1=0x2000
+
+[2000]
+ParameterName=Serial Number
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x000A
+AccessType=ro
+StringLengthMin=12
+DefaultValue=0
+PDOMapping=0
+

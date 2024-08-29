@@ -26,50 +26,44 @@
 #include <map>
 #include <vector>
 
-namespace Frasy
-{
-class ResultViewer : public Brigerad::Layer
-{
+namespace Frasy {
+class ResultViewer : public Brigerad::Layer {
     using ExpectationDetails = std::map<std::string, nlohmann::json>;
-    struct TestResult
-    {
-        std::string                     Name         = {};
-        double                          Duration     = 0.0;
-        bool                            Enabled      = true;
-        bool                            Skipped      = true;
-        bool                            Passed       = true;
-        std::vector<ExpectationDetails> Expectations = {};
+    struct TestResult {
+        std::string                     Name;
+        double                          Duration = 0.0;
+        bool                            Enabled  = true;
+        bool                            Skipped  = true;
+        bool                            Passed   = true;
+        std::vector<ExpectationDetails> Expectations;
     };
-    struct SequenceResult
-    {
-        std::string                       Name     = {};
+    struct SequenceResult {
+        std::string                       Name;
         double                            Duration = 0.0;
         bool                              Enabled  = true;
         bool                              Skipped  = true;
         bool                              Passed   = true;
-        std::map<std::string, TestResult> Tests    = {};
+        std::map<std::string, TestResult> Tests;
     };
-    struct OverallTestResult
-    {
-        std::string                           SerialNumber = {};
-        double                                Duration     = 0.0;
-        std::string                           Date         = {};
-        bool                                  Passed       = true;
-        std::string                           Version      = {};
-        int                                   Uut          = 0;
-        std::map<std::string, SequenceResult> Sequences    = {};
+    struct OverallTestResult {
+        std::string                           SerialNumber;
+        double                                Duration = 0.0;
+        std::string                           Date;
+        bool                                  Passed = true;
+        std::string                           Version;
+        int                                   Uut = 0;
+        std::map<std::string, SequenceResult> Sequences;
     };
-    struct LogInfo
-    {
-        std::string                     Name         = {};
-        std::string                     Path         = {};
-        std::filesystem::file_time_type LastModified = {};
-        OverallTestResult               Results      = {};
-        bool                            IsGood       = true;
+    struct LogInfo {
+        std::string                     Name;
+        std::string                     Path;
+        std::filesystem::file_time_type LastModified;
+        OverallTestResult               Results = {};
+        bool                            IsGood  = true;
     };
 
 public:
-    ResultViewer() noexcept;
+     ResultViewer() noexcept;
     ~ResultViewer() override = default;
 
     void onImGuiRender() override;
@@ -93,8 +87,8 @@ private:
 
 
 private:
-    bool                 m_isVisible         = false;
-    std::vector<LogInfo> m_logs              = {};
+    bool                 m_isVisible = false;
+    std::vector<LogInfo> m_logs;
     bool                 m_isFirstPassOfLogs = true;
 
     static constexpr const char* s_windowName       = "Last Results";

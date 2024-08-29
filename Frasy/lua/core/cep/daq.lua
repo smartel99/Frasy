@@ -237,7 +237,7 @@ end
 
 local function _requestRouting(daq, points)
     daq.ib:Download(daq.ib.od["Routing"]["Request Routing"], points)
-    Utils.SleepFor(35)  -- Routing takes about 33ms on the DAQ
+    Utils.SleepFor(35) -- Routing takes about 33ms on the DAQ
     return daq.ib:Upload(daq.ib.od["Routing"]["Last Result"]) --[[@as DAQ_RoutingBusEnum]]
 end
 
@@ -419,7 +419,18 @@ end
 
 -- Signaling
 --- @enum DAQ_SignalingModeEnum
-DAQ.SignalingModeEnum = { off = 0, idle = 1, standby = 2, busy = 3, concern = 4, lockOut = 5, custom = 6 }
+DAQ.SignalingModeEnum = {
+    off = 0,
+    idle = 1,
+    standby = 2,
+    busy = 3,
+    concern = 4,
+    lockOut = 5,
+    danger = 6,
+    mutedDanger = 7,
+    boot = 8,
+    custom = 9
+}
 --- @enum DAQ_SignalingBuzzerPatternEnum
 DAQ.SignalingBuzzerPatternEnum = {
     off = 0,
@@ -428,6 +439,28 @@ DAQ.SignalingBuzzerPatternEnum = {
     on900msPer1s = 3,
     on100msPer1s = 4,
     on125msPer250ms = 5
+}
+--- @enum DAQ_SignalingColors
+DAQ.SignalingColors = {
+    black = 0xE0000000,
+    red = 0xFF0000FF,
+    green = 0xFF00FF00,
+    blue = 0xFFFF0000,
+    yellow = 0xFF0039FF, -- Closer to orange than yellow.
+    cyan = 0xFFFFFF00,
+    magenta = 0xFFFF00FF,
+    white = 0xFFFFFFFF
+}
+--- @enum DAQ_SignalingLed
+DAQ.SignalingLed = {
+    led1 = "LED 1 Color",
+    led2 = "LED 2 Color",
+    led3 = "LED 3 Color",
+    led4 = "LED 4 Color",
+    led5 = "LED 5 Color",
+    led6 = "LED 6 Color",
+    led7 = "LED 7 Color",
+    led8 = "LED 8 Color",
 }
 
 --- Gets or set the signaling mode.
@@ -438,7 +471,7 @@ function DAQ:SignalingMode(mode)
     if mode == nil then
         return self.ib:Upload(od) --[[@as DAQ_SignalingModeEnum]]
     else
-        CheckField(mode, "mode", IsIntegerIn(mode, 0, 6))
+        CheckField(mode, "mode", IsIntegerIn(mode, 0, 9))
         self.ib:Download(od, mode)
     end
 end
@@ -453,6 +486,21 @@ function DAQ:SignalingIdleTime(minutes)
     else
         CheckField(minutes, "idle time", IsIntegerInOd(minutes, od))
         self.ib:Download(od, minutes)
+    end
+end
+
+---Gets or set the color of a LED.
+---@param led DAQ_SignalingLed
+---@param color DAQ_SignalingColors|integer|nil
+---@return integer?
+function DAQ:SignalingLedColor(led, color)
+    local od = self.ib.od["Signaling"][led]
+    CheckField(led, "led", od ~= nil)
+    if color == nil then
+        return self.ib:Upload(od) --[[@as integer]]
+    else
+        CheckField(color, "Color", IsIntegerInOd(color, od))
+        self.ib:Download(od, color)
     end
 end
 
@@ -471,9 +519,8 @@ function DAQ:SignalingBuzzerMode(pattern, duration)
         return { pattern = result & 0xFF, duration = (result >> 8) & 0xFF }
     elseif pattern == nil and duration ~= nil then
         error("Invalid pattern, nil")
-    elseif pattern ~= nil and duration == nil then
-        error("Invalid duration, nil")
     else
+        if duration == nil then duration = 255 end
         CheckField(pattern, "pattern", IsIntegerIn(pattern, DAQ.SignalingBuzzerPatternEnum.off,
             DAQ.SignalingBuzzerPatternEnum.on125msPer250ms))
         CheckField(duration, "duration", IsIntegerIn(duration, 0, 255))

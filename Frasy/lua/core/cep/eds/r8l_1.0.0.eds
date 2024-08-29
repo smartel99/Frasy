@@ -8,8 +8,8 @@ Description=
 CreationTime=4:51PM
 CreationDate=05-27-2024
 CreatedBy=Samuel Martel
-ModificationTime=5:40PM
-ModificationDate=05-28-2024
+ModificationTime=4:55PM
+ModificationDate=08-29-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -61,6 +61,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x00000004
 PDOMapping=0
 
@@ -70,6 +71,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x00
 PDOMapping=1
 
@@ -85,6 +87,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x04
 PDOMapping=0
 
@@ -94,6 +97,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x00000069
 PDOMapping=0
 
@@ -103,7 +107,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=0x00000000
+StringLengthMin=0
+DefaultValue=0x00000004
 PDOMapping=0
 
 [1018sub3]
@@ -112,7 +117,8 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=0x00000000
+StringLengthMin=0
+DefaultValue=0x00010000
 PDOMapping=0
 
 [1018sub4]
@@ -121,6 +127,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -160,6 +167,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -169,6 +177,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -178,6 +187,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -187,6 +197,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -196,6 +207,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -205,6 +217,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -214,6 +227,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -223,6 +237,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -232,6 +247,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -241,6 +257,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -250,6 +267,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -259,6 +277,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -268,6 +287,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -277,6 +297,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -286,6 +307,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -295,6 +317,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -304,6 +327,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=
 PDOMapping=0
 
@@ -313,6 +337,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000080
 PDOMapping=0
 
@@ -322,6 +347,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
@@ -331,6 +357,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
@@ -340,6 +367,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0009
 AccessType=ro
+StringLengthMin=0
 DefaultValue=R8L
 PDOMapping=0
 
@@ -349,7 +377,8 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0009
 AccessType=ro
-DefaultValue=A0
+StringLengthMin=0
+DefaultValue=A1
 PDOMapping=0
 
 [100A]
@@ -358,6 +387,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0009
 AccessType=ro
+StringLengthMin=0
 DefaultValue=v1.0.0
 PDOMapping=0
 
@@ -373,6 +403,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x04
 PDOMapping=0
 
@@ -382,6 +413,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000001
 PDOMapping=0
 
@@ -391,6 +423,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000001
 PDOMapping=0
 
@@ -400,6 +433,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000001
 PDOMapping=0
 
@@ -409,6 +443,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000001
 PDOMapping=0
 
@@ -424,6 +459,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x04
 PDOMapping=0
 
@@ -433,6 +469,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000001
 PDOMapping=0
 
@@ -442,6 +479,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000001
 PDOMapping=0
 
@@ -451,6 +489,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000001
 PDOMapping=0
 
@@ -460,6 +499,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000001
 PDOMapping=0
 
@@ -469,6 +509,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000100
 PDOMapping=0
 
@@ -478,6 +519,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=$NODEID+0x80
 PDOMapping=0
 
@@ -487,6 +529,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0006
 AccessType=rw
+StringLengthMin=0
 DefaultValue=100
 PDOMapping=0
 
@@ -502,6 +545,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x08
 PDOMapping=0
 
@@ -511,6 +555,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -520,6 +565,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -529,6 +575,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -538,6 +585,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -547,6 +595,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -556,6 +605,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -565,6 +615,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -574,6 +625,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x00000000
 PDOMapping=0
 
@@ -583,6 +635,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0006
 AccessType=rw
+StringLengthMin=0
 DefaultValue=100
 PDOMapping=0
 
@@ -592,6 +645,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0005
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
@@ -607,6 +661,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
+StringLengthMin=0
 DefaultValue=2
 PDOMapping=0
 
@@ -616,6 +671,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=$NODEID+0x600
 PDOMapping=1
 
@@ -625,6 +681,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=$NODEID+0x580
 PDOMapping=1
 
@@ -640,6 +697,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x03
 PDOMapping=0
 
@@ -649,6 +707,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x80000000
 PDOMapping=1
 
@@ -658,6 +717,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x80000000
 PDOMapping=1
 
@@ -667,6 +727,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0x01
 PDOMapping=0
 
@@ -676,6 +737,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
@@ -685,6 +747,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0001
 AccessType=rw
+StringLengthMin=0
 DefaultValue=1
 PDOMapping=0
 
@@ -694,6 +757,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
+StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
@@ -709,6 +773,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0x02
 PDOMapping=0
 
@@ -718,6 +783,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
@@ -727,9 +793,21 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
+StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
 [ManufacturerObjects]
-SupportedObjects=0
+SupportedObjects=1
+1=0x2000
+
+[2000]
+ParameterName=Serial Number
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x000A
+AccessType=ro
+StringLengthMin=12
+DefaultValue=0
+PDOMapping=0
 
