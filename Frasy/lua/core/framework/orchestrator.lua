@@ -60,6 +60,16 @@ function Orchestrator.RunSequence(sIndex, scope)
     __profileStartEvent(scope.sequence, sequence.source, sequence.line)
 
     local start = os.clock()
+
+    local reportEnd = function()
+        if sequence.time == nil then
+            sequence.time = { { start = start, stop = os.clock() } }
+        else
+            table.insert(sequence.time, { start = start, stop = os.clock() })
+        end
+    end
+
+
     if sequence.time == nil then
         Context.orchestrator.values[scope.sequence] = {}
         Log.D("Start sequence " .. scope.sequence)
@@ -68,9 +78,15 @@ function Orchestrator.RunSequence(sIndex, scope)
             local status, err = xpcall(sequence.func, ErrorHandler)
             if not status then
                 if type(err) == "string" then
+                    sequence.result.pass = false
+                    sequence.result.reason = err
+                    reportEnd()
                     error(GenericError(err))
                 end
                 if err.code ~= UnmetRequirement().code then
+                    sequence.result.pass = false
+                    sequence.result.reason = err.what
+                    reportEnd()
                     error(err)
                 end
                 sequence.result.skipped = true
@@ -115,11 +131,7 @@ function Orchestrator.RunSequence(sIndex, scope)
         -- Nothing, we already warned that this sequence was skipped or disabled
     end
 
-    if sequence.time == nil then
-        sequence.time = { { start = start, stop = os.clock() } }
-    else
-        table.insert(sequence.time, { start = start, stop = os.clock() })
-    end
+    reportEnd()
 
     __profileEndEvent(scope.sequence, sequence.source, sequence.line)
 end
@@ -134,12 +146,22 @@ function Orchestrator.RunTest(scope)
     test.expectations = {}
     test.result.time = {}
     test.result.time.start = os.clock()
+
+    local reportEnd = function()
+        test.result.time.stop = os.clock()
+        test.result.time.elapsed = test.result.time.stop - test.result.time.start -- Might change in the future
+        test.result.time.process = test.result.time.stop - test.result.time.start
+    end
+
     __profileStartEvent(scope.test, test.source, test.line)
     if test.result.enabled then
         local status, err = xpcall(test.func, ErrorHandler)
         if not status then
             Team.Fail()
             if type(err) == "string" then
+                test.result.pass = false
+                test.result.reason = err
+                reportEnd()
                 Team.Sync(test.result)
                 error(GenericError(err))
             elseif err.code == UnmetExpectation().code then
@@ -149,6 +171,9 @@ function Orchestrator.RunTest(scope)
                 test.result.skipped = true
                 test.result.reason = err.what
             else
+                test.result.pass = false
+                test.result.reason = err
+                reportEnd()
                 Team.Sync(test.result)
                 error(err)
             end
@@ -166,9 +191,7 @@ function Orchestrator.RunTest(scope)
         test.result.reason = "Disabled"
     end
     __profileEndEvent(scope.test, test.source, test.line)
-    test.result.time.stop = os.clock()
-    test.result.time.elapsed = test.result.time.stop - test.result.time.start -- Might change in the future
-    test.result.time.process = test.result.time.stop - test.result.time.start
+    reportEnd()
     Team.Sync(test.result)
     if test.result.skipped then
         Log.W(string.format("Test %s SKIPPED\r\nReason: %s", scope.test,
@@ -360,7 +383,7 @@ function Orchestrator.ExecuteSection(index)
     end
     for _, sequenceStage in ipairs(section) do
         for _, sequence in ipairs(sequenceStage) do
-            Orchestrator.RunSequence(index, Scope:New(sequence.name))
+            xpcall(function() Orchestrator.RunSequence(index, Scope:New(sequence.name)) end, ErrorHandler)
         end
     end
     results.time.stop = os.clock()
@@ -413,17 +436,19 @@ function Orchestrator.CompileExecutionResults(outputDir)
             end
         end
         report.sequences[sName].time = { start = 0, stop = 0, elapsed = 0, process = 0 }
-        report.sequences[sName].time.start = sequence.time[1].start
-        for _, time in ipairs(sequence.time) do
-            report.sequences[sName].time.stop = time.stop
-            report.sequences[sName].time.process =
-                report.sequences[sName].time.process + time.stop - time.start
+        if sequence.time ~= nil then
+            report.sequences[sName].time.start = sequence.time[1].start
+            for _, time in ipairs(sequence.time) do
+                report.sequences[sName].time.stop = time.stop
+                report.sequences[sName].time.process =
+                    report.sequences[sName].time.process + time.stop - time.start
+            end
+            report.sequences[sName].time.elapsed =
+                report.sequences[sName].time.stop -
+                report.sequences[sName].time.start
+            report.info.time.process = report.info.time.process +
+                report.sequences[sName].time.process
         end
-        report.sequences[sName].time.elapsed =
-            report.sequences[sName].time.stop -
-            report.sequences[sName].time.start
-        report.info.time.process = report.info.time.process +
-            report.sequences[sName].time.process
     end
     Context.map.onReport(report) -- report passed as pointer, careful
     Utils.SaveAsJson(report, string.format("%s/%s.json", outputDir, Context.info.uut))

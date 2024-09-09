@@ -598,7 +598,7 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
             states[uut] = sol::state();
         }
 
-        auto hasCrashed = [&]() {
+        auto hasAnyUutCrashed = [&]() {
             FRASY_PROFILE_FUNCTION();
             if (std::ranges::any_of(results, [](const auto& kvp) { return !kvp.second; })) {
                 for (std::size_t uut = 1; uut <= uutCount; ++uut) {
@@ -609,60 +609,98 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
             return false;
         };
 
-        // Initialize lua states and teams
-        for (sol::object& stage : stages) {
-            auto devices = stage.as<std::vector<std::size_t>>();
-            UpdateUutState(UutState::Running, devices);
-            if (hasTeam) {
+        auto loadSolutions = [&]() {
+            for (sol::object& stage : stages) {
+                auto devices = stage.as<std::vector<std::size_t>>();
+                UpdateUutState(UutState::Running, devices);
+                if (hasTeam) {
+                    for (auto& uut : devices) {
+                        std::size_t leader = team["Context"]["team"]["players"][uut]["leader"];
+                        auto teamPlayers   = team["Context"]["team"]["teams"][leader].get<std::vector<std::size_t>>();
+                        if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
+                    }
+                }
+                std::vector<std::thread> threads;
+                threads.reserve(devices.size());
                 for (auto& uut : devices) {
-                    std::size_t leader      = team["Context"]["team"]["players"][uut]["leader"];
-                    auto        teamPlayers = team["Context"]["team"]["teams"][leader].get<std::vector<std::size_t>>();
-                    if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
+                    threads.emplace_back([&, uut, team] {
+                        if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                            BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                        }
+                        if (m_uutStates[uut] == UutState::Disabled) { return; }
+                        // states[] is not yet populated, each call will modify it
+                        // thus, we must have a mutex here
+                        mutex.lock();
+                        sol::state_view lua = states[uut];
+                        mutex.unlock();
+                        InitLua(lua, uut, Stage::execution);
+                        lua["Context"]["info"]["serial"] = serials[uut];
+                        // LoadIb(lua);
+                        LoadEnvironment(lua, m_environment);
+                        LoadTests(lua, m_testsDir);
+                        if (hasTeam) {
+                            std::lock_guard lock {mutex};
+                            int             leader   = team["Context"]["team"]["players"][uut]["leader"];
+                            int             position = team["Context"]["team"]["players"][uut]["position"];
+                            teams[leader].InitializeState(lua, uut, position, uut == leader);
+                        }
+
+                        sol::protected_function run =
+                          lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
+                        run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
+                        auto result       = run(solutionFile);
+                        if (!result.valid()) {
+                            sol::error err = result;
+                            lua["Log"]["E"](err.what());
+                        }
+                        results[uut] = result.valid();
+                    });
+                }
+                for (auto& thread : threads) {
+                    thread.join();
+                }
+                UpdateUutState(UutState::Waiting, devices);
+            }
+        };
+
+        auto runSections = [&]() {
+            for (std::size_t is = 1; is <= m_solution.sections.size(); ++is) {
+                if (hasAnyUutCrashed()) { return; }
+                for (sol::object& stage : stages) {
+                    auto devices = stage.as<std::vector<std::size_t>>();
+                    UpdateUutState(UutState::Running, devices);
+                    std::vector<std::thread> threads;
+                    threads.reserve(devices.size());
+                    for (auto& uut : devices) {
+                        threads.emplace_back([&, uut] {
+                            if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                                BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                            }
+                            if (m_uutStates[uut] == UutState::Disabled) { return; }
+                            mutex.lock();
+                            sol::state_view lua = states[uut];
+                            mutex.unlock();
+                            sol::protected_function run =
+                              lua.script("return function(is) Orchestrator.ExecuteSection(is) end");
+                            run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
+                            auto result       = run(is);
+                            if (!result.valid()) {
+                                sol::error err = result;
+                                BR_LUA_ERROR(err.what());
+                                lua["Log"]["e"](err.what());
+                            }
+                            results[uut] = result.valid();
+                        });
+                    }
+                    for (auto& thread : threads) {
+                        thread.join();
+                    }
+                    UpdateUutState(UutState::Waiting, devices);
                 }
             }
-            std::vector<std::thread> threads;
-            threads.reserve(devices.size());
-            for (auto& uut : devices) {
-                threads.emplace_back([&, uut, team] {
-                    if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
-                        BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
-                    }
-                    if (m_uutStates[uut] == UutState::Disabled) { return; }
-                    // states[] is not yet populated, each call will modify it
-                    // thus, we must have a mutex here
-                    mutex.lock();
-                    sol::state_view lua = states[uut];
-                    mutex.unlock();
-                    InitLua(lua, uut, Stage::execution);
-                    lua["Context"]["info"]["serial"] = serials[uut];
-                    // LoadIb(lua);
-                    LoadEnvironment(lua, m_environment);
-                    LoadTests(lua, m_testsDir);
-                    if (hasTeam) {
-                        std::lock_guard lock {mutex};
-                        int             leader   = team["Context"]["team"]["players"][uut]["leader"];
-                        int             position = team["Context"]["team"]["players"][uut]["position"];
-                        teams[leader].InitializeState(lua, uut, position, uut == leader);
-                    }
+        };
 
-                    sol::protected_function run = lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
-                    run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-                    auto result                 = run(solutionFile);
-                    if (!result.valid()) {
-                        sol::error err = result;
-                        lua["Log"]["E"](err.what());
-                    }
-                    results[uut] = result.valid();
-                });
-            }
-            for (auto& thread : threads) {
-                thread.join();
-            }
-            UpdateUutState(UutState::Waiting, devices);
-        }
-        if (hasCrashed()) { return; }
-
-        for (std::size_t is = 1; is <= m_solution.sections.size(); ++is) {
+        auto compileResults = [&]() {
             for (sol::object& stage : stages) {
                 auto devices = stage.as<std::vector<std::size_t>>();
                 UpdateUutState(UutState::Running, devices);
@@ -675,16 +713,15 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
                         }
                         if (m_uutStates[uut] == UutState::Disabled) { return; }
                         mutex.lock();
-                        sol::state_view lua = states[uut];
+                        sol::state& lua = states[uut];
                         mutex.unlock();
                         sol::protected_function run =
-                          lua.script("return function(is) Orchestrator.ExecuteSection(is) end");
+                          lua.script("return function(dir) Orchestrator.CompileExecutionResults(dir) end");
                         run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                        auto result       = run(is);
+                        auto result       = run(std::format("{}/{}", m_outputDirectory, lastSubdirectory));
                         if (!result.valid()) {
                             sol::error err = result;
-                            BR_LUA_ERROR(err.what());
-                            lua["Log"]["e"](err.what());
+                            lua["Log"]["E"](err.what());
                         }
                         results[uut] = result.valid();
                     });
@@ -692,46 +729,20 @@ void Orchestrator::RunStageExecute(sol::state_view team, const std::vector<std::
                 for (auto& thread : threads) {
                     thread.join();
                 }
-                UpdateUutState(UutState::Waiting, devices);
             }
-            if (hasCrashed()) { return; }
-        }
+        };
 
-        for (sol::object& stage : stages) {
-            auto devices = stage.as<std::vector<std::size_t>>();
-            UpdateUutState(UutState::Running, devices);
-            std::vector<std::thread> threads;
-            threads.reserve(devices.size());
-            for (auto& uut : devices) {
-                threads.emplace_back([&, uut] {
-                    if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
-                        BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
-                    }
-                    if (m_uutStates[uut] == UutState::Disabled) { return; }
-                    mutex.lock();
-                    sol::state& lua = states[uut];
-                    mutex.unlock();
-                    sol::protected_function run =
-                      lua.script("return function(dir) Orchestrator.CompileExecutionResults(dir) end");
-                    run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                    auto result       = run(std::format("{}/{}", m_outputDirectory, lastSubdirectory));
-                    if (!result.valid()) {
-                        sol::error err = result;
-                        lua["Log"]["E"](err.what());
-                    }
-                    results[uut] = result.valid();
-                });
+        auto checkResults = [&] {
+            for (sol::object& stage : stages) {
+                auto devices = stage.as<std::vector<std::size_t>>();
+                CheckResults(devices);
             }
-            for (auto& thread : threads) {
-                thread.join();
-            }
-        }
-        if (hasCrashed()) { return; }
+        };
 
-        for (sol::object& stage : stages) {
-            auto devices = stage.as<std::vector<std::size_t>>();
-            CheckResults(devices);
-        }
+        loadSolutions();
+        runSections();
+        compileResults();
+        checkResults();
     }
     catch (const std::exception& e) {
         BR_LOG_ERROR("Orchestrator", "Exception during Excecute stage: {}", e.what());
