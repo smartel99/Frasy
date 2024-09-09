@@ -17,6 +17,10 @@
  */
 
 #include "keyValue.h"
+
+#include "spdlog/fmt/bundled/format.h"
+#include "spdlog/fmt/bundled/ranges.h"
+
 #include <fstream>
 
 namespace Frasy::Report::Formatter {
@@ -47,7 +51,9 @@ void KeyValue::reportIb(const std::string& name)
     const auto& ibs    = m_result["ib"].get_or(m_emptyTable);
     const auto& ib     = ibs[name].get_or(m_emptyTable);
     const auto  prefix = "Version-" + name + "-";
-    *m_output << prefix << "Serial: " << getFieldAsStr<std::string>(ib["serial"]) << endline;
+
+    std::string serial = getFieldAsStr<std::string>(ib["serial"]);
+    *m_output << prefix << "Serial: " << fmt::format("{:02x}", fmt::join(serial, "")) << endline;
     *m_output << prefix << "Hardware: " << getFieldAsStr<std::string>(ib["hardware"]) << endline;
     *m_output << prefix << "Software: " << getFieldAsStr<std::string>(ib["software"]) << endline;
 }
@@ -124,7 +130,6 @@ void KeyValue::reportToBeInRange()
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
-    *m_output << prefix << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
     *m_output << prefix << "Min: " << getFieldAsStr<double>(expectation["min"]) << endline;
     *m_output << prefix << "Max: " << getFieldAsStr<double>(expectation["max"]) << endline;
     *m_output << prefix << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
@@ -138,7 +143,6 @@ void KeyValue::reportToBeGreater()
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
-    *m_output << prefix << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
     *m_output << prefix << "Min: " << getFieldAsStr<double>(expectation["min"]) << endline;
     *m_output << prefix << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
@@ -151,7 +155,6 @@ void KeyValue::reportToBeLesser()
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
-    *m_output << prefix << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
     *m_output << prefix << "Max: " << getFieldAsStr<double>(expectation["max"]) << endline;
     *m_output << prefix << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }

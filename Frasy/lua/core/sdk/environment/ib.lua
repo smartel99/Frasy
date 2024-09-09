@@ -65,7 +65,7 @@ function Ib:Reset()
 end
 
 function Ib:Serial()
-    return self:Upload(self.od["Identity"]["Serial number"])
+    return self:Upload(self.od["Serial Number"])
 end
 
 function Ib:SoftwareVersion()
