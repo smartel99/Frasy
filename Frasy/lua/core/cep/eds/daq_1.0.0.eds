@@ -8,8 +8,8 @@ Description=
 CreationTime=1:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=3:13PM
-ModificationDate=08-29-2024
+ModificationTime=2:13PM
+ModificationDate=09-09-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -978,7 +978,7 @@ PDOMapping=0
 ParameterName=Signaling
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0xC
+SubNumber=0xD
 
 [6003sub0]
 ParameterName=Highest sub-index supported
@@ -987,7 +987,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x0B
+DefaultValue=0x0C
 PDOMapping=0
 
 [6003sub1]
@@ -1003,6 +1003,18 @@ DefaultValue=0
 PDOMapping=0
 
 [6003sub2]
+ParameterName=Modifier
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+HighLimit=6
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub3]
 ParameterName=Idle Time
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1012,7 +1024,7 @@ StringLengthMin=0
 DefaultValue=5
 PDOMapping=0
 
-[6003sub3]
+[6003sub4]
 ParameterName=Buzzer Mode
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1022,7 +1034,7 @@ StringLengthMin=0
 DefaultValue=5
 PDOMapping=0
 
-[6003sub4]
+[6003sub5]
 ParameterName=LED 1 Color
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1034,7 +1046,7 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6003sub5]
+[6003sub6]
 ParameterName=LED 2 Color
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1046,7 +1058,7 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6003sub6]
+[6003sub7]
 ParameterName=LED 3 Color
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1058,7 +1070,7 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6003sub7]
+[6003sub8]
 ParameterName=LED 4 Color
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1070,7 +1082,7 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6003sub8]
+[6003sub9]
 ParameterName=LED 5 Color
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1082,7 +1094,7 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6003sub9]
+[6003subA]
 ParameterName=LED 6 Color
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1094,7 +1106,7 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6003subA]
+[6003subB]
 ParameterName=LED 7 Color
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1106,7 +1118,7 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6003subB]
+[6003subC]
 ParameterName=LED 8 Color
 ObjectType=0x7
 ;StorageLocation=RAM

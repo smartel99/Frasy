@@ -166,13 +166,46 @@ Sequence("DAQ", function()
     -- Test("Signaling", function()
     --     ---@type DAQ
     --     local daq = Context.map.ibs.daq
-    --     for i, mode in pairs(DAQ.SignalingModeEnum) do
+
+    --     local modes = {
+    --         DAQ.SignalingModeEnum.idle,
+    --         DAQ.SignalingModeEnum.standby,
+    --         DAQ.SignalingModeEnum.busy,
+    --         DAQ.SignalingModeEnum.concern,
+    --         DAQ.SignalingModeEnum.lockOut,
+    --         DAQ.SignalingModeEnum.danger,
+    --         DAQ.SignalingModeEnum.mutedDanger,
+    --         DAQ.SignalingModeEnum.boot,
+    --         DAQ.SignalingModeEnum.off,
+    --     }
+    --     for i, mode in ipairs(modes) do
     --         daq:SignalingMode(mode)
-    --         local popup = Popup("Singaling"):Text("Admire the pretty colors~")
+    --         local popup = Popup("Signaling"):Text("Admire the pretty colors~")
     --         popup:Show()
     --     end
     --     daq:SignalingMode(DAQ.SignalingModeEnum.standby)
     -- end)
+
+    Test("Signal Modifiers", function()
+        ---@type DAQ
+        local daq = Context.map.ibs.daq
+
+        local modes = {
+            DAQ.SignalingModeModifierEnum.on100msPer3s,
+            DAQ.SignalingModeModifierEnum.on100msPer1s,
+            DAQ.SignalingModeModifierEnum.on250msPer1s,
+            DAQ.SignalingModeModifierEnum.on500msPer1s,
+            DAQ.SignalingModeModifierEnum.on125msPer250ms,
+            DAQ.SignalingModeModifierEnum.strobe
+        }
+
+        for i, mode in ipairs(modes) do
+            daq:SignalingModeModifier(mode)
+            local popup = Popup("Signaling"):Text("Admire the pretty colors~")
+            popup:Show()
+        end
+        daq:SignalingModeModifier(DAQ.SignalingModeModifierEnum.off)
+    end)
 
     -- Test("Custom Signaling", function()
     --     ---@type DAQ
@@ -210,13 +243,13 @@ Sequence("DAQ", function()
     --     daq:SignalingMode(DAQ.SignalingModeEnum.standby)
     -- end)
 
-    Test("Buzzer", function()
-        ---@type DAQ
-        local daq = Context.map.ibs.daq
+    -- Test("Buzzer", function()
+    --     ---@type DAQ
+    --     local daq = Context.map.ibs.daq
 
-        daq:SignalingBuzzerMode(DAQ.SignalingBuzzerPatternEnum.on125msPer250ms, 2)
-        local popup = Popup("Beep Beep"):Text("Beep Beep")
-        popup:Show()
-        daq:SignalingBuzzerMode(DAQ.SignalingBuzzerPatternEnum.off)
-    end)
+    --     daq:SignalingBuzzerMode(DAQ.SignalingBuzzerPatternEnum.on125msPer250ms, 2)
+    --     local popup = Popup("Beep Beep"):Text("Beep Beep")
+    --     popup:Show()
+    --     daq:SignalingBuzzerMode(DAQ.SignalingBuzzerPatternEnum.off)
+    -- end)
 end)

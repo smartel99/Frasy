@@ -431,6 +431,16 @@ DAQ.SignalingModeEnum = {
     boot = 8,
     custom = 9
 }
+--- @enum DAQ_SignalingModeModifierEnum
+DAQ.SignalingModeModifierEnum = {
+    off = 0,
+    on100msPer3s = 1,
+    on100msPer1s = 2,
+    on250msPer1s = 3,
+    on500msPer1s = 4,
+    on125msPer250ms = 5,
+    strobe = 6
+}
 --- @enum DAQ_SignalingBuzzerPatternEnum
 DAQ.SignalingBuzzerPatternEnum = {
     off = 0,
@@ -473,6 +483,19 @@ function DAQ:SignalingMode(mode)
     else
         CheckField(mode, "mode", IsIntegerIn(mode, 0, 9))
         self.ib:Download(od, mode)
+    end
+end
+
+--- Gets or set a signaling mode modifier.
+--- @param mod? DAQ_SignalingModeModifierEnum
+--- @return DAQ_SignalingModeModifierEnum?
+function DAQ:SignalingModeModifier(mod)
+    local od = self.ib.od["Signaling"]["Modifier"]
+    if mod == nil then
+        return self.ib:Upload(od) --[[@as DAQ_SignalingModeEnum]]
+    else
+        CheckField(mod, "mode", IsIntegerIn(mod, 0, 6))
+        self.ib:Download(od, mod)
     end
 end
 
