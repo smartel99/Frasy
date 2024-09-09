@@ -473,6 +473,24 @@ DAQ.SignalingLed = {
     led8 = "LED 8 Color",
 }
 
+function DAQ.SignalingModeEnumToString(mode)
+    local names = {
+        [DAQ.SignalingModeEnum.off] = "off",
+        [DAQ.SignalingModeEnum.idle] = "idle",
+        [DAQ.SignalingModeEnum.standby] = "standby",
+        [DAQ.SignalingModeEnum.busy] = "busy",
+        [DAQ.SignalingModeEnum.concern] = "concern",
+        [DAQ.SignalingModeEnum.lockOut] = "lockOut",
+        [DAQ.SignalingModeEnum.danger] = "danger",
+        [DAQ.SignalingModeEnum.mutedDanger] = "mutedDanger",
+        [DAQ.SignalingModeEnum.boot] = "boot",
+        [DAQ.SignalingModeEnum.custom] = "custom"
+    }
+    local name = names[mode]
+    if name == nil then name = "unknown" end
+    return name;
+end
+
 --- Gets or set the signaling mode.
 --- @param mode? DAQ_SignalingModeEnum
 --- @return DAQ_SignalingModeEnum?
@@ -512,10 +530,10 @@ function DAQ:SignalingIdleTime(minutes)
     end
 end
 
----Gets or set the color of a LED.
----@param led DAQ_SignalingLed
----@param color DAQ_SignalingColors|integer|nil
----@return integer?
+--- Gets or set the color of a LED.
+--- @param led DAQ_SignalingLed
+--- @param color DAQ_SignalingColors|integer|nil
+--- @return integer?
 function DAQ:SignalingLedColor(led, color)
     local od = self.ib.od["Signaling"][led]
     CheckField(led, "led", od ~= nil)
@@ -986,11 +1004,11 @@ DAQ.MeasureVoltageDefault = {
 }
 
 --- Measures a voltage on one or more points.
---- @param points DAQ_RoutingPointsEnum[]|DAQ_RoutingPointsEnum
---- @param channel DAQ_AdcChannelEnum?
---- @param samplesToTake integer?
---- @param gain DAQ_AdcChannelGainEnum?
---- @param sampleRate DAQ_AdcSampleRateEnum?
+--- @param points DAQ_RoutingPointsEnum[]|DAQ_RoutingPointsEnum place where to measure voltage
+--- @param channel DAQ_AdcChannelEnum? which ADC channel to do the measure on
+--- @param samplesToTake integer? number of samples to take [1, 1000]
+--- @param gain DAQ_AdcChannelGainEnum? ADC gain
+--- @param sampleRate DAQ_AdcSampleRateEnum? ADC sampling rate
 --- @return DAQ_AdcChannelResults
 function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
     --- @type DAQ_RoutingPointsEnum[]
