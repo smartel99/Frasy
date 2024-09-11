@@ -18,8 +18,7 @@
 
 #include "imgui.h"
 
-namespace Frasy
-{
+namespace Frasy {
 
 ResultViewer::ResultViewer() noexcept : m_logs(LoadLogs(true))
 {
@@ -29,51 +28,40 @@ void ResultViewer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
 
-    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking))
-    {
-        if (AreLogsNew())
-        {
+    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
+        if (AreLogsNew()) {
             // One or more files have been modified, reload their data.
-            std::for_each(m_logs.begin(),
-                          m_logs.end(),
-                          [](auto& log)
-                          {
-                              try
-                              {
-                                  log.Results = LoadResults(log.Path);
-                                  log.IsGood  = true;
-                              }
-                              catch (std::exception& e)
-                              {
-                                  BR_LOG_ERROR(
-                                    s_windowName, "Unable to load results from '{}': {}", log.Name, e.what());
-                                  log.IsGood = false;
-                              }
-                          });
+            std::for_each(m_logs.begin(), m_logs.end(), [](auto& log) {
+                try {
+                    log.Results = LoadResults(log.Path);
+                    log.IsGood  = true;
+                }
+                catch (std::exception& e) {
+                    BR_LOG_ERROR(s_windowName, "Unable to load results from '{}': {}", log.Name, e.what());
+                    log.IsGood = false;
+                }
+            });
             m_isFirstPassOfLogs = true;
         }
 
         if (ImGui::BeginTabBar("ResultTabBar",
-                               ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll))
-        {
-            for (auto&& log : m_logs)
-            {
+                               ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll)) {
+            for (auto&& log : m_logs) {
                 bool passed = log.Results.Passed;
                 if (!passed) { ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF); }
-                if (ImGui::BeginTabItem(log.Name.c_str()))
-                {
+                if (ImGui::BeginTabItem(log.Name.c_str())) {
                     if (!passed) { ImGui::PopStyleColor(); }
-                    if (ImGui::BeginChild(log.Name.c_str(), ImVec2 {0.0f, 0.0f}, false))
-                    {
+                    if (ImGui::BeginChild(log.Name.c_str(), ImVec2 {0.0f, 0.0f}, false)) {
                         if (log.IsGood) { RenderLog(log.Results); }
-                        else { ImGui::Text("Log is not valid"); }
+                        else {
+                            ImGui::Text("Log is not valid");
+                        }
                     }
                     ImGui::EndChild();
 
                     ImGui::EndTabItem();
                 }
-                else
-                {
+                else {
                     if (!passed) { ImGui::PopStyleColor(); }
                 }
             }
@@ -91,11 +79,9 @@ void ResultViewer::RenderLog(const OverallTestResult& log)
     ImGui::Text("Date: %s, Duration: %0.3f seconds", log.Date.c_str(), log.Duration);
     ImGui::Text("Version: %s", log.Version.c_str());
 
-    for (auto&& [sequenceName, sequence] : log.Sequences)
-    {
+    for (auto&& [sequenceName, sequence] : log.Sequences) {
         if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!sequence.Passed, ImGuiCond_Always); }
-        if (ImGui::TreeNode(sequenceName.c_str()))
-        {
+        if (ImGui::TreeNode(sequenceName.c_str())) {
             RenderSequence(sequence);
             ImGui::TreePop();
         }
@@ -108,11 +94,9 @@ void ResultViewer::RenderSequence(const ResultViewer::SequenceResult& sequence)
     ImGui::Text("Skipped: %s, enabled: %s", sequence.Skipped ? "True" : "False", sequence.Enabled ? "True" : "False");
     ImGui::Text("Duration: %0.3f seconds", sequence.Duration);
 
-    for (auto&& [testName, test] : sequence.Tests)
-    {
+    for (auto&& [testName, test] : sequence.Tests) {
         if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed, ImGuiCond_Always); }
-        if (ImGui::TreeNode(testName.c_str()))
-        {
+        if (ImGui::TreeNode(testName.c_str())) {
             RenderTest(test);
             ImGui::TreePop();
         }
@@ -127,21 +111,17 @@ void ResultViewer::RenderTest(const ResultViewer::TestResult& test)
     ImGui::Text("Duration: %0.3f seconds", test.Duration);
 
     if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed, ImGuiCond_Always); }
-    if (ImGui::TreeNode("Expectations"))
-    {
+    if (ImGui::TreeNode("Expectations")) {
         size_t at = 1;
-        for (auto&& expectation : test.Expectations)
-        {
-            if (m_isFirstPassOfLogs)
-            {
+        for (auto&& expectation : test.Expectations) {
+            if (m_isFirstPassOfLogs) {
                 bool passed = true;
                 if (expectation.contains("pass")) { passed = expectation.at("pass").get<bool>(); }
                 ImGui::SetNextItemOpen(!passed, ImGuiCond_Always);
             }
             std::string label = std::format("Expectation {}", at);
             if (expectation.contains("note")) { label = expectation.at("note").get<std::string>(); }
-            if (ImGui::TreeNode(&expectation, "%s", label.c_str()))
-            {
+            if (ImGui::TreeNode(&expectation, "%s", label.c_str())) {
                 RenderExpectation(expectation);
                 ImGui::TreePop();
             }
@@ -153,7 +133,9 @@ void ResultViewer::RenderTest(const ResultViewer::TestResult& test)
 
 void ResultViewer::RenderExpectation(const ResultViewer::ExpectationDetails& expectation)
 {
-    for (const auto& [key, value] : expectation) { ImGui::TextWrapped("%s", MakeStringFromJson(key, value).c_str()); }
+    for (const auto& [key, value] : expectation) {
+        ImGui::TextWrapped("%s", MakeStringFromJson(key, value).c_str());
+    }
 }
 
 void ResultViewer::setVisibility(bool visibility)
@@ -166,19 +148,15 @@ bool ResultViewer::AreLogsNew()
 {
     std::vector<LogInfo> currentLastModifiedDate = LoadLogs(false);
 
-    if (std::ranges::any_of(currentLastModifiedDate,
-                            [this](const LogInfo& entry)
-                            {
-                                // Find the log in the logs we currently know.
-                                auto it = std::find_if(m_logs.begin(),
-                                                       m_logs.end(),
-                                                       [&entry](const auto& currentEntry)
-                                                       { return entry.Name == currentEntry.Name; });
-                                // If the log isn't known, we need to refresh them!
-                                if (it == m_logs.end()) { return true; }
-                                return it->LastModified < entry.LastModified;
-                            }))
-    {
+    if (std::ranges::any_of(currentLastModifiedDate, [this](const LogInfo& entry) {
+            // Find the log in the logs we currently know.
+            auto it = std::find_if(m_logs.begin(), m_logs.end(), [&entry](const auto& currentEntry) {
+                return entry.Name == currentEntry.Name;
+            });
+            // If the log isn't known, we need to refresh them!
+            if (it == m_logs.end()) { return true; }
+            return it->LastModified < entry.LastModified;
+        })) {
         m_logs = currentLastModifiedDate;
         return true;
     }
@@ -193,8 +171,7 @@ std::vector<ResultViewer::LogInfo> ResultViewer::LoadLogs(bool loadFiles)
     // - Add it to the list if that's the case.
     namespace fs = std::filesystem;
     // First, check if the last log directory exists in the first place.
-    if (!fs::exists(s_lastLogsPath))
-    {
+    if (!fs::exists(s_lastLogsPath)) {
         // Directory doesn't exist!
         return {};
     }
@@ -202,13 +179,19 @@ std::vector<ResultViewer::LogInfo> ResultViewer::LoadLogs(bool loadFiles)
     std::vector<LogInfo> infos;
 
     // Check if each entry is a json file.
-    for (const auto& entry : fs::recursive_directory_iterator(s_lastLogsPath))
-    {
-        if (entry.is_regular_file() && entry.path().extension() == s_logFileExtension)
-        {
-            OverallTestResult results = {};
-            if (loadFiles) { results = LoadResults(entry.path().string()); }
-            infos.emplace_back(entry.path().stem().string(), entry.path().string(), entry.last_write_time(), results);
+    for (const auto& entry : fs::recursive_directory_iterator(s_lastLogsPath)) {
+        if (entry.is_regular_file() && entry.path().extension() == s_logFileExtension) {
+            std::string path = entry.path().string();
+            try {
+                OverallTestResult results = {};
+                if (loadFiles) { results = LoadResults(path); }
+                infos.emplace_back(
+                  entry.path().stem().string(), path, entry.last_write_time(), results);
+            }
+            catch (std::exception& e) {
+                BR_APP_ERROR("An error occurred while parsing log '{}': {}", path, e.what());
+                return {};
+            }
         }
     }
 
@@ -217,26 +200,19 @@ std::vector<ResultViewer::LogInfo> ResultViewer::LoadLogs(bool loadFiles)
 
 ResultViewer::OverallTestResult ResultViewer::LoadResults(const std::string& path)
 {
-    auto loadJson = [](const std::string& p) -> nlohmann::json
-    {
+    auto loadJson = [](const std::string& p) -> nlohmann::json {
         BR_PROFILE_FUNCTION();
         std::ifstream j(p);
 
         std::string fullFile;
         std::string line;
 
-        while (std::getline(j, line)) { fullFile += line; }
+        while (std::getline(j, line)) {
+            fullFile += line;
+        }
 
         j.close();
-        try
-        {
-            return nlohmann::json::parse(fullFile);
-        }
-        catch (nlohmann::json::parse_error& e)
-        {
-            BR_APP_ERROR("An error occurred while parsing log '{}': {}", p, e.what());
-            return "{}"_json;
-        }
+        return nlohmann::json::parse(fullFile);
     };
 
     auto json = loadJson(path);
@@ -256,12 +232,10 @@ ResultViewer::OverallTestResult ResultViewer::LoadResults(const std::string& pat
 std::map<std::string, ResultViewer::SequenceResult> ResultViewer::LoadSequences(const nlohmann::json& sequences)
 {
     std::map<std::string, SequenceResult> sequenceResults = {};
-    for (const auto& [seqName, seqDetails] : sequences.items())
-    {
-        double duration          = seqDetails.at("time").at("process").get<double>();
+    for (const auto& [seqName, seqDetails] : sequences.items()) {
         sequenceResults[seqName] = SequenceResult {
           .Name     = seqName,
-          .Duration = duration,
+          .Duration = seqDetails.at("time").at("process").get<double>(),
           .Enabled  = seqDetails.at("enabled").get<bool>(),
           .Skipped  = seqDetails.at("skipped").get<bool>(),
           .Passed   = seqDetails.at("pass").get<bool>(),
@@ -275,12 +249,10 @@ std::map<std::string, ResultViewer::TestResult> ResultViewer::LoadTests(const nl
 {
     std::map<std::string, TestResult> testResults = {};
 
-    for (const auto& [testName, testDetails] : tests.items())
-    {
-        double duration       = testDetails.at("time").at("process").get<double>();
+    for (const auto& [testName, testDetails] : tests.items()) {
         testResults[testName] = TestResult {
           .Name         = testName,
-          .Duration     = duration,
+          .Duration     = testDetails.at("time").at("process").get<double>(),
           .Enabled      = testDetails.at("enabled").get<bool>(),
           .Skipped      = testDetails.at("skipped").get<bool>(),
           .Passed       = testDetails.at("pass").get<bool>(),
@@ -294,10 +266,11 @@ std::vector<ResultViewer::ExpectationDetails> ResultViewer::LoadExpectations(con
 {
     std::vector<ExpectationDetails> expectationDetails = {};
 
-    for (const auto& [expName, expDetails] : expectations.items())
-    {
+    for (const auto& [expName, expDetails] : expectations.items()) {
         ExpectationDetails details;
-        for (const auto& [fieldName, fieldVal] : expDetails.items()) { details[fieldName] = fieldVal; }
+        for (const auto& [fieldName, fieldVal] : expDetails.items()) {
+            details[fieldName] = fieldVal;
+        }
         expectationDetails.push_back(details);
     }
 
@@ -306,10 +279,7 @@ std::vector<ResultViewer::ExpectationDetails> ResultViewer::LoadExpectations(con
 
 std::string ResultViewer::MakeStringFromJson(const std::string& key, const nlohmann::json& value)
 {
-    if(value.is_number_float())
-    {
-        return std::format("{}: {:0.6f}", key, value.get<float>());
-    }
+    if (value.is_number_float()) { return std::format("{}: {:0.6f}", key, value.get<float>()); }
     return std::format("{}: {}", key, value.dump(4, true));
 }
 

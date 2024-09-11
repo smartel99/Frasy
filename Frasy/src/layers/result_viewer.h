@@ -46,11 +46,11 @@ class ResultViewer : public Brigerad::Layer {
         std::map<std::string, TestResult> Tests;
     };
     struct OverallTestResult {
-        std::string                           SerialNumber;
+        std::string                           SerialNumber = "<N/A>";
         double                                Duration = 0.0;
-        std::string                           Date;
+        std::string                           Date = "<N/A>";
         bool                                  Passed = true;
-        std::string                           Version;
+        std::string                           Version = "<N/A>";
         int                                   Uut = 0;
         std::map<std::string, SequenceResult> Sequences;
     };
