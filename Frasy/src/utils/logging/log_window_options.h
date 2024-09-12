@@ -35,7 +35,7 @@ struct LogWindowOptions
     ImGuiTextFilter Filter     = {};
     bool            AutoScroll = true;
 
-    bool CombineLoggers = false;
+    bool CombineLoggers = true;
 
     std::array<bool, spdlog::level::n_levels> ShowLevels = {true, true, true, true, true, true, true};
 
