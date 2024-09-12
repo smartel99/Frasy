@@ -51,7 +51,7 @@ public:
     static constexpr const char* s_coreLoggerName   = "BRIGERAD";
     static constexpr const char* s_clientLoggerName = "APP";
     static constexpr const char* s_luaLoggerName    = "LUA";
-    static constexpr spdlog::level::level_enum s_defaultLevel     = spdlog::level::trace;
+    static constexpr spdlog::level::level_enum s_defaultLevel     = spdlog::level::info;
 
 private:
     static inline std::shared_ptr<spdlog::sinks::dist_sink_mt>                     s_sinks   = nullptr;
