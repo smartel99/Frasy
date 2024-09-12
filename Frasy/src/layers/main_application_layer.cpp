@@ -72,6 +72,8 @@ void MainApplicationLayer::onAttach()
     m_testViewer->onAttach();
 
     m_orchestrator.SetCanOpen(&m_canOpen);
+
+    m_logWindow->SetVisibility(true);
 }
 
 
