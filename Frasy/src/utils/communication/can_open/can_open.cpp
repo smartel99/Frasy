@@ -154,6 +154,12 @@ void CanOpen::open(std::string_view port)
     }
 }
 
+void CanOpen::reopen()
+{
+    close();
+    open(m_port);
+}
+
 void CanOpen::close()
 {
     if (!isOpen()) { return; }

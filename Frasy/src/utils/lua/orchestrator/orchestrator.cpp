@@ -246,21 +246,33 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
               if (node == nullptr) { throw sol::error("Invalid node id"); }
               auto* interface        = node->sdoInterface();
               auto [index, subIndex] = getIndexAndSubIndex(ode);
-              auto request           = interface->uploadData(index, subIndex, 100);
-              request.future.wait();
-              if (request.status() != CanOpen::SdoRequestStatus::Complete &&
-                  request.status() != CanOpen::SdoRequestStatus::Cancelled) {
-                  throw sol::error(std::format("Request failed: {}", request.status()));
+
+              auto tryRequest = [&] {
+                  auto request = interface->uploadData(index, subIndex, 100);
+                  request.future.wait();
+                  if (request.status() != CanOpen::SdoRequestStatus::Complete &&
+                      request.status() != CanOpen::SdoRequestStatus::Cancelled) {
+                      throw sol::error(std::format("Request failed: {}", request.status()));
+                  }
+                  auto result = request.future.get();
+                  if (!result.has_value()) {
+                      throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
+                                                   static_cast<int>(result.error()),
+                                                   result.error(),
+                                                   request.abortCode()));
+                  }
+                  auto value = deserializeOdeValue(lua, ode, result.value());
+                  return value;
+              };
+
+              try {
+                  return tryRequest();
               }
-              auto result = request.future.get();
-              if (!result.has_value()) {
-                  throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
-                                               static_cast<int>(result.error()),
-                                               result.error(),
-                                               request.abortCode()));
+              catch (sol::error& e) {
+                  BR_LOG_WARN("Orchestrator", "Request failed, trying to re-open port...");
+                  m_canOpen->reopen();
+                  return tryRequest();
               }
-              auto value = deserializeOdeValue(lua, ode, result.value());
-              return value;
           };
 
         lua["CanOpen"]["__download"] = [&](std::size_t nodeId, const sol::table& ode, sol::object value) {
@@ -270,16 +282,30 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             auto* interface        = node->sdoInterface();
             auto [index, subIndex] = getIndexAndSubIndex(ode);
             auto sValue            = serializeOdeValue(ode, value);
-            auto request           = interface->downloadData(index, subIndex, sValue, 100);
-            request.future.wait();
-            if (request.status() != CanOpen::SdoRequestStatus::Complete &&
-                request.status() != CanOpen::SdoRequestStatus::Cancelled) {
-                throw sol::error(std::format("Request failed: {}", request.status()));
+
+            auto tryRequest = [&] {
+                auto request = interface->downloadData(index, subIndex, sValue, 100);
+                request.future.wait();
+                if (request.status() != CanOpen::SdoRequestStatus::Complete &&
+                    request.status() != CanOpen::SdoRequestStatus::Cancelled) {
+                    throw sol::error(std::format("Request failed: {}", request.status()));
+                }
+                auto result = request.future.get();
+                if (result != CO_SDO_RT_ok_communicationEnd) {
+                    throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
+                                                 static_cast<int>(result),
+                                                 result,
+                                                 request.abortCode()));
+                }
+            };
+
+            try {
+                tryRequest();
             }
-            auto result = request.future.get();
-            if (result != CO_SDO_RT_ok_communicationEnd) {
-                throw sol::error(std::format(
-                  "Request failed with code {}: {}\nExtra: {}", static_cast<int>(result), result, request.abortCode()));
+            catch (sol::error& e) {
+                BR_LOG_WARN("Orchestrator", "Request failed, trying to re-open port...");
+                m_canOpen->reopen();
+                tryRequest();
             }
         };
 

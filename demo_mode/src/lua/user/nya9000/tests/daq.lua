@@ -1,4 +1,10 @@
+local CheckField = require("lua/core/utils/check_field")
+local IsIntegerIn = require("lua/core/utils/is_integer/is_integer_in")
+
 Sequence("DAQ", function()
+    ---@type DAQ
+    local daq = Context.map.ibs.daq
+    
     -- Test("Routing", function()
     --     ---@type DAQ
     --     local daq = Context.map.ibs.daq
@@ -80,6 +86,104 @@ Sequence("DAQ", function()
     --                 daq:ClearBus(route)
     --             end
     --         end
+    --     end
+    -- end)
+
+    Test("Stress test comm", function()
+        local repeatCount = 1
+        local epoch = 0
+        if Context.info.stage == Stage.execution then repeatCount = 1000 end
+        for i = 1, repeatCount do
+            local start = os.clock()
+            -- Measure AC_MEAN with 10x divider. (0VAC @ 10%)
+            local result = daq:MeasureVoltage(DAQ.RoutingPointsEnum.P5V, nil, 533, nil, DAQ.AdcSampleRateEnum.f16000Hz)
+            local delta =os.clock() - start
+            Log.D("Epoch " .. tostring(i) .. " in " .. delta .. "s")
+            Expect(delta, "Time"):ToBeGreater(0.0)
+
+        end
+    end)
+    -- Test("Stress test voltmeter", function()
+    --     ---@type DAQ
+    --     local daq = Context.map.ibs.daq
+
+    --     local sampleRates = {
+    --         DAQ.AdcSampleRateEnum.f250Hz,
+    --         DAQ.AdcSampleRateEnum.f500Hz,
+    --         DAQ.AdcSampleRateEnum.f1000Hz,
+    --         DAQ.AdcSampleRateEnum.f2000Hz,
+    --         DAQ.AdcSampleRateEnum.f2560Hz,
+    --         DAQ.AdcSampleRateEnum.f2667Hz,
+    --         DAQ.AdcSampleRateEnum.f4000Hz,
+    --         DAQ.AdcSampleRateEnum.f5120Hz,
+    --         DAQ.AdcSampleRateEnum.f5333Hz,
+    --         DAQ.AdcSampleRateEnum.f8000Hz,
+    --         DAQ.AdcSampleRateEnum.f10240Hz,
+    --         DAQ.AdcSampleRateEnum.f10667Hz,
+    --         DAQ.AdcSampleRateEnum.f16000Hz,
+    --         DAQ.AdcSampleRateEnum.f20480Hz,
+    --         DAQ.AdcSampleRateEnum.f21333Hz,
+    --         DAQ.AdcSampleRateEnum.f32000Hz,
+    --     }
+    --     local sampleRatesStr = {
+    --         [0] = "0.25ksps",
+    --         [1] = "0.5ksps",
+    --         [2] = "1ksps",
+    --         [3] = "2ksps",
+    --         [4] = "2.560ksps",
+    --         [5] = "2.667ksps",
+    --         [6] = "4ksps",
+    --         [7] = "5.120ksps",
+    --         [8] = "5.333ksps",
+    --         [9] = "8ksps",
+    --         [10] = "10.24ksps",
+    --         [11] = "10.667ksps",
+    --         [12] = "16ksps",
+    --         [13] = "20.48ksps",
+    --         [14] = "21.333ksps",
+    --         [15] = "32ksps"
+    --     }
+
+    --     local pass = true
+    --     local loops = 0
+    --     while pass do
+    --         loops = loops + 1
+    --         local samples = 10 --math.random(3, 500)
+    --         local sampleRate = sampleRates[math.random(1, 16)]
+    --         local res = daq:MeasureVoltage({ DAQ.RoutingPointsEnum.P2V048 }, DAQ.AdcChannelEnum.adc2, samples, nil,
+    --             sampleRate)
+    --         Log.I(string.format("Run %d: Measured %0.6fV (min: %0.6fV, max %0.6fV), %d samples, sample rate: %s", loops,
+    --             res.average,
+    --             res.min,
+    --             res.max, samples, sampleRatesStr[sampleRate]))
+    --         Expect(res.average, "Volt"):ToBeInRange(2.00, 2.08)
+    --         if res.average < 2.00 or res.average > 2.08 then
+    --             Log.E("Out of spec!")
+    --             pass = false
+    --         end
+    --         if loops >= 1000 then pass = false end
+    --     end
+    -- end)
+
+    -- Test("Stress test resistance", function()
+    --     ---@type DAQ
+    --     local daq = Context.map.ibs.daq
+
+    --     local pass = true
+    --     local loops = 0
+    --     while pass do
+    --         loops = loops + 1
+    --         local imp = daq:MeasureResistor(DAQ.RoutingPointsEnum.MUX1_A0, DAQ.RoutingPointsEnum.MUX2_A0,
+    --             1000)
+    --         Log.I(string.format("Run %d: Measured %d ohms (vin: %0.6fV, Vout %0.6fV)", loops, imp.value,
+    --             imp.vin,
+    --             imp.vout))
+    --         Expect(imp.value, "Impedance"):ToBeInRange(900, 1100)
+    --         if imp.value < 900 or imp.value > 1100 then
+    --             Log.E("Out of spec!")
+    --             pass = false
+    --         end
+    --         if loops >= 200 then pass = false end
     --     end
     -- end)
 
@@ -186,26 +290,26 @@ Sequence("DAQ", function()
     --     daq:SignalingMode(DAQ.SignalingModeEnum.standby)
     -- end)
 
-    Test("Signal Modifiers", function()
-        ---@type DAQ
-        local daq = Context.map.ibs.daq
+    -- Test("Signal Modifiers", function()
+    --     ---@type DAQ
+    --     local daq = Context.map.ibs.daq
 
-        local modes = {
-            DAQ.SignalingModeModifierEnum.on100msPer3s,
-            DAQ.SignalingModeModifierEnum.on100msPer1s,
-            DAQ.SignalingModeModifierEnum.on250msPer1s,
-            DAQ.SignalingModeModifierEnum.on500msPer1s,
-            DAQ.SignalingModeModifierEnum.on125msPer250ms,
-            DAQ.SignalingModeModifierEnum.strobe
-        }
+    --     local modes = {
+    --         DAQ.SignalingModeModifierEnum.on100msPer3s,
+    --         DAQ.SignalingModeModifierEnum.on100msPer1s,
+    --         DAQ.SignalingModeModifierEnum.on250msPer1s,
+    --         DAQ.SignalingModeModifierEnum.on500msPer1s,
+    --         DAQ.SignalingModeModifierEnum.on125msPer250ms,
+    --         DAQ.SignalingModeModifierEnum.strobe
+    --     }
 
-        for i, mode in ipairs(modes) do
-            daq:SignalingModeModifier(mode)
-            local popup = Popup("Signaling"):Text("Admire the pretty colors~")
-            popup:Show()
-        end
-        daq:SignalingModeModifier(DAQ.SignalingModeModifierEnum.off)
-    end)
+    --     for i, mode in ipairs(modes) do
+    --         daq:SignalingModeModifier(mode)
+    --         local popup = Popup("Signaling"):Text("Admire the pretty colors~")
+    --         popup:Show()
+    --     end
+    --     daq:SignalingModeModifier(DAQ.SignalingModeModifierEnum.off)
+    -- end)
 
     -- Test("Custom Signaling", function()
     --     ---@type DAQ

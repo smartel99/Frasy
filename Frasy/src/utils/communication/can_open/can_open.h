@@ -37,7 +37,6 @@
 #include <cstdint>
 #include <format>
 #include <functional>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -71,6 +70,7 @@ public:
     ~CanOpen();
 
     void open(std::string_view port);
+    void reopen();
     void close();
     bool isOpen() const { return m_device.isOpen() && m_isRunning; }
 
