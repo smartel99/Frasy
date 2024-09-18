@@ -22,7 +22,7 @@
 #include "Brigerad/Utils/types/wstring_to_utf8.h"
 #include "Event.h"
 
-#include <codecvt>
+#include <format>
 
 namespace Brigerad {
 class UsbEvent : public Event {
@@ -41,9 +41,7 @@ public:
 
     std::string ToString() const override
     {
-        std::wstringstream ss;
-        ss << "UsbConnectedEvent {guid: " << guid << ", name: " << name << "}";
-        return wstring_to_utf8(ss.str());
+        return wstring_to_utf8(std::format(L"UsbConnectedEvent {{guid: {}, name: {}}}", guid, name));
     }
 
     EVENT_CLASS_TYPE(EventType::UsbConnected)
@@ -55,9 +53,7 @@ public:
 
     std::string ToString() const override
     {
-        std::wstringstream ss;
-        ss << "UsbDisconnectedEvent:  {guid: " << guid << ", name: " << name << "}";
-        return wstring_to_utf8(ss.str());
+        return wstring_to_utf8(std::format(L"UsbDisconnectedEvent {{guid: {}, name: {}}}", guid, name));
     }
 
     EVENT_CLASS_TYPE(EventType::UsbDisconnected)

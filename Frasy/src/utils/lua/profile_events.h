@@ -20,6 +20,7 @@
 #define PROFILE_EVENTS_H
 
 #include <Brigerad/Core/Core.h>
+#include <Brigerad/Core/Log.h>
 
 #include <utils/string_utils.h>
 

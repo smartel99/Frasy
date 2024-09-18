@@ -31,7 +31,6 @@
 
 #include <thread>
 
-
 namespace Brigerad {
 struct ProfileResult {
     std::string Name;
@@ -46,7 +45,7 @@ struct InstrumentationSession {
     InstrumentationSession(const std::string& name, long long duration = 0) : Name(name)
     {
         EndPoint = duration != 0 ? std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(duration)
-                                 : std::chrono::time_point<std::chrono::high_resolution_clock>::max();
+                                 : (std::chrono::time_point<std::chrono::high_resolution_clock>::max)();
     }
 };
 
