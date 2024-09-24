@@ -1,4 +1,4 @@
-local IsInteger = requires("lua/core/utils/is_integer/is_integer")
+local IsInteger = require("lua/core/utils/is_integer/is_integer")
 --- Validates that a number is within the bounds dictated by the enum
 --- @param value integer
 --- @param enum table
