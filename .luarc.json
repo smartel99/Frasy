@@ -1,4 +1,5 @@
 {
+  "completion.requireSeparator": "/",
   "workspace.library": [
     "vendor/frasy/Frasy/can_open/can_open.lua",
     "vendor/frasy/Frasy/lua/core/cep/daq.lua",
