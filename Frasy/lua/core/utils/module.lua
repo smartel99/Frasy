@@ -12,11 +12,15 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
-return {
+
+Utils = {
     PrettyPrint = require("lua.core.utils.pretty_print"),
     Print = require("lua/core/utils/print"),
     ToString = require("lua/core/utils/tostring"),
     Equals = require("lua/core/utils/equals"),
     Traverse = require("lua/core/utils/traverse"),
     LineSplit = require("lua.core.utils.linesplit"),
+    DirList = function(path) --[[C++ call]] end,
+    SleepFor = function(ms) --[[C++ call]] end,
+    SaveAsJson = function(table, filepath) --[[C++ call]] end,
 }
