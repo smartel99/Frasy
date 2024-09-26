@@ -172,7 +172,7 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
 
         // Utils
-        lua.script_file("lua/core/utils/module.lua");
+        lua.script_file("lua/core/utils/utils.lua");
         lua["Utils"]["DirList"] = [](const std::string& path) {
             FRASY_PROFILE_FUNCTION();
             std::vector<std::string> files {};

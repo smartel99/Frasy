@@ -15,6 +15,6 @@
     "vendor/frasy/Frasy/lua/core/sdk/log.lua",
     "vendor/frasy/Frasy/lua/core/sdk/popup.lua",
     "vendor/frasy/Frasy/lua/core/sdk/test.lua",
-    "vendor/frasy/Frasy/lua/core/utils/module.lua"
+    "vendor/frasy/Frasy/lua/core/utils/utils.lua"
   ]
 }
