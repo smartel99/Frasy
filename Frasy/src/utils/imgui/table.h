@@ -151,6 +151,36 @@ public:
     }
 
     /**
+     * Renders the content of the table.
+     *
+     * @note View https://en.cppreference.com/w/cpp/ranges/viewable_range for a list of the acceptable types of
+     * Containers.
+     *
+     * @tparam Container A range that can be converted into a view through views::all
+     * @tparam Func A function to be called for each elements in the container. Needs to be invocable with  an element
+     * of Container.
+     * @param container A list of elements to be rendered in the table, where one element is one row
+     * @param func A function that renders an element
+     * @return instance
+     */
+    template<std::ranges::viewable_range Container, typename Func>
+        requires requires(Container container) {
+            requires std::invocable<Func, std::add_lvalue_reference_t<decltype(*std::begin(container))>>;
+        }
+    Table& Content(Container&& container, Func&& func)
+    {
+        if (!m_active) { return *this; }
+        for (auto&& elem : container) {
+            ImGui::TableNextRow();
+            ImGui::BeginGroup();
+            ImGui::PushID(&elem);
+            std::invoke(std::forward<Func>(func), std::forward<decltype(elem)>(elem));
+            ImGui::PopID();
+            ImGui::EndGroup();
+        }
+    }
+
+    /**
      *
      * @tparam Container A range that can be converted into a view through views::all
      * @tparam ElemFunc A function to be called for each elements in the container. Needs to be invocable with an
