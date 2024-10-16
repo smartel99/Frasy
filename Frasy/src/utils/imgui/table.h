@@ -26,6 +26,7 @@
 #include <concepts>
 #include <cstddef>
 #include <string_view>
+#include <ranges>
 
 
 namespace Frasy::Widget {
