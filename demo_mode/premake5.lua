@@ -180,4 +180,5 @@ project "Demo"
        "{CMD_RMDIR} bin/" .. outputdir .. "/%{prj.name}/lua",
        "{CMD_COPYDIR} " .. FrasyDir .. "/Frasy/lua/core bin/" .. outputdir .. "/%{prj.name}/lua/core",
        "{CMD_COPYDIR} src/lua/user bin/" .. outputdir .. "/%{prj.name}/lua/user",
+       "{CMD_COPYFILE} . bin/"..outputdir .. "/%{prj.name} config.json",
    }

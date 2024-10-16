@@ -14,10 +14,13 @@
 #include "Brigerad/Events/usb_event.h"
 
 
-#include <dbt.h>
 #include <spdlog/fmt/fmt.h>
-#include <timeapi.h>
 #include <windows.h>
+
+#include <dbt.h>
+#include <Hidclass.h>
+#include <Ntddser.h>
+#include <timeapi.h>
 
 namespace Brigerad {
 
@@ -69,66 +72,44 @@ bool doRegisterDeviceInterfaceToHwnd(IN GUID interfaceClassGuid, IN HWND hWnd, O
         return false;
     }
 
-
     return true;
 }
 
 INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    LRESULT           lRet = 1;
-    static HDEVNOTIFY hDeviceNotify;
-    static HWND       hEditWnd;
-    static ULONGLONG  msgCount = 0;
-
-    // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/system-defined-device-setup-classes-available-to-vendors
-    // -> Ports
-    // static GUID WportshGUID = {
-    //   0x4d36e978,
-    //   0xe325,
-    //   0x11ce,
-    //   0xbf,
-    //   0xc1,
-    //   0x08,
-    //   0x00,
-    //   0x2b,
-    //   0xe1,
-    //   0x03,
-    //   0x18,
-    // };
-
-    // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/guid-devinterface-comport
-    static GUID WcomportshGUID = {
-      0x86E0D1E0,
-      0x8089,
-      0x11D0,
-      0x9C,
-      0xE4,
-      0x08,
-      0x00,
-      0x3E,
-      0x30,
-      0x1F,
-      0x73,
+    LRESULT          lRet = 1;
+    static HWND      hEditWnd;
+    static ULONGLONG msgCount = 0;
+    struct Device {
+        std::string_view name;
+        GUID             guid;
+        HDEVNOTIFY       hDevice;
+    };
+    static std::array devices = {
+      Device {.name = "COM", .guid = GUID_DEVINTERFACE_COMPORT, .hDevice = {}},
+      Device {.name = "HID",
+              // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/guid-devinterface-hid
+              .guid    = GUID {0x4D1E55B2, 0xF16F, 0x11CF, {0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30}},
+              .hDevice = {}},
     };
 
     switch (message) {
         case WM_CREATE:
-            //
             // This is the actual registration., In this example, registration
             // should happen only once, at application startup when the window
             // is created.
             //
             // If you were using a service, you would put this in your main code
             // path as part of your service initialization.
-            //
-            if (!doRegisterDeviceInterfaceToHwnd(WcomportshGUID, hWnd, &hDeviceNotify)) {
-                BR_CORE_ERROR("doRegisterDeviceInterfaceToHwnd failed");
+            for (auto&& [name, guid, hdev] : devices) {
+                if (!doRegisterDeviceInterfaceToHwnd(guid, hWnd, &hdev)) {
+                    BR_CORE_ERROR("doRegisterDeviceInterfaceToHwnd failed for {}", name);
+                }
             }
 
             break;
 
         case WM_DEVICECHANGE: {
-            //
             // This is the actual message from the interface via Windows messaging.
             // This code includes some additional decoding for this particular device type
             // and some common validation checks.
@@ -136,7 +117,6 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
             // Note that not all devices utilize these optional parameters in the same
             // way. Refer to the extended information for your particular device type
             // specified by your GUID.
-            //
             PDEV_BROADCAST_DEVICEINTERFACE b             = (PDEV_BROADCAST_DEVICEINTERFACE)lParam;
             auto                           makeClassGuid = [](PDEV_BROADCAST_DEVICEINTERFACE b) -> std::wstring {
                 std::string guid = fmt::format("{:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
@@ -163,38 +143,54 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
 #endif
             };
 
+            auto deviceIt = std::ranges::find_if(devices, [&guid = b->dbcc_classguid](const Device& device) -> bool {
+                return device.guid.Data1 == guid.Data1 && device.guid.Data2 == guid.Data2 &&
+                       device.guid.Data3 == guid.Data3 && device.guid.Data4[0] == guid.Data4[0] &&
+                       device.guid.Data4[1] == guid.Data4[1] && device.guid.Data4[2] == guid.Data4[2] &&
+                       device.guid.Data4[3] == guid.Data4[3] && device.guid.Data4[4] == guid.Data4[4] &&
+                       device.guid.Data4[5] == guid.Data4[5] && device.guid.Data4[6] == guid.Data4[6] &&
+                       device.guid.Data4[7] == guid.Data4[7];
+            });
+            BR_ASSERT(deviceIt != devices.end(), "Device not found");
+
             // Output some messages to the window.
             switch (wParam) {
                     // TODO dispatch Brigerad events.
                 case DBT_DEVICEARRIVAL:
                     msgCount++;
+                    BR_CORE_DEBUG("Message {}: {} DBT_DEVICEARRIVAL", msgCount, deviceIt->name);
                     {
                         auto event = UsbConnectedEvent(makeClassGuid(b), makeName(b));
                         Application::Get().onEvent(event);
                     }
-                    BR_CORE_DEBUG("Message {}: DBT_DEVICEARRIVAL", msgCount);
                     break;
                 case DBT_DEVICEREMOVECOMPLETE:
                     msgCount++;
+                    BR_CORE_DEBUG("Message {}, {} DBT_DEVICEREMOVECOMPLETE", msgCount, deviceIt->name);
                     {
                         auto event = UsbDisconnectedEvent(makeClassGuid(b), makeName(b));
                         Application::Get().onEvent(event);
                     }
-                    BR_CORE_DEBUG("Message {}, DBT_DEVICEREMOVECOMPLETE", msgCount);
                     break;
                 case DBT_DEVNODES_CHANGED:
                     msgCount++;
-                    BR_CORE_DEBUG("Message {}, DBT_DEVNODES_CHANGED", msgCount);
+                    BR_CORE_DEBUG("Message {}, {} DBT_DEVNODES_CHANGED", msgCount, deviceIt->name);
                     break;
                 default:
                     msgCount++;
-                    BR_CORE_DEBUG(
-                      "Message {}: WM_DEVICECHANGE message received, value {} unhandled.", msgCount, wParam);
+                    BR_CORE_DEBUG("Message {}: {} WM_DEVICECHANGE message received, value {} unhandled.",
+                                  msgCount,
+                                  deviceIt->name,
+                                  wParam);
                     break;
             }
         } break;
         case WM_CLOSE:
-            if (!UnregisterDeviceNotification(hDeviceNotify)) { BR_CORE_ERROR("UnregisterDeviceNotification failed"); }
+            for (auto&& [name, guid, hdev] : devices) {
+                if (!UnregisterDeviceNotification(hdev)) {
+                    BR_CORE_ERROR("UnregisterDeviceNotification failed for {}", name);
+                }
+            }
             DestroyWindow(hWnd);
             break;
 
