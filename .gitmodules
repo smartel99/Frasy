@@ -9,8 +9,6 @@
 	url = https://github.com/smartel99/glfw.git
 [submodule "Brigerad/vendor/imgui"]
 	path = Brigerad/vendor/imgui
-	url = https://github.com/TheCherno/imgui
-[submodule "Brigerad/vendor/imgui/"]
 	url = https://github.com/smartel99/imgui
 [submodule "Brigerad/vendor/pfr"]
 	path = Brigerad/vendor/pfr
