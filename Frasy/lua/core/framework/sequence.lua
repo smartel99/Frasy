@@ -14,6 +14,7 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 local ScopeResult = require("lua/core/framework/scope_result")
 
+---@class Sequence
 local Sequence = { tests = {}, result = nil, func = nil }
 
 function Sequence:New(func, source, line)

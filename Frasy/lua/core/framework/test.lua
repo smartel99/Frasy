@@ -14,6 +14,7 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 local ScopeResult = require("lua/core/framework/scope_result")
 
+---@class Test
 local Test = { result = {}, expectations = {}, func = nil }
 
 function Test:New(func, name, source, line)
