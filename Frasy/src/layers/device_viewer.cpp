@@ -382,7 +382,7 @@ void DeviceViewer::renderNetworkPacket(const SlCan::CanPacket& packet)
 void DeviceViewer::renderMenuBar()
 {
     if (ImGui::BeginMainMenuBar()) {
-        ImGui::BeginHorizontal("menuBarSpan", ImVec2 {ImGui::GetContentRegionAvail().x, 0.0f});
+        ImGui::BeginHorizontal("deviceViewerMenuBarSpan", ImVec2 {ImGui::GetContentRegionAvail().x, 0.0f});
         ImGui::Spring(0.1);
         ImGui::Separator();
 

@@ -141,6 +141,8 @@ void MainApplicationLayer::onImGuiRender()
             ImGui::EndMenu();
         }
 
+        appendToMainTabBar();
+
         ImGui::EndMainMenuBar();
 
         if (m_renderAbout) { renderAbout(); }
