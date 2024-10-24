@@ -430,7 +430,10 @@ void WindowsWindow::OnUpdate()
 {
     BR_PROFILE_FUNCTION();
 
-    glfwWaitEventsTimeout(0.1);
+    if (m_data.uncapped) { glfwPollEvents(); }
+    else [[likely]] {
+        glfwWaitEventsTimeout(0.1);
+    }
     m_context->SwapBuffers();
 }
 
@@ -446,9 +449,19 @@ void WindowsWindow::SetVSync(bool enabled)
     m_data.vsync = enabled;
 }
 
+void WindowsWindow::SetUncapped(bool enabled)
+{
+    m_data.uncapped = enabled;
+}
+
 bool WindowsWindow::IsVSync() const
 {
     return m_data.vsync;
+}
+
+bool WindowsWindow::IsUncapped() const
+{
+    return m_data.uncapped;
 }
 
 void WindowsWindow::Maximize()

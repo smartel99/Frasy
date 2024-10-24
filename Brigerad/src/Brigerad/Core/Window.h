@@ -35,7 +35,9 @@ public:
     // Window attributes.
     virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
     virtual void SetVSync(bool enabled)                            = 0;
+    virtual void SetUncapped(bool enabled)                         = 0;
     virtual bool IsVSync() const                                   = 0;
+    virtual bool IsUncapped() const                                = 0;
 
     virtual void* GetNativeWindow() const = 0;
 

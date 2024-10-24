@@ -19,3 +19,6 @@
 [submodule "Frasy/vendor/CANopenNode"]
 	path = Frasy/vendor/CANopenNode
 	url = https://github.com/smartel99/CANopenNode
+[submodule "Brigerad/vendor/imspinner"]
+	path = Brigerad/vendor/imspinner
+	url = https://github.com/dalerank/imspinner

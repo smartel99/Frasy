@@ -14,7 +14,7 @@
 namespace Brigerad {
 class WindowsWindow : public Window {
 public:
-    WindowsWindow(const WindowProps& props);
+     WindowsWindow(const WindowProps& props);
     ~WindowsWindow() override;
 
     void OnUpdate() override;
@@ -26,7 +26,9 @@ public:
     void SetEventCallback(const EventCallbackFn& callback) override { m_data.eventCallback = callback; }
 
     void SetVSync(bool enabled) override;
+    void SetUncapped(bool enabled) override;
     bool IsVSync() const override;
+    bool IsUncapped() const override;
 
     void* GetNativeWindow() const override { return reinterpret_cast<void*>(m_window); }
     void  Maximize() override;
@@ -44,17 +46,18 @@ private:
     struct WindowData {
         std::string  title;
         unsigned int width = 0, height = 0;
-        bool         vsync = false;
+        bool         vsync    = false;
+        bool         uncapped = false;
 
         EventCallbackFn eventCallback;
     };
 
-    HWND        m_messageWindow;
+    HWND         m_messageWindow;
     std::jthread m_messageThread;
-    WindowData  m_data;
+    WindowData   m_data;
 
-    bool m_hasChangedTimerPeriod = false;
-    unsigned int m_timerPeriod = 0;
+    bool         m_hasChangedTimerPeriod = false;
+    unsigned int m_timerPeriod           = 0;
 };
 }    // namespace Brigerad
 #endif
