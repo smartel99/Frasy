@@ -91,6 +91,7 @@ function CommonFlags()
         "%{IncludeDir.Glad}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.ImPlot}",
+        "Brigerad/vendor/imspinner",
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.serial}/include",

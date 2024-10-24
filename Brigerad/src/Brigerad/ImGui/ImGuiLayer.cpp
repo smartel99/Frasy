@@ -14,6 +14,11 @@
 #include <imgui.h>
 #include <implot.h>
 
+#ifdef BR_DEBUG
+#    define IMSPINNER_DEMO
+#endif
+#include <imspinner.h>
+
 // TEMP
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -114,11 +119,17 @@ void ImGuiLayer::onImGuiRender()
     }
 
     if (m_showDemoWindow) { ImGui::ShowDemoWindow(&m_showDemoWindow); }
-    if (m_showPlotWindow) { ImPlot::ShowDemoWindow(&m_showDemoWindow); }
+    if (m_showPlotWindow) { ImPlot::ShowDemoWindow(&m_showPlotWindow); }
+    if (m_showSpinnerWindow) {
+        ImGui::Begin("Spinners", &m_showSpinnerWindow);
+        ImSpinner::demoSpinners();
+        ImGui::End();
+    }
 #endif
 
-    auto& window  = Application::Get().getWindow();
-    bool  isVSync = window.IsVSync();
+    auto& window     = Application::Get().getWindow();
+    bool  isVSync    = window.IsVSync();
+    bool  isUncapped = window.IsUncapped();
     if (ImGui::Begin("Settings", &m_open)) {
         float fps = ImGui::GetIO().Framerate;
         ImGui::Text("Framerate: %.02f (%.03fms)", fps, ((1.0f / fps) * 1000.0f));
@@ -127,6 +138,7 @@ void ImGuiLayer::onImGuiRender()
             window.SetVSync(isVSync);
             BR_CORE_INFO("Set VSync to {0}", isVSync);
         }
+        if (ImGui::Checkbox("Uncapped", &isUncapped)) { window.SetUncapped(isUncapped); }
 
         if (ImGui::Button("open metric window")) { m_showMetricWindow = true; }
 
@@ -134,6 +146,7 @@ void ImGuiLayer::onImGuiRender()
         if (ImGui::Button("open style editor")) { m_showStyleEditor = true; }
         if (ImGui::Button("Show Demo Window")) { m_showDemoWindow = true; }
         if (ImGui::Button("Show Plot Demo Window")) { m_showPlotWindow = true; }
+        if (ImGui::Button("Show Spinner Demo Window")) { m_showSpinnerWindow = true; }
 #endif
 
 
