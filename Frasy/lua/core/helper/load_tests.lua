@@ -14,7 +14,6 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 return function(directory)
-    local files = Utils.DirList(directory)
     local files = DirList(directory)
     for _, file in ipairs(files) do
         Log.D("Loading " .. file)
