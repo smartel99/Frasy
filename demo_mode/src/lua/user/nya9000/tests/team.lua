@@ -22,6 +22,6 @@
 --         else
 --             r = Team.Get()
 --         end
---         Expect(Utils.traverse(r, Team.Position())):ToBeEqual(Team.Position())
+--         Expect(Traverse(r, Team.Position())):ToBeEqual(Team.Position())
 --     end)
 -- end)

@@ -237,7 +237,7 @@ end
 
 local function _requestRouting(daq, points)
     daq.ib:Download(daq.ib.od["Routing"]["Request Routing"], points)
-    Utils.SleepFor(35) -- Routing takes about 33ms on the DAQ
+    SleepFor(35) -- Routing takes about 33ms on the DAQ
     return daq.ib:Upload(daq.ib.od["Routing"]["Last Result"]) --[[@as DAQ_RoutingBusEnum]]
 end
 
@@ -271,7 +271,7 @@ function DAQ:RequestRouting(points)
     local route = nil
     TryFunction(function()
         route = _requestRouting(self, sPointsAsStr)
-        -- Utils.SleepFor(1)
+        -- SleepFor(1)
         return _checkRouting(self, sPointsAsStr, route)
     end, 5)
     return route --[[@as DAQ_RoutingBusEnum]]
@@ -949,10 +949,10 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     self.ib:Download(odFavorSpeed, favorSpeed)
     self.ib:Download(odTrigger, true)
 
-    Utils.SleepFor(100)
+    SleepFor(100)
     local deadline = 5000 - 100
     while (self.ib:Upload(odTrigger)) do
-        Utils.SleepFor(10)
+        SleepFor(10)
         deadline = deadline - 10
         if deadline <= 0 then error("Impedance timeout") end
     end
@@ -1062,7 +1062,7 @@ function DAQ:MeasureResistor(impP, impN, expectedValue, range, guards, voltage, 
     impN = PointToPoints(impN)
 
     local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
-    Utils.SleepFor(10)
+    SleepFor(10)
     local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
     local rguards = nil
     if guards ~= nil then

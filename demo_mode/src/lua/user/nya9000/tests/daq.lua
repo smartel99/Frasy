@@ -341,7 +341,7 @@ Sequence("DAQ", function()
     --             end
     --         end
     --         daq:SignalingLedColor(leds[atLed], DAQ.SignalingColors.white)
-    --         Utils.SleepFor(2)
+    --         SleepFor(2)
     --     end)
     --     popup:Show()
     --     daq:SignalingMode(DAQ.SignalingModeEnum.standby)
