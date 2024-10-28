@@ -1,5 +1,3 @@
-require('lua.core.utils.utils')
-
 local function Parse(lines)
     local content = {}
     local section = {}
@@ -17,7 +15,7 @@ end
 
 return {
     Parse = function(content)
-        local lines = Utils.LineSplit(content)
+        local lines = LineSplit(content)
         return Parse(lines)
     end,
     LoadFile = function(filename)

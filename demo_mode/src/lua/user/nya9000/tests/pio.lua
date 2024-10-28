@@ -10,7 +10,7 @@
 
 --         for supply = PIO.SupplyEnum.p3v3, PIO.SupplyEnum.p24v do
 --             pio:OutputEnable(supply, true)
---             Utils.SleepFor(100)
+--             SleepFor(100)
 --             Expect(pio:Voltage(supply)):ToBeInPercentage(voltages[supply], 10)
 --             Popup("Supply"):Text(PIO.SupplyEnumToOdName(supply) .. " is ON"):Show()
 --             pio:OutputEnable(supply, false)
@@ -29,7 +29,7 @@
 --             for index = 1, #voltages do
 --                 local voltage = voltages[index]
 --                 pio:DesiredVoltage(supply, voltage)
---                 Utils.SleepFor(100)
+--                 SleepFor(100)
 --                 Expect(pio:Voltage(supply)):ToBeInPercentage(voltage, 10)
 --                 Popup("Supply"):Text(PIO.SupplyEnumToOdName(supply) .. " is ON @ " .. tostring(voltage) .. "V"):Show()
 --             end
