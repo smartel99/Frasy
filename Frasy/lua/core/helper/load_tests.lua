@@ -15,6 +15,10 @@
 
 return function(directory)
     local files = Utils.DirList(directory)
-    for _, file in ipairs(files) do require(file) end
+    local files = DirList(directory)
+    for _, file in ipairs(files) do
+        Log.D("Loading " .. file)
+        require(file)
+    end
     Context.orchestrator.enable_list = {}
 end

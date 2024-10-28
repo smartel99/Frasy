@@ -16,7 +16,7 @@ return function(routine, duration_ms, sleep_ms)
 
     local deadline = duration_ms
     while (routine()) do
-        Utils.SleepFor(sleep_ms)
+        SleepFor(sleep_ms)
         deadline = deadline - sleep_ms
         -- TODO we should do something better than just throw an error here...
         if deadline <= 0 then error("Timeout") end

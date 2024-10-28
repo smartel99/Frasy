@@ -1,7 +1,7 @@
---- @file    utils.lua
+--- @file    global.lua
 --- @author  Paul Thomas
 --- @date    2023-03-15
---- @brief
+--- @brief   Collection of globally declared utility calls
 ---
 --- @copyright
 --- This program is free software: you can redistribute it and/or modify it under the
@@ -13,7 +13,7 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-Utils = {}
+if Print ~= nil then error("Common utils already defined. Do not required this file") end
 
 ---Convert a lua object to a string
 ---Unlike tostring, it will print a table content
@@ -52,11 +52,11 @@ end
 ---Unlike lua print(), it will print tables content
 ---@param t any Object to print
 ---@param max_depth number? max depth to print if passing a table, default to infinite depth
-function Utils.Print(t, max_depth)
+function Print(t, max_depth)
     if (type(t) == "table") then
         print(PrettyPrint(t, max_depth))
     else
-        print(t)
+        Print(t)
     end
 end
 
@@ -65,7 +65,7 @@ end
 ---@param t any Object to print
 ---@param max_depth number? max depth to convert if passing a table, default to infinite depth
 ---@return string
-function Utils.ToString(t, max_depth)
+function ToString(t, max_depth)
     if (type(t) == "table") then
         return PrettyPrint(t, max_depth)
     else
@@ -79,7 +79,7 @@ end
 ---@param t1 any Object to compare
 ---@param t2 any Object to compare
 ---@return boolean
-function Utils.Equals(t1, t2)
+function Equals(t1, t2)
     if type(t1) ~= type(t2) then
         return false
     end
@@ -101,7 +101,7 @@ function Utils.Equals(t1, t2)
         -- Check value of both table
         -- It also check that they share the same key since if they do not, one value would be nil
         for k, _ in pairs(t1) do
-            if not Utils.Equals(t1[k], t2[k]) then
+            if not Equals(t1[k], t2[k]) then
                 return false
             end
         end
@@ -120,14 +120,14 @@ end
 ---@param t table Table to access
 ---@param ... string chain of keys
 ---@return any value
-function Utils.Traverse(t, ...)
+function Traverse(t, ...)
     local args = { ... }
     if #args == 0 or t == nil or t[args[1]] == nil then
         return t
     else
         local st = t[args[1]]
         table.remove(args, 1)
-        return Utils.Traverse(st, table.unpack(args))
+        return Traverse(st, table.unpack(args))
     end
 end
 
@@ -135,7 +135,7 @@ end
 ---ie. "Hello\nWorld" => ['Hello', 'World']
 ---@param content string text to split
 ---@return table lines
-function Utils.LineSplit(content)
+function LineSplit(content)
     local lines = {}
     for line in string.gmatch(content, "^[\r\n]+") do
         table.insert(lines, line)
@@ -146,13 +146,13 @@ end
 ---Get List of files and folder from a directory
 ---@param path string folder path where to look
 ---@return table entries
-function Utils.DirList(path) return {} end -- C++ call
+function DirList(path) return {} end -- C++ call
 
 ---Pause the program for set duration
 ---@param ms integer duration in ms
-function Utils.SleepFor(ms) end  --C++ call
+function SleepFor(ms) end  --C++ call
 
 ---Save a table to a JSON file
 ---@param table table Table to save
 ---@param filepath string filepath where to save the json
-function Utils.SaveAsJson(table, filepath) end  --C++ call
+function SaveAsJson(table, filepath) end  --C++ call

@@ -25,9 +25,9 @@ function Sort.AddEdgeRequirement(edge, requirement)
         if edge.tests[requirement.scope.sequence] ~= nil then
             error(InvalidRequirement(
                 "Edge requirement exception.\r\n" ..
-                "Sequence: " .. Utils.ToString(requirement.scope.sequence) .. "\r\n" ..
-                "Requesting: " .. Utils.ToString(requirement.scope.test) .. "\r\n" ..
-                "Taken by: " .. Utils.ToString(edge.tests[requirement.scope.sequence])))
+                "Sequence: " .. ToString(requirement.scope.sequence) .. "\r\n" ..
+                "Requesting: " .. ToString(requirement.scope.test) .. "\r\n" ..
+                "Taken by: " .. ToString(edge.tests[requirement.scope.sequence])))
         end
         edge.tests[requirement.scope.sequence] = requirement.scope.test
     else

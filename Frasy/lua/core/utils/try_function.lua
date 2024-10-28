@@ -7,7 +7,7 @@ return function(fun, maxTries, delay_ms)
     local tries = 0
     local result = false
     while not result do
-        if tries ~= 0 then Utils.SleepFor(delay_ms) end
+        if tries ~= 0 then SleepFor(delay_ms) end
         if tries >= maxTries then error("Reached tries limit") end
         tries = tries + 1
         result = fun()
