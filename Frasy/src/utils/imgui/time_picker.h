@@ -19,10 +19,11 @@
 #ifndef FRASY_SRC_UTILS_IMGUI_TIME_PICKER_H
 #define FRASY_SRC_UTILS_IMGUI_TIME_PICKER_H
 
+#include <chrono>
 #include <string>
 
 namespace Frasy::Widget {
-bool timePicker(const std::string& title, bool* isOpen, int* hours, int* minutes, int* seconds);
+bool timePicker(const std::string& title, bool* isOpen, std::chrono::seconds& seconds);
 }    // namespace Frasy::Widget
 
 #endif    // FRASY_SRC_UTILS_IMGUI_TIME_PICKER_H

@@ -27,6 +27,13 @@
 namespace Frasy::Widget {
 namespace {
 struct Time {
+    Time(const std::chrono::seconds& seconds)
+    {
+        std::chrono::hh_mm_ss hhmmss {seconds};
+        hour   = hhmmss.hours().count();
+        minute = hhmmss.minutes().count();
+        second = hhmmss.seconds().count();
+    }
     int hour   = 0;
     int minute = 0;
     int second = 0;
@@ -35,7 +42,7 @@ struct Time {
 std::unordered_map<std::string, Time> s_activeTimePickers = {};
 }    // namespace
 
-bool timePicker(const std::string& title, bool* isOpen, int* hours, int* minutes, int* seconds)
+bool timePicker(const std::string& title, bool* isOpen, std::chrono::seconds& seconds)
 {
     ImVec2 windowSize = ImGui::GetMainViewport()->WorkSize;
     ImGui::SetNextWindowPos(ImVec2(windowSize.x / 2.0f, windowSize.y / 2.0f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -46,7 +53,7 @@ bool timePicker(const std::string& title, bool* isOpen, int* hours, int* minutes
     ImGuiIO& io = ImGui::GetIO();
     ImGui::PushFont(io.Fonts->Fonts[1]);
 
-    auto [it, _] = s_activeTimePickers.try_emplace(title, *hours, *minutes, *seconds);
+    auto [it, _] = s_activeTimePickers.try_emplace(title, seconds);
     auto& time   = it->second;
 
     ImGui::BeginVertical("", ImGui::GetContentRegionAvail(), 0.5f);
@@ -85,9 +92,7 @@ bool timePicker(const std::string& title, bool* isOpen, int* hours, int* minutes
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, 0xB210FA10);     // Green but stronger, but less strong
     if (ImGui::Button("  Ok  ")) {
         hasChanged = true;
-        *hours     = time.hour;
-        *minutes   = time.minute;
-        *seconds   = time.second;
+        seconds    = std::chrono::seconds(time.hour * 3600 + time.minute * 60 + time.second);
     }
     ImGui::PopStyleColor(3);
     ImGui::Spring(0.5f);
