@@ -11,34 +11,29 @@
 
 #include "Brigerad.h"
 
+#define STBI_FAILURE_USERMSG
 #include <stb_image.h>
 
-namespace Brigerad
-{
-OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, uint8_t channels)
-: m_width(width), m_height(height)
+namespace Brigerad {
+OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, uint8_t channels) : m_width(width), m_height(height)
 {
     BR_PROFILE_FUNCTION();
 
-    if (channels == 4)
-    {
+    if (channels == 4) {
         m_internalFormat = GL_RGBA8;
         m_dataFormat     = GL_RGBA;
     }
-    else if (channels == 3)
-    {
+    else if (channels == 3) {
         m_internalFormat = GL_RGB8;
         m_dataFormat     = GL_RGB;
     }
-    else if (channels == 1)
-    {
+    else if (channels == 1) {
         // m_internalFormat = GL_ALPHA8;
         m_internalFormat = GL_R8;
         // m_dataFormat = GL_ALPHA;
         m_dataFormat = GL_R;
     }
-    else
-    {
+    else {
         BR_CORE_ERROR("Invalid number of channels!");
         return;
     }
@@ -54,7 +49,7 @@ OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, uint8_t channe
 }
 
 
-OpenGLTexture2D::OpenGLTexture2D(const std::string& path) : m_path(path)
+OpenGLTexture2D::OpenGLTexture2D(std::string_view path) : m_path(path)
 {
     BR_PROFILE_FUNCTION();
 
@@ -63,20 +58,18 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string& path) : m_path(path)
     stbi_uc* data = nullptr;
     {
         BR_PROFILE_SCOPE("stbi_load - OpenGLTexture2D::OpenGLTexture2D(const std::string&)");
-        data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+        data = stbi_load(path.data(), &width, &height, &channels, 0);
     }
-    BR_CORE_ASSERT(data, "Failed to load image!");
+    BR_CORE_ASSERT(data, "Failed to load image: {}", stbi_failure_reason());
     m_width  = width;
     m_height = height;
 
     GLenum internalFormat = 0, dataFormat = 0;
-    if (channels == 4)
-    {
+    if (channels == 4) {
         internalFormat = GL_RGBA8;
         dataFormat     = GL_RGBA;
     }
-    else if (channels == 3)
-    {
+    else if (channels == 3) {
         internalFormat = GL_RGB8;
         dataFormat     = GL_RGB;
     }
@@ -95,8 +88,7 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string& path) : m_path(path)
     glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTextureSubImage2D(
-      m_rendererID, 0, 0, 0, m_width, m_height, dataFormat, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, dataFormat, GL_UNSIGNED_BYTE, data);
 
     stbi_image_free(data);
 }
@@ -115,19 +107,14 @@ void OpenGLTexture2D::SetData(void* data, uint32_t size)
 
     // Make sure the data format is either GL_RGBA, GL_RGB or GL_R and that we have all the data we
     // need.
-    BR_CORE_ASSERT(size == m_width * m_height *
-                             (m_dataFormat == GL_RGBA ? 4 : (m_dataFormat == GL_RGB ? 3 : 1)),
+    BR_CORE_ASSERT(size == m_width * m_height * (m_dataFormat == GL_RGBA ? 4 : (m_dataFormat == GL_RGB ? 3 : 1)),
                    "Data must be entire texture!");
 
-    if (m_dataFormat == GL_RGBA || m_dataFormat == GL_RGB)
-    {
-        glTextureSubImage2D(
-          m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
+    if (m_dataFormat == GL_RGBA || m_dataFormat == GL_RGB) {
+        glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
     }
-    else if (m_dataFormat == GL_R)
-    {
-        glTextureSubImage2D(
-          m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
+    else if (m_dataFormat == GL_R) {
+        glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
         // static const uint8_t d[] = {255};
         // glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, m_width, m_height, 0, GL_RED, GL_UNSIGNED_BYTE,
         // d);

@@ -103,6 +103,7 @@ protected:
     Brigerad::Ref<Brigerad::Texture2D> m_waiting;
     Brigerad::Ref<Brigerad::Texture2D> m_idle;
     Brigerad::Ref<Brigerad::Texture2D> m_disabled;
+    Brigerad::Ref<Brigerad::Texture2D> m_abort;
 
     CanOpen::CanOpen  m_canOpen;
     Lua::Orchestrator m_orchestrator;

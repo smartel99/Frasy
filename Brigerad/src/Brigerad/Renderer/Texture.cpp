@@ -25,7 +25,7 @@ Ref<Texture2D> Texture2D::Create(uint32_t width, uint32_t height, uint8_t channe
     }
 }
 
-Ref<Texture2D> Texture2D::Create(const std::string& path)
+Ref<Texture2D> Texture2D::Create(std::string_view path)
 {
     switch (Renderer::GetAPI())
     {
