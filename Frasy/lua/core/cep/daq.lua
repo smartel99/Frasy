@@ -374,14 +374,13 @@ DAQ.IoEnum = {
 }
 --- @enum DAQ_IoModeEnum
 DAQ.IoModeEnum = { input = 0, output = 1 }
---- @enum DAQ_IoValueEnum
-DAQ.IoValueEnum = { low = 0, high = 1 }
 
 local function CheckIo(io) CheckField(io, "io", IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.db9SpareIo)) end
 
---- Gets or set the mode of the IOs.
---- @param value? DAQ_IoModeEnum
---- @return DAQ_IoModeEnum?
+--- Multiple IO mode accessor.
+--- If modes is provided, function will act as setter
+--- @param modes? integer array of modes. per bit: 1=input, 0=output
+--- @return integer? modes
 function DAQ:IoModes(value)
     local od = self.ib.od["IO"]["Mode"]
     if (value == nil) then
@@ -393,7 +392,8 @@ function DAQ:IoModes(value)
     end
 end
 
---- Gets or sets the mode of an IO.
+--- Single IO mode accessor.
+--- If mode is provided, function will act as setter
 --- @param io DAQ_IoEnum
 --- @param mode? DAQ_IoModeEnum
 --- @return DAQ_IoModeEnum?
@@ -406,10 +406,11 @@ function DAQ:IoMode(io, mode)
     end
 end
 
---- Gets or sets the state of the IOs.
---- @param value? DAQ_IoValueEnum
---- @return DAQ_IoValueEnum?
-function DAQ:IoValues(value)
+--- Multiple IO values accessor.
+--- If values is provided, function will act as setter
+--- @param values integer?
+--- @return integer? values
+function DAQ:IoValues(values)
     local od = self.ib.od["IO"]["Value"]
     if (value == nil) then
         self.cache.io.value = self.ib:Upload(od) --[[@as DAQ_IoValueEnum]]
@@ -420,10 +421,11 @@ function DAQ:IoValues(value)
     end
 end
 
---- Gets or sets the state of an IO.
+--- Single IO value accessor.
+--- If values is provided, function will act as setter
 --- @param io DAQ_IoEnum
---- @param value? DAQ_IoValueEnum
---- @return DAQ_IoValueEnum?
+--- @param value boolean
+--- @return boolean? value
 function DAQ:IoValue(io, value)
     CheckIo(io)
     if value == nil then

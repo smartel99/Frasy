@@ -38,7 +38,7 @@ PIO.IoIndexMax = 11
 PIO.IoPolarityEnum = { regular = 0, inverted = 1 }
 
 --- @enum PIO_IoConfigurationEnum
-PIO.IoConfigurationEnum = { output = 0, input = 1 }
+PIO.IoConfigurationEnum = { input = 0, output = 1 }
 
 local function CheckSupplyEnum(supply)
     CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.p3v3,
@@ -264,8 +264,8 @@ end
 --- Single IO's polarity accessor.
 --- if value is provided, function will act as setter and return nothing.
 --- @param index integer
---- @param value (PIO_IoPolarityEnum|integer)? 0=regular, 1=inverted
---- @return integer? value
+--- @param value PIO_IoPolarityEnum?
+--- @return PIO_IoPolarityEnum? value
 function PIO:IoPolarity(index, value)
     CheckIoIndex(index)
     if value == nil then
@@ -279,7 +279,7 @@ end
 
 --- Multiple IO's configurations accessor.
 --- if values is provided, function will act as setter and return nothing.
---- @param values? integer array of configurations. per bit: 1=input, 0=output
+--- @param values? integer array of configurations. per bit: 0=input, 1=output
 --- @return integer? values
 function PIO:IoConfigurations(values)
     local od = self.ib.od["IO"]["Configuration"]
@@ -297,7 +297,7 @@ end
 --- Single IO's configuration accessor.
 --- if value is provided, function will act as setter and return nothing.
 --- @param index integer
---- @param value (PIO_IoConfigurationEnum|integer)? 1=input, 0=output
+--- @param value PIO_IoConfigurationEnum?
 --- @return PIO_IoConfigurationEnum? value
 function PIO:GpioConfiguration(index, value)
     CheckIoIndex(index)
