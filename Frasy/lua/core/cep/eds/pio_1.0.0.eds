@@ -8,8 +8,8 @@ Description=
 CreationTime=9:23AM
 CreationDate=06-03-2024
 CreatedBy=Samuel Martel
-ModificationTime=4:56PM
-ModificationDate=08-29-2024
+ModificationTime=11:40AM
+ModificationDate=10-29-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -1107,7 +1107,7 @@ DefaultValue=0
 PDOMapping=0
 
 [6006]
-ParameterName=GPIO
+ParameterName=IO
 ObjectType=0x9
 ;StorageLocation=RAM
 SubNumber=0x5

@@ -16,7 +16,7 @@ end
 
 --- Upload (fetches) an entry from the node.
 --- @param ode OdEntry
---- @return OdEntryType
+--- @return any
 function Ib:Upload(ode)
     assert(type(ode) == "table", "Ib upload, invalid ode")
     assert(ode.__kind == "Object Dictionary Entry",
@@ -41,7 +41,7 @@ end
 
 --- Download (sends) an entry to the node.
 --- @param ode OdEntry
---- @param value OdEntryType|OdEntryArrayType
+--- @param value any
 function Ib:Download(ode, value)
     if (Context.info.stage ~= Stage.execution) then return end
     assert(type(ode) == "table", "Ib download, invalid ode")
