@@ -138,7 +138,8 @@ DAQ.RoutingPointsEnum = {
     ADC_CH2 = 72, -- Corresponds to `SIG_ADC_3` in the schematics.
     IMP_P = 73,
     IMP_N = 74,
-    GUARD = 75
+    GUARD = 75,
+    BUS = 76, -- Debug only. Allows to connect single point to bus
 }
 
 function DAQ.RoutingBusEnumToString(bus)
@@ -233,7 +234,8 @@ function DAQ.RoutingPointsEnumToString(point)
         [DAQ.RoutingPointsEnum.ADC_CH2] = "ADC_CH2", -- Corresponds to `SIG_ADC_3` in the schematics.
         [DAQ.RoutingPointsEnum.IMP_P] = "IMP_P",
         [DAQ.RoutingPointsEnum.IMP_N] = "IMP_N",
-        [DAQ.RoutingPointsEnum.GUARD] = "GUARD"
+        [DAQ.RoutingPointsEnum.GUARD] = "GUARD",
+        [DAQ.RoutingPointsEnum.BUS] = "BUS",
     }
     return names[point]
 end
@@ -302,7 +304,7 @@ end
 
 -- DAC
 --- @enum DAQ_DacShape
-DAQ.DacShapeEnum = { dc = 0, sine = 1, sawtooth = 2, triangle = 3, square = 4, noise = 5 }
+DAQ.DacShapeEnum = { dc = 1, sine = 2, sawtooth = 3, triangle = 4, square = 5, noise = 6 }
 
 --- Toggles the DAC, or get the current state of the DAC.
 --- @param state? boolean The desired state.
@@ -358,13 +360,24 @@ end
 
 -- IO
 --- @enum DAQ_IoEnum
-DAQ.IoEnum = { a = 0, b = 1, spiUutSck = 2, spiUutMosi = 3, spiUutMiso = 4, i2cUutScl = 5, i2cUutSda = 6, uartUutTx = 7, uartUutRx = 8 }
+DAQ.IoEnum = {
+    a = 0,
+    b = 1,
+    spiUutSck = 2,
+    spiUutMosi = 3,
+    spiUutMiso = 4,
+    i2cUutScl = 5,
+    i2cUutSda = 6,
+    uartUutTx = 7,
+    uartUutRx = 8,
+    db9SpareIo = 9,
+}
 --- @enum DAQ_IoModeEnum
 DAQ.IoModeEnum = { input = 0, output = 1 }
 --- @enum DAQ_IoValueEnum
 DAQ.IoValueEnum = { low = 0, high = 1 }
 
-local function CheckIo(io) CheckField(io, "io", IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.uartUutRx)) end
+local function CheckIo(io) CheckField(io, "io", IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.db9SpareIo)) end
 
 --- Gets or set the mode of the IOs.
 --- @param value? DAQ_IoModeEnum
