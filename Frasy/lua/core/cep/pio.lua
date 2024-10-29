@@ -67,17 +67,23 @@ local function CheckIoValue(value)
     CheckField(value, "value", IsUnsigned16(value))
 end
 
---- Create a new IB, should be use in environment only while using Environment.Ib.Add()
---- @param name string? name of the board, default to pio
---- @param nodeId integer? unique identifier of the board, default to 3
+--- @class PIO_NewOptionalParameters
+--- @field name string? default to "pio"
+--- @field nodeId integer? default to 3
+
+--- Instantiates a PIO.
+--- Only to be used during environment declaration.
+--- @param opt PIO_NewOptionalParameters?
 --- @return PIO
-function PIO:New(name, nodeId)
+function PIO:New(opt)
     local ib = Ib:New()
     ib.kind = 03;
-    if name == nil then name = "pio" end
-    ib.name = name
-    if nodeId == nil then nodeId = ib.kind end
-    ib.nodeId = nodeId
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
+    if opt.name == nil then opt.name = "pio" end
+    if opt.nodeId == nil then opt.nodeId = ib.kind end
+    ib.name = opt.name
+    ib.nodeId = opt.nodeId
     ib.eds = "lua/core/cep/eds/pio_1.0.0.eds"
     return setmetatable({
         ib = ib,

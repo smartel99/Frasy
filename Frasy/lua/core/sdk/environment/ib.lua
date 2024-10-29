@@ -11,12 +11,17 @@ Ib.__index = Ib
 --- Creates a new instrumentation board.
 --- @return Ib
 function Ib:New()
-    return setmetatable({ kind = 0, nodeId = 0, eds = "", name = "" }, Ib)
+    return setmetatable({
+        kind = 0,
+        nodeId = 0,
+        eds = "",
+        name = "",
+    }, Ib)
 end
 
 --- Upload (fetches) an entry from the node.
 --- @param ode OdEntry
---- @return any
+--- @return OdEntryType
 function Ib:Upload(ode)
     assert(type(ode) == "table", "Ib upload, invalid ode")
     assert(ode.__kind == "Object Dictionary Entry",
@@ -41,9 +46,10 @@ end
 
 --- Download (sends) an entry to the node.
 --- @param ode OdEntry
---- @param value any
+--- @param value OdEntryType|OdEntryArrayType
 function Ib:Download(ode, value)
     if (Context.info.stage ~= Stage.execution) then return end
+    assert(value ~= nil,  "Value is nil")
     assert(type(ode) == "table", "Ib download, invalid ode")
     assert(ode.__kind == "Object Dictionary Entry",
         "Ib download, not an Object Dictionary Entry")

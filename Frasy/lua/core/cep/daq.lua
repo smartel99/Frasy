@@ -5,11 +5,8 @@ local IsBoolean = require("lua/core/utils/is_boolean")
 local IsInteger = require("lua/core/utils/is_integer/is_integer")
 local IsIntegerIn = require("lua/core/utils/is_integer/is_integer_in")
 local IsIntegerInOd = require("lua/core/utils/is_integer/is_integer_in_od")
-local IsUnsigned = require("lua/core/utils/is_unsigned/is_unsigned")
 local IsUnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in")
 local IsUnsignedInOd = require("lua/core/utils/is_unsigned/is_unsigned_in_od")
-local IsFloat = require("lua/core/utils/is_float/is_float")
-local IsFloatIn = require("lua/core/utils/is_float/is_float_in")
 local IsFloatInOd = require("lua/core/utils/is_float/is_float_in_od")
 local TimeoutFunction = require("lua/core/utils/timeout_function")
 local CheckField = require("lua/core/utils/check_field")
@@ -29,17 +26,23 @@ local TryFunction = require("lua/core/utils/try_function")
 DAQ = { ib = nil, cache = { io = { mode = 0, value = 0 } } }
 DAQ.__index = DAQ
 
---- Instantiates a DAQ card.
---- @param name? string Name of the card
---- @param nodeId? integer ID of the Node
+--- @class DAQ_NewOptionalParameters
+--- @field name string? default to "daq"
+--- @field nodeId integer? default to 2
+
+--- Instantiates a DAQ.
+--- Only to be used during environment declaration.
+--- @param opt DAQ_NewOptionalParameters?
 --- @return DAQ
-function DAQ:New(name, nodeId)
+function DAQ:New(opt)
     local ib = Ib:New()
     ib.kind = 02;
-    if name == nil then name = "daq" end
-    ib.name = name
-    if nodeId == nil then nodeId = ib.kind end
-    ib.nodeId = nodeId
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
+    if opt.name == nil then opt.name = "daq" end
+    if opt.nodeId == nil then opt.nodeId = ib.kind end
+    ib.name = opt.name
+    ib.nodeId = opt.nodeId
     ib.eds = "lua/core/cep/eds/daq_1.0.0.eds"
     return setmetatable({ ib = ib, cache = { io = { mode = 0, value = 0 } } }, DAQ)
 end
@@ -866,6 +869,19 @@ DAQ.ImpedanceDefaults = {
     favorSpeed = false
 }
 
+--- @class DAQ_ImpedancesOptionalParameters
+--- @field shape DAQ_ImpedanceShapeEnum?
+--- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
+--- @field frequency integer?
+--- @field amplitude integer?
+--- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
+--- @field range DAQ_ImpedanceRangeResistorEnum?
+--- @field guards DAQ_RoutingPointsEnum[]?
+--- @field voltage number?
+--- @field delay integer?
+--- @field samplesToTake integer?
+--- @field favorSpeed boolean?
+
 --- @class DAQ_ImpedanceResults
 --- @field mode DAQ_ImpedanceModeEnum
 --- @field shape DAQ_ImpedanceShapeEnum
@@ -883,16 +899,9 @@ DAQ.ImpedanceDefaults = {
 
 --- Measures an impedance.
 --- @param mode DAQ_ImpedanceModeEnum
---- @param shape DAQ_ImpedanceShapeEnum?
---- @param rangeResistor DAQ_ImpedanceRangeResistorEnum?
---- @param frequency integer?
---- @param amplitude number?
---- @param delay integer?
---- @param samplesToTake integer?
---- @param expectedValue number?
---- @param favorSpeed boolean
+--- @param opt DAQ_ImpedancesOptionalParameters?
 --- @return DAQ_ImpedanceResults
-function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay, samplesToTake, expectedValue, favorSpeed)
+function DAQ:Impedances(mode, opt)
     local od = self.ib.od["Impedances"]
     local odTrigger = od["Trigger"]
 
@@ -913,40 +922,41 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
     local odVin = od["Vin"]
     local odVout = od["Vout"]
 
-    if shape == nil then shape = DAQ.ImpedanceDefaults.shape end
-    if rangeResistor == nil then rangeResistor = DAQ.ImpedanceDefaults.rangeResistor end
-    if frequency == nil then frequency = DAQ.ImpedanceDefaults.frequency end
-    if amplitude == nil then amplitude = DAQ.ImpedanceDefaults.amplitude end
-    if delay == nil then delay = DAQ.ImpedanceDefaults.delay end
-    if samplesToTake == nil then samplesToTake = DAQ.ImpedanceDefaults.samplesToTake end
-    if expectedValue == nil then expectedValue = DAQ.ImpedanceDefaults.expectedValue end
-    if favorSpeed == nil then favorSpeed = DAQ.ImpedanceDefaults.favorSpeed end
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
 
-    CheckField(shape, "shape", IsIntegerInOd(shape, odShape))
-    CheckField(rangeResistor, "range Resistor", IsIntegerInOd(rangeResistor, odRangeResistor))
-    CheckField(frequency, "frequency", IsIntegerInOd(frequency, odFrequency))
-    CheckField(amplitude, "amplitude", IsFloatInOd(amplitude, odAmplitude))
-    CheckField(samplesToTake, "samples to take", IsIntegerInOd(samplesToTake, odSamplesToTake))
-    CheckField(delay, "delay", IsIntegerIn(delay, 0, 4294967296))
-    CheckField(expectedValue, "expected value", IsIntegerIn(expectedValue, 0, 4294967296))
-    CheckField(favorSpeed, "favorSpeed", IsBoolean(favorSpeed))
+    if opt.shape == nil then opt.shape = DAQ.ImpedanceDefaults.shape end
+    if opt.rangeResistor == nil then opt.rangeResistor = DAQ.ImpedanceDefaults.rangeResistor end
+    if opt.frequency == nil then opt.frequency = DAQ.ImpedanceDefaults.frequency end
+    if opt.amplitude == nil then opt.amplitude = DAQ.ImpedanceDefaults.amplitude end
+    if opt.delay == nil then opt.delay = DAQ.ImpedanceDefaults.delay end
+    if opt.samplesToTake == nil then opt.samplesToTake = DAQ.ImpedanceDefaults.samplesToTake end
+    if opt.expectedValue == nil then opt.expectedValue = DAQ.ImpedanceDefaults.expectedValue end
+    if opt.favorSpeed == nil then opt.favorSpeed = DAQ.ImpedanceDefaults.favorSpeed end
 
-    if (rangeResistor == 0 or
-            (frequency == 0 and shape ~= DAQ.ImpedanceShapeEnum.dc)) and
-        expectedValue == 0 then
-        error(
-            "Expected Value cannot be set to automatic when Range Resistor or Frequency are as well")
+    CheckField(opt.shape, "shape", IsIntegerInOd(opt.shape, odShape))
+    CheckField(opt.rangeResistor, "range Resistor", IsIntegerInOd(opt.rangeResistor, odRangeResistor))
+    CheckField(opt.frequency, "frequency", IsIntegerInOd(opt.frequency, odFrequency))
+    CheckField(opt.amplitude, "amplitude", IsFloatInOd(opt.amplitude, odAmplitude))
+    CheckField(opt.samplesToTake, "samples to take", IsIntegerInOd(opt.samplesToTake, odSamplesToTake))
+    CheckField(opt.delay, "delay", IsIntegerIn(opt.delay, 0, 4294967296))
+    CheckField(opt.expectedValue, "expected value", IsIntegerIn(opt.expectedValue, 0, 4294967296))
+    CheckField(opt.favorSpeed, "favorSpeed", IsBoolean(opt.favorSpeed))
+
+    if (opt.rangeResistor == 0 or (opt.frequency == 0 and opt.shape ~= DAQ.ImpedanceShapeEnum.dc))
+        and opt.expectedValue == 0 then
+        error("Expected Value cannot be set to automatic when Range Resistor or Frequency are as well")
     end
 
     self.ib:Download(odMode, mode)
-    self.ib:Download(odShape, shape)
-    self.ib:Download(odRangeResistor, rangeResistor)
-    self.ib:Download(odFrequency, frequency)
-    self.ib:Download(odAmplitude, amplitude)
-    self.ib:Download(odDelay, delay)
-    self.ib:Download(odSamplesToTake, samplesToTake)
-    self.ib:Download(odExpectedValue, expectedValue)
-    self.ib:Download(odFavorSpeed, favorSpeed)
+    self.ib:Download(odShape, opt.shape)
+    self.ib:Download(odRangeResistor, opt.rangeResistor)
+    self.ib:Download(odFrequency, opt.frequency)
+    self.ib:Download(odAmplitude, opt.amplitude)
+    self.ib:Download(odDelay, opt.delay)
+    self.ib:Download(odSamplesToTake, opt.samplesToTake)
+    self.ib:Download(odExpectedValue, opt.expectedValue)
+    self.ib:Download(odFavorSpeed, opt.favorSpeed)
     self.ib:Download(odTrigger, true)
 
     SleepFor(100)
@@ -957,24 +967,24 @@ function DAQ:Impedances(mode, shape, rangeResistor, frequency, amplitude, delay,
         if deadline <= 0 then error("Impedance timeout") end
     end
 
-    if shape == 0 then shape = self.ib:Upload(odShape) --[[@as DAQ_ImpedanceShapeEnum]] end
-    if rangeResistor == 0 then rangeResistor = self.ib:Upload(odRangeResistor) --[[@as DAQ_ImpedanceRangeResistorEnum]] end
-    if frequency == 0 then frequency = self.ib:Upload(odFrequency) --[[@as integer]] end
-    if amplitude == 0 then amplitude = self.ib:Upload(odAmplitude) --[[@as number]] end
-    if delay == 0 then delay = self.ib:Upload(odDelay) --[[@as integer]] end
-    if samplesToTake == 0 then samplesToTake = self.ib:Upload(odSamplesToTake) --[[@as integer]] end
-    if expectedValue == 0 then expectedValue = self.ib:Upload(odExpectedValue) --[[@as integer]] end
+    if opt.shape == 0 then opt.shape = self.ib:Upload(odShape) --[[@as DAQ_ImpedanceShapeEnum]] end
+    if opt.rangeResistor == 0 then opt.rangeResistor = self.ib:Upload(odRangeResistor) --[[@as DAQ_ImpedanceRangeResistorEnum]] end
+    if opt.frequency == 0 then opt.frequency = self.ib:Upload(odFrequency) --[[@as integer]] end
+    if opt.amplitude == 0 then opt.amplitude = self.ib:Upload(odAmplitude) --[[@as number]] end
+    if opt.delay == 0 then opt.delay = self.ib:Upload(odDelay) --[[@as integer]] end
+    if opt.samplesToTake == 0 then opt.samplesToTake = self.ib:Upload(odSamplesToTake) --[[@as integer]] end
+    if opt.expectedValue == 0 then opt.expectedValue = self.ib:Upload(odExpectedValue) --[[@as integer]] end
 
     return {
         mode = mode,
-        shape = shape --[[@as DAQ_ImpedanceShapeEnum]],
-        rangeResistor = rangeResistor --[[@as DAQ_ImpedanceRangeResistorEnum]],
-        frequency = frequency --[[@as integer]],
-        amplitude = amplitude --[[@as number]],
-        delay = delay --[[@as integer]],
-        samplesToTake = samplesToTake --[[@as integer]],
-        expectedValue = expectedValue --[[@as number]],
-        favorSpeed = favorSpeed,
+        shape = opt.shape --[[@as DAQ_ImpedanceShapeEnum]],
+        rangeResistor = opt.rangeResistor --[[@as DAQ_ImpedanceRangeResistorEnum]],
+        frequency = opt.frequency --[[@as integer]],
+        amplitude = opt.amplitude --[[@as number]],
+        delay = opt.delay --[[@as integer]],
+        samplesToTake = opt.samplesToTake --[[@as integer]],
+        expectedValue = opt.expectedValue --[[@as number]],
+        favorSpeed = opt.favorSpeed,
         confidence = self.ib:Upload(odConfidence) --[[@as integer]],
         value = self.ib:Upload(odValue) --[[@as number]],
         vin = self.ib:Upload(odVin) --[[@as number]],
@@ -1003,61 +1013,72 @@ DAQ.MeasureVoltageDefault = {
     sampleRate = DAQ.AdcSampleRateEnum.f250Hz --[[@as DAQ_AdcSampleRateEnum]]
 }
 
+--- @class DAQ_MeasureVoltageOptParameters
+--- @field channel DAQ_AdcChannelEnum? which ADC to do the measure on
+--- @field samplesToTake integer? number of samples to take [1, 1000]
+--- @field gain DAQ_AdcChannelGainEnum? ADC gain
+--- @field sampleRate DAQ_AdcSampleRateEnum? ADC sampling rate
+
 --- Measures a voltage on one or more points.
 --- @param points DAQ_RoutingPointsEnum[]|DAQ_RoutingPointsEnum place where to measure voltage
---- @param channel DAQ_AdcChannelEnum? which ADC channel to do the measure on
---- @param samplesToTake integer? number of samples to take [1, 1000]
---- @param gain DAQ_AdcChannelGainEnum? ADC gain
---- @param sampleRate DAQ_AdcSampleRateEnum? ADC sampling rate
+--- @param opt DAQ_MeasureVoltageOptParameters?
 --- @return DAQ_AdcChannelResults
-function DAQ:MeasureVoltage(points, channel, samplesToTake, gain, sampleRate)
+function DAQ:MeasureVoltage(points, opt)
     --- @type DAQ_RoutingPointsEnum[]
     points = PointToPoints(points)
     if IsPointsOk(points) then error("Invalid points") end
-    if channel == nil then channel = DAQ.MeasureVoltageDefault.channel end
-    CheckField(channel, "Channel", channel == DAQ.AdcChannelEnum.adc2 or channel == DAQ.AdcChannelEnum.adc3)
-    if samplesToTake == nil then samplesToTake = DAQ.MeasureVoltageDefault.samplesToTake end
-    if gain == nil then gain = DAQ.MeasureVoltageDefault.gain end
-    if sampleRate == nil then sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
+    if opt.channel == nil then opt.channel = DAQ.MeasureVoltageDefault.channel end
+    CheckField(opt.channel, "Channel", opt.channel == DAQ.AdcChannelEnum.adc2 or opt.channel == DAQ.AdcChannelEnum.adc3)
+    if opt.samplesToTake == nil then opt.samplesToTake = DAQ.MeasureVoltageDefault.samplesToTake end
+    if opt.gain == nil then opt.gain = DAQ.MeasureVoltageDefault.gain end
+    if opt.sampleRate == nil then opt.sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
 
-    local route = self:RequestRouting({ table.unpack(points), AdcChannelToTestPoint(channel) })
+    local route = self:RequestRouting({ table.unpack(points), AdcChannelToTestPoint(opt.channel) })
 
     if route == -1 then
         error("Unable to connect points to ADC!")
     end
 
-    self:AdcChannelGain(channel, gain)
-    self:AdcSampleRate(sampleRate)
-    self:AdcSamplesToTake(samplesToTake)
+    self:AdcChannelGain(opt.channel, opt.gain)
+    self:AdcSampleRate(opt.sampleRate)
+    self:AdcSamplesToTake(opt.samplesToTake)
 
-    while samplesToTake ~= 0 do
-        local previous = samplesToTake
+    while opt.samplesToTake ~= 0 do
+        local previous = opt.samplesToTake
         TimeoutFunction(function()
             local current = self:AdcSamplesToTake() --[[@as integer]]
             local same = current == previous
             previous = current
             return same
         end, 1000)
-        samplesToTake = previous
+        opt.samplesToTake = previous
     end
 
     self:ClearBus(route)
 
-    return self:AdcChannelResults(channel)
+    return self:AdcChannelResults(opt.channel)
 end
+
+--- @class DAQ_MeasureResistorOptParameters
+--- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
+--- @field range DAQ_ImpedanceRangeResistorEnum?
+--- @field guards DAQ_RoutingPointsEnum[]?
+--- @field voltage number?
+--- @field delay integer?
+--- @field samplesToTake integer?
+--- @field favorSpeed boolean?
 
 --- Measures a resistor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
 --- @param impN DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
---- @param expectedValue integer? Expected value to be read. Required if range if set to automatic
---- @param range DAQ_ImpedanceRangeResistorEnum?
---- @param guards DAQ_RoutingPointsEnum[]?
---- @param voltage number?
---- @param delay integer?
---- @param samplesToTake integer?
---- @param favorSpeed boolean?
+--- @param opt DAQ_MeasureResistorOptParameters?
 --- @return DAQ_ImpedanceResults
-function DAQ:MeasureResistor(impP, impN, expectedValue, range, guards, voltage, delay, samplesToTake, favorSpeed)
+function DAQ:MeasureResistor(impP, impN, opt)
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
+
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
 
@@ -1065,17 +1086,20 @@ function DAQ:MeasureResistor(impP, impN, expectedValue, range, guards, voltage, 
     SleepFor(10)
     local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
     local rguards = nil
-    if guards ~= nil then
-        guards = PointToPoints(guards)
-        rguards = self:RequestRouting({ table.unpack(guards), DAQ.RoutingPointsEnum.GUARD })
+    if opt.guards ~= nil then
+        opt.guards = PointToPoints(opt.guards)
+        rguards = self:RequestRouting({ table.unpack(opt.guards), DAQ.RoutingPointsEnum.GUARD })
     end
 
-    local result = self:Impedances(DAQ.ImpedanceModeEnum.resistor,
-        DAQ.ImpedanceShapeEnum.dc, range,
-        DAQ.ImpedanceDefaults.frequency, voltage,
-        delay, samplesToTake,
-        expectedValue,
-        favorSpeed)
+    local result = self:Impedances(
+        DAQ.ImpedanceModeEnum.resistor, {
+            range = opt.range,
+            voltage = opt.voltage,
+            delay = opt.delay,
+            samplesToTake = opt.samplesToTake,
+            expectedValue = opt.expectedValue,
+            favorSpeed = opt.favorSpeed
+        })
 
     -- cleanup
     self:ClearBus(rimpp)
