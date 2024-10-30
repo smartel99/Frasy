@@ -24,6 +24,7 @@
 #include <shared_mutex>
 #include <sol/sol.hpp>
 #include <string>
+#include <utility>
 
 namespace Frasy::Lua {
 
@@ -35,37 +36,46 @@ public:
             Input,
             Button,
             Image,
+            SameLine,
         } kind;
-        std::string text;
-        explicit    Element(Kind kind, const std::string& text) : kind(kind), text(text) {}
-        virtual ~   Element() = default;
+        explicit Element(Kind kind) : kind(kind) {}
+        virtual ~Element() = default;
     };
 
     struct Text : Element {
-         Text(const std::string& text) : Element(Kind::Text, text) {}
+        std::string text;
+                    Text(std::string text) : Element(Kind::Text), text(std::move(text)) {}
     };
 
     struct Input : Element {
-         Input(const std::string& text, std::size_t index) : Element(Kind::Input, text), index(index) {}
         static constexpr std::size_t vBufLen       = 50;
         char                         vBuf[vBufLen] = "";
         std::size_t                  index         = 0;
+        std::string                  text;
+        Input(std::string text, std::size_t index) : Element(Kind::Input), index(index), text(std::move(text)) {}
     };
 
     struct Button : Element {
-         Button(const std::string& text, sol::function action) : Element(Kind::Button, text), action(action) {}
+        Button(std::string text, sol::function action) : Element(Kind::Button), text(std::move(text)), action(action) {}
+        std::string   text;
         sol::function action;
     };
 
     struct Image : Element {
-        Image(const std::string& path, std::size_t width, std::size_t height)
-        : Element(Kind::Image, path), width(width), height(height)
+        Image(std::string path, std::size_t width, std::size_t height)
+        : Element(Kind::Image), path(std::move(path)), width(width), height(height)
         {
         }
-
+        std::string                        path;
         std::size_t                        width  = 0;
         std::size_t                        height = 0;
         Brigerad::Ref<Brigerad::Texture2D> texture;
+    };
+
+    struct SameLine : Element {
+        uint32_t width;
+
+        SameLine(uint32_t width) : Element(Kind::SameLine), width(width) {}
     };
 
 private:
@@ -75,6 +85,7 @@ private:
     std::atomic_bool                      m_consumed = false;
     std::optional<sol::function>          m_routine;
     std::shared_mutex                     m_luaMutex;
+    std::string                           m_consumeButtonText = "cancel";
 
 public:
                                     Popup() = default;

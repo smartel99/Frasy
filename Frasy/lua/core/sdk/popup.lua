@@ -26,10 +26,11 @@ PopupBuilder.__index = PopupBuilder
 
 ---@enum ElementKind
 local ElementKind    = {
-    text   = 0,
-    input  = 1,
-    button = 2,
-    image  = 3,
+    text     = 0,
+    input    = 1,
+    button   = 2,
+    image    = 3,
+    sameLine = 4,
 }
 
 ---Creates a new popup.
@@ -38,12 +39,12 @@ local ElementKind    = {
 function PopupBuilder:New(name)
     if name == nil then name = "" end
     return setmetatable(
-            {
-                name     = name,
-                elements = {},
-                global   = false,
-            },
-            PopupBuilder)
+        {
+            name     = name,
+            elements = {},
+            global   = false,
+        },
+        PopupBuilder)
 end
 
 function PopupBuilder:Global()
@@ -53,18 +54,18 @@ end
 
 function PopupBuilder:Text(text)
     table.insert(self.elements, {
-        kind  = ElementKind.text,
-        value = text,
+        kind = ElementKind.text,
+        text = text,
     })
     return self
 end
 
 function PopupBuilder:Image(path, width, height)
-    if(width == nil) then width = 0 end
-    if(height == nil) then height = 0 end
+    if (width == nil) then width = 0 end
+    if (height == nil) then height = 0 end
     table.insert(self.elements, {
         kind = ElementKind.image,
-        value = path,
+        path = path,
         width = width,
         height = height
     })
@@ -74,8 +75,8 @@ end
 function PopupBuilder:Input(text)
     if text == nil then text = "" end
     table.insert(self.elements, {
-        kind  = ElementKind.input,
-        value = text,
+        kind = ElementKind.input,
+        text = text,
     })
     return self
 end
@@ -83,14 +84,28 @@ end
 function PopupBuilder:Button(text, action)
     table.insert(self.elements, {
         kind   = ElementKind.button,
-        value  = text,
+        text   = text,
         action = action,
+    })
+    return self
+end
+
+function PopupBuilder:SameLine(width)
+    if width == nil then width = 0 end
+    table.insert(self.elements, {
+        kind = ElementKind.sameLine,
+        width = width,
     })
     return self
 end
 
 function PopupBuilder:Routine(routine)
     self.routine = routine
+    return self
+end
+
+function PopupBuilder:ConsumeButtonText(text)
+    self.consumeButtonText = text
     return self
 end
 
