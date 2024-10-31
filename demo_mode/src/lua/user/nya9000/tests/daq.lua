@@ -4,7 +4,22 @@ local IsIntegerIn = require("lua/core/utils/is_integer/is_integer_in")
 Sequence("DAQ", function()
     ---@type DAQ
     local daq = Context.map.ibs.daq
-    
+
+    Test("Calibration resistors", function()
+        local connectRes = function(res)
+            daq:RequestRouting({ DAQ.RoutingPointsEnum[res .. "_1"], DAQ.RoutingPointsEnum.BUS })
+            daq:RequestRouting({ DAQ.RoutingPointsEnum[res .. "_2"], DAQ.RoutingPointsEnum.BUS })
+            local popup = Popup("Resistors"):Text(res)
+            popup:Show()
+            daq:ClearBus(DAQ.RoutingBusEnum.all)
+        end
+
+        connectRes("R100")
+        connectRes("R4k99")
+        connectRes("R100k")
+        connectRes("R1M")
+    end)
+
     -- Test("Routing", function()
     --     ---@type DAQ
     --     local daq = Context.map.ibs.daq
@@ -89,20 +104,20 @@ Sequence("DAQ", function()
     --     end
     -- end)
 
-    Test("Stress test comm", function()
-        local repeatCount = 1
-        local epoch = 0
-        if Context.info.stage == Stage.execution then repeatCount = 1000 end
-        for i = 1, repeatCount do
-            local start = os.clock()
-            -- Measure AC_MEAN with 10x divider. (0VAC @ 10%)
-            local result = daq:MeasureVoltage(DAQ.RoutingPointsEnum.P5V, nil, 533, nil, DAQ.AdcSampleRateEnum.f16000Hz)
-            local delta =os.clock() - start
-            Log.D("Epoch " .. tostring(i) .. " in " .. delta .. "s")
-            Expect(delta, "Time"):ToBeGreater(0.0)
-
-        end
-    end)
+    --Test("Stress test comm", function()
+    --    local repeatCount = 1
+    --    local epoch = 0
+    --    if Context.info.stage == Stage.execution then repeatCount = 1000 end
+    --    for i = 1, repeatCount do
+    --        local start = os.clock()
+    --        -- Measure AC_MEAN with 10x divider. (0VAC @ 10%)
+    --        local result = daq:MeasureVoltage(DAQ.RoutingPointsEnum.P5V, nil, 533, nil, DAQ.AdcSampleRateEnum.f16000Hz)
+    --        local delta =os.clock() - start
+    --        Log.D("Epoch " .. tostring(i) .. " in " .. delta .. "s")
+    --        Expect(delta, "Time"):ToBeGreater(0.0)
+    --
+    --    end
+    --end)
     -- Test("Stress test voltmeter", function()
     --     ---@type DAQ
     --     local daq = Context.map.ibs.daq
