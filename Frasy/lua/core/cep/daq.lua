@@ -919,7 +919,6 @@ DAQ.ImpedanceDefaults = {
 function DAQ:Impedances(mode, opt)
     local od = self.ib.od["Impedances"]
     local odTrigger = od["Trigger"]
-
     if self.ib:Upload(odTrigger) then error("Impedance measure already running") end
 
     local odMode = od["Mode"]
@@ -958,8 +957,14 @@ function DAQ:Impedances(mode, opt)
     CheckField(opt.expectedValue, "expected value", IsIntegerIn(opt.expectedValue, 0, 4294967296))
     CheckField(opt.favorSpeed, "favorSpeed", IsBoolean(opt.favorSpeed))
 
-    if (opt.rangeResistor == 0 or (opt.frequency == 0 and opt.shape ~= DAQ.ImpedanceShapeEnum.dc))
-        and opt.expectedValue == 0 then
+
+    -- check auto parameters
+    -- If resistor, expectedValue cannot be 0 if rangeResitor is automatic
+    -- If capacitor or inductor, expectedValue cannot be 0 if frequency or rangeResistor are automatic
+    if (mode == DAQ.ImpedanceModeEnum.resistor and opt.expectedValue == 0 and opt.rangeResistor == 0)
+        or ((mode == DAQ.ImpedanceModeEnum.capacitor or mode == DAQ.ImpedanceModeEnum.inductor)
+            and opt.expectedValue == 0 and (opt.frequency == 0 or opt.rangeResistor == 0))
+    then
         error("Expected Value cannot be set to automatic when Range Resistor or Frequency are as well")
     end
 
@@ -1078,7 +1083,7 @@ end
 
 --- @class DAQ_MeasureResistorOptParameters
 --- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
---- @field range DAQ_ImpedanceRangeResistorEnum?
+--- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
 --- @field voltage number?
 --- @field delay integer?
@@ -1108,7 +1113,8 @@ function DAQ:MeasureResistor(impP, impN, opt)
 
     local result = self:Impedances(
         DAQ.ImpedanceModeEnum.resistor, {
-            range = opt.range,
+            shape = DAQ.ImpedanceShapeEnum.dc,
+            rangeResistor = opt.rangeResistor,
             voltage = opt.voltage,
             delay = opt.delay,
             samplesToTake = opt.samplesToTake,
@@ -1127,7 +1133,7 @@ end
 --- @class DAQ_MeasureCapacitorOptParameters
 --- @field frequency number?
 --- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
---- @field range DAQ_ImpedanceRangeResistorEnum?
+--- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
 --- @field voltage number?
 --- @field delay integer?
@@ -1140,59 +1146,44 @@ end
 --- @param opt DAQ_MeasureCapacitorOptParameters?
 --- @return DAQ_ImpedanceResults
 function DAQ:MeasureCapacitor(impP, impN, opt)
-    return {
-        mode = DAQ.ImpedanceModeEnum.capacitor,
-        shape = DAQ.ImpedanceShapeEnum.automatic,
-        rangeResistor = 0,
-        frequency = 0,
-        amplitude = 0,
-        delay = 0,
-        samplesToTake = 0,
-        expectedValue = 0,
-        favorSpeed = 0,
-        confidence = 0,
-        value = 0,
-        vin = 0,
-        vout = 0,
-    }
-    --if opt == nil then opt = {} end
-    --CheckField(opt, "opt", type(opt) == "table")
-    --
-    --impP = PointToPoints(impP)
-    --impN = PointToPoints(impN)
-    --
-    --local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
-    --SleepFor(10)
-    --local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
-    --local rguards = nil
-    --if opt.guards ~= nil then
-    --    opt.guards = PointToPoints(opt.guards)
-    --    rguards = self:RequestRouting({ table.unpack(opt.guards), DAQ.RoutingPointsEnum.GUARD })
-    --end
-    --
-    --local result = self:Impedances(
-    --    DAQ.ImpedanceModeEnum.capacitor, {
-    --        frequency = opt.frequency,
-    --        range = opt.range,
-    --        voltage = opt.voltage,
-    --        delay = opt.delay,
-    --        samplesToTake = opt.samplesToTake,
-    --        expectedValue = opt.expectedValue,
-    --        favorSpeed = opt.favorSpeed
-    --    })
-    --
-    ---- cleanup
-    --self:ClearBus(rimpp)
-    --self:ClearBus(rimpn)
-    --if rguards ~= nil then self:ClearBus(rguards) end
-    --
-    --return result
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
+
+    impP = PointToPoints(impP)
+    impN = PointToPoints(impN)
+
+    local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
+    SleepFor(10)
+    local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
+    local rguards = nil
+    if opt.guards ~= nil then
+        opt.guards = PointToPoints(opt.guards)
+        rguards = self:RequestRouting({ table.unpack(opt.guards), DAQ.RoutingPointsEnum.GUARD })
+    end
+
+    local result = self:Impedances(
+        DAQ.ImpedanceModeEnum.capacitor, {
+            frequency = opt.frequency,
+            rangeResistor = opt.rangeResistor,
+            voltage = opt.voltage,
+            delay = opt.delay,
+            samplesToTake = opt.samplesToTake,
+            expectedValue = opt.expectedValue,
+            favorSpeed = opt.favorSpeed
+        })
+
+    -- cleanup
+    self:ClearBus(rimpp)
+    self:ClearBus(rimpn)
+    if rguards ~= nil then self:ClearBus(rguards) end
+
+    return result
 end
 
 --- @class DAQ_MeasureInductorOptParameters
 --- @field frequency number?
 --- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
---- @field range DAQ_ImpedanceRangeResistorEnum?
+--- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
 --- @field voltage number?
 --- @field delay integer?
@@ -1205,52 +1196,36 @@ end
 --- @param opt DAQ_MeasureCapacitorOptParameters?
 --- @return DAQ_ImpedanceResults
 function DAQ:MeasureInductor(impP, impN, opt)
-    return {
-        mode = DAQ.ImpedanceModeEnum.inductor,
-        shape = DAQ.ImpedanceShapeEnum.automatic,
-        rangeResistor = 0,
-        frequency = 0,
-        amplitude = 0,
-        delay = 0,
-        samplesToTake = 0,
-        expectedValue = 0,
-        favorSpeed = 0,
-        confidence = 0,
-        value = 0,
-        vin = 0,
-        vout = 0,
-    }
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
 
-    --if opt == nil then opt = {} end
-    --CheckField(opt, "opt", type(opt) == "table")
-    --
-    --impP = PointToPoints(impP)
-    --impN = PointToPoints(impN)
-    --
-    --local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
-    --SleepFor(10)
-    --local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
-    --local rguards = nil
-    --if opt.guards ~= nil then
-    --    opt.guards = PointToPoints(opt.guards)
-    --    rguards = self:RequestRouting({ table.unpack(opt.guards), DAQ.RoutingPointsEnum.GUARD })
-    --end
-    --
-    --local result = self:Impedances(
-    --    DAQ.ImpedanceModeEnum.inductor, {
-    --        frequency = opt.frequency,
-    --        range = opt.range,
-    --        voltage = opt.voltage,
-    --        delay = opt.delay,
-    --        samplesToTake = opt.samplesToTake,
-    --        expectedValue = opt.expectedValue,
-    --        favorSpeed = opt.favorSpeed
-    --    })
-    --
-    ---- cleanup
-    --self:ClearBus(rimpp)
-    --self:ClearBus(rimpn)
-    --if rguards ~= nil then self:ClearBus(rguards) end
-    --
-    --return result
+    impP = PointToPoints(impP)
+    impN = PointToPoints(impN)
+
+    local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
+    SleepFor(10)
+    local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
+    local rguards = nil
+    if opt.guards ~= nil then
+        opt.guards = PointToPoints(opt.guards)
+        rguards = self:RequestRouting({ table.unpack(opt.guards), DAQ.RoutingPointsEnum.GUARD })
+    end
+
+    local result = self:Impedances(
+        DAQ.ImpedanceModeEnum.inductor, {
+            frequency = opt.frequency,
+            rangeResistor = opt.rangeResistor,
+            voltage = opt.voltage,
+            delay = opt.delay,
+            samplesToTake = opt.samplesToTake,
+            expectedValue = opt.expectedValue,
+            favorSpeed = opt.favorSpeed
+        })
+
+    -- cleanup
+    self:ClearBus(rimpp)
+    self:ClearBus(rimpn)
+    if rguards ~= nil then self:ClearBus(rguards) end
+
+    return result
 end
