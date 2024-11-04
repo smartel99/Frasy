@@ -15,8 +15,6 @@
 
 Log = {}
 
-function Log.C(message) end
-
 function Log.E(message) end
 
 function Log.W(message) end
@@ -26,4 +24,3 @@ function Log.I(message) end
 function Log.D(message) end
 
 function Log.T(message) end
-
