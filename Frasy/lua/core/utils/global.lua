@@ -143,6 +143,13 @@ function LineSplit(content)
     return lines
 end
 
+--- Convert a number to an integer
+--- @param value number
+--- @return integer
+function ToInt(value)
+    if (value >= 0) then return math.floor(value + 0.5) else return math.ceil(value + 0.5) end
+end
+
 ---Get List of files and folder from a directory
 ---@param path string folder path where to look
 ---@return table entries
@@ -150,9 +157,9 @@ function DirList(path) return {} end -- C++ call
 
 ---Pause the program for set duration
 ---@param ms integer duration in ms
-function SleepFor(ms) end  --C++ call
+function SleepFor(ms) end --C++ call
 
 ---Save a table to a JSON file
 ---@param table table Table to save
 ---@param filepath string filepath where to save the json
-function SaveAsJson(table, filepath) end  --C++ call
+function SaveAsJson(table, filepath) end --C++ call
