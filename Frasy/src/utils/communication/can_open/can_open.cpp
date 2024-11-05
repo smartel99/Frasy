@@ -106,65 +106,69 @@ CanOpen::CanOpen()
     start();
 }
 
-// CanOpen::CanOpen(CanOpen&& o) noexcept
-// : m_tag(std::move(o.m_tag)),
-//   m_port(std::move(o.m_port)),
-//   m_device(std::move(o.m_device)),
-//   m_co(std::move(o.m_co)),
-//   m_canOpenConfig(std::move(o.m_canOpenConfig)),
-//   m_coHeapMemoryUsed(std::move(o.m_coHeapMemoryUsed)),
-//   m_hasBeenInitOnce(std::move(o.m_hasBeenInitOnce)),
-//   m_storage(std::move(o.m_storage)),
-//   m_storageEntries(std::move(o.m_storageEntries)),
-//   m_stopSource(std::move(o.m_stopSource)),
-//   m_coThread(std::move(o.m_coThread)),
-//   m_lastTimePoint(std::move(o.m_lastTimePoint)),
-//   m_lastSaveTime(std::move(o.m_lastSaveTime)),
-//   m_redLed(std::move(o.m_redLed)),
-//   m_greenLed(std::move(o.m_greenLed)),
-//   m_nodes(std::move(o.m_nodes))
-// {
-//     for (auto&& nodes : m_nodes) {
-//         nodes.m_canOpen = this;
-//     }
-// }
-
 CanOpen::~CanOpen()
 {
     stop();
-    if (isOpen()) { close(); }
 }
 
-void CanOpen::open(std::string_view port)
+bool CanOpen::addDevice(const std::string& port)
 {
-    if (isOpen()) { close(); }
-    m_tag  = fmt::format("{} {}", s_tag, port);
-    m_port = port;
+    if (m_devices.contains(port)) {
+        BR_LOG_WARN(m_tag, "Device on port '{}' already open!", port);
+        return false;
+    }
+
     try {
-        m_device = SlCan::Device {port};
-        m_device.setRxCallbackFunc([this] { rxReadyCallback(); });
+        SlCan::Device dev = SlCan::Device {port};
+        dev.setRxCallbackFunc([this] { rxReadyCallback(); });
+        if (dev.isOpen()) {
+            m_devices[port] = std::move(dev);
+            return true;
+        }
     }
     catch (std::exception& e) {
         BR_LOG_ERROR(m_tag, "Error occurred while opening {}: {}", port, e.what());
-        return;
     }
-    if (!m_device.isOpen()) { BR_LOG_ERROR(m_tag, "Unable to open '{}'", port); }
-    else {
-        reset();
-    }
+    return false;
 }
+
+bool CanOpen::removeDevice(const std::string& port)
+{
+    return m_devices.erase(port) == 1;
+}
+
+// void CanOpen::open(std::string_view port)
+// {
+//     if (isOpen()) { close(); }
+//     m_tag  = fmt::format("{} {}", s_tag, port);
+//     m_port = port;
+//     try {
+//         m_device = SlCan::Device {port};
+//         m_device.setRxCallbackFunc([this] { rxReadyCallback(); });
+//     }
+//     catch (std::exception& e) {
+//         BR_LOG_ERROR(m_tag, "Error occurred while opening {}: {}", port, e.what());
+//         return;
+//     }
+//     if (!m_device.isOpen()) { BR_LOG_ERROR(m_tag, "Unable to open '{}'", port); }
+//     else {
+//         reset();
+//     }
+// }
 
 void CanOpen::reopen()
 {
-    close();
-    open(m_port);
+    for (auto&& [port, dev] : m_devices) {
+        if (dev.isOpen()) { dev.close(); }
+        dev.open();
+    }
 }
 
-void CanOpen::close()
-{
-    if (!isOpen()) { return; }
-    m_device.close();
-}
+// void CanOpen::close()
+// {
+//     if (!isOpen()) { return; }
+//     m_device.close();
+// }
 
 void CanOpen::reset()
 {
@@ -174,15 +178,13 @@ void CanOpen::reset()
 
 void CanOpen::start()
 {
-    if (m_port.empty()) {
-        BR_LOG_WARN(m_tag, "Ignoring CanOpen Start on empty port");
+    if (m_devices.empty()) {
+        BR_LOG_WARN(m_tag, "Ignoring CanOpen Start with no associated devices");
         return;
     }
     m_stopSource = {};
     m_coThread   = std::jthread([this] {
-        if (FAILED(SetThreadDescription(
-              GetCurrentThread(),
-              std::format(L"CANOpen {}", StringUtils::StringToWString(m_device.getPort())).c_str()))) {
+        if (FAILED(SetThreadDescription(GetCurrentThread(), L"CANOpen"))) {
             BR_LOG_ERROR("CANOpen", "Unable to set thread description");
         }
         if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST)) {
@@ -219,6 +221,7 @@ Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view e
         return nullptr;
     }
 
+    // TODO that's fucking stupid, vector offers no pointer stability, ***especially*** in insertions!!!
     Node* node = &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {}", nodeId) : name, edsPath);
     m_sdoClientODEntries.push_back(node->sdoInterface()->makeSdoClientOdEntry());
     // TODO Node should contain the OD, so its Heartbeat Producer time should be fetched from it.
@@ -389,8 +392,10 @@ void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
 
 void CanOpen::canOpenTask(std::stop_token stopToken)
 {
-    if (!initialInit(m_port)) {
-        m_device.close();
+    if (!initialInit()) {
+        for (auto&& [port, dev] : m_devices) {
+            dev.close();
+        }
         return;
     }
 
@@ -430,7 +435,7 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
 }
 
 #pragma region Initialization
-bool           CanOpen::initialInit(std::string_view port)
+bool           CanOpen::initialInit()
 {
     // Initialize CANopen.
     OD_INIT_CONFIG(m_canOpenConfig);
@@ -493,11 +498,11 @@ bool CanOpen::runtimeInit()
     deinitNodeServices();
 
     // Enter CAN configuration mode.
-    CO_CANsetConfigurationMode(&m_device);
+    CO_CANsetConfigurationMode(&m_devices);
     CO_CANmodule_disable(m_co->CANmodule);
 
     // Initialize CANopen.
-    auto err = CO_CANinit(m_co, &m_device, 0 /* bit rate not used*/);
+    auto err = CO_CANinit(m_co, &m_devices, 0 /* bit rate not used*/);
     if (err != CO_ERROR_NO) {
         BR_LOG_ERROR(m_tag, "CANopen error in CO_CANinit(): ({}) {}", err, canOpenErrorToStr(err));
         return false;
@@ -632,7 +637,7 @@ bool CanOpen::deinit()
     // Remove all the nodes' hooks to CAN open, for they are now invalid.
     deinitNodeServices();
 
-    CO_CANsetConfigurationMode(&m_device);
+    CO_CANsetConfigurationMode(&m_devices);
     CO_delete(m_co);
     m_co = nullptr;
 
@@ -758,7 +763,7 @@ void CanOpen::hbConsumerRemoteResetCallback(uint8_t nodeId, uint8_t idx, void* a
 {
     BR_CORE_ASSERT(arg != nullptr, "Arg pointer null in hbConsumerRemoteResetCallback");
     CanOpen* that = static_cast<CanOpen*>(arg);
-    BR_LOG_DEBUG(that->m_port, "Remote node {:#02x} (idx: {}) reset!", nodeId, idx);
+    BR_LOG_DEBUG(that->m_tag, "Remote node {:#02x} (idx: {}) reset!", nodeId, idx);
 }
 
 void CanOpen::nmtPreCallback(void* arg)
