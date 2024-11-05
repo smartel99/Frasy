@@ -47,10 +47,9 @@ void Popup::Button::render()
         std::lock_guard lock {*luaMutex};
         auto state = sol::state_view(action.lua_state());
         auto result = action(*inputs);
-        if(result.valid()) {
-            BR_LUA_DEBUG("Call successful");
-        } else {
-            BR_LUA_ERROR("Popup call failed!");
+        if(!result.valid()) {
+            sol::error error = result;
+            BR_LUA_ERROR(error.what());
         }
         if (consume) { onConsume(); }
     }
