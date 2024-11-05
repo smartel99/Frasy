@@ -47,6 +47,12 @@ public:
         }
         return m_textures2d[name];
     }
+    static Ref<Texture2D> AddTexture2D(std::string_view name, uint32_t width, uint32_t height, uint32_t channels = 4)
+    {
+        m_textures2d[name] = Texture2D::Create(width, height, channels);
+        return m_textures2d[name];
+    }
+
     static Ref<Texture2D> GetTexture2D(std::string_view name) { return m_textures2d.at(name); }
 
 private:
