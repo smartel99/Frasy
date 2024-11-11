@@ -18,54 +18,143 @@
 #define COPY_LUA_PY_FRASY_SRC_UTILS_LUA_POPUP_H
 
 #include "Brigerad.h"
-#include "Brigerad/Core/File.h"
+#include "glm/gtx/io.hpp"
 
 #include <functional>
 #include <shared_mutex>
 #include <sol/sol.hpp>
 #include <string>
+#include <utility>
 
 namespace Frasy::Lua {
 
 class Popup {
 public:
     struct Element {
-        enum class Kind {
+        enum class Kind : std::uint8_t {
             Text,
             Input,
             Button,
             Image,
+            BeginHorizontal,
+            EndHorizontal,
+            BeginVertical,
+            EndVertical,
+            SameLine,
+            Spring,
         } kind;
-        std::string text;
-        explicit    Element(Kind kind, const std::string& text) : kind(kind), text(text) {}
-        virtual ~   Element() = default;
+        explicit     Element(Kind kind) : kind(kind) {}
+        virtual ~    Element() = default;
+        virtual void render()  = 0;
     };
 
     struct Text : Element {
-         Text(const std::string& text) : Element(Kind::Text, text) {}
+        std::string text;
+                    Text(std::string text) : Element(Kind::Text), text(std::move(text)) {}
+        void        render() final;
     };
 
     struct Input : Element {
-         Input(const std::string& text, std::size_t index) : Element(Kind::Input, text), index(index) {}
-        static constexpr std::size_t vBufLen       = 50;
-        char                         vBuf[vBufLen] = "";
-        std::size_t                  index         = 0;
+        static constexpr std::size_t                                     bufferLen = 50;
+        std::array<char, bufferLen>                                      buffer {};
+        std::string                                                      title;
+        std::size_t                                                      index;
+        std::function<void(const std::string& value, std::size_t index)> onChange;
+                                                                         Input(std::string                                                      title,
+                                                                               std::size_t                                                      index,
+                                                                               std::function<void(const std::string& value, std::size_t index)> onChange)
+        : Element(Kind::Input), title(std::move(title)), index(index), onChange(std::move(onChange))
+        {
+        }
+        void render() final;
     };
 
     struct Button : Element {
-         Button(const std::string& text, sol::function action) : Element(Kind::Button, text), action(action) {}
-        sol::function action;
+        Button(std::string               label,
+               std::array<float, 2>      size,
+               sol::function             action,
+               bool                      consume,
+               std::function<void()>     onConsume,
+               std::shared_mutex*        luaMutex,
+               std::vector<std::string>* inputs)
+        : Element(Kind::Button),
+          label(std::move(label)),
+          size(ImVec2(size[0], size[1])),
+          action(std::move(action)),
+          consume(consume),
+          onConsume(std::move(onConsume)),
+          luaMutex(luaMutex),
+          inputs(inputs)
+        {
+        }
+        std::string               label;
+        ImVec2                    size;
+        sol::function             action;
+        bool                      consume;
+        std::function<void()>     onConsume;
+        std::shared_mutex*        luaMutex;
+        std::vector<std::string>* inputs;
+        void                      render() final;
     };
 
     struct Image : Element {
-        Image(const std::string& path, std::size_t width, std::size_t height)
-        : Element(Kind::Image, path), width(width), height(height)
+        std::string                        path;
+        ImVec2                             size;
+        Brigerad::Ref<Brigerad::Texture2D> texture;
+
+        Image(std::string path, ImVec2 size) : Element(Kind::Image), path(std::move(path)), size(size) {}
+
+        void render() final;
+    };
+
+    struct SameLine : Element {
+        float offsetFromStartX;
+        float spacing;
+              SameLine(float offsetFromStartX, float spacing)
+        : Element(Kind::SameLine), offsetFromStartX(offsetFromStartX), spacing(spacing)
         {
         }
 
-        std::size_t                        width  = 0;
-        std::size_t                        height = 0;
-        Brigerad::Ref<Brigerad::Texture2D> texture;
+        void render() final;
+    };
+
+    struct BeginHorizontal : Element {
+        int id;
+        ImVec2      size;
+        float       align;
+
+        BeginHorizontal(int id, ImVec2 size, float align)
+        : Element(Kind::BeginHorizontal), id(id), size(size), align(align)
+        {
+        }
+        void render() final;
+    };
+    struct EndHorizontal : Element {
+             EndHorizontal() : Element(Kind::EndHorizontal) {}
+        void render() final;
+    };
+    struct BeginVertical : Element {
+
+        int    id;
+        ImVec2 size;
+        float  align;
+
+        BeginVertical(int id, ImVec2 size, float align) : Element(Kind::BeginVertical), id(id), size(size), align(align)
+        {
+        }
+        void render() final;
+    };
+    struct EndVertical : Element {
+             EndVertical() : Element(Kind::EndVertical) {}
+        void render() final;
+    };
+
+    struct Spring : Element {
+        float weight;
+        float spacing;
+
+             Spring(float weight, float spacing) : Element(Kind::Spring), weight(weight), spacing(spacing) {}
+        void render() final;
     };
 
 private:

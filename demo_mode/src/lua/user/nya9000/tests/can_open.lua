@@ -4,11 +4,11 @@
 --        Context.map.ibs.board2.od = nil
 --
 --        Log.I("Board 1")
---        Utils.print(Context.map.ibs.board1, 2)
+--        Print(Context.map.ibs.board1, 2)
 --        Context.map.ibs.board1:foo()
 --
 --        Log.I("Board 2")
---        Utils.print(Context.map.ibs.board2, 2)
+--        Print(Context.map.ibs.board2, 2)
 --        Context.map.ibs.board2:foo()
 --    end)
 --end)
