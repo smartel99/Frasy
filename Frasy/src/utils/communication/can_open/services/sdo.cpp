@@ -172,8 +172,14 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
         CO_SDO_return_t lastReturn = CO_SDO_RT_ok_communicationEnd;
         for (int i = 0; i <= request->retries; ++i) {
             FRASY_PROFILE_SCOPE("Upload Request Retries");
+
+            m_isWorkerWorking.wait(true);         // Wait until it's false lol
+            m_isWorkerWorking          = true;    // "Lock" the workers.
             auto [handlerCode, coCode] = handleUploadRequest(*request);
-            lastReturn                 = coCode;
+            m_isWorkerWorking          = false;
+            m_isWorkerWorking.notify_one();
+
+            lastReturn = coCode;
             if (handlerCode == HandlerReturnCode::ok) {
                 request->markAsComplete(std::span(request->data));
                 break;
@@ -182,7 +188,8 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
                 request->cancel();
                 break;
             }
-            BR_APP_WARN("SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, attempt {}, abort code {}, CO code {}",
+            BR_LOG_WARN(s_cliTag,
+                        "SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, attempt {}, abort code {}, CO code {}",
                         request->nodeId,
                         request->index,
                         request->subIndex,
@@ -248,7 +255,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
     } while (ret != CO_SDO_RT_ok_communicationEnd);
 
     readUploadBufferIntoRequest(request);
-    BR_LOG_TRACE("SDO",
+    BR_LOG_TRACE(s_cliTag,
                  "Uploaded {} bytes from node {:02x}, index {:04x}, sub {:02x}",
                  request.data.size(),
                  request.nodeId,
@@ -293,7 +300,12 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
 
         request->status = SdoRequestStatus::OnGoing;
         for (uint8_t i = 0; i <= request->retries; ++i) {
+            m_isWorkerWorking.wait(true);         // Wait until it's false lol
+            m_isWorkerWorking          = true;    // "Lock" the workers.
             auto [handlerCode, coCode] = handleDownloadRequest(*request);
+            m_isWorkerWorking          = false;
+            m_isWorkerWorking.notify_one();
+
             if (handlerCode == HandlerReturnCode::ok) {
                 request->markAsComplete(coCode);
                 break;
@@ -302,7 +314,8 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
                 request->cancel();
                 break;
             }
-            BR_APP_WARN("SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, attempt {}, abort code {}, CO code {}",
+            BR_LOG_WARN(s_cliTag,
+                        "SDO Failure. Node {:02x}, index {:04x}, sub {:02x}, attempt {}, abort code {}, CO code {}",
                         request->nodeId,
                         request->index,
                         request->subIndex,
