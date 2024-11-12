@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 
 #include <string_view>
+#include <string>
 
 namespace Brigerad {
 class OpenGLTexture2D : public Texture2D {
