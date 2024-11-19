@@ -1,16 +1,14 @@
 #pragma once
 #include "Brigerad/Core/Layer.h"
 
+#include "Brigerad/Events/ApplicationEvent.h"
 #include "Brigerad/Events/KeyEvents.h"
 #include "Brigerad/Events/MouseEvent.h"
-#include "Brigerad/Events/ApplicationEvent.h"
 
-namespace Brigerad
-{
-class BRIGERAD_API ImGuiLayer : public Layer
-{
+namespace Brigerad {
+class BRIGERAD_API ImGuiLayer : public Layer {
 public:
-    ImGuiLayer();
+     ImGuiLayer();
     ~ImGuiLayer() override;
 
     virtual void onAttach() override;
@@ -30,9 +28,10 @@ private:
     bool   m_open             = false;
     bool   m_showMetricWindow = false;
 #if defined(BR_DEBUG)
-    bool m_showStyleEditor = false;
-    bool m_showDemoWindow = false;
-    bool m_showPlotWindow = false;
+    bool m_showStyleEditor   = false;
+    bool m_showDemoWindow    = false;
+    bool m_showPlotWindow    = false;
+    bool m_showSpinnerWindow = false;
 #endif
 
     bool   m_isProfiling        = false;

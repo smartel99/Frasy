@@ -454,11 +454,11 @@ function Orchestrator.CompileExecutionResults(outputDir)
         end
     end
     Context.map.onReport(report) -- report passed as pointer, careful
-    Utils.SaveAsJson(report, string.format("%s/%s.json", outputDir, Context.info.uut))
+    SaveAsJson(report, string.format("%s/%s.json", outputDir, Context.info.uut))
 end
 
 function Orchestrator.SaveSolution(path)
-    Utils.SaveAsJson(Context.orchestrator.solution, path)
+    SaveAsJson(Context.orchestrator.solution, path)
 end
 
 function Orchestrator.LoadSolution(path)

@@ -10,6 +10,7 @@
  */
 #include "Application.h"
 
+#include "../Renderer/asset_manager.h"
 #include "../Script/ScriptEngine.h"
 #include "Input.h"
 #include "KeyCodes.h"
@@ -53,6 +54,7 @@ Application::Application(const std::string& name, bool maximized)
     // Add the ImGui layer to the layer stack as an overlay (on top of everything).
     m_layerStack.PushOverlay(m_imguiLayer);
     m_imguiLayer->onAttach();
+    AssetManager::Init();
 }
 
 /**

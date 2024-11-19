@@ -172,8 +172,8 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
 
         // Utils
-        lua.script_file("lua/core/utils/utils.lua");
-        lua["Utils"]["DirList"] = [](const std::string& path) {
+        lua.script_file("lua/core/utils/global.lua");
+        lua["DirList"] = [](const std::string& path) {
             FRASY_PROFILE_FUNCTION();
             std::vector<std::string> files {};
             std::list<std::string>   directories {};
@@ -193,12 +193,12 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
             }
             return sol::as_table(files);
         };
-        lua["Utils"]["SleepFor"] =
+        lua["SleepFor"] =
             stage == Stage::execution ? [](int duration) {
                 FRASY_PROFILE_FUNCTION();
                 std::this_thread::sleep_for(std::chrono::milliseconds(duration)); }
             : [](int duration) { FRASY_PROFILE_FUNCTION(); };
-        lua["Utils"]["SaveAsJson"] = [](sol::table table, const std::string& file) {
+        lua["SaveAsJson"] = [](sol::table table, const std::string& file) {
             FRASY_PROFILE_FUNCTION();
             SaveAsJson(std::move(table), file);
         };
@@ -400,7 +400,7 @@ bool Orchestrator::LoadTests(sol::state_view lua, const std::string& filename)
     FRASY_PROFILE_FUNCTION();
     sol::protected_function run = lua.script_file("lua/core/helper/load_tests.lua");
     run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-    auto result                 = run(filename);
+    auto result = run(filename);
     if (!result.valid()) {
         sol::error err = result;
         lua["Log"]["E"](err.what());

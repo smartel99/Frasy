@@ -14,12 +14,16 @@
 #include <imgui.h>
 #include <implot.h>
 
+#ifdef BR_DEBUG
+#    define IMSPINNER_DEMO
+#endif
+#include <imspinner.h>
+
 // TEMP
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-namespace Brigerad
-{
+namespace Brigerad {
 ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer")
 {
 }
@@ -45,8 +49,11 @@ void ImGuiLayer::onAttach()
     //     ImGuiConfigFlags_ViewportsEnable;    // Enable multi-viewport / platform window.
 
     // io.Fonts->AddFontFromFileTTF("assets/fonts/OpenSans-Bold.ttf", 18.0f);
-    io.FontDefault = io.Fonts->AddFontFromFileTTF(
+    auto* defaultFont = io.Fonts->AddFontFromFileTTF(
       "assets/fonts/JetBrains Mono Regular Nerd Font Complete Windows Compatible.ttf", 18.0f);
+    io.Fonts->AddFontFromFileTTF("assets/fonts/JetBrains Mono Regular Nerd Font Complete Windows Compatible.ttf",
+                                 24.0f);
+    io.FontDefault = defaultFont;
 
     // Setup dear Imgui style.
     ImGui::StyleColorsDark();
@@ -54,8 +61,7 @@ void ImGuiLayer::onAttach()
     // When view ports are enabled we tweak WindowRounding/WindowBg
     // so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         style.WindowRounding            = 0.0f;
         style.Colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
     }
@@ -80,8 +86,7 @@ void ImGuiLayer::onDetach()
 
 void ImGuiLayer::onEvent(Event& event)
 {
-    if (m_blockImGuiEvents)
-    {
+    if (m_blockImGuiEvents) {
         ImGuiIO& io = ImGui::GetIO();
         event.m_handled |= event.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
         event.m_handled |= event.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
@@ -94,10 +99,8 @@ void ImGuiLayer::onImGuiRender()
 
     m_time = ImGui::GetTime();
 
-    if (m_isProfiling)
-    {
-        if (m_time >= m_profilingStartTime + m_profilingDuration)
-        {
+    if (m_isProfiling) {
+        if (m_time >= m_profilingStartTime + m_profilingDuration) {
             m_isProfiling = false;
             BR_PROFILE_END_SESSION();
         }
@@ -109,29 +112,33 @@ void ImGuiLayer::onImGuiRender()
     if (m_showMetricWindow) { ImGui::ShowMetricsWindow(&m_showMetricWindow); }
 
 #if defined(BR_DEBUG)
-    if (m_showStyleEditor)
-    {
+    if (m_showStyleEditor) {
         ImGui::Begin("Style Editor", &m_showStyleEditor);
         ImGui::ShowStyleEditor();
         ImGui::End();
     }
 
     if (m_showDemoWindow) { ImGui::ShowDemoWindow(&m_showDemoWindow); }
-    if (m_showPlotWindow) { ImPlot::ShowDemoWindow(&m_showDemoWindow); }
+    if (m_showPlotWindow) { ImPlot::ShowDemoWindow(&m_showPlotWindow); }
+    if (m_showSpinnerWindow) {
+        ImGui::Begin("Spinners", &m_showSpinnerWindow);
+        ImSpinner::demoSpinners();
+        ImGui::End();
+    }
 #endif
 
-    auto& window  = Application::Get().getWindow();
-    bool  isVSync = window.IsVSync();
-    if (ImGui::Begin("Settings", &m_open))
-    {
+    auto& window     = Application::Get().getWindow();
+    bool  isVSync    = window.IsVSync();
+    bool  isUncapped = window.IsUncapped();
+    if (ImGui::Begin("Settings", &m_open)) {
         float fps = ImGui::GetIO().Framerate;
         ImGui::Text("Framerate: %.02f (%.03fms)", fps, ((1.0f / fps) * 1000.0f));
 
-        if (ImGui::Checkbox("vsync", &isVSync))
-        {
+        if (ImGui::Checkbox("vsync", &isVSync)) {
             window.SetVSync(isVSync);
             BR_CORE_INFO("Set VSync to {0}", isVSync);
         }
+        if (ImGui::Checkbox("Uncapped", &isUncapped)) { window.SetUncapped(isUncapped); }
 
         if (ImGui::Button("open metric window")) { m_showMetricWindow = true; }
 
@@ -139,19 +146,17 @@ void ImGuiLayer::onImGuiRender()
         if (ImGui::Button("open style editor")) { m_showStyleEditor = true; }
         if (ImGui::Button("Show Demo Window")) { m_showDemoWindow = true; }
         if (ImGui::Button("Show Plot Demo Window")) { m_showPlotWindow = true; }
+        if (ImGui::Button("Show Spinner Demo Window")) { m_showSpinnerWindow = true; }
 #endif
 
 
-        if (ImGui::Button(!m_isProfiling ? "Start Profiling" : "Stop  Profiling"))
-        {
-            if (!m_isProfiling)
-            {
+        if (ImGui::Button(!m_isProfiling ? "Start Profiling" : "Stop  Profiling")) {
+            if (!m_isProfiling) {
                 m_profilingStartTime = m_profilingDuration > 0 ? m_time : std::numeric_limits<double>::max();
                 BR_PROFILE_BEGIN_SESSION("Profiling Session", "BrigeradProfiling-Session.json");
                 m_isProfiling = true;
             }
-            else
-            {
+            else {
                 BR_PROFILE_END_SESSION();
                 m_isProfiling = false;
             }
@@ -159,6 +164,7 @@ void ImGuiLayer::onImGuiRender()
 
         ImGui::SameLine();
 
+        ImGui::SetNextItemWidth(200.0f);
         ImGui::InputDouble("Profiling Duration", &m_profilingDuration, 0.001, 0.100, "%0.3f");
 
         ImGui::End();
@@ -181,8 +187,7 @@ void ImGuiLayer::Begin()
     // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
     // because it would be confusing to have two docking targets within each others.
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    if (opt_fullscreen)
-    {
+    if (opt_fullscreen) {
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->Pos);
         ImGui::SetNextWindowSize(viewport->Size);
@@ -196,7 +201,7 @@ void ImGuiLayer::Begin()
 
     // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and
     // handle the pass-thru hole, so we ask Begin() to not render a background.
-    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) window_flags |= ImGuiWindowFlags_NoBackground;
+    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) { window_flags |= ImGuiWindowFlags_NoBackground; }
 
     // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
     // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
@@ -208,12 +213,11 @@ void ImGuiLayer::Begin()
     ImGui::Begin("Brigerad DockSpace", &dockspaceOpen, window_flags);
     ImGui::PopStyleVar();
 
-    if (opt_fullscreen) ImGui::PopStyleVar(2);
+    if (opt_fullscreen) { ImGui::PopStyleVar(2); }
 
     // DockSpace
     ImGuiIO& io = ImGui::GetIO();
-    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-    {
+    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
         ImGuiID dockspace_id = ImGui::GetID("Brigerad DockSpace ID");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     }
@@ -234,8 +238,7 @@ void ImGuiLayer::End()
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         GLFWwindow* backup_current_window = glfwGetCurrentContext();
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();

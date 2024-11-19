@@ -25,6 +25,7 @@
 #include <CO_ODinterface.h>
 #include <CO_SDOclient.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <cstdint>
 #include <expected>
@@ -160,6 +161,8 @@ private:
     SdoClientInfo                    m_clientInfo;
     std::unique_ptr<OD_obj_record_t> m_odObjRecord;
 
+    //! Used to atomize SDO transactions.
+    std::atomic_bool                                m_isWorkerWorking = false;
     std::queue<std::shared_ptr<SdoUploadRequest>>   m_pendingUploadRequests;
     std::queue<std::shared_ptr<SdoDownloadRequest>> m_pendingDownloadRequests;
 

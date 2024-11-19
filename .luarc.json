@@ -2,6 +2,7 @@
   "completion.requireSeparator": "/",
   "workspace.library": [
     "vendor/frasy/Frasy/can_open/can_open.lua",
+    "vendor/frasy/Frasy/can_open/object_dictionary.lua",
     "vendor/frasy/Frasy/lua/core/cep/daq.lua",
     "vendor/frasy/Frasy/lua/core/cep/pio.lua",
     "vendor/frasy/Frasy/lua/core/cep/r8l.lua",
@@ -15,6 +16,6 @@
     "vendor/frasy/Frasy/lua/core/sdk/log.lua",
     "vendor/frasy/Frasy/lua/core/sdk/popup.lua",
     "vendor/frasy/Frasy/lua/core/sdk/test.lua",
-    "vendor/frasy/Frasy/lua/core/utils/utils.lua"
+    "vendor/frasy/Frasy/lua/core/utils/global.lua"
   ]
 }

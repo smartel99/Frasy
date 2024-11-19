@@ -14,40 +14,32 @@
 #include "log_window.h"
 #include "result_analyzer.h"
 
-#include <Brigerad/Core/File.h>
+#include <Brigerad/Renderer/asset_manager.h>
 #include <frasy_interpreter.h>
 #include <imgui/imgui.h>
 #include <implot.h>
 #include <utils/imgui/table.h>
 
-#define CREATE_TEXTURE(texture, path)                                                                                  \
+#define CREATE_TEXTURE(texture, name, path)                                                                            \
     do {                                                                                                               \
-        if (Brigerad::File::CheckIfPathExists(path) == true) { texture = Brigerad::Texture2D::Create(path); }          \
-        else {                                                                                                         \
-            BR_CORE_ERROR("Unable to open '{}'!", path);                                                               \
-            texture = placeholderTexture;                                                                              \
-        }                                                                                                              \
+        texture = Brigerad::AssetManager::AddTexture2D(name, path);                                                    \
     } while (0)
 
 namespace Frasy {
 void MainApplicationLayer::onAttach()
 {
     BR_PROFILE_FUNCTION();
-    // Create a white texture to use if the texture files don't exist.
-    const auto placeholderTexture = Brigerad::Texture2D::Create(1, 1);
-    uint32_t   magentaTextureData = 0xFFFF00FF;
-    placeholderTexture->SetData(&magentaTextureData, sizeof(magentaTextureData));
-
     // Create textures.
-    CREATE_TEXTURE(m_run, "assets/textures/run.png");
-    CREATE_TEXTURE(m_runWarn, "assets/textures/run_warn.png");
-    CREATE_TEXTURE(m_pass, "assets/textures/pass.png");
-    CREATE_TEXTURE(m_fail, "assets/textures/fail.png");
-    CREATE_TEXTURE(m_error, "assets/textures/error.png");
-    CREATE_TEXTURE(m_testing, "assets/textures/testing.png");
-    CREATE_TEXTURE(m_waiting, "assets/textures/waiting.png");
-    CREATE_TEXTURE(m_idle, "assets/textures/idle.png");
-    CREATE_TEXTURE(m_disabled, "assets/textures/disabled.png");
+    CREATE_TEXTURE(m_run, "run", "assets/textures/run.png");
+    CREATE_TEXTURE(m_runWarn, "runWarn", "assets/textures/run_warn.png");
+    CREATE_TEXTURE(m_pass, "pass", "assets/textures/pass.png");
+    CREATE_TEXTURE(m_fail, "fail", "assets/textures/fail.png");
+    CREATE_TEXTURE(m_error, "error", "assets/textures/error.png");
+    CREATE_TEXTURE(m_testing, "testing", "assets/textures/testing.png");
+    CREATE_TEXTURE(m_waiting, "waiting", "assets/textures/waiting.png");
+    CREATE_TEXTURE(m_idle, "idle", "assets/textures/idle.png");
+    CREATE_TEXTURE(m_disabled, "disabled", "assets/textures/disabled.png");
+    CREATE_TEXTURE(m_abort, "abort", "assets/textures/emergency_stop.png");
 
     m_logWindow      = std::make_unique<LogWindow>();
     m_deviceViewer   = std::make_unique<DeviceViewer>(m_canOpen);
@@ -140,6 +132,8 @@ void MainApplicationLayer::onImGuiRender()
 
             ImGui::EndMenu();
         }
+
+        appendToMainTabBar();
 
         ImGui::EndMainMenuBar();
 

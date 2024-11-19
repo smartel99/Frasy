@@ -7,26 +7,33 @@ local CheckField = require("lua/core/utils/check_field")
 
 ---@class R8L
 ---@field ib Ib?
-R8L = {ib = nil, cache = {digitalOutput = 0, errorValueOutput = 0}}
+R8L = { ib = nil, cache = { digitalOutput = 0, errorValueOutput = 0 } }
 R8L.__index = R8L
 
 local function CheckIndex(index) CheckField(index, "index", IsIntegerIn(index, 0, 7)) end
 
 local function CheckRelayValue(value) CheckField(value, "value", IsUnsigned8(value)) end
 
----Creates a new R8L
----@param name string?
----@param nodeId integer?
----@return R8L
+
+--- @class R8L_NewOptionalParameters
+--- @field name string? default to "r8l"
+--- @field nodeId integer? default to 4
+
+--- Instantiates a R8L.
+--- Only to be used during environment declaration.
+--- @param opt R8L_NewOptionalParameters?
+--- @return R8L
 function R8L:New(name, nodeId)
     local ib = Ib:New()
     ib.kind = 04;
-    if name == nil then name = "r8l" end
-    ib.name = name
-    if nodeId == nil then nodeId = ib.kind end
-    ib.nodeId = nodeId
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
+    if opt.name == nil then opt.name = "r8l" end
+    if opt.nodeId == nil then opt.nodeId = ib.kind end
+    ib.name = opt.name
+    ib.nodeId = opt.nodeId
     ib.eds = "lua/core/cep/eds/r8l_1.0.0.eds"
-    return setmetatable({ib = ib, cache = {digitalOutput = 0, errorValueOutput = 0}}, R8L)
+    return setmetatable({ ib = ib, cache = { digitalOutput = 0, errorValueOutput = 0 } }, R8L)
 end
 
 function R8L:Reset()
@@ -98,8 +105,7 @@ end
 ---@return {left: number, right: number}
 function R8L:Id()
     local table = self.ib:Upload(self.ib.od["ID"]) --[[@as R8L_Id]]
-    return {left = table.ID_BRD_L, right = table.ID_BRD_R}
+    return { left = table.ID_BRD_L, right = table.ID_BRD_R }
 end
 
 return R8L
-

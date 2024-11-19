@@ -47,13 +47,13 @@ namespace Frasy::Widget {
  * .FinishHeader()
  * .Content(node.getEmergencies(), [](Widget::Table& table, const CanOpen::EmergencyMessage& em) {
  *     if (em.isCritical()) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_criticalEmergencyColor); }
- *     table.CellContenTextWrapped("{0:%c %Z}", em.timestamp);
- *     table.CellContenTextWrapped(em.errorCode);
- *     table.CellContenTextWrapped(em.errorRegister);
- *     table.CellContenTextWrapped(em.errorStatus);
- *     table.CellContenTextWrapped(em.information);
- *     table.CellContenTextWrapped(em.isActive);
- *     table.CellContenTextWrapped("{0:%c %Z}", em.resolutionTime);
+ *     table.CellContentTextWrapped("{0:%c %Z}", em.timestamp);
+ *     table.CellContentTextWrapped(em.errorCode);
+ *     table.CellContentTextWrapped(em.errorRegister);
+ *     table.CellContentTextWrapped(em.errorStatus);
+ *     table.CellContentTextWrapped(em.information);
+ *     table.CellContentTextWrapped(em.isActive);
+ *     table.CellContentTextWrapped("{0:%c %Z}", em.resolutionTime);
  * });
  * @endcode
  */

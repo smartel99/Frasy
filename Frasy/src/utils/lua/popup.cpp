@@ -18,33 +18,145 @@
 #include "popup.h"
 
 #include "Brigerad.h"
+#include "Brigerad/Core/File.h"
+#include "spdlog/fmt/bundled/compile.h"
 
 #include <format>
 #include <imgui.h>
 
 namespace Frasy::Lua {
+void Popup::Text::render()
+{
+    ImGui::Text("%s", text.c_str());
+}
+
+void Popup::Input::render()
+{
+    if (!title.empty()) {
+        ImGui::Text("%s", title.c_str());
+        ImGui::SameLine();
+    }
+    if (ImGui::InputText("##", buffer.data(), bufferLen)) {
+        onChange(std::string {buffer.begin(), buffer.end()}, index);
+    }
+}
+
+void Popup::Button::render()
+{
+    if (ImGui::Button(label.c_str(), size)) {
+        std::lock_guard lock {*luaMutex};
+        auto state = sol::state_view(action.lua_state());
+        auto result = action(*inputs);
+        if(!result.valid()) {
+            sol::error error = result;
+            BR_LUA_ERROR(error.what());
+        }
+        if (consume) { onConsume(); }
+    }
+}
+
+void Popup::Image::render()
+{
+    // Creation must be done in UI thread
+    // Otherwise, you get a nice black image
+    if (texture == nullptr) {
+        if (Brigerad::File::CheckIfPathExists(path)) { texture = Brigerad::Texture2D::Create(path); }
+        else {
+            const auto placeholderTexture = Brigerad::Texture2D::Create(1, 1);
+            uint32_t   magentaTextureData = 0xFFFF00FF;
+            placeholderTexture->SetData(&magentaTextureData, sizeof(magentaTextureData));
+            BR_CORE_ERROR("Unable to open '{}'!", path);
+            texture = placeholderTexture;
+        }
+        BR_CORE_DEBUG("Texture ID -> {}", texture->getRenderId());
+    }
+    uint64_t texture = this->texture->getRenderId();
+    ImGui::Image(reinterpret_cast<void*>(texture), size);
+}
+
+void Popup::BeginHorizontal::render()
+{
+    ImGui::BeginHorizontal(id, size, align);
+}
+
+void Popup::EndHorizontal::render()
+{
+    ImGui::EndHorizontal();
+}
+
+void Popup::BeginVertical::render()
+{
+    ImGui::BeginVertical(id, size, align);
+}
+
+void Popup::EndVertical::render()
+{
+    ImGui::EndVertical();
+}
+
+void Popup::SameLine::render()
+{
+    ImGui::SameLine(offsetFromStartX, spacing);
+}
+
+void Popup::Spring::render()
+{
+    ImGui::Spring(weight, spacing);
+}
+
 Popup::Popup(std::size_t uut, sol::table builder)
 {
-    bool global = builder["global"];
-    m_name      = builder["name"].operator std::string();
-    m_routine   = builder["routine"].get<sol::function>();
+    bool global               = builder["global"];
+    m_name                    = builder["name"].operator std::string();
+    m_routine                 = builder["routine"].get<sol::function>();
+    std::array<float, 2> size = {};
     if (!global) { m_name = std::format("UUT{} - {}", uut, m_name); }
-    auto elements = builder["elements"].get<std::vector<sol::table>>();
-    for (const auto& element : elements) {
-        auto kind = element["kind"].get<Element::Kind>();
-        auto text = element["value"].get<std::string>();
-        switch (kind) {
-            case Element::Kind::Text: m_elements.push_back(std::make_unique<Text>(text)); break;
+    for (const auto elements = builder["elements"].get<std::vector<sol::table>>(); const auto& element : elements) {
+        switch (element["kind"].get<Element::Kind>()) {
+            case Element::Kind::Text:
+                m_elements.push_back(std::make_unique<Text>(element["text"].get<std::string>()));
+                break;
             case Element::Kind::Input:
-                m_elements.push_back(std::make_unique<Input>(text, m_inputs.size()));
-                m_inputs.push_back({});
+                m_elements.push_back(std::make_unique<Input>(
+                  element["title"].get<std::string>(),
+                  m_inputs.size(),
+                  [&](const std::string& value, std::size_t index) { m_inputs[index] = value; }));
+                m_inputs.emplace_back();
                 break;
             case Element::Kind::Button:
-                m_elements.push_back(std::make_unique<Button>(text, element["action"].get<sol::function>()));
+                m_elements.push_back(std::make_unique<Button>(
+                  element["label"].get<std::string>(),
+                  element["size"].get<std::array<float, 2>>(),
+                  element["action"].get<sol::function>(),
+                  element["consume"].get<bool>(),
+                  [&] { Consume(); },
+                  &m_luaMutex,
+                  &m_inputs));
                 break;
             case Element::Kind::Image:
-                m_elements.push_back(std::make_unique<Image>(
-                  text, element["width"].get<std::size_t>(), element["height"].get<std::size_t>()));
+                size = element["size"].get<std::array<float, 2>>();
+                m_elements.push_back(
+                  std::make_unique<Image>(element["path"].get<std::string>(), ImVec2 {size[0], size[1]}));
+                break;
+            case Element::Kind::BeginHorizontal:
+                size = element["size"].get<std::array<float, 2>>();
+                m_elements.push_back(std::make_unique<BeginHorizontal>(
+                  element["id"].get<int>(), ImVec2 {size[0], size[1]}, element["align"].get<float>()));
+                break;
+            case Element::Kind::EndHorizontal: m_elements.push_back(std::make_unique<EndHorizontal>()); break;
+            case Element::Kind::BeginVertical:
+                size = element["size"].get<std::array<float, 2>>();
+                m_elements.push_back(std::make_unique<BeginVertical>(
+                  element["id"].get<int>(), ImVec2 {size[0], size[1]}, element["align"].get<float>()));
+                break;
+            case Element::Kind::EndVertical: m_elements.push_back(std::make_unique<EndVertical>()); break;
+            case Element::Kind::SameLine:
+                m_elements.push_back(std::make_unique<SameLine>(element["offsetFromStartX"].get<float>(),
+                                                                element["spacing"].get<float>()));
+                break;
+            case Element::Kind::Spring:
+                m_elements.push_back(
+                  std::make_unique<Spring>(element["weight"].get<float>(), element["spacing"].get<float>()));
                 break;
         }
     }
@@ -80,7 +192,7 @@ void Popup::Routine(bool once)
 void Popup::Render()
 {
     // ImGui::SetNextWindowFocus();    // Note: Forcing focus will prevent user to be able to open the top menu
-    // It's even worse, it block everything. To never be used again!
+    // It's even worse, it blocks everything. To never be used again!
     ImGui::Begin(m_name.c_str(),
                  nullptr,
                  ImGuiWindowFlags_NoResize |              //
@@ -89,59 +201,21 @@ void Popup::Render()
                    ImGuiWindowFlags_AlwaysAutoResize |    //
                    ImGuiWindowFlags_NoDocking);
 
-    auto renderText = [](Text* element) { ImGui::Text("%s", element->text.c_str()); };
-
-    auto renderInput = [&](Input* element, std::size_t index) {
-        if (!element->text.empty()) {
-            ImGui::Text("%s", element->text.c_str());
-            ImGui::SameLine();
-        }
-        if (ImGui::InputText("##", element->vBuf, element->vBufLen)) { m_inputs[element->index] = element->vBuf; }
-    };
-
-    auto renderButton = [&](Button* element, std::size_t index) {
-        if (ImGui::Button(element->text.c_str())) {
-            std::lock_guard lock {m_luaMutex};
-            element->action(m_inputs);
-        }
-    };
-
-    auto renderImage = [&](Image* element, std::size_t index) {
-        // Creation must be done in UI thread
-        // Otherwise, you get a nice black image
-        if (element->texture == nullptr) {
-            if (Brigerad::File::CheckIfPathExists(element->text)) {
-                element->texture = Brigerad::Texture2D::Create(element->text);
-            }
-            else {
-                const auto placeholderTexture = Brigerad::Texture2D::Create(1, 1);
-                uint32_t   magentaTextureData = 0xFFFF00FF;
-                placeholderTexture->SetData(&magentaTextureData, sizeof(magentaTextureData));
-                BR_CORE_ERROR("Unable to open '{}'!", element->text);
-                element->texture = placeholderTexture;
-            }
-            BR_CORE_DEBUG("Texture ID -> {}", element->texture->getRenderId());
-        }
-        uint64_t texture = element->texture->getRenderId();
-        ImVec2   size    = {element->width != 0 ? static_cast<float>(element->width)
-                                                : static_cast<float>(element->texture->GetWidth()),
-                       element->height != 0 ? static_cast<float>(element->height)
-                                                 : static_cast<float>(element->texture->GetHeight())};
-        ImGui::Image(reinterpret_cast<void*>(texture), size);
-    };
-
+    bool hasConsumeButton = false;
     for (std::size_t i = 0; i < m_elements.size(); ++i) {
         auto& element = m_elements[i];
         ImGui::PushID(std::format("Element {}", i).c_str());
-        switch (element->kind) {
-            case Element::Kind::Text: renderText(static_cast<Text*>(element.get())); break;
-            case Element::Kind::Input: renderInput(static_cast<Input*>(element.get()), i); break;
-            case Element::Kind::Button: renderButton(static_cast<Button*>(element.get()), i); break;
-            case Element::Kind::Image: renderImage(static_cast<Image*>(element.get()), i); break;
+        element->render();
+        if (element->kind == Element::Kind::Button) {
+            auto* button = static_cast<Button*>(element.get());
+            if (button->consume) { hasConsumeButton = true; }
         }
         ImGui::PopID();
     }
-    if (ImGui::Button("Cancel")) { Consume(); }
+
+    if (!hasConsumeButton) {
+        if (ImGui::Button("Cancel")) { Consume(); }
+    }
     ImGui::End();
 }
 

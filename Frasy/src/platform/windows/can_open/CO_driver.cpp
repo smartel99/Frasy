@@ -24,6 +24,7 @@
  * limitations under the License.
  */
 
+#include "utils/communication/can_open/can_open.h"
 #include "utils/communication/slcan/device.h"
 
 #include "utils/lua/profile_events.h"
@@ -92,8 +93,10 @@ void CO_UNLOCK_OD([[maybe_unused]] CO_CANmodule_t* CANmodule)
 static CO_ReturnError_t disableRx(CO_CANmodule_t* CANmodule)
 {
     /* insert a filter that doesn't match any messages */
-    auto* interface = static_cast<Frasy::SlCan::Device*>(CANmodule->interface);
-    interface->mute();
+    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    for (auto&& [port, interface] : *interfaces) {
+        interface.mute();
+    }
 
     return CO_ERROR_NO;
 }
@@ -103,8 +106,10 @@ static CO_ReturnError_t disableRx(CO_CANmodule_t* CANmodule)
 static CO_ReturnError_t setRxFilters(CO_CANmodule_t* CANmodule)
 {
     // Effectively allow everything, since we do not have filtering capabilities.
-    auto* interface = static_cast<Frasy::SlCan::Device*>(CANmodule->interface);
-    interface->unmute();
+    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    for (auto&& [port, interface] : *interfaces) {
+        interface.unmute();
+    }
 
     return CO_ERROR_NO;
 }
@@ -165,8 +170,10 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t*           CANmodule,
         rxArray[i].CANrx_callback = nullptr;
     }
 
-    auto* interface = static_cast<Frasy::SlCan::Device*>(CANmodule->interface);
-    interface->open();
+    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    for (auto&& [port, interface] : *interfaces) {
+        interface.open();
+    }
 
     return CO_ERROR_NO;
 }
@@ -177,8 +184,10 @@ void CO_CANmodule_disable(CO_CANmodule_t* CANmodule)
     if (CANmodule == nullptr || CANmodule->interface == nullptr) { return; }
 
     CANmodule->CANnormal = false;
-    auto* interface      = static_cast<Frasy::SlCan::Device*>(CANmodule->interface);
-    interface->close();
+    auto* interfaces     = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    for (auto&& [port, interface] : *interfaces) {
+        interface.close();
+    }
 }
 
 
@@ -248,28 +257,32 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
 
     if (CANmodule == nullptr || buffer == nullptr) { return CO_ERROR_ILLEGAL_ARGUMENT; }
 
-    auto* interface = static_cast<Frasy::SlCan::Device*>(CANmodule->interface);
-    if (interface == nullptr) { return CO_ERROR_ILLEGAL_ARGUMENT; }
+    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    if (interfaces == nullptr) { return CO_ERROR_ILLEGAL_ARGUMENT; }
+
 
     /* Verify overflow */
     if (buffer->bufferFull) {
-        log_printf(LOG_ERR, DBG_CAN_TX_FAILED, buffer->ident, interface->getPort().c_str());
+        log_printf(LOG_ERR, DBG_CAN_TX_FAILED, buffer->ident, "Buffer full");
         err = CO_ERROR_TX_OVERFLOW;
     }
 
     auto packet = Frasy::SlCan::Packet {*buffer};
     {
         CO_LOCK_CAN_SEND(CANmodule);
-        size_t written = interface->transmit(packet);
-        if (written == packet.sizeOfSerialPacket()) {
-            /* success */
+        bool allSuccess = true;
+        for (auto&& [port, interface] : *interfaces) {
+            size_t written = interface.transmit(packet);
+            if (written != packet.sizeOfSerialPacket()) { allSuccess = false; }
+        }
+        if (allSuccess) {
             if (buffer->bufferFull) {
                 buffer->bufferFull = false;
                 CANmodule->CANtxCount--;
             }
         }
         else {
-            /* Send failed, message will be re-sent by CO_CANmodule_process() */
+            // Send failed, message will be re-sent by CO_CANmodule_process().
             if (!buffer->bufferFull) {
                 buffer->bufferFull = true;
                 CANmodule->CANtxCount++;
@@ -321,31 +334,33 @@ void CO_CANpollReceive(CO_CANmodule_t* canModule)
     FRASY_PROFILE_FUNCTION();
     if (canModule == nullptr || canModule->interface == nullptr) { return; }
 
-    auto& interface = *static_cast<Frasy::SlCan::Device*>(canModule->interface);
+    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(canModule->interface);
 
-    while (interface.available() != 0) {
-        auto packetOpt = interface.receive().toCOCanRxMsg();
-        if (!packetOpt.has_value()) {
-            // TODO maybe handle it somehow
-            continue;
-        }
-        auto& packet = packetOpt.value();
-
-        // Message has been received. Search rxArray from CANmodule for the same CAN-ID.
-        auto* rcvMsgObj = &canModule->rxArray[0];
-        bool  matched   = false;
-        for (size_t index = 0; index < canModule->rxSize; index++) {
-            if (((packet.ident ^ rcvMsgObj->ident) & rcvMsgObj->mask) == 0) {
-                // Received message matches this "filter".
-                matched = true;
-                break;
+    for (auto&& [port, interface] : *interfaces) {
+        while (interface.available() != 0) {
+            auto packetOpt = interface.receive().toCOCanRxMsg();
+            if (!packetOpt.has_value()) {
+                // TODO maybe handle it somehow
+                continue;
             }
-            rcvMsgObj++;
-        }
+            auto& packet = packetOpt.value();
 
-        if (matched && (rcvMsgObj != nullptr && rcvMsgObj->CANrx_callback != nullptr)) {
-            // Call specific function for that "filter", it will do the processing.
-            rcvMsgObj->CANrx_callback(rcvMsgObj->object, &packet);
+            // Message has been received. Search rxArray from CANmodule for the same CAN-ID.
+            auto* rcvMsgObj = &canModule->rxArray[0];
+            bool  matched   = false;
+            for (size_t index = 0; index < canModule->rxSize; index++) {
+                if (((packet.ident ^ rcvMsgObj->ident) & rcvMsgObj->mask) == 0) {
+                    // Received message matches this "filter".
+                    matched = true;
+                    break;
+                }
+                rcvMsgObj++;
+            }
+
+            if (matched && (rcvMsgObj != nullptr && rcvMsgObj->CANrx_callback != nullptr)) {
+                // Call specific function for that "filter", it will do the processing.
+                rcvMsgObj->CANrx_callback(rcvMsgObj->object, &packet);
+            }
         }
     }
 }

@@ -16,6 +16,7 @@
 /*****************************************************************************/
 /* Includes */
 #    include <string>
+#    include <string_view>
 
 /*****************************************************************************/
 /* Exported defines */
@@ -27,12 +28,10 @@
 
 /*****************************************************************************/
 /* Exported types */
-namespace Brigerad
-{
-class File
-{
+namespace Brigerad {
+class File {
 public:
-    static bool CheckIfPathExists(const std::string& path);
+    static bool CheckIfPathExists(std::string_view path);
     static bool CreateDir(const std::string& path);
 };
 }    // namespace Brigerad

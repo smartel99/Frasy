@@ -22,8 +22,11 @@
 #include "utils/config.h"
 
 #include <Brigerad.h>
+
 #include <optional>
 #include <unordered_map>
+#include <vector>
+
 
 namespace Frasy {
 class DeviceViewer : public Brigerad::Layer {
@@ -45,7 +48,7 @@ class DeviceViewer : public Brigerad::Layer {
             static std::optional<WhitelistItem> parse(const std::wstring& name);
         };
 
-        std::string                lastDevice;
+        std::vector<std::string>   lastDevices;
         std::vector<WhitelistItem> usbWhitelist;
     };
     friend void to_json(nlohmann::json& j, const DeviceViewerOptions& options);

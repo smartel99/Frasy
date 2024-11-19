@@ -37,6 +37,7 @@
 #include <cstdint>
 #include <format>
 #include <functional>
+#include <map>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -60,6 +61,7 @@ static constexpr uint16_t s_sdoClientBaseAddress = 0x1280;
 class CanOpen {
 public:
     using EmergencyMessageCallback = std::function<void(const EmergencyMessage&)>;
+    using Interfaces_t             = std::map<std::string, SlCan::Device>;
 
 public:
              CanOpen();
@@ -69,10 +71,13 @@ public:
     // CanOpen& operator=(CanOpen&&) = default;
     ~CanOpen();
 
-    void open(std::string_view port);
+    bool addDevice(const std::string& port);
+    bool removeDevice(const std::string& port);
+
+    // void open(std::string_view port);
     void reopen();
-    void close();
-    bool isOpen() const { return m_device.isOpen() && m_isRunning; }
+    // void close();
+    bool isOpen() const { return !m_devices.empty() && m_isRunning; }
 
     void reset();
     void start();
@@ -107,7 +112,7 @@ public:
 private:
     void canOpenTask(std::stop_token stopToken);
 
-    bool               initialInit(std::string_view port);
+    bool               initialInit();
     bool               runtimeInit();
     bool               initCallbacks();
     bool               initTime();
@@ -256,8 +261,8 @@ private:
 
     friend DeviceViewer;
     friend CanOpenViewer::Layer;
-    std::string   m_port;
-    SlCan::Device m_device;
+
+    Interfaces_t m_devices;
 
     static constexpr auto s_nmtControlFlags = static_cast<CO_NMT_control_t>(
       CO_NMT_STARTUP_TO_OPERATIONAL | CO_NMT_ERR_ON_ERR_REG | CO_ERR_REG_GENERIC_ERR | CO_ERR_REG_COMMUNICATION);

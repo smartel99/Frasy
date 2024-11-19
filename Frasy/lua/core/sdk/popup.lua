@@ -13,37 +13,57 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
----@class PopupBuilder
----@field name string Name of the popup, appears in the ImGui window.
----@field elements table Elements of the popup.
----@field global boolean
----@field New function
----@field Global function
----@field Show function
+local IsInteger = require("lua/core/utils/is_integer/is_integer")
+local CheckField = require("lua/core/utils/check_field")
+local function PrepareOptParameters(opt)
+    if opt == nil then return {} end
+    CheckField(opt, "opt", type(opt) == "table")
+    return opt
+end
+local function PrepareImguiSize(value, name)
+    if (value == nil) then return { 0.0, 0.0 } end
+    CheckField(value, name .. " type", type(value) == "table")
+    if value.width == nil then value.width = 0.0 end
+    if value.height == nil then value.height = 0.0 end
+    CheckField(value.width, name .. " width", type(value.width) == "number");
+    CheckField(value.height, name .. " height", type(value.height) == "number");
+    return { value.width * 1.0, value.height * 1.0 }
+end
 
+--- @class PopupBuilder
 local PopupBuilder   = { name = "", elements = {}, global = false }
 PopupBuilder.__index = PopupBuilder
 
 ---@enum ElementKind
 local ElementKind    = {
-    text   = 0,
-    input  = 1,
-    button = 2,
-    image  = 3,
+    text            = 0,
+    input           = 1,
+    button          = 2,
+    image           = 3,
+    beginHorizontal = 4,
+    endHorizontal   = 5,
+    beginVertical   = 6,
+    endVertical     = 7,
+    sameLine        = 8,
+    spring          = 9,
 }
 
+---@class ImGui_Size
+---@field width number?
+---@field height number?
+
 ---Creates a new popup.
----@param name string Name to be displayed.
+---@param name string? Name to be displayed.
 ---@return PopupBuilder
 function PopupBuilder:New(name)
     if name == nil then name = "" end
     return setmetatable(
-            {
-                name     = name,
-                elements = {},
-                global   = false,
-            },
-            PopupBuilder)
+        {
+            name     = name,
+            elements = {},
+            global   = false,
+        },
+        PopupBuilder)
 end
 
 function PopupBuilder:Global()
@@ -51,46 +71,170 @@ function PopupBuilder:Global()
     return self
 end
 
+--- Show a label on popup
+---@param text string
+---@return PopupBuilder builder
 function PopupBuilder:Text(text)
+    CheckField(text, "text", type(text) == "string")
     table.insert(self.elements, {
-        kind  = ElementKind.text,
-        value = text,
+        kind = ElementKind.text,
+        text = text,
     })
     return self
 end
 
-function PopupBuilder:Image(path, width, height)
-    if(width == nil) then width = 0 end
-    if(height == nil) then height = 0 end
+--- Show a TextInput on popup
+--- @param title string
+--- @return PopupBuilder builder
+function PopupBuilder:Input(title)
+    CheckField(title, "title", type(title) == "string")
+    table.insert(self.elements, {
+        kind = ElementKind.input,
+        title = title,
+    })
+    return self
+end
+
+--- @class Popup_Button_OptParameters
+--- @field size ImGui_Size?
+--- @field consume boolean? tell if this button must consume popup on click
+
+--- Show a button that can trigger an action
+--- @param label string
+--- @param action function must take no parameter and return no value
+--- @param opt Popup_Button_OptParameters?
+--- @return PopupBuilder builder
+function PopupBuilder:Button(label, action, opt)
+    CheckField(label, "label", type(label) == "string")
+    CheckField(action, "action", type(action) == "function")
+    opt = PrepareOptParameters(opt)
+    opt.size = PrepareImguiSize(opt.size, "size")
+    if opt.consume == nil then opt.consume = false end
+    CheckField(opt.consume, "consume", type(opt.consume) == "boolean")
+    table.insert(self.elements, {
+        kind    = ElementKind.button,
+        label   = label,
+        action  = action,
+        size    = opt.size,
+        consume = opt.consume,
+    })
+    return self
+end
+
+--- Show an image
+--- @param path string
+--- @param size ImGui_Size?
+function PopupBuilder:Image(path, size)
+    CheckField(path, "path", type(path) == "string")
+    size = PrepareImguiSize(size, "size")
     table.insert(self.elements, {
         kind = ElementKind.image,
-        value = path,
-        width = width,
-        height = height
+        path = path,
+        size = size
     })
     return self
 end
 
-function PopupBuilder:Input(text)
-    if text == nil then text = "" end
+--- @class ImGui_Layout_OptParameters
+--- @field size ImGui_Size?
+--- @field align number?
+
+--- @param id integer
+--- @param opt ImGui_Layout_OptParameters?
+--- @return PopupBuilder
+function PopupBuilder:BeginHorizontal(id, opt)
+    CheckField(id, "id", IsInteger(id))
+    opt = PrepareOptParameters(opt)
+    opt.size = PrepareImguiSize(opt.size, "size")
+    if opt.align == nil then opt.align = -1.0 end
+    CheckField(opt.align, "align", type(opt.align) == "number")
     table.insert(self.elements, {
-        kind  = ElementKind.input,
-        value = text,
+        kind = ElementKind.beginHorizontal,
+        id = id,
+        size = opt.size,
+        align = opt.align,
     })
     return self
 end
 
-function PopupBuilder:Button(text, action)
+--- @return PopupBuilder
+function PopupBuilder:EndHorizontal()
+    table.insert(self.elements, { kind = ElementKind.endHorizontal })
+    return self
+end
+
+--- @param id integer
+--- @param opt ImGui_Layout_OptParameters?
+--- @return PopupBuilder
+function PopupBuilder:BeginVertical(id, opt)
+    CheckField(id, "id", IsInteger(id))
+    opt = PrepareOptParameters(opt)
+    opt.size = PrepareImguiSize(opt.size, "size")
+    if opt.align == nil then opt.align = -1.0 end
+    CheckField(opt.align, "align", type(opt.align) == "number")
     table.insert(self.elements, {
-        kind   = ElementKind.button,
-        value  = text,
-        action = action,
+        kind = ElementKind.beginVertical,
+        id = id,
+        size = opt.size,
+        align = opt.align,
+    })
+    return self
+end
+
+--- @return PopupBuilder
+function PopupBuilder:EndVertical()
+    table.insert(self.elements, { kind = ElementKind.endVertical })
+    return self
+end
+
+--- @class ImGui_SameLine_OptParameters
+--- @field offsetFromStartX number?
+--- @field spacing number?
+
+--- Request next Element to be on same line as previous
+--- @param opt ImGui_SameLine_OptParameters?
+--- @return PopupBuilder builder
+function PopupBuilder:SameLine(opt)
+    if opt == nil then opt = {} end
+    CheckField(opt, "opt", type(opt) == "table")
+    if opt.offsetFromStartX == nil then opt.offsetFromStartX = 0.0 end
+    if opt.spacing == nil then opt.spacing = -1.0 end
+    CheckField(opt.offsetFromStartX, "offsetFromStartX", type(opt.offsetFromStartX) == "number");
+    CheckField(opt.spacing, "spacing", type(opt.spacing) == "number");
+    table.insert(self.elements, {
+        kind = ElementKind.sameLine,
+        offsetFromStartX = opt.offsetFromStartX,
+        spacing = opt.spacing,
+    })
+    return self
+end
+
+--- @class ImGui_Spring_OptParameters
+--- @field weight number?
+--- @field spacing number?
+
+--- @param opt ImGui_Spring_OptParameters?
+function PopupBuilder:Spring(opt)
+    opt = PrepareOptParameters(opt)
+    if opt.weight == nil then opt.weight = 1 end
+    if opt.spacing == nil then opt.spacing = -1 end
+    CheckField(opt.weight, "weight", type(opt.weight) == "number")
+    CheckField(opt.spacing, "spacing", type(opt.spacing) == "number")
+    table.insert(self.elements, {
+        kind = ElementKind.spring,
+        weight = opt.weight,
+        spacing = opt.spacing,
     })
     return self
 end
 
 function PopupBuilder:Routine(routine)
     self.routine = routine
+    return self
+end
+
+function PopupBuilder:ConsumeButtonText(text)
+    self.consumeButtonText = text
     return self
 end
 

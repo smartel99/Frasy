@@ -35,10 +35,8 @@
 
 #include <string>
 
-namespace Brigerad
-{
-namespace Scripting
-{
+namespace Brigerad {
+namespace Scripting {
 extern sol::state* GetState();
 }
 /*********************************************************************************************************************/
@@ -62,10 +60,10 @@ void ScriptEngineRegistry::RegisterTexture2D()
 {
     auto lua = Scripting::GetState();
 
-    auto texture2D      = lua->new_usertype<Texture2D>("Texture2D", sol::no_constructor);
-    texture2D["Create"] = sol::overload(
-      static_cast<Ref<Texture2D> (*)(const std::string&)>(&Texture2D::Create),
-      static_cast<Ref<Texture2D> (*)(uint32_t, uint32_t, uint8_t)>(&Texture2D::Create));
+    auto texture2D = lua->new_usertype<Texture2D>("Texture2D", sol::no_constructor);
+    texture2D["Create"] =
+      sol::overload(static_cast<Ref<Texture2D> (*)(std::string_view)>(&Texture2D::Create),
+                    static_cast<Ref<Texture2D> (*)(uint32_t, uint32_t, uint8_t)>(&Texture2D::Create));
     texture2D["GetWidth"]    = &Texture2D::GetWidth;
     texture2D["GetHeight"]   = &Texture2D::GetHeight;
     texture2D["GetFormat"]   = &Texture2D::GetFormat;
@@ -76,7 +74,7 @@ void ScriptEngineRegistry::RegisterSubTexture2D()
 {
     auto lua = Scripting::GetState();
 
-    auto subTexture2D = lua->new_usertype<SubTexture2D>("SubTexture2D", sol::no_constructor);
+    auto subTexture2D                = lua->new_usertype<SubTexture2D>("SubTexture2D", sol::no_constructor);
     subTexture2D["CreateFromCoords"] = &SubTexture2D::CreateFromCoords;
     subTexture2D["GetTexture"]       = &SubTexture2D::GetTexture;
     subTexture2D["GetTexCoords"]     = &SubTexture2D::GetTexCoords;

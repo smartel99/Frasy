@@ -5,6 +5,8 @@
 #include "Brigerad/Renderer/Texture.h"
 #include "Brigerad/Renderer/SubTexture2D.h"
 
+#include <string>
+
 
 namespace Brigerad
 {
