@@ -217,6 +217,9 @@ function Orchestrator.Generate()
     while hasFailedSequences do
         hasFailedSequences = false
         local hasProgressOnSequences = false
+        if #Context.orchestrator.sequences == 0 then
+            error(GenerationError("No sequences were found!"))
+        end
         for sName, sequence in pairs(Context.orchestrator.sequences) do
             if completedSequences[sName] ~= nil then
                 Log.D("Sequence " .. sName .. " already generated, skipping")

@@ -13,6 +13,10 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 local ExpectationResult = require("lua/core/framework/expectation/result")
+---@class Expectation
+---@field New function
+---@field Mandatory function
+---
 local Expectation = {mandatory = false, result = nil}
 Expectation.__index = Expectation
 
