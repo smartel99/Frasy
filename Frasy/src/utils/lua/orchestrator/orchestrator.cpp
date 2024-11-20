@@ -155,6 +155,53 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
                            sol::lib::math,
                            sol::lib::os);
 
+        // Profiling
+        lua["__profileStartEvent"] = sol::overload(
+          [](sol::this_state state, const std::string& name) {
+              if (name.empty()) { throw sol::error("Name cannot be empty!"); }
+              lua_Debug ar {};
+              lua_getstack(state.lua_state(), 1, &ar);
+              lua_getinfo(state.lua_state(), "nSl", &ar);
+              Profiler::get().reportCallEvent({name, ar.source, ar.currentline});
+          },
+          [](const std::string& name, const std::string& source, int line) {
+              if (name.empty()) { throw sol::error("Name cannot be empty!"); }
+              if (source.empty()) { throw sol::error("Source cannot be empty!"); }
+              Profiler::get().reportCallEvent({name, source, line});
+          });
+
+        lua["__profileEndEvent"] = sol::overload(
+          [](sol::this_state state, const std::string& name) {
+              if (name.empty()) { throw sol::error("Name cannot be empty!"); }
+              lua_Debug ar {};
+              lua_getstack(state.lua_state(), 2, &ar);
+              lua_getinfo(state.lua_state(), "nSl", &ar);
+              Profiler::get().reportReturnEvent({name, ar.source, ar.currentline});
+          },
+          [](const std::string& name, const std::string& source, int line) {
+              if (name.empty()) { throw sol::error("Name cannot be empty!"); }
+              if (source.empty()) { throw sol::error("Source cannot be empty!"); }
+              Profiler::get().reportReturnEvent({name, source, line});
+          });
+
+        lua_sethook(
+          lua.lua_state(),
+          [](lua_State* state, lua_Debug* ar) {
+              lua_getinfo(state, "nSl", ar);
+              std::string name = std::format("{}", ar->name == nullptr ? "<unknown>" : ar->name, ar->namewhat);
+
+              if (name == "__profileStartEvent" || name == "__profileEndEvent") { return; }
+              if (ar->source == nullptr) { ar->source = &ar->short_src[0]; }
+              if (ar->event == LUA_HOOKCALL) {
+                  Profiler::get().reportCallEvent({std::move(name), ar->source, ar->currentline});
+              }
+              else if (ar->event == LUA_HOOKRET) {
+                  Profiler::get().reportReturnEvent({std::move(name), ar->source, ar->currentline});
+              }
+          },
+          LUA_MASKCALL | LUA_MASKRET,
+          0);
+
         // Enums
         lua.script_file("lua/core/framework/stage.lua");
 
@@ -169,7 +216,6 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["Context"]["info"]["version"]["orchestrator"] = "1.1.0";
         lua["Context"]["info"]["version"]["scripts"]      = "0.0.1";
         std::atomic_thread_fence(std::memory_order_release);
-        lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
 
         // Utils
         lua.script_file("lua/core/utils/global.lua");
@@ -311,66 +357,22 @@ bool Orchestrator::InitLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         lua["CanOpen"]["__reset"] = [&](std::size_t nodeId) { m_canOpen->resetNode(nodeId); };
 
-        // User functions
-        m_loadUserFunctions(lua);
 
         // Boards
-        auto ibs     = lua.create_named_table("Ibs");
-        auto cepIbs  = lua.script_file("lua/core/cep/ibs.lua");
-        auto userIbs = m_loadUserBoards(lua);
+        auto ibs    = lua.create_named_table("Ibs");
+        auto cepIbs = lua.script_file("lua/core/cep/ibs.lua");
         for (auto& [k, v] : cepIbs.get<sol::table>()) {
             ibs[k] = v;
         }
+
+
+        // User content
+        lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
+        m_loadUserFunctions(lua);
+        auto userIbs = m_loadUserBoards(lua);
         for (auto& [k, v] : userIbs) {
             ibs[k] = v;
         }
-
-        // Profiling functions.
-        lua["__profileStartEvent"] = sol::overload(
-          [](sol::this_state state, const std::string& name) {
-              if (name.empty()) { throw sol::error("Name cannot be empty!"); }
-              lua_Debug ar {};
-              lua_getstack(state.lua_state(), 1, &ar);
-              lua_getinfo(state.lua_state(), "nSl", &ar);
-              Profiler::get().reportCallEvent({name, ar.source, ar.currentline});
-          },
-          [](const std::string& name, const std::string& source, int line) {
-              if (name.empty()) { throw sol::error("Name cannot be empty!"); }
-              if (source.empty()) { throw sol::error("Source cannot be empty!"); }
-              Profiler::get().reportCallEvent({name, source, line});
-          });
-
-        lua["__profileEndEvent"] = sol::overload(
-          [](sol::this_state state, const std::string& name) {
-              if (name.empty()) { throw sol::error("Name cannot be empty!"); }
-              lua_Debug ar {};
-              lua_getstack(state.lua_state(), 2, &ar);
-              lua_getinfo(state.lua_state(), "nSl", &ar);
-              Profiler::get().reportReturnEvent({name, ar.source, ar.currentline});
-          },
-          [](const std::string& name, const std::string& source, int line) {
-              if (name.empty()) { throw sol::error("Name cannot be empty!"); }
-              if (source.empty()) { throw sol::error("Source cannot be empty!"); }
-              Profiler::get().reportReturnEvent({name, source, line});
-          });
-
-        lua_sethook(
-          lua.lua_state(),
-          [](lua_State* state, lua_Debug* ar) {
-              lua_getinfo(state, "nSl", ar);
-              std::string name = std::format("{}", ar->name == nullptr ? "<unknown>" : ar->name, ar->namewhat);
-
-              if (name == "__profileStartEvent" || name == "__profileEndEvent") { return; }
-              if (ar->source == nullptr) { ar->source = &ar->short_src[0]; }
-              if (ar->event == LUA_HOOKCALL) {
-                  Profiler::get().reportCallEvent({std::move(name), ar->source, ar->currentline});
-              }
-              else if (ar->event == LUA_HOOKRET) {
-                  Profiler::get().reportReturnEvent({std::move(name), ar->source, ar->currentline});
-              }
-          },
-          LUA_MASKCALL | LUA_MASKRET,
-          0);
 
         return true;
     }
@@ -400,7 +402,7 @@ bool Orchestrator::LoadTests(sol::state_view lua, const std::string& filename)
     FRASY_PROFILE_FUNCTION();
     sol::protected_function run = lua.script_file("lua/core/helper/load_tests.lua");
     run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-    auto result = run(filename);
+    auto result                 = run(filename);
     if (!result.valid()) {
         sol::error err = result;
         lua["Log"]["E"](err.what());
