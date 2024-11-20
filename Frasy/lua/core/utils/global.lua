@@ -56,7 +56,7 @@ function Print(t, max_depth)
     if (type(t) == "table") then
         print(PrettyPrint(t, max_depth))
     else
-        Print(t)
+        print(t)
     end
 end
 
