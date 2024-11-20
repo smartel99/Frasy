@@ -23,7 +23,7 @@ local function CheckRelayValue(value) CheckField(value, "value", IsUnsigned8(val
 --- Only to be used during environment declaration.
 --- @param opt R8L_NewOptionalParameters?
 --- @return R8L
-function R8L:New(name, nodeId)
+function R8L:New(opt)
     local ib = Ib:New()
     ib.kind = 04;
     if opt == nil then opt = {} end
