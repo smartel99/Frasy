@@ -54,7 +54,7 @@ function Sequence(name, func)
     end
 end
 
---- Test setter and Test scope getter  
+--- Test setter and Test scope getter
 --- Test Creation
 --- In order to create a test, you must provide both a name and function
 --- The orchestrator will register the test and run it accordingly inside its sequence

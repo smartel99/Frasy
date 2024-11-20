@@ -42,12 +42,12 @@ PIO.IoConfigurationEnum = { input = 0, output = 1 }
 
 local function CheckSupplyEnum(supply)
     CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.p3v3,
-        PIO.SupplyEnum.pVariable2))
+            PIO.SupplyEnum.pVariable2))
 end
 
 local function CheckVariableSupplyEnum(supply)
     CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.pVariable1,
-        PIO.SupplyEnum.pVariable2))
+            PIO.SupplyEnum.pVariable2))
 end
 
 function PIO.SupplyEnumToOdName(supply)
@@ -78,10 +78,16 @@ end
 function PIO:New(opt)
     local ib = Ib:New()
     ib.kind = 03;
-    if opt == nil then opt = {} end
+    if opt == nil then
+        opt = {}
+    end
     CheckField(opt, "opt", type(opt) == "table")
-    if opt.name == nil then opt.name = "pio" end
-    if opt.nodeId == nil then opt.nodeId = ib.kind end
+    if opt.name == nil then
+        opt.name = "pio"
+    end
+    if opt.nodeId == nil then
+        opt.nodeId = ib.kind
+    end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
     ib.eds = "lua/core/cep/eds/pio_1.0.0.eds"
@@ -180,6 +186,26 @@ function PIO:SupplyOutputEnable(supply, state)
     end
 end
 
+--- Supply's grace period accessor.
+--- If period is provided, function will act as a setter and return nothing.
+---@param supply PIO_SupplyEnum
+---@param period integer? Period, in ticks (~1ms) during which the output voltage of a supply will not be checked after a transition in state.
+---A value of 0 disables the grace period.
+---A value of -1 disables the monitoring of the output voltage.
+---
+---@return integer? the current grace period.
+function PIO:SupplyGracePeriod(supply, period)
+    CheckSupplyEnum(supply)
+    local odName = PIO.SupplyEnumToOdName(supply)
+    local od = self.ib.od[odName]["Grace Period"]
+    if period == nil then
+        return self.ib:Upload(od)
+    else
+        CheckField(period, "Grace Period", IsIntegerInOd(period, od))
+        self.ib:Download(od, period)
+    end
+end
+
 --- All IO's input values accessor.
 --- if values is provided, function will act as setter and return nothing.
 --- @param values? integer
@@ -273,7 +299,7 @@ function PIO:IoPolarity(index, value)
     else
         CheckIoValue(value)
         self:IoPolarities(Bitwise.Inject(index, value,
-            self.cache.gpio.polarity))
+                self.cache.gpio.polarity))
     end
 end
 
@@ -306,6 +332,6 @@ function PIO:GpioConfiguration(index, value)
     else
         CheckIoValue(value)
         self:IoConfigurations(Bitwise.Inject(index, value,
-            self.cache.gpio.configuration))
+                self.cache.gpio.configuration))
     end
 end

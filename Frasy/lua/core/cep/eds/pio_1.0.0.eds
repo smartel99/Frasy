@@ -5,11 +5,11 @@ FileRevision=1
 LastEDS=
 EDSVersion=4.0
 Description=
-CreationTime=9:23AM
+CreationTime=8:23AM
 CreationDate=06-03-2024
 CreatedBy=Samuel Martel
-ModificationTime=11:40AM
-ModificationDate=10-29-2024
+ModificationTime=3:26PM
+ModificationDate=11-20-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -738,7 +738,7 @@ PDOMapping=0
 ParameterName=Supply 3V3
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x5
+SubNumber=0x6
 
 [6000sub0]
 ParameterName=Highest sub-index supported
@@ -747,7 +747,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x04
+DefaultValue=0x05
 PDOMapping=0
 
 [6000sub1]
@@ -792,11 +792,23 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
+[6000sub5]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
 [6001]
 ParameterName=Supply 5V
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x5
+SubNumber=0x6
 
 [6001sub0]
 ParameterName=Highest sub-index supported
@@ -805,7 +817,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x04
+DefaultValue=0x05
 PDOMapping=0
 
 [6001sub1]
@@ -850,11 +862,23 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
+[6001sub5]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
 [6002]
 ParameterName=Supply 12V
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x5
+SubNumber=0x6
 
 [6002sub0]
 ParameterName=Highest sub-index supported
@@ -863,7 +887,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x04
+DefaultValue=0x05
 PDOMapping=0
 
 [6002sub1]
@@ -908,11 +932,23 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
+[6002sub5]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
 [6003]
 ParameterName=Supply 24V
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x5
+SubNumber=0x6
 
 [6003sub0]
 ParameterName=Highest sub-index supported
@@ -921,7 +957,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x04
+DefaultValue=0x05
 PDOMapping=0
 
 [6003sub1]
@@ -966,11 +1002,23 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
+[6003sub5]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
 [6004]
 ParameterName=Variable Supply 1
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x6
+SubNumber=0x7
 
 [6004sub0]
 ParameterName=Highest sub-index supported
@@ -979,7 +1027,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x05
+DefaultValue=0x06
 PDOMapping=0
 
 [6004sub1]
@@ -1036,11 +1084,23 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
+[6004sub6]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
 [6005]
 ParameterName=Variable Supply 2
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x6
+SubNumber=0x7
 
 [6005sub0]
 ParameterName=Highest sub-index supported
@@ -1049,7 +1109,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x05
+DefaultValue=0x06
 PDOMapping=0
 
 [6005sub1]
@@ -1104,6 +1164,18 @@ DataType=0x0001
 AccessType=rw
 StringLengthMin=0
 DefaultValue=0
+PDOMapping=0
+
+[6005sub6]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
 PDOMapping=0
 
 [6006]
