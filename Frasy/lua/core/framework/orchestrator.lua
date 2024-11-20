@@ -396,9 +396,7 @@ function Orchestrator.ExecuteSection(index)
     end
     for _, sequenceStage in ipairs(section) do
         for _, sequence in ipairs(sequenceStage) do
-            xpcall(function()
-                Orchestrator.RunSequence(index, Scope:New(sequence.name))
-            end, ErrorHandler)
+            Orchestrator.RunSequence(index, Scope:New(sequence.name))
         end
     end
     results.time.stop = os.clock()
