@@ -1,15 +1,15 @@
 [FileInfo]
-FileName=daq_1.0.0.eds
+FileName=daq_v1.0.0.eds
 FileVersion=1
 FileRevision=1
 LastEDS=
 EDSVersion=4.0
 Description=
-CreationTime=1:46PM
+CreationTime=12:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=11:18AM
-ModificationDate=10-28-2024
+ModificationTime=1:30PM
+ModificationDate=11-22-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -932,7 +932,7 @@ PDOMapping=0
 ParameterName=IO
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x4
+SubNumber=0x5
 
 [6002sub0]
 ParameterName=Highest sub-index supported
@@ -941,7 +941,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x03
+DefaultValue=0x04
 PDOMapping=0
 
 [6002sub1]
@@ -955,7 +955,17 @@ DefaultValue=0
 PDOMapping=0
 
 [6002sub2]
-ParameterName=Value
+ParameterName=Input Port
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6002sub3]
+ParameterName=Output Port
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0006
@@ -964,7 +974,7 @@ StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6002sub3]
+[6002sub4]
 ParameterName=Alternate Function
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1173,7 +1183,7 @@ ObjectType=0x7
 DataType=0x0001
 AccessType=rw
 StringLengthMin=0
-DefaultValue=1
+DefaultValue=0
 PDOMapping=0
 
 [6006]
