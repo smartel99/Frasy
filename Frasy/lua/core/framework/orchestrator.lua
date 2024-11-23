@@ -211,7 +211,6 @@ end
 
 function Orchestrator.Generate()
     Log.D("Generation")
-    Print(Context.orchestrator.sequences)
     local sd = {} -- sequences dependencies
     local td = {} -- tests dependencies
     local ss = {} -- sequences synchronization
@@ -424,16 +423,16 @@ function Orchestrator.CompileExecutionResults(outputDir)
         }
     }
     report.ib = {}
-    for k, ib in pairs(Context.map.ibs) do
-        report.ib[k] = {
-            kind = ib.ib.kind,
-            nodeId = ib.ib.nodeId,
-            eds = ib.ib.eds,
-            software = ib.ib:SoftwareVersion(),
-            hardware = ib.ib:HardwareVersion(),
-            serial = tostring(ib.ib:Serial()),
-        }
-    end
+    --for k, ib in pairs(Context.map.ibs) do
+    --    report.ib[k] = {
+    --        kind = ib.ib.kind,
+    --        nodeId = ib.ib.nodeId,
+    --        eds = ib.ib.eds,
+    --        software = ib.ib:SoftwareVersion(),
+    --        hardware = ib.ib:HardwareVersion(),
+    --        serial = tostring(ib.ib:Serial()),
+    --    }
+    --end
 
     report.sequences = {}
     for sName, sequence in pairs(Context.orchestrator.sequences) do
