@@ -18,7 +18,7 @@
 
 #include "CO_storageWindows.h"
 
-#include "Brigerad/Utils/dialogs/error.h"
+#include "Brigerad/Utils/dialogs/warning.h"
 #include "real_od.h"
 
 #include "../../lua/profile_events.h"
@@ -202,7 +202,7 @@ void CanOpen::stop()
     if (m_coThread.joinable()) { m_coThread.join(); }
 }
 
-#pragma region     Nodes
+#pragma region Nodes
 std::vector<Node>& CanOpen::getNodes()
 {
     return m_nodes;
@@ -435,7 +435,7 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
 }
 
 #pragma region Initialization
-bool           CanOpen::initialInit()
+bool CanOpen::initialInit()
 {
     // Initialize CANopen.
     OD_INIT_CONFIG(m_canOpenConfig);
@@ -676,7 +676,7 @@ CO_SDOclient_t* CanOpen::findSdoClientHandle(uint8_t nodeId)
 }
 
 #pragma region Callbacks
-void           CanOpen::emRxCallback(void*          arg,
+void CanOpen::emRxCallback(void*          arg,
                            const uint16_t ident,
                            const uint16_t errorCode,
                            const uint8_t  errorRegister,
@@ -695,6 +695,8 @@ void           CanOpen::emRxCallback(void*          arg,
       true,
     };
 
+    // TODO propagate errors to orchestrator.
+
     CanOpen* that = static_cast<CanOpen*>(arg);
 
     if (that == nullptr) {
@@ -703,8 +705,8 @@ void           CanOpen::emRxCallback(void*          arg,
             return;
         }
         // Panic the fuck out of this aaaaaaa
-        Brigerad::FatalErrorDialog(
-          "EMERGENCY", "Received emergency message, but there's no one to treat it!\n\r{}", emergencyMessage);
+        Brigerad::warningDialog(
+          "CANOpen doesn't", "Received emergency message, but there's no CANOpen instance!\n\r{}", emergencyMessage);
     }
 
     for (auto&& cb : that->m_emCallbacks) {
@@ -723,8 +725,8 @@ void           CanOpen::emRxCallback(void*          arg,
     if (it == that->m_nodes.end()) {
         if (!emergencyMessage.isCritical()) { return; }
         // Panic the fuck out of this aaaaaaa
-        Brigerad::FatalErrorDialog(
-          "EMERGENCY", "Received emergency message, but there's no one to treat it!\n\r{}", emergencyMessage);
+        Brigerad::warningDialog(
+          "EMERGENCY", "Received emergency message from unregistered node\n\r{}", emergencyMessage);
     }
 
     it->addEmergency(emergencyMessage);
