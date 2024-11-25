@@ -1,6 +1,7 @@
 local function IsStage(stage) return Context.info.stage == stage end
+
 return {
-    IsStage(Stage.Generation),
-    IsStage(Stage.Validation),
-    IsStage(Stage.Execution)
+    IsStage(Stage.generation),
+    IsStage(Stage.validation),
+    IsStage(Stage.execution)
 }
