@@ -376,11 +376,14 @@ DAQ.IoEnum = {
     db9SpareIo = 9,
 }
 
+--- @enum DAQ_IoModeEnum
+DAQ.IoModeEnum = { input = 0, output = 1 }
+
 --- @enum DAQ_IoValueEnum
 DAQ.IoValueEnum = { low = 0, high = 1 }
 
---- @enum DAQ_IoModeEnum
-DAQ.IoModeEnum = { input = 0, output = 1 }
+DAQ.HIGH = DAQ.IoValueEnum.high
+DAQ.LOW = DAQ.IoValueEnum.low
 
 local function CheckIoIndex(index)
     CheckField(index, "io index", IsIntegerIn(index, DAQ.IoEnum.a, DAQ.IoEnum.db9SpareIo))

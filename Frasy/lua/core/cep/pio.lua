@@ -53,6 +53,11 @@ PIO.IoModeEnum = { input = 0, output = 1 }
 --- @enum PIO_IoValueEnum
 PIO.IoValueEnum = { low = 0, high = 1 }
 
+--- Alias to PIO.IoValueEnum.high
+PIO.HIGH = PIO.IoValueEnum.high
+--- Alias to PIO.IoValueEnum.low
+PIO.LOW = PIO.IoValueEnum.low
+
 local function CheckSupplyEnum(supply)
     CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.p3v3,
         PIO.SupplyEnum.pVariable2))
@@ -247,7 +252,7 @@ end
 --- Single IO's output value accessor.
 --- if value is provided, function will act as setter and return nothing.
 --- @param index integer
---- @param value [PIO_IoValueEnum | integer]?
+--- @param value? PIO_IoValueEnum | integer
 --- @return PIO_IoValueEnum? value
 function PIO:IoOutputValue(index, value)
     CheckIoIndex(index)
@@ -298,7 +303,7 @@ end
 --- @param modes? integer bitpack of PIO_IoModeEnum. per bit: 0=input, 1=output
 --- @return integer? modes bitpack of PIO_IoModeEnum
 function PIO:IoModes(modes)
-    local od = self.ib.od["IO"]["Configuration"]
+    local od = self.ib.od["IO"]["Mode"]
     if modes == nil then
         self.cache.gpio.mode = self.ib:Upload(od) --[[@as integer]]
         return self.cache.gpio.mode
