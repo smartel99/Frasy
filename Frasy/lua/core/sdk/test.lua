@@ -120,7 +120,7 @@ end
 
 ---Expect
 ---@param value any
----@param note string
+---@param note string?
 ---@return Expectation
 function Expect(value, note)
     return Expectation:New(value, note)

@@ -7,8 +7,17 @@ local IsUnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in")
 local Bitwise = require("lua/core/utils/bitwise")
 local CheckField = require("lua/core/utils/check_field")
 
---- @class PIO
---- @field ib Ib?
+---@class PIO_CacheGpio
+---@field output integer
+---@field polarity integer
+---@field mode integer
+
+---@class PIO_Cache
+---@field gpio PIO_CacheGpio
+
+---@class PIO
+---@field ib Ib?
+---@field cache PIO_Cache
 PIO = {
     ib = nil,
     cache = {
@@ -16,7 +25,7 @@ PIO = {
             input = 0,
             output = 0,
             polarity = 0,
-            configuration = 0x0FFF,
+            mode = 0,
         }
     }
 }
@@ -33,21 +42,25 @@ PIO.SupplyEnum = {
 }
 
 PIO.IoIndexMax = 11
+PIO.IoValuesMax = 0x0FFF
 
 --- @enum PIO_IoPolarityEnum
 PIO.IoPolarityEnum = { regular = 0, inverted = 1 }
 
---- @enum PIO_IoConfigurationEnum
-PIO.IoConfigurationEnum = { input = 0, output = 1 }
+--- @enum PIO_IoModeEnum
+PIO.IoModeEnum = { input = 0, output = 1 }
+
+--- @enum PIO_IoValueEnum
+PIO.IoValueEnum = { low = 0, high = 1 }
 
 local function CheckSupplyEnum(supply)
     CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.p3v3,
-            PIO.SupplyEnum.pVariable2))
+        PIO.SupplyEnum.pVariable2))
 end
 
 local function CheckVariableSupplyEnum(supply)
     CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.pVariable1,
-            PIO.SupplyEnum.pVariable2))
+        PIO.SupplyEnum.pVariable2))
 end
 
 function PIO.SupplyEnumToOdName(supply)
@@ -60,11 +73,6 @@ end
 
 local function CheckIoIndex(index)
     CheckField(index, "gpio index", IsUnsignedIn(index, 0, PIO.IoIndexMax))
-end
-
-local function CheckIoValue(value)
-    -- CheckField(value, "value", IsUnsignedIn(value, 0, 0x3FF))
-    CheckField(value, "value", IsUnsigned16(value))
 end
 
 --- @class PIO_NewOptionalParameters
@@ -97,7 +105,7 @@ function PIO:New(opt)
             gpio = {
                 output = 0,
                 polarity = 0,
-                configuration = 0x3FF,
+                mode = 0,
             }
         }
     }, PIO)
@@ -109,12 +117,11 @@ function PIO:Reset()
 end
 
 --- Load current state of the board.
---- Populate cache entry for IO values, polarities and configurations.
+--- Populate cache entry for IO values, polarities and mode.
 function PIO:LoadCache()
-    self:IoInputValues()
     self:IoOutputValues()
     self:IoPolarities()
-    self:IoConfigurations()
+    self:IoModes()
 end
 
 --- Supply's Current Limit Accessor.
@@ -127,6 +134,7 @@ function PIO:SupplyCurrentLimit(supply, limit)
     local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Current Limit"]
     if limit ~= nil then
+        Print(od)
         CheckField(limit, "current limit", IsIntegerInOd(limit, od))
         self.ib:Download(od, limit)
     else
@@ -140,7 +148,7 @@ end
 function PIO:SupplyCurrent(supply)
     CheckSupplyEnum(supply)
     local odName = PIO.SupplyEnumToOdName(supply)
-    return self.ib:Upload(self.ib.od[odName]["Current"])
+    return self.ib:Upload(self.ib.od[odName]["Current"]) --[[@as number]]
 end
 
 --- Variable supply's voltage accessor.
@@ -153,10 +161,10 @@ function PIO:SupplyDesiredVoltage(supply, voltage)
     local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Desired Voltage"]
     if voltage == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as number]]
     else
         CheckField(voltage, "desired voltage", IsFloatInOd(voltage, od))
-        self.ib:Download(od, voltage)
+        self.ib:Download(od, voltage --[[@as OdEntryType]])
     end
 end
 
@@ -166,7 +174,7 @@ end
 function PIO:SupplyVoltage(supply)
     CheckSupplyEnum(supply)
     local odName = PIO.SupplyEnumToOdName(supply)
-    return self.ib:Upload(self.ib.od[odName]["Voltage"])
+    return self.ib:Upload(self.ib.od[odName]["Voltage"]) --[[@as number]]
 end
 
 --- Supply's enable accessor.
@@ -179,7 +187,7 @@ function PIO:SupplyOutputEnable(supply, state)
     local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Output Enable"]
     if state == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as boolean]]
     else
         CheckField(state, "output enable", IsBoolean(state))
         self.ib:Download(od, state)
@@ -199,139 +207,119 @@ function PIO:SupplyGracePeriod(supply, period)
     local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Grace Period"]
     if period == nil then
-        return self.ib:Upload(od)
+        return self.ib:Upload(od) --[[@as integer]]
     else
         CheckField(period, "Grace Period", IsIntegerInOd(period, od))
         self.ib:Download(od, period)
     end
 end
 
---- All IO's input values accessor.
---- if values is provided, function will act as setter and return nothing.
---- @param values? integer
---- @return integer? values
-function PIO:IoInputValues(values)
-    local od = self.ib.od["IO"]["Input Port"]
-    if values == nil then
-        local input = self.ib:Upload(od)
-        self.cache.gpio.input = input
-        return input
-    else
-        CheckIoValue(values)
-        self.cache.gpio.input = values
-        self.ib:Download(od, self.cache.gpio.input)
-    end
+--- All IO's input values getter
+--- @return integer values bitpack of PIO_IoValueEnum
+function PIO:IoInputValues()
+    return self.ib:Upload(self.ib.od["IO"]["Input Port"]) --[[@as integer]]
 end
 
---- Single IO's input value accessor.
---- if value is provided, function will act as setter and return nothing.
+--- Single IO's input value getter.
 --- @param index integer
---- @param value boolean?
---- @return boolean? value
-function PIO:IoInputValue(index, value)
+--- @return PIO_IoValueEnum
+function PIO:IoInputValue(index)
     CheckIoIndex(index)
-    if value == nil then
-        return Bitwise.Extract(index, self:IoInputValues())
-    else
-        CheckIoValue(value)
-        self:IoInputValues(Bitwise.Inject(index, value, self.cache.gpio.input))
-    end
+    return Bitwise.Extract(index, self:IoInputValues())
 end
 
 --- All IO's output values accessor.
 --- if values is provided, function will act as setter and return nothing.
---- @param values? integer
---- @return integer? values
+--- @param values? integer bitpack of PIO_IoValueEnum
+--- @return integer? values bitpack of PIO_IoValueEnum
 function PIO:IoOutputValues(values)
     local od = self.ib.od["IO"]["Output Port"]
     if values == nil then
-        local input = self.ib:Upload(od)
-        self.cache.gpio.output = input
-        return input
+        self.cache.gpio.output = self.ib:Upload(od) --[[@as integer]]
+        return self.cache.gpio.output
     else
-        CheckIoValue(values)
+        CheckField(values, "values", IsUnsignedIn(values, 0, PIO.IoValuesMax))
         self.cache.gpio.output = values
-        self.ib:Download(od, self.cache.gpio.output)
+        self.ib:Download(od, values)
     end
 end
 
 --- Single IO's output value accessor.
 --- if value is provided, function will act as setter and return nothing.
 --- @param index integer
---- @param value boolean?
---- @return boolean? value
+--- @param value [PIO_IoValueEnum | integer]?
+--- @return PIO_IoValueEnum? value
 function PIO:IoOutputValue(index, value)
     CheckIoIndex(index)
     if value == nil then
-        return Bitwise.Extract(index, self:IoOutputValues())
+        return Bitwise.Extract(index, self:IoOutputValues()) --[[@as PIO_IoValueEnum]]
     else
-        CheckIoValue(value)
+        CheckIoIndex(index)
+        CheckField(value, "value", value == 0 or value == 1)
         self:IoOutputValues(Bitwise.Inject(index, value, self.cache.gpio.output))
     end
 end
 
 --- Multiple IO's polarities accessor.
---- if values is provided, function will act as setter and return nothing.
---- @param values integer? array of bit polarities. 0=regular, 1=inverted
---- @return PIO_IoPolarityEnum? values
-function PIO:IoPolarities(values)
+--- if polarities is provided, function will act as setter and return nothing.
+--- @param polarities integer? bitpack of PIO_IoPolarityEnum. 0=regular, 1=inverted
+--- @return integer? polarities bitpack of PIO_IoPolarityEnum
+function PIO:IoPolarities(polarities)
     local od = self.ib.od["IO"]["Polarity Inversion"]
-    if values == nil then
-        values = self.ib:Upload(od)
-        self.cache.gpio.polarity = values
-        return values
+    if polarities == nil then
+        polarities = self.ib:Upload(od) --[[@as PIO_IoPolarityEnum]]
+        self.cache.gpio.polarity = polarities
+        return polarities
     else
-        CheckIoValue(values)
-        self.cache.gpio.polarity = values
-        self.ib:Download(od, values)
+        CheckField(polarities, "polarities", IsUnsigned16(polarities))
+        self.cache.gpio.polarity = polarities
+        self.ib:Download(od, polarities)
     end
 end
 
 --- Single IO's polarity accessor.
 --- if value is provided, function will act as setter and return nothing.
 --- @param index integer
---- @param value PIO_IoPolarityEnum?
---- @return PIO_IoPolarityEnum? value
-function PIO:IoPolarity(index, value)
+--- @param polarity PIO_IoPolarityEnum?
+--- @return PIO_IoPolarityEnum?
+function PIO:IoPolarity(index, polarity)
     CheckIoIndex(index)
-    if value == nil then
+    if polarity == nil then
         return Bitwise.Extract(index, self:IoPolarities())
     else
-        CheckIoValue(value)
-        self:IoPolarities(Bitwise.Inject(index, value,
-                self.cache.gpio.polarity))
+        CheckIoIndex(index)
+        CheckField(polarity, "polarity", polarity == 0 or polarity == 1)
+        self:IoPolarities(Bitwise.Inject(index, polarity, self.cache.gpio.polarity))
     end
 end
 
---- Multiple IO's configurations accessor.
---- if values is provided, function will act as setter and return nothing.
---- @param values? integer array of configurations. per bit: 0=input, 1=output
---- @return integer? values
-function PIO:IoConfigurations(values)
+--- Multiple IO's modes accessor.
+--- if modes is provided, function will act as setter and return nothing.
+--- @param modes? integer bitpack of PIO_IoModeEnum. per bit: 0=input, 1=output
+--- @return integer? modes bitpack of PIO_IoModeEnum
+function PIO:IoModes(modes)
     local od = self.ib.od["IO"]["Configuration"]
-    if values == nil then
-        values = self.ib:Upload(od)
-        self.cache.gpio.configuration = values
-        return values
+    if modes == nil then
+        self.cache.gpio.mode = self.ib:Upload(od) --[[@as integer]]
+        return self.cache.gpio.mode
     else
-        CheckIoValue(values)
-        self.cache.gpio.configuration = values
-        self.ib:Download(od, values)
+        CheckField(modes, "modes", IsUnsignedIn(modes, 0, PIO.IoValuesMax))
+        self.cache.gpio.mode = modes
+        self.ib:Download(od, modes)
     end
 end
 
 --- Single IO's configuration accessor.
---- if value is provided, function will act as setter and return nothing.
+--- if mode is provided, function will act as setter and return nothing.
 --- @param index integer
---- @param value PIO_IoConfigurationEnum?
---- @return PIO_IoConfigurationEnum? value
-function PIO:GpioConfiguration(index, value)
+--- @param mode PIO_IoModeEnum?
+--- @return PIO_IoModeEnum?
+function PIO:IoMode(index, mode)
     CheckIoIndex(index)
-    if value == nil then
-        return Bitwise.Extract(index, self:IoConfigurations())
+    if mode == nil then
+        return Bitwise.Extract(index, self:IoModes())
     else
-        CheckIoValue(value)
-        self:IoConfigurations(Bitwise.Inject(index, value,
-                self.cache.gpio.configuration))
+        CheckField(mode, "mode", mode == 0 or mode == 1)
+        self:IoModes(Bitwise.Inject(index, mode, self.cache.gpio.mode))
     end
 end

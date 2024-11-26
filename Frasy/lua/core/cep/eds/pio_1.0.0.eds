@@ -8,8 +8,8 @@ Description=
 CreationTime=8:23AM
 CreationDate=06-03-2024
 CreatedBy=Samuel Martel
-ModificationTime=3:26PM
-ModificationDate=11-20-2024
+ModificationTime=11:27AM
+ModificationDate=11-26-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -1225,13 +1225,13 @@ DefaultValue=0
 PDOMapping=0
 
 [6006sub4]
-ParameterName=Configuration
+ParameterName=Mode
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0006
 AccessType=rw
 StringLengthMin=0
-DefaultValue=0xFFFF
+DefaultValue=0
 PDOMapping=0
 
 [ManufacturerObjects]

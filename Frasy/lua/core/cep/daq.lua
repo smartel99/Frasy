@@ -14,8 +14,8 @@ local StringizeValues = require("lua/core/utils/stringize_values")
 local TryFunction = require("lua/core/utils/try_function")
 
 --- @class DAQ_CacheIo
---- @field mode DAQ_IoModeEnum
---- @field outputPort integer
+--- @field mode integer
+--- @field output integer
 
 --- @class DAQ_Cache
 --- @field io DAQ_CacheIo
@@ -23,7 +23,7 @@ local TryFunction = require("lua/core/utils/try_function")
 --- @class DAQ
 --- @field ib? Ib
 --- @field cache DAQ_Cache
-DAQ = { ib = nil, cache = { io = { mode = 0, outputPort = 0, } } }
+DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, } } }
 DAQ.__index = DAQ
 
 --- @class DAQ_NewOptionalParameters
@@ -44,7 +44,7 @@ function DAQ:New(opt)
     ib.name = opt.name
     ib.nodeId = opt.nodeId
     ib.eds = "lua/core/cep/eds/daq_1.0.0.eds"
-    return setmetatable({ ib = ib, cache = { io = { mode = 0, outputPort = 0, } } }, DAQ)
+    return setmetatable({ ib = ib, cache = { io = { mode = 0, output = 0, } } }, DAQ)
 end
 
 function DAQ:Reset()
@@ -359,6 +359,9 @@ function DAQ:DacShape(shape)
 end
 
 -- IO
+DAQ.IoValuesMax = 0x3FF
+DAQ.IoCount = 10
+
 --- @enum DAQ_IoEnum
 DAQ.IoEnum = {
     a = 0,
@@ -372,23 +375,30 @@ DAQ.IoEnum = {
     uartUutRx = 8,
     db9SpareIo = 9,
 }
+
+--- @enum DAQ_IoValueEnum
+DAQ.IoValueEnum = { low = 0, high = 1 }
+
 --- @enum DAQ_IoModeEnum
 DAQ.IoModeEnum = { input = 0, output = 1 }
 
-local function CheckIo(io) CheckField(io, "io", IsIntegerIn(io, DAQ.IoEnum.a, DAQ.IoEnum.db9SpareIo)) end
+local function CheckIoIndex(index)
+    CheckField(index, "io index", IsIntegerIn(index, DAQ.IoEnum.a, DAQ.IoEnum.db9SpareIo))
+end
 
 --- Multiple IO mode accessor.
 --- If modes is provided, function will act as setter
---- @param modes? integer array of modes. per bit: 1=input, 0=output
---- @return integer? modes
-function DAQ:IoModes(value)
+--- @param modes? integer bitpack of DAQ_IoModeEnum. per bit: 1=input, 0=output
+--- @return integer? modes bitpack of DAQ_IoModeEnum
+function DAQ:IoModes(modes)
     local od = self.ib.od["IO"]["Mode"]
-    if (value == nil) then
-        self.cache.io.mode = self.ib:Upload(od) --[[@as DAQ_IoModeEnum]]
+    if (modes == nil) then
+        self.cache.io.mode = self.ib:Upload(od) --[[@as integer]]
         return self.cache.io.mode
     else
-        self.cache.io.mode = value
-        self.ib:Download(od, value)
+        CheckField(modes, "modes", IsIntegerIn(modes, 0, DAQ.IoValuesMax))
+        self.cache.io.mode = modes
+        self.ib:Download(od, modes)
     end
 end
 
@@ -398,48 +408,58 @@ end
 --- @param mode? DAQ_IoModeEnum
 --- @return DAQ_IoModeEnum?
 function DAQ:IoMode(io, mode)
-    CheckIo(io)
+    CheckIoIndex(io)
     if mode == nil then
         return Bitwise.Extract(io, self:IoModes())
     else
+        CheckField(mode, "mode", mode == 0 or mode == 1)
         self:IoModes(Bitwise.Inject(io, mode, self.cache.io.mode))
     end
 end
 
+--- All IO's input values getter
+--- @return integer values bitpack of DAQ_IoValueEnum
 function DAQ:IoInputValues()
     local od = self.ib.od["IO"]["Input Port"]
-    return self.ib:Upload(od)
+    return self.ib:Upload(od) --[[@as integer]]
 end
 
-function DAQ:IoInputValue(io)
-    CheckIo(io)
-    return Bitwise.Extract(io, self:IoInputValues()) == 1
+--- Single IO's input value getter.
+--- @param index integer
+--- @return DAQ_IoValueEnum
+function DAQ:IoInputValue(index)
+    CheckIoIndex(index)
+    return Bitwise.Extract(index, self:IoInputValues())
 end
 
+--- All IO's output values accessor.
+--- if values is provided, function will act as setter and return nothing.
+--- @param values? integer bitpack of DAQ_IoValueEnum
+--- @return integer? values bitpack of DAQ_IoValueEnum
 function DAQ:IoOutputValues(values)
     local od = self.ib.od["IO"]["Output Port"]
     if (values == nil) then
-        self.cache.io.outputPort = self.ib:Upload(od) --[[@as integer]]
-        return self.cache.io.outputPort
+        self.cache.io.output = self.ib:Upload(od) --[[@as integer]]
+        return self.cache.io.output
     else
-        self.cache.io.outputPort = values
+        CheckField(values, "values", IsUnsignedIn(values, 0, DAQ.IoValuesMax))
+        self.cache.io.output = values
         self.ib:Download(od, values)
     end
 end
 
 --- Single value accessor.
 --- If value is provided, function will act as setter
---- @param io DAQ_IoEnum
---- @param value boolean?
---- @return boolean? value
-function DAQ:IoOutputValue(io, value)
-    CheckIo(io)
+--- @param index DAQ_IoEnum
+--- @param value DAQ_IoValueEnum?
+--- @return DAQ_IoValueEnum?
+function DAQ:IoOutputValue(index, value)
+    CheckIoIndex(index)
     if value == nil then
-        return Bitwise.Extract(io, self:IoOutputValues()) == 1
+        return Bitwise.Extract(index, self:IoOutputValues())
     else
-        local intValue = 0
-        if value then intValue = 1 end
-        self:IoOutputValues(Bitwise.Inject(io, intValue, self.cache.io.outputPort))
+        CheckField(value, "value", value == 0 or value == 1)
+        self:IoOutputValues(Bitwise.Inject(index, value, self.cache.io.output))
     end
 end
 
