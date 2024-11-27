@@ -18,11 +18,7 @@ local RuntimeRequirement = require("lua/core/framework/runtime_requirement")
 ---@class ScopeRequirement
 ---@field orchestrator Orchestrator
 ---@field scope Scope
-
-local ScopeRequirement   = {
-    orchestrator = nil,
-    scope        = nil,
-}
+local ScopeRequirement   = {}
 ScopeRequirement.__index = ScopeRequirement
 
 function ScopeRequirement:New(orchestrator, scope)
@@ -71,19 +67,19 @@ end
 
 function ScopeRequirement:ToPass()
     return RuntimeRequirement:New(function() return self.orchestrator.HasPassed(self.scope) end,
-                                  string.format("Scope %s has not passed", self.scope:ToString()))
+        string.format("Scope %s has not passed", self.scope:ToString()))
 end
 
 function ScopeRequirement:ToFail()
     return RuntimeRequirement:New(function() return not self.orchestrator.HasPassed(self.scope) end,
-                                  string.format("Scope %s has passed", self.scope:ToString()))
+        string.format("Scope %s has passed", self.scope:ToString()))
 end
 
 function ScopeRequirement:ToBeComplete()
     -- Cannot perform multiple tests for same board for now
     -- Thus, this scope must always be done after its target
     return RuntimeRequirement:New(function() return not self.orchestrator.HasBeenSkipped(self.scope) end,
-                                  string.format("Scope %s has been skipped", self.scope:ToString()))
+        string.format("Scope %s has been skipped", self.scope:ToString()))
 end
 
 return ScopeRequirement

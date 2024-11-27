@@ -22,7 +22,6 @@ local Sort = require("lua/core/framework/sort_utils")
 local Json = require("lua/core/vendor/json")
 
 ---@class Orchestrator
-
 Orchestrator = {}
 
 if Context.orchestrator == nil then
