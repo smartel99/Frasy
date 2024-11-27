@@ -5,10 +5,25 @@ local IsIntegerIn = require("lua/core/utils/is_integer/is_integer_in")
 local IsUnsigned8 = require("lua/core/utils/is_unsigned/is_unsigned_8")
 local CheckField = require("lua/core/utils/check_field")
 
+---@class R8L_Cache
+---@field digitalOutput integer bitpacking of R8L_RelayStateOutput
+---@field errorValueOutput integer bitpacking of R8L_RelayStateOutput
+
 ---@class R8L
 ---@field ib Ib?
-R8L = { ib = nil, cache = { digitalOutput = 0, errorValueOutput = 0 } }
+---@field cache R8L_Cache
+R8L = {}
 R8L.__index = R8L
+
+
+---@enum R8L_RelayStateEnum
+R8L.RelayStateEnum = {
+    open = 0,
+    closed = 1
+}
+
+R8L.OPEN = R8L.RelayStateEnum.open
+R8L.CLOSED = R8L.RelayStateEnum.closed
 
 local function CheckIndex(index) CheckField(index, "index", IsIntegerIn(index, 0, 7)) end
 
@@ -45,10 +60,14 @@ function R8L:LoadCache()
     self:ErrorValueOutputs()
 end
 
+--- DigitalOutputs Accessor
+--- If value is provided, function will act as setter and return nothing.
+---@param value integer? bitpacking of R8L_RelayStateEnum
+---@return integer? value bitpacking of R8L_RelayStateEnum
 function R8L:DigitalOutputs(value)
     local od = self.ib.od["Write Digital Output"]
     if value == nil then
-        self.cache.digitalOutput = self.ib:Upload(od)
+        self.cache.digitalOutput = self.ib:Upload(od) --[[@as integer]]
         return self.cache.digitalOutput
     else
         CheckRelayValue(value)
@@ -57,6 +76,11 @@ function R8L:DigitalOutputs(value)
     end
 end
 
+--- DigitalOutputs Accessor
+--- If value is provided, function will act as setter and return nothing.
+---@param index integer
+---@param value R8L_RelayStateEnum?
+---@return R8L_RelayStateEnum?
 function R8L:DigitalOutput(index, value)
     CheckIndex(index)
     if value == nil then
@@ -67,18 +91,26 @@ function R8L:DigitalOutput(index, value)
     end
 end
 
+--- ErrorModeOutput Accessor
+--- If value is provided, function will act as setter and return nothing
+---@param value boolean?
+---@return boolean?
 function R8L:ErrorModeOutput(value)
     if value == nil then
-        return self.ib:Upload(self.ib.od["Error Mode Output"])
+        return self.ib:Upload(self.ib.od["Error Mode Output"]) --[[@as boolean]]
     else
         CheckField(value, "value", IsBoolean(value))
         self.ib:Download(self.ib.od["Error Mode Output"], value)
     end
 end
 
+--- ErrorValueOutputs Register Accessor
+--- If value is provided, function will act as setter and return nothing
+---@param value integer? bitpacking of R8L_RelayStateEnum
+---@return integer? value bitpacking of R8L_RelayStateEnum
 function R8L:ErrorValueOutputs(value)
     if value == nil then
-        self.cache.errorValueOutput = self.ib:Upload(self.ib.od["Error Value Ouput"])
+        self.cache.errorValueOutput = self.ib:Upload(self.ib.od["Error Value Ouput"]) --[[@as integer]]
         return self.cache.errorValueOutput
     else
         CheckRelayValue(value)
@@ -87,6 +119,11 @@ function R8L:ErrorValueOutputs(value)
     end
 end
 
+--- ErrorValueOutput Bit Accessor
+--- If value is provided, function will act as setter and return nothing
+---@param index integer
+---@param value R8L_RelayStateEnum?
+---@return R8L_RelayStateEnum?
 function R8L:ErrorValueOutput(index, value)
     CheckIndex(index)
     if value == nil then
