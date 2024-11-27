@@ -727,6 +727,7 @@ void CanOpen::emRxCallback(void*          arg,
         // Panic the fuck out of this aaaaaaa
         Brigerad::warningDialog(
           "EMERGENCY", "Received emergency message from unregistered node\n\r{}", emergencyMessage);
+        return;
     }
 
     it->addEmergency(emergencyMessage);
