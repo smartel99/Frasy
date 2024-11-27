@@ -139,7 +139,6 @@ function PIO:SupplyCurrentLimit(supply, limit)
     local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Current Limit"]
     if limit ~= nil then
-        Print(od)
         CheckField(limit, "current limit", IsIntegerInOd(limit, od))
         self.ib:Download(od, limit)
     else
