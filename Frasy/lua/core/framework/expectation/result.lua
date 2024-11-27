@@ -13,21 +13,43 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
+---@class ExpectationResult
+---@field value any
+---@field name string
+---@field note string? deprecated field, previously used as name/extra
+---@field pass boolean tell if the value fulfilled requirement
+---@field inverted boolean tell if the result should be interpreted with invert logic
+---@field extra any? additional data that could be useful for developer
+---@field method string
+---@field expected any?
+---@field min any?
+---@field max any?
+---@field deviation any?
+---@field percentage any?
+---@field type string?
 local ExpectationResult   = {
     value    = nil,
+    name     = "",
     note     = nil,
     pass     = false,
     inverted = false,
+    extra    = nil,
 }
 ExpectationResult.__index = ExpectationResult
 
-function ExpectationResult:New(value, note)
+
+---@param value any
+---@param name string
+---@param extra any?
+function ExpectationResult:New(value, name, extra)
     return setmetatable({
-                            value    = value,
-                            note     = note,
-                            pass     = false,
-                            inverted = false,
-                        }, ExpectationResult)
+        value    = value,
+        name     = name,
+        note     = name,
+        pass     = false,
+        inverted = false,
+        extra    = extra
+    }, ExpectationResult)
 end
 
 return ExpectationResult

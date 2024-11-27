@@ -120,10 +120,11 @@ end
 
 ---Expect
 ---@param value any
----@param note string?
+---@param name string
+---@param extra any?
 ---@return Expectation
-function Expect(value, note)
-    return Expectation:New(value, note)
+function Expect(value, name, extra)
+    return Expectation:New(value, name, extra)
 end
 
 function Exclusive(value, func)
