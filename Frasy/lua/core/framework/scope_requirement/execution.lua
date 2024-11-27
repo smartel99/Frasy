@@ -15,6 +15,10 @@
 
 local RuntimeRequirement = require("lua/core/framework/runtime_requirement")
 
+---@class ScopeRequirement
+---@field orchestrator Orchestrator
+---@field scope Scope
+
 local ScopeRequirement   = {
     orchestrator = nil,
     scope        = nil,
@@ -27,7 +31,7 @@ end
 
 function ScopeRequirement:Test(name)
     self.scope.test = name
-    if not self.orchestrator:HasTest(self.scope) then error(NotFound()) end
+    if not self.orchestrator.HasTest(self.scope) then error(NotFound()) end
     return self
 end
 

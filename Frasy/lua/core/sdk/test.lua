@@ -44,7 +44,7 @@ local RuntimeRequirement = require("lua/core/framework/runtime_requirement")
 --- ```
 --- @param name string? Name of the sequence to access
 --- @param func function? Body of the sequence
---- @return Scope? scope when using function as getter
+--- @return ScopeRequirement? scope when using function as getter
 function Sequence(name, func)
     if func == nil then
         return Orchestrator.GetSequenceScopeRequirement(name)
@@ -92,7 +92,7 @@ end
 --- ```
 ---@param name string? Name of the test. This will appear in the log
 ---@param func function? Body of the test
----@return Scope? test when using function as getter
+---@return ScopeRequirement? test when using function as getter
 function Test(name, func)
     if func == nil then
         return Orchestrator.GetTestScopeRequirement(name)

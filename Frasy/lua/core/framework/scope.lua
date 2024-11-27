@@ -14,6 +14,9 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 ---@class Scope
+---@field sequence string?
+---@field test string?
+
 local Scope = {sequence = nil, test = nil}
 Scope.__index = Scope;
 
