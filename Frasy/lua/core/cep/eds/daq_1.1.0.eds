@@ -1,5 +1,5 @@
 [FileInfo]
-FileName=daq_v1.0.0.eds
+FileName=daq_1.1.0.eds
 FileVersion=1
 FileRevision=1
 LastEDS=
@@ -8,8 +8,8 @@ Description=
 CreationTime=12:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=1:30PM
-ModificationDate=11-22-2024
+ModificationTime=8:05PM
+ModificationDate=11-27-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -397,7 +397,7 @@ ObjectType=0x7
 DataType=0x0009
 AccessType=ro
 StringLengthMin=0
-DefaultValue=v1.0.0
+DefaultValue=1.1.0
 PDOMapping=0
 
 [1010]
@@ -1895,8 +1895,9 @@ DefaultValue=0
 PDOMapping=0
 
 [ManufacturerObjects]
-SupportedObjects=1
+SupportedObjects=2
 1=0x2000
+2=0x2001
 
 [2000]
 ParameterName=Serial Number
@@ -1905,6 +1906,42 @@ ObjectType=0x7
 DataType=0x000A
 AccessType=ro
 StringLengthMin=12
+DefaultValue=0
+PDOMapping=0
+
+[2001]
+ParameterName=LogCode
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x3
+
+[2001sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0x02
+PDOMapping=0
+
+[2001sub1]
+ParameterName=Dec
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[2001sub2]
+ParameterName=Hex
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 

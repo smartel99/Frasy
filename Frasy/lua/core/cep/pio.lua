@@ -103,7 +103,7 @@ function PIO:New(opt)
     end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/core/cep/eds/pio_1.0.0.eds"
+    ib.eds = "lua/core/cep/eds/pio_1.1.0.eds"
     return setmetatable({
         ib = ib,
         cache = {
@@ -326,4 +326,12 @@ function PIO:IoMode(index, mode)
         CheckField(mode, "mode", mode == 0 or mode == 1)
         self:IoModes(Bitwise.Inject(index, mode, self.cache.gpio.mode))
     end
+end
+
+function PIO:LogCodeDec(code)
+    self.ib:Download(self.ib.od["LogCode"]["Dec"], code)
+end
+
+function PIO:LogCodeHex(code)
+    self.ib:Download(self.ib.od["LogCode"]["Dec"], code)
 end

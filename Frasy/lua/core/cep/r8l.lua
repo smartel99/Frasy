@@ -15,7 +15,6 @@ local CheckField = require("lua/core/utils/check_field")
 R8L = {}
 R8L.__index = R8L
 
-
 ---@enum R8L_RelayStateEnum
 R8L.RelayStateEnum = {
     open = 0,
@@ -28,7 +27,6 @@ R8L.CLOSED = R8L.RelayStateEnum.closed
 local function CheckIndex(index) CheckField(index, "index", IsIntegerIn(index, 0, 7)) end
 
 local function CheckRelayValue(value) CheckField(value, "value", IsUnsigned8(value)) end
-
 
 --- @class R8L_NewOptionalParameters
 --- @field name string? default to "r8l"
@@ -47,7 +45,7 @@ function R8L:New(opt)
     if opt.nodeId == nil then opt.nodeId = ib.kind end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/core/cep/eds/r8l_1.0.0.eds"
+    ib.eds = "lua/core/cep/eds/r8l_1.1.0.eds"
     return setmetatable({ ib = ib, cache = { digitalOutput = 0, errorValueOutput = 0 } }, R8L)
 end
 
@@ -145,4 +143,10 @@ function R8L:Id()
     return { left = table.ID_BRD_L, right = table.ID_BRD_R }
 end
 
-return R8L
+function R8L:LogCodeDec(code)
+    self.ib:Download(self.ib.od["LogCode"]["Dec"], code)
+end
+
+function R8L:LogCodeHex(code)
+    self.ib:Download(self.ib.od["LogCode"]["Hex"], code)
+end

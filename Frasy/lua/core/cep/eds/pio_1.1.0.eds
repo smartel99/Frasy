@@ -1,22 +1,22 @@
 [FileInfo]
-FileName=r8l_1.0.0.eds
+FileName=pio_1.1.0.eds
 FileVersion=1
 FileRevision=1
 LastEDS=
 EDSVersion=4.0
 Description=
-CreationTime=4:51PM
-CreationDate=05-27-2024
+CreationTime=8:23AM
+CreationDate=06-03-2024
 CreatedBy=Samuel Martel
-ModificationTime=4:55PM
-ModificationDate=08-29-2024
+ModificationTime=8:06PM
+ModificationDate=11-27-2024
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
-VendorName=Conception Electronique Prive
-VendorNumber=69
-ProductName=R8L
-ProductNumber=MPCB0045
+VendorName=Conception Electronique Privé
+VendorNumber=0x69
+ProductName=PIO
+ProductNumber=MPCB0044
 RevisionNumber=0
 BaudRate_10=0
 BaudRate_20=0
@@ -62,7 +62,7 @@ ObjectType=0x7
 DataType=0x0007
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x00000004
+DefaultValue=0x00000003
 PDOMapping=0
 
 [1001]
@@ -108,7 +108,7 @@ ObjectType=0x7
 DataType=0x0007
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x00000004
+DefaultValue=0x00000003
 PDOMapping=0
 
 [1018sub3]
@@ -132,7 +132,7 @@ DefaultValue=0x00000000
 PDOMapping=0
 
 [OptionalObjects]
-SupportedObjects=21
+SupportedObjects=24
 1=0x1003
 2=0x1005
 3=0x1006
@@ -150,10 +150,13 @@ SupportedObjects=21
 15=0x1019
 16=0x1200
 17=0x1280
-18=0x6200
-19=0x6206
-20=0x6207
-21=0x6401
+18=0x6000
+19=0x6001
+20=0x6002
+21=0x6003
+22=0x6004
+23=0x6005
+24=0x6006
 
 [1003]
 ParameterName=Pre-defined error field
@@ -368,7 +371,7 @@ ObjectType=0x7
 DataType=0x0009
 AccessType=ro
 StringLengthMin=0
-DefaultValue=R8L
+DefaultValue=PIO
 PDOMapping=0
 
 [1009]
@@ -388,7 +391,7 @@ ObjectType=0x7
 DataType=0x0009
 AccessType=ro
 StringLengthMin=0
-DefaultValue=v1.0.0
+DefaultValue=1.1.0
 PDOMapping=0
 
 [1010]
@@ -731,43 +734,528 @@ StringLengthMin=0
 DefaultValue=0x01
 PDOMapping=0
 
-[6200]
-ParameterName=Write Digital Output
+[6000]
+ParameterName=Supply 3V3
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x6
+
+[6000sub0]
+ParameterName=Highest sub-index supported
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0x05
+PDOMapping=0
+
+[6000sub1]
+ParameterName=Current Limit
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
 AccessType=rw
+HighLimit=1100
+LowLimit=0
+StringLengthMin=0
+DefaultValue=1100
+PDOMapping=0
+
+[6000sub2]
+ParameterName=Current
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
 StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6206]
-ParameterName=Error Mode Output
+[6000sub3]
+ParameterName=Voltage
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6000sub4]
+ParameterName=Output Enable
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0001
 AccessType=rw
 StringLengthMin=0
-DefaultValue=1
+DefaultValue=0
 PDOMapping=0
 
-[6207]
-ParameterName=Error Value Ouput
+[6000sub5]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
+[6001]
+ParameterName=Supply 5V
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x6
+
+[6001sub0]
+ParameterName=Highest sub-index supported
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0x05
+PDOMapping=0
+
+[6001sub1]
+ParameterName=Current Limit
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+HighLimit=1100
+LowLimit=0
+StringLengthMin=0
+DefaultValue=1100
+PDOMapping=0
+
+[6001sub2]
+ParameterName=Current
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6001sub3]
+ParameterName=Voltage
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6001sub4]
+ParameterName=Output Enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
 AccessType=rw
 StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6401]
-ParameterName=ID
+[6001sub5]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
+[6002]
+ParameterName=Supply 12V
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x6
+
+[6002sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0x05
+PDOMapping=0
+
+[6002sub1]
+ParameterName=Current Limit
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+HighLimit=1100
+LowLimit=0
+StringLengthMin=0
+DefaultValue=1100
+PDOMapping=0
+
+[6002sub2]
+ParameterName=Current
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6002sub3]
+ParameterName=Voltage
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6002sub4]
+ParameterName=Output Enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6002sub5]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
+[6003]
+ParameterName=Supply 24V
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x6
+
+[6003sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0x05
+PDOMapping=0
+
+[6003sub1]
+ParameterName=Current Limit
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+HighLimit=1100
+LowLimit=0
+StringLengthMin=0
+DefaultValue=1100
+PDOMapping=0
+
+[6003sub2]
+ParameterName=Current
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub3]
+ParameterName=Voltage
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub4]
+ParameterName=Output Enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6003sub5]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
+[6004]
+ParameterName=Variable Supply 1
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x7
+
+[6004sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0x06
+PDOMapping=0
+
+[6004sub1]
+ParameterName=Current Limit
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+HighLimit=500
+LowLimit=0
+StringLengthMin=0
+DefaultValue=500
+PDOMapping=0
+
+[6004sub2]
+ParameterName=Current
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6004sub3]
+ParameterName=Desired Voltage
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=rw
+HighLimit=20.02
+LowLimit=1.08
+StringLengthMin=0
+DefaultValue=1.08
+PDOMapping=0
+
+[6004sub4]
+ParameterName=Voltage
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6004sub5]
+ParameterName=Output Enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6004sub6]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
+[6005]
+ParameterName=Variable Supply 2
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x7
+
+[6005sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0x06
+PDOMapping=0
+
+[6005sub1]
+ParameterName=Current Limit
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+HighLimit=500
+LowLimit=0
+StringLengthMin=0
+DefaultValue=500
+PDOMapping=0
+
+[6005sub2]
+ParameterName=Current
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6005sub3]
+ParameterName=Desired Voltage
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=rw
+HighLimit=20.02
+LowLimit=1.08
+StringLengthMin=0
+DefaultValue=1.08
+PDOMapping=0
+
+[6005sub4]
+ParameterName=Voltage
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6005sub5]
+ParameterName=Output Enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6005sub6]
+ParameterName=Grace Period
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=32567
+LowLimit=-1
+StringLengthMin=0
+DefaultValue=10
+PDOMapping=0
+
+[6006]
+ParameterName=IO
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x5
+
+[6006sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0x04
+PDOMapping=0
+
+[6006sub1]
+ParameterName=Input Port
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6006sub2]
+ParameterName=Output Port
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6006sub3]
+ParameterName=Polarity Inversion
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[6006sub4]
+ParameterName=Mode
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[ManufacturerObjects]
+SupportedObjects=2
+1=0x2000
+2=0x2001
+
+[2000]
+ParameterName=Serial Number
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x000A
+AccessType=ro
+StringLengthMin=12
+DefaultValue=0
+PDOMapping=0
+
+[2001]
+ParameterName=LogCode
 ObjectType=0x9
 ;StorageLocation=RAM
 SubNumber=0x3
 
-[6401sub0]
+[2001sub0]
 ParameterName=Highest sub-index supported
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -777,37 +1265,23 @@ StringLengthMin=0
 DefaultValue=0x02
 PDOMapping=0
 
-[6401sub1]
-ParameterName=ID_BRD_L
+[2001sub1]
+ParameterName=Dec
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0007
-AccessType=ro
+DataType=0x0006
+AccessType=rw
 StringLengthMin=0
 DefaultValue=0
 PDOMapping=0
 
-[6401sub2]
-ParameterName=ID_BRD_R
+[2001sub2]
+ParameterName=Hex
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0007
-AccessType=ro
+DataType=0x0006
+AccessType=rw
 StringLengthMin=0
-DefaultValue=0
-PDOMapping=0
-
-[ManufacturerObjects]
-SupportedObjects=1
-1=0x2000
-
-[2000]
-ParameterName=Serial Number
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x000A
-AccessType=ro
-StringLengthMin=12
 DefaultValue=0
 PDOMapping=0
 

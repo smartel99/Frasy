@@ -43,7 +43,7 @@ function DAQ:New(opt)
     if opt.nodeId == nil then opt.nodeId = ib.kind end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/core/cep/eds/daq_1.0.0.eds"
+    ib.eds = "lua/core/cep/eds/daq_1.1.0.eds"
     return setmetatable({ ib = ib, cache = { io = { mode = 0, output = 0, } } }, DAQ)
 end
 
@@ -1259,4 +1259,12 @@ function DAQ:MeasureInductor(impP, impN, opt)
     if rguards ~= nil then self:ClearBus(rguards) end
 
     return result
+end
+
+function DAQ:LogCodeDec(code)
+    self.ib:Download(self.ib.od["LogCode"]["Dec"], code)
+end
+
+function DAQ:LogCodeHex(code)
+    self.ib:Download(self.ib.od["LogCode"]["Hex"], code)
 end
