@@ -20,13 +20,12 @@
 
 #include "to_be_value_base.h"
 
-namespace Frasy::Analyzers
-{
+namespace Frasy::Analyzers {
 
-struct ToBeInPercentageExpectation : public ToBeValueBase
-{
+struct ToBeInPercentageExpectation : public ToBeValueBase {
     ToBeInPercentageExpectation(float expected, float percentage)
-    : ToBeValueBase(expected, expected - (expected * percentage), expected + (expected * percentage)),
+    : ToBeValueBase(
+        expected, expected - ((expected * percentage) / 100.0f), expected + ((expected * percentage) / 100.0f)),
       Percentage(percentage)
     {
     }
