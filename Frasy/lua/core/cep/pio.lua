@@ -333,5 +333,5 @@ function PIO:LogCodeDec(code)
 end
 
 function PIO:LogCodeHex(code)
-    self.ib:Download(self.ib.od["LogCode"]["Dec"], code)
+    self.ib:Download(self.ib.od["LogCode"]["Hex"], code)
 end
