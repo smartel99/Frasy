@@ -111,7 +111,7 @@ void ResultViewer::RenderTest(const ResultViewer::TestResult& test)
     ImGui::Text("Duration: %0.3f seconds", test.Duration);
 
     if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed, ImGuiCond_Always); }
-    if (ImGui::TreeNode("Expectations")) {
+    if (ImGui::TreeNode(std::format("Expectations ({})", test.Expectations.size()).c_str())) {
         size_t at = 1;
         for (auto&& expectation : test.Expectations) {
             if (m_isFirstPassOfLogs) {
