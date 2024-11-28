@@ -185,8 +185,7 @@ std::vector<ResultViewer::LogInfo> ResultViewer::LoadLogs(bool loadFiles)
             try {
                 OverallTestResult results = {};
                 if (loadFiles) { results = LoadResults(path); }
-                infos.emplace_back(
-                  entry.path().stem().string(), path, entry.last_write_time(), results);
+                infos.emplace_back(entry.path().stem().string(), path, entry.last_write_time(), results);
             }
             catch (std::exception& e) {
                 BR_APP_ERROR("An error occurred while parsing log '{}': {}", path, e.what());
@@ -280,7 +279,7 @@ std::vector<ResultViewer::ExpectationDetails> ResultViewer::LoadExpectations(con
 std::string ResultViewer::MakeStringFromJson(const std::string& key, const nlohmann::json& value)
 {
     if (value.is_number_float()) { return std::format("{}: {:0.6f}", key, value.get<float>()); }
-    return std::format("{}: {}", key, value.dump(4, true));
+    return std::format("{}: {}", key, value.dump(4, ' ', true));
 }
 
 }    // namespace Frasy
