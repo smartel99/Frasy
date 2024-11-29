@@ -79,7 +79,7 @@ function Orchestrator.RunSequence(sIndex, scope)
 
     if sequence.time == nil then
         Context.orchestrator.values[scope.sequence] = {}
-        Log.D("Start sequence " .. scope.sequence)
+        Log.D("Start sequence: " .. scope.sequence)
         sequence.result.enabled = IsScopeEnabled(scope)
         if sequence.result.enabled then
             local status, err = xpcall(sequence.func, ErrorHandler)
@@ -148,7 +148,7 @@ function Orchestrator.RunTest(scope)
     test.result.enabled = IsScopeEnabled(scope)
     Context.orchestrator.values[scope.sequence][scope.test] = {}
     Context.orchestrator.scope = scope
-    Log.D("Start Test " .. scope.test)
+    Log.D("Start test: " .. scope.test)
     test.expectations = {}
     test.result.time = {}
     test.result.time.start = os.clock()
