@@ -83,12 +83,15 @@ private:
     std::vector<CanOpen::SdoUploadDataResult> m_uploadRequestQueue;
     std::vector<FulfilledSdoRequest>          m_uploadRequestHistory;
 
-    int     m_downloadRequestIndex    = 0;
-    int     m_downloadRequestSubIndex = 0;
-    int     m_downloadRequestTimeout  = 1000;
-    int     m_downloadRequestTries    = 5;
-    bool    m_downloadRequestIsBlock  = false;
-    VarType m_downloadRequestType     = VarType::Boolean;
+    int                                            m_downloadRequestIndex       = 0;
+    int                                            m_downloadRequestSubIndex    = 0;
+    int                                            m_downloadRequestTimeout     = 1000;
+    int                                            m_downloadRequestTries       = 5;
+    bool                                           m_downloadRequestIsBlock     = false;
+    VarType                                        m_downloadRequestType        = VarType::Boolean;
+    bool                                           m_downloadVariableHex        = false;
+    static constexpr std::size_t                   s_downloadVariableBufferSize = 50;
+    std::array<char, s_downloadVariableBufferSize> m_downloadVariableBuffer;
     std::variant<bool,
                  int8_t,
                  int16_t,

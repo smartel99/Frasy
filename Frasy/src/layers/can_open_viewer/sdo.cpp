@@ -300,17 +300,33 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
           send.operator()<bool>();
       },
       [this, &send]<typename T>(T& v) {
-          T                       min  = std::numeric_limits<T>::lowest();
-          T                       max  = std::numeric_limits<T>::max();
-          constexpr ImGuiDataType type = ImGuiTypeFromType_v<T>;
-
-          // ImGui gets triggered if the values are too big...
-          if constexpr (std::same_as<T, float> || std::same_as<T, double> || std::signed_integral<T>) {
-              min /= 2;
-              max /= 2;
+          auto vs = std::to_string(v);
+          std::copy_n(vs.data(), std::min(s_downloadVariableBufferSize, vs.size()), m_downloadVariableBuffer.data());
+          if (vs.size() < s_downloadVariableBufferSize) { m_downloadVariableBuffer[vs.size()] = 0; }
+          else {
+              m_downloadVariableBuffer.back() = 0;
           }
-
-          ImGui::SliderScalar("Value", type, &v, &min, &max);
+          if (std::is_integral_v<T>) { ImGui::Checkbox("Hex", &m_downloadVariableHex); }
+          if (ImGui::InputText("Value", m_downloadVariableBuffer.data(), s_downloadVariableBufferSize)) {
+              auto base = m_downloadVariableHex ? 16 : 10;
+              try {
+                  if constexpr (std::is_integral_v<T>) {
+                      if (std::is_signed_v<T>) { v = std::stoll(m_downloadVariableBuffer.data(), nullptr, base); }
+                      else if (std::is_unsigned_v<T>) {
+                          v = std::stoull(m_downloadVariableBuffer.data(), nullptr, base);
+                      }
+                  }
+                  else if (std::is_floating_point_v<T>) {
+                      v = std::stod(m_downloadVariableBuffer.data());
+                  }
+                  else {
+                      BR_APP_ERROR("Cannot parse value");
+                  }
+              }
+              catch (const std::exception& e) {
+                  BR_APP_WARN("Failed to parse value");
+              }
+          }
           send.operator()<T>();
       },
       [this, &send](std::array<char, 128>& v) {
