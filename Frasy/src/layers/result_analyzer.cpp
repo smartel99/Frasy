@@ -24,8 +24,7 @@
 #include <Brigerad/Utils/dialogs/file.h>
 #include <filesystem>
 
-namespace Frasy
-{
+namespace Frasy {
 ResultAnalyzer::ResultAnalyzer() noexcept
 {
 }
@@ -34,8 +33,7 @@ void ResultAnalyzer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
 
-    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking))
-    {
+    if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
         RenderStringList("Serial Numbers",
                          "List of the serial numbers to analyze. When empty, analyze all reports found.",
                          m_options.SerialNumbers);
@@ -48,48 +46,38 @@ void ResultAnalyzer::onImGuiRender()
           "Tests", "List of the tests to analyze. When empty, analyze all tests found.", m_options.Tests);
 
         ImGui::Checkbox("Combine all locations", &m_options.Ganged);
-        if (ImGui::IsItemHovered())
-        {
+        if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(
               "Combine all locations into the statistic report. When false, the statistics will be on a per-location "
               "basis.");
         }
 
-        if (!m_generating)
-        {
-            if (ImGui::Button("generate"))
-            {
+        if (!m_generating) {
+            if (ImGui::Button("generate")) {
                 m_analyzer        = Analyzers::ResultAnalyzer {m_options};
                 m_doneGenerating  = false;
-                m_generatorThread = std::thread(
-                  [this]()
-                  {
-                      m_generating     = true;
-                      m_lastResults    = m_analyzer.Analyze();
-                      m_doneGenerating = true;
-                      m_hasGenerated   = true;
-                  });
+                m_generatorThread = std::thread([this]() {
+                    m_generating     = true;
+                    m_lastResults    = m_analyzer.Analyze();
+                    m_doneGenerating = true;
+                    m_hasGenerated   = true;
+                });
             }
             if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Analyze all the reports with the given options."); }
             ImGui::SameLine();
             if (ImGui::Button("Show Last Report")) { m_renderResults = true; }
             if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Display the last generated analysis report."); }
 
-            if (ImGui::Button("load Reports"))
-            {
+            if (ImGui::Button("load Reports")) {
                 BR_PROFILE_SCOPE("Loading Analysis Reports");
                 auto pathsOpt =
                   Brigerad::Dialogs::OpenFiles("load Reports", {}, {"*.json"}, "Log Analysis Result Files");
-                if (pathsOpt)
-                {
-                    for (auto&& path : *pathsOpt)
-                    {
-                        try
-                        {
+                if (pathsOpt) {
+                    for (auto&& path : *pathsOpt) {
+                        try {
                             m_loadedResults[path] = Frasy::Analyzers::Load(path);
                         }
-                        catch (std::exception& e)
-                        {
+                        catch (std::exception& e) {
                             BR_LOG_ERROR(s_windowName, "Unable to load '{}': {}", path, e.what());
                         }
                     }
@@ -99,8 +87,7 @@ void ResultAnalyzer::onImGuiRender()
 
             ImGui::SameLine();
 
-            if (m_hasGenerated && ImGui::Button("save Report"))
-            {
+            if (m_hasGenerated && ImGui::Button("save Report")) {
                 BR_PROFILE_SCOPE("Saving Analysis Report");
                 auto suggestedPath = std::filesystem::current_path();
                 suggestedPath /= "report.json";
@@ -109,9 +96,10 @@ void ResultAnalyzer::onImGuiRender()
                 if (pathOpt) { Frasy::Analyzers::Save(m_lastResults, *pathOpt); }
             }
         }
-        else { ImGui::Text("Generating... %zu/%zu", m_analyzer.Analyzed, m_analyzer.ToAnalyze); }
-        if (m_doneGenerating && m_generating)
-        {
+        else {
+            ImGui::Text("Generating... %zu/%zu", m_analyzer.Analyzed, m_analyzer.ToAnalyze);
+        }
+        if (m_doneGenerating && m_generating) {
             m_generatorThread.join();
             m_generating    = false;
             m_renderResults = true;
@@ -131,20 +119,16 @@ void ResultAnalyzer::RenderStringList(std::string_view                   name,
                                       std::string_view                   tooltip,
                                       std::vector<std::array<char, 32>>& strings)
 {
-    if (ImGui::TreeNode(name.data()))
-    {
+    if (ImGui::TreeNode(name.data())) {
         size_t at = 1;
-        for (auto&& str : strings)
-        {
+        for (auto&& str : strings) {
             ImGui::InputTextWithHint(
               std::format("{}", at).c_str(), "Partial matches are supported.", str.data(), str.size());
             at++;
         }
 
-        if (ImGui::Button("Add"))
-        {
-            if (strings.empty() || !strings.back().empty())
-            {
+        if (ImGui::Button("Add")) {
+            if (strings.empty() || !strings.back().empty()) {
                 // Don't add a new string if there's already one with nothing in it.
                 strings.push_back({});
             }
@@ -157,18 +141,18 @@ void ResultAnalyzer::RenderStringList(std::string_view                   name,
 
 void ResultAnalyzer::RenderAnalysisResults()
 {
-    if (ImGui::Begin("Results", &m_renderResults))
-    {
+    if (ImGui::Begin("Results", &m_renderResults)) {
         if (m_loadedResults.empty()) { RenderSingleAnalysisResults(); }
-        else { RenderMultipleAnalysisResults(); }
+        else {
+            RenderMultipleAnalysisResults();
+        }
     }
     ImGui::End();
 }
 
 void ResultAnalyzer::RenderSingleAnalysisResults()
 {
-    if (ImGui::BeginTabBar("ResultLocationTabs"))
-    {
+    if (ImGui::BeginTabBar("ResultLocationTabs")) {
         RenderAnalysisResultsFile(m_lastResults);
         ImGui::EndTabBar();
     }
@@ -176,19 +160,15 @@ void ResultAnalyzer::RenderSingleAnalysisResults()
 
 void ResultAnalyzer::RenderMultipleAnalysisResults()
 {
-    if (ImGui::BeginTabBar("ResultFileTabs"))
-    {
-        if (ImGui::BeginTabItem("Last"))
-        {
+    if (ImGui::BeginTabBar("ResultFileTabs")) {
+        if (ImGui::BeginTabItem("Last")) {
             ImGui::BeginTabBar("ResultLocationTabs");
             RenderAnalysisResultsFile(m_lastResults);
             ImGui::EndTabBar();
             ImGui::EndTabItem();
         }
-        for (auto&& [name, result] : m_loadedResults)
-        {
-            if (ImGui::BeginTabItem(name.c_str()))
-            {
+        for (auto&& [name, result] : m_loadedResults) {
+            if (ImGui::BeginTabItem(name.c_str())) {
                 ImGui::BeginTabBar("ResultLocationTabs");
                 RenderAnalysisResultsFile(result);
                 ImGui::EndTabBar();
@@ -202,10 +182,8 @@ void ResultAnalyzer::RenderMultipleAnalysisResults()
 
 void ResultAnalyzer::RenderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results)
 {
-    for (auto&& [locationName, locationResults] : results.Locations)
-    {
-        if (ImGui::BeginTabItem(locationName.c_str()))
-        {
+    for (auto&& [locationName, locationResults] : results.Locations) {
+        if (ImGui::BeginTabItem(locationName.c_str())) {
             ImGui::BeginChild(locationName.c_str(), ImVec2 {0.0f, 0.0f}, false);
             RenderLocationAnalysisResults(locationResults);
 
@@ -229,10 +207,8 @@ void ResultAnalyzer::RenderLocationAnalysisResults(const Analyzers::ResultAnalys
 
     ImGui::BeginTabBar(std::format("{}##sequences", location.Name).c_str());
 
-    for (auto&& [name, sequence] : location.Sequences)
-    {
-        if (ImGui::BeginTabItem(name.c_str()))
-        {
+    for (auto&& [name, sequence] : location.Sequences) {
+        if (ImGui::BeginTabItem(name.c_str())) {
             ImGui::BeginChild(name.c_str(), ImVec2 {0.0f, 0.0f}, false);
             RenderSequenceAnalysisResults(sequence);
             ImGui::EndChild();
@@ -261,10 +237,8 @@ void ResultAnalyzer::RenderSequenceAnalysisResults(const Analyzers::ResultAnalys
 
     ImGui::BeginTabBar(std::format("{}##tests", sequence.Name).c_str());
 
-    for (auto&& [name, test] : sequence.Tests)
-    {
-        if (ImGui::BeginTabItem(name.c_str()))
-        {
+    for (auto&& [name, test] : sequence.Tests) {
+        if (ImGui::BeginTabItem(name.c_str())) {
             ImGui::BeginChild(name.c_str(), ImVec2 {0.0f, 0.0f}, false);
             RenderTestAnalysisResults(test);
             ImGui::EndChild();
@@ -293,12 +267,10 @@ void ResultAnalyzer::RenderTestAnalysisResults(const Analyzers::ResultAnalysisRe
 
     ImGui::Separator();
 
-    ImGui::BeginTabBar(std::format("{}##tests", test.Name).c_str());
+    ImGui::BeginTabBar(std::format("{}##tests", test.Name).c_str(), ImGuiTabBarFlags_FittingPolicyScroll);
 
-    for (auto&& [name, expectation] : test.Expectations)
-    {
-        if (ImGui::BeginTabItem(name.c_str()))
-        {
+    for (auto&& [name, expectation] : test.Expectations) {
+        if (ImGui::BeginTabItem(name.c_str())) {
             ImGui::BeginChild(name.c_str(), ImVec2 {0.0f, 0.0f}, false);
             expectation->Render();
             ImGui::EndChild();
