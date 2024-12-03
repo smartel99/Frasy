@@ -43,7 +43,7 @@ function DAQ:New(opt)
     if opt.nodeId == nil then opt.nodeId = ib.kind end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/core/cep/eds/daq_1.1.0.eds"
+    ib.eds = "lua/core/cep/eds/daq_1.1.1.eds"
     return setmetatable({ ib = ib, cache = { io = { mode = 0, output = 0, } } }, DAQ)
 end
 
@@ -1047,7 +1047,7 @@ end
 --- @param point DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
 --- @return DAQ_RoutingPointsEnum[]
 local function PointToPoints(point)
-    if type(point) == "number" then return { point } end
+    if type(point) ~= "table" then return { point } end
     return point --[[@as DAQ_RoutingPointsEnum[] ]]
 end
 
