@@ -18,7 +18,7 @@ local ExpectationResult = require("lua/core/framework/expectation/result")
 ---@field Mandatory function
 ---@field result ExpectationResult?
 ---
-local Expectation = {mandatory = false, result = nil}
+local Expectation = { mandatory = false, result = nil }
 Expectation.__index = Expectation
 
 ---@param value any
@@ -75,13 +75,14 @@ function Expectation:ToBeEqual(expected)
     return self
 end
 
--- TODO handle negatives
 function Expectation:ToBeNear(expected, deviation)
     self.result.method = "ToBeNear"
     self.result.expected = expected
-    self.result.deviation = deviation
-    self.result.pass = expected - deviation <= self.result.value and
-                           self.result.value <= expected + deviation
+    self.result.deviation = math.abs(deviation)
+    self.result.min = expected - deviation
+    self.result.max = expected + deviation
+    self.result.pass = self.result.min <= self.result.value and
+        self.result.value <= self.result.max
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
@@ -97,15 +98,14 @@ function Expectation:ToBeInRange(min, max)
     return self
 end
 
--- TODO handle negatives
 function Expectation:ToBeInPercentage(expected, percentage)
     self.result.method = "ToBeInPercentage"
     self.result.expected = expected
     self.result.percentage = percentage
-    self.result.deviation = expected * percentage / 100
-    self.result.pass =
-        (self.result.value >= (expected - self.result.deviation)) and
-            (self.result.value <= (expected + self.result.deviation))
+    self.result.deviation = math.abs(expected * percentage / 100)
+    self.result.min = expected - self.result.deviation
+    self.result.max = expected + self.result.deviation
+    self.result.pass = self.result.min <= self.result.value and self.result.value <= self.result.max
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
