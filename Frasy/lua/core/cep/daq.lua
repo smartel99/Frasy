@@ -747,7 +747,7 @@ end
 --- Translates a channel to its corresponding test point.
 --- @param channel DAQ_AdcChannelEnum
 --- @return DAQ_RoutingPointsEnum|nil
-local function AdcChannelToTestPoint(channel)
+function DAQ.AdcChannelToTestPoint(channel)
     local indexes = {
         [DAQ.AdcChannelEnum.adc1] = nil,
         [DAQ.AdcChannelEnum.adc2] = DAQ.RoutingPointsEnum.ADC_CH1,
@@ -756,6 +756,7 @@ local function AdcChannelToTestPoint(channel)
     }
     return indexes[channel]
 end
+
 local function CheckAdcChannel(channel)
     CheckField(channel, "channel", IsIntegerIn(channel, DAQ.AdcChannelEnum.adc1, DAQ.AdcChannelEnum.adc4))
 end
@@ -1086,7 +1087,7 @@ function DAQ:MeasureVoltage(points, opt)
     if opt.gain == nil then opt.gain = DAQ.MeasureVoltageDefault.gain end
     if opt.sampleRate == nil then opt.sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
 
-    local route = self:RequestRouting({ table.unpack(points), AdcChannelToTestPoint(opt.channel) })
+    local route = self:RequestRouting({ table.unpack(points), DAQ.AdcChannelToTestPoint(opt.channel) })
 
     if route == -1 then
         error("Unable to connect points to ADC!")
