@@ -424,16 +424,16 @@ function Orchestrator.CompileExecutionResults(outputDir)
         }
     }
     report.ib = {}
-    --for k, ib in pairs(Context.map.ibs) do
-    --    report.ib[k] = {
-    --        kind = ib.ib.kind,
-    --        nodeId = ib.ib.nodeId,
-    --        eds = ib.ib.eds,
-    --        software = ib.ib:SoftwareVersion(),
-    --        hardware = ib.ib:HardwareVersion(),
-    --        serial = tostring(ib.ib:Serial()),
-    --    }
-    --end
+    for k, ib in pairs(Context.map.ibs) do
+        report.ib[k] = {
+            kind = ib.ib.kind,
+            nodeId = ib.ib.nodeId,
+            eds = ib.ib.eds,
+            software = ib.ib:SoftwareVersion(),
+            hardware = ib.ib:HardwareVersion(),
+            serial = tostring(ib.ib:Serial()),
+        }
+    end
 
     report.sequences = {}
     for sName, sequence in pairs(Context.orchestrator.sequences) do
