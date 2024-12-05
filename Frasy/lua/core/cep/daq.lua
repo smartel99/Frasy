@@ -1225,7 +1225,7 @@ end
 --- Measures an inductor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
 --- @param impN DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
---- @param opt DAQ_MeasureCapacitorOptParameters?
+--- @param opt DAQ_MeasureInductorOptParameters?
 --- @return DAQ_ImpedanceResults
 function DAQ:MeasureInductor(impP, impN, opt)
     if opt == nil then opt = {} end
