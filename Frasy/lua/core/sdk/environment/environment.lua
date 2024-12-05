@@ -17,10 +17,16 @@ local _team = require("lua/core/sdk/environment/team")
 local _ib = require("lua/core/sdk/environment/ib")
 
 if (Context.map == nil) then
-    Context.map = { uuts = {}, ibs = {}, team = {}, values = {}, onReport = function(report) return report end }
+    Context.map = { uuts = {}, ibs = {}, team = {}, values = {}, onReport = function(report)
+        return report
+    end, onReportInfo = function()
+        return {}
+    end }
 end
 
-if (Ibs == nil) then Ibs = {} end
+if (Ibs == nil) then
+    Ibs = {}
+end
 
 --- Environment
 --- @param func function Function that defines the environment.
@@ -31,20 +37,26 @@ local function MakeEnvironment(func)
     _worker.Evaluate()
 end
 
-function TestPoint(ibs, index) return { ibs = ibs, index = index } end
+function TestPoint(ibs, index)
+    return { ibs = ibs, index = index }
+end
 
 local function SetUutCount(count)
     Context.map.uuts = {};
-    for i = 1, count do table.insert(Context.map.uuts, i) end
+    for i = 1, count do
+        table.insert(Context.map.uuts, i)
+    end
 end
 
 local function AddTeam(...)
     Context.team.hasTeam = true
     local leader
     for index, uuts in ipairs({ ... }) do
-        if index == 1 then leader = uuts end
+        if index == 1 then
+            leader = uuts
+        end
         assert(Context.team.players[uuts] == nil, TeamError(
-            string.format("Player %d is already in team %d", uuts, leader)))
+                string.format("Player %d is already in team %d", uuts, leader)))
         Context.team.players[uuts] = { leader = leader, position = index }
     end
     Context.team.teams[leader] = { ... }
@@ -69,7 +81,7 @@ local function AddIb(board)
     end
     local odParser = require("lua.core.can_open.object_dictionary")
     assert(Context.map.ibs[board.ib.name] == nil,
-        "Ib already defined. " .. board.ib.name)
+            "Ib already defined. " .. board.ib.name)
     Context.map.ibs[board.ib.name] = board
     board.ib.od = odParser.LoadFile(board.ib.eds)
     return board
@@ -79,8 +91,14 @@ local function SetOnReport(fun)
     Context.map.onReport = fun
 end
 
+local function SetOnReportInfo(fun)
+    Context.map.onReportInfo = fun
+end
+
 local function ScriptVersion(version)
-    if version == nil then return Context.info.version.scripts end
+    if version == nil then
+        return Context.info.version.scripts
+    end
     if type(version) == "number" or type(version) == "string" then
         Context.info.version.scripts = tostring(version)
     else
@@ -97,4 +115,5 @@ Environment = {
     Team = { Add = AddTeam },
     Worker = { Limit = _worker.Limit },
     SetOnReport = SetOnReport,
+    SetOnReportInfo = SetOnReportInfo,
 }

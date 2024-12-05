@@ -31,14 +31,14 @@ public:
     void reportIb(const std::string& name) override;
     void reportSequenceResult(const std::string& name) override;
     void reportTestResult(const std::string& name) override;
-    void reportToBeEqualBoolean() override;
-    void reportToBeEqualNumber() override;
-    void reportToBeEqualString() override;
-    void reportToBeInPercentage() override;
-    void reportToBeInRange() override;
-    void reportToBeGreater() override;
-    void reportToBeLesser() override;
-    void reportToBeNear() override;
+    void reportToBeEqualBoolean(const sol::table& expectation) override;
+    void reportToBeEqualNumber(const sol::table& expectation) override;
+    void reportToBeEqualString(const sol::table& expectation) override;
+    void reportToBeInPercentage(const sol::table& expectation) override;
+    void reportToBeInRange(const sol::table& expectation) override;
+    void reportToBeGreater(const sol::table& expectation) override;
+    void reportToBeLesser(const sol::table& expectation) override;
+    void reportToBeNear(const sol::table& expectation) override;
 
     static constexpr auto endline = "  \n";
 

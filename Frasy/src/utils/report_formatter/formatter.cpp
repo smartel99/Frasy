@@ -40,8 +40,6 @@ void Formatter::setTest(const std::string& name)
     m_expectationIndex = 0;
 }
 
-
-
 sol::table Formatter::getNextExpectation()
 {
     const auto& expectations = m_test["expectations"].get_or(m_emptyTable);

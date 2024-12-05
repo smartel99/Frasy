@@ -33,9 +33,9 @@ KeyValue::KeyValue(sol::state_view& lua, std::ofstream& output, const sol::table
 
 void KeyValue::reportInfo()
 {
-    *m_output << "Info-Date: " << m_result["info"]["date"].get<std::string>() << endline;
-    *m_output << "Info-Duration: " << m_result["info"]["time"]["elapsed"].get<double>() << endline;
-    *m_output << "Info-Operator: " << m_result["info"]["operator"].get<std::string>() << endline;
+    *m_output << "Info-Date: " << m_result["info"]["date"].get_or<std::string>("<N/A>") << endline;
+    *m_output << "Info-Duration: " << m_result["info"]["time"]["elapsed"].get_or<double>(0.0f) << endline;
+    *m_output << "Info-Operator: " << m_result["info"]["operator"].get_or<std::string>("<N/A>") << endline;
     *m_output << "Info-Result: " << resultToString(m_result["info"]["pass"]) << endline;
 }
 
@@ -72,9 +72,8 @@ void KeyValue::reportTestResult(const std::string& name)
     reportSectionBaseResult(m_test);
 }
 
-void KeyValue::reportToBeEqualBoolean()
+void KeyValue::reportToBeEqualBoolean(const sol::table& expectation)
 {
-    const auto expectation = getNextExpectation();
     const auto prefix      = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
@@ -84,9 +83,8 @@ void KeyValue::reportToBeEqualBoolean()
     *m_output << prefix << "Value: " << getFieldAsStr<bool>(expectation["value"]) << endline;
 }
 
-void KeyValue::reportToBeEqualNumber()
+void KeyValue::reportToBeEqualNumber(const sol::table& expectation)
 {
-    const auto expectation = getNextExpectation();
     const auto prefix      = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
@@ -96,9 +94,8 @@ void KeyValue::reportToBeEqualNumber()
     *m_output << prefix << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void KeyValue::reportToBeEqualString()
+void KeyValue::reportToBeEqualString(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     const auto  prefix      = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
@@ -108,9 +105,8 @@ void KeyValue::reportToBeEqualString()
     *m_output << prefix << "Value: " << getFieldAsStr<std::string>(expectation["value"]) << endline;
 }
 
-void KeyValue::reportToBeInPercentage()
+void KeyValue::reportToBeInPercentage(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     const auto  prefix      = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
@@ -122,9 +118,8 @@ void KeyValue::reportToBeInPercentage()
     *m_output << prefix << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void KeyValue::reportToBeInRange()
+void KeyValue::reportToBeInRange(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     const auto  prefix      = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
@@ -135,9 +130,8 @@ void KeyValue::reportToBeInRange()
     *m_output << prefix << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void KeyValue::reportToBeGreater()
+void KeyValue::reportToBeGreater(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     const auto  prefix      = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
@@ -147,9 +141,8 @@ void KeyValue::reportToBeGreater()
     *m_output << prefix << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void KeyValue::reportToBeLesser()
+void KeyValue::reportToBeLesser(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     const auto  prefix      = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
@@ -159,9 +152,8 @@ void KeyValue::reportToBeLesser()
     *m_output << prefix << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void KeyValue::reportToBeNear()
+void KeyValue::reportToBeNear(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     const auto  prefix      = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;

@@ -71,9 +71,8 @@ void Markdown::reportTestResult(const std::string& name)
 }
 
 
-void Markdown::reportToBeEqualBoolean()
+void Markdown::reportToBeEqualBoolean(const sol::table& expectation)
 {
-    const auto expectation = getNextExpectation();
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
@@ -82,9 +81,8 @@ void Markdown::reportToBeEqualBoolean()
     *m_output << "Value: " << getFieldAsStr<bool>(expectation["value"]) << endline;
 }
 
-void Markdown::reportToBeEqualNumber()
+void Markdown::reportToBeEqualNumber(const sol::table& expectation)
 {
-    const auto expectation = getNextExpectation();
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
@@ -93,9 +91,8 @@ void Markdown::reportToBeEqualNumber()
     *m_output << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void Markdown::reportToBeEqualString()
+void Markdown::reportToBeEqualString(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
@@ -104,9 +101,8 @@ void Markdown::reportToBeEqualString()
     *m_output << "Value: " << getFieldAsStr<std::string>(expectation["value"]) << endline;
 }
 
-void Markdown::reportToBeInPercentage()
+void Markdown::reportToBeInPercentage(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
@@ -117,9 +113,8 @@ void Markdown::reportToBeInPercentage()
     *m_output << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void Markdown::reportToBeInRange()
+void Markdown::reportToBeInRange(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
@@ -130,9 +125,8 @@ void Markdown::reportToBeInRange()
     *m_output << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void Markdown::reportToBeGreater()
+void Markdown::reportToBeGreater(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
@@ -142,9 +136,8 @@ void Markdown::reportToBeGreater()
     *m_output << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void Markdown::reportToBeLesser()
+void Markdown::reportToBeLesser(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
@@ -154,9 +147,8 @@ void Markdown::reportToBeLesser()
     *m_output << "Value: " << getFieldAsStr<double>(expectation["value"]) << endline;
 }
 
-void Markdown::reportToBeNear()
+void Markdown::reportToBeNear(const sol::table& expectation)
 {
-    const auto& expectation = getNextExpectation();
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
     *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;

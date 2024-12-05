@@ -42,28 +42,29 @@ static std::string getFieldAsStr(const sol::object& field)
 
 class Formatter {
 public:
-                 Formatter(sol::state_view& lua, std::ofstream& output, const sol::table& result);
-    virtual ~    Formatter()                                   = default;
-    virtual void reportInfo()                                  = 0;
-    virtual void reportVersion()                               = 0;
-    virtual void reportIb(const std::string& name)             = 0;
-    virtual void reportSequenceResult(const std::string& name) = 0;
-    virtual void reportTestResult(const std::string& name)     = 0;
-    virtual void reportToBeEqualBoolean()                      = 0;
-    virtual void reportToBeEqualNumber()                       = 0;
-    virtual void reportToBeEqualString()                       = 0;
-    virtual void reportToBeInPercentage()                      = 0;
-    virtual void reportToBeInRange()                           = 0;
-    virtual void reportToBeGreater()                           = 0;
-    virtual void reportToBeLesser()                            = 0;
-    virtual void reportToBeNear()                              = 0;
+    Formatter(sol::state_view& lua, std::ofstream& output, const sol::table& result);
+    virtual ~Formatter()                                               = default;
+    virtual void reportInfo()                                          = 0;
+    virtual void reportVersion()                                       = 0;
+    virtual void reportIb(const std::string& name)                     = 0;
+    virtual void reportSequenceResult(const std::string& name)         = 0;
+    virtual void reportTestResult(const std::string& name)             = 0;
+    virtual void reportToBeEqualBoolean(const sol::table& expectation) = 0;
+    virtual void reportToBeEqualNumber(const sol::table& expectation)  = 0;
+    virtual void reportToBeEqualString(const sol::table& expectation)  = 0;
+    virtual void reportToBeInPercentage(const sol::table& expectation) = 0;
+    virtual void reportToBeInRange(const sol::table& expectation)      = 0;
+    virtual void reportToBeGreater(const sol::table& expectation)      = 0;
+    virtual void reportToBeLesser(const sol::table& expectation)       = 0;
+    virtual void reportToBeNear(const sol::table& expectation)         = 0;
+
+    sol::table getNextExpectation();
 
 protected:
     static std::string resultToString(const sol::object& field);
     static std::string sectionResultToString(const sol::table& section);
     void               setSequence(const std::string& name);
     void               setTest(const std::string& name);
-    sol::table         getNextExpectation();
     virtual void       reportSectionBaseResult(const sol::table& section) const = 0;
 
     std::ofstream* m_output;
