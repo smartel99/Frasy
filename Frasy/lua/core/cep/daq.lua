@@ -729,6 +729,28 @@ DAQ.AdcSampleRateEnum = {
     f85333Hz = 18,
     f128000Hz = 19
 }
+DAQ.AdcSampleRateValues = {
+    [DAQ.AdcSampleRateEnum.f250Hz] = 250,
+    [DAQ.AdcSampleRateEnum.f500Hz] = 500,
+    [DAQ.AdcSampleRateEnum.f1000Hz] = 1000,
+    [DAQ.AdcSampleRateEnum.f2000Hz] = 2000,
+    [DAQ.AdcSampleRateEnum.f2560Hz] = 2560,
+    [DAQ.AdcSampleRateEnum.f2667Hz] = 2667,
+    [DAQ.AdcSampleRateEnum.f4000Hz] = 4000,
+    [DAQ.AdcSampleRateEnum.f5120Hz] = 5120,
+    [DAQ.AdcSampleRateEnum.f5333Hz] = 5333,
+    [DAQ.AdcSampleRateEnum.f8000Hz] = 8000,
+    [DAQ.AdcSampleRateEnum.f10240Hz] = 10240,
+    [DAQ.AdcSampleRateEnum.f10667Hz] = 10667,
+    [DAQ.AdcSampleRateEnum.f16000Hz] = 16000,
+    [DAQ.AdcSampleRateEnum.f20480Hz] = 20480,
+    [DAQ.AdcSampleRateEnum.f21333Hz] = 21333,
+    [DAQ.AdcSampleRateEnum.f32000Hz] = 32000,
+    [DAQ.AdcSampleRateEnum.f42667Hz] = 42667,
+    [DAQ.AdcSampleRateEnum.f64000Hz] = 64000,
+    [DAQ.AdcSampleRateEnum.f85333Hz] = 85333,
+    [DAQ.AdcSampleRateEnum.f128000Hz] = 128000
+}
 --- @enum DAQ_AdcChannelGainEnum
 DAQ.AdcChannelGainEnum = { g1 = 0, g2 = 1, g4 = 2, g8 = 3, g16 = 4 }
 --- Translates a channel to its corresponding integer.
@@ -916,6 +938,17 @@ DAQ.ImpedanceDefaults = {
     favorSpeed = false
 }
 
+---@param samplesToTake integer
+---@param sampleRate DAQ_AdcSampleRateEnum
+---@param delay integer? delay in us
+---@return number duration in s
+local function computeMeasureDuration(samplesToTake, sampleRate, delay)
+    local delayDuration = delay / 1000 / 1000
+    local measureDuration = samplesToTake / DAQ.AdcSampleRateValues[sampleRate]
+    local commDuration = 0.5 -- 500ms extra duration
+    return delayDuration + measureDuration + commDuration
+end
+
 --- @class DAQ_ImpedancesOptionalParameters
 --- @field shape DAQ_ImpedanceShapeEnum?
 --- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
@@ -1011,12 +1044,15 @@ function DAQ:Impedances(mode, opt)
     self.ib:Download(odFavorSpeed, opt.favorSpeed)
     self.ib:Download(odTrigger, true)
 
-    SleepFor(100)
-    local deadline = 5000 - 100
-    while (self.ib:Upload(odTrigger)) do
-        SleepFor(10)
-        deadline = deadline - 10
-        if deadline <= 0 then error("Impedance timeout") end
+    if Context.info.stage == Stage.execution then
+        SleepFor(100) -- Let DAQ start measure and update trigger
+        local deadline = os.clock() + computeMeasureDuration(opt.samplesToTake, DAQ.AdcSampleRateEnum.f1000Hz, opt.delay)
+        local doRun = true
+        while doRun do
+            doRun = self.ib:Upload(odTrigger) --[[@as boolean]]
+            SleepFor(10)
+            if deadline < os.clock() then error("Impedance timeout") end
+        end
     end
 
     if opt.shape == 0 then opt.shape = self.ib:Upload(odShape) --[[@as DAQ_ImpedanceShapeEnum]] end
@@ -1118,7 +1154,7 @@ end
 --- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
 --- @field voltage number?
---- @field delay integer?
+--- @field delay integer? us
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
 
