@@ -32,8 +32,8 @@
 namespace Frasy::Report::Formatter::Kvp {
 namespace {
 using Test     = std::string;
-using Sequence = std::vector<Test>;
-using Solution = std::map<std::string, Sequence>;
+using Sequence = std::pair<std::string, std::vector<Test>>;
+using Solution = std::vector<Sequence>;
 
 nlohmann::json loadJson(const std::string& path)
 {
@@ -59,11 +59,18 @@ Solution loadSolution()
     for (const auto& section : json) {
         for (const auto& sequenceList : section) {
             for (const auto& sequence : sequenceList) {
-                BR_LOG_INFO("KVP Report", "Loading sequence '{}'", sequence["name"]);
+                BR_LOG_DEBUG("KVP Report", "Loading sequence '{}'", sequence["name"]);
                 for (const auto& testGroup : sequence["tests"]) {
                     for (const auto& test : testGroup) {
-                        BR_LOG_INFO("KVP Report", "Test '{}'", test);
-                        solution[sequence["name"]].push_back(test);
+                        BR_LOG_DEBUG("KVP Report", "Test '{}'", test);
+                        auto it = std::ranges::find_if(solution,
+                                                       [name = sequence["name"].get<std::string>()](const auto& test) {
+                                                           return test.first == name;
+                                                       });
+                        if (it != solution.end()) { it->second.push_back(test); }
+                        else {
+                            solution.emplace_back(sequence["name"], std::vector {test.get<std::string>()});
+                        }
                     }
                 }
             }
@@ -107,7 +114,7 @@ std::vector<std::string> makeReport(sol::state_view& lua, const sol::table& resu
         std::ofstream report(smtFilename);
         if (!report.is_open()) {
             BR_LOG_ERROR("KVP Report", "Unable to open file '{}'", smtFilename.string());
-            return{};
+            return {};
         }
 
         static constexpr auto endline   = "\n";
