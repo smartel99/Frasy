@@ -1153,7 +1153,7 @@ end
 --- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
 --- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
---- @field voltage number?
+--- @field amplitude number?
 --- @field delay integer? us
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
@@ -1183,7 +1183,7 @@ function DAQ:MeasureResistor(impP, impN, opt)
         DAQ.ImpedanceModeEnum.resistor, {
             shape = DAQ.ImpedanceShapeEnum.dc,
             rangeResistor = opt.rangeResistor,
-            voltage = opt.voltage,
+            amplitude = opt.amplitude,
             delay = opt.delay,
             samplesToTake = opt.samplesToTake,
             expectedValue = opt.expectedValue,
@@ -1203,7 +1203,7 @@ end
 --- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
 --- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
---- @field voltage number?
+--- @field amplitude number?
 --- @field delay integer?
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
@@ -1233,7 +1233,7 @@ function DAQ:MeasureCapacitor(impP, impN, opt)
         DAQ.ImpedanceModeEnum.capacitor, {
             frequency = opt.frequency,
             rangeResistor = opt.rangeResistor,
-            voltage = opt.voltage,
+            amplitude = opt.amplitude,
             delay = opt.delay,
             samplesToTake = opt.samplesToTake,
             expectedValue = opt.expectedValue,
@@ -1253,7 +1253,7 @@ end
 --- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
 --- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
---- @field voltage number?
+--- @field amplitude number?
 --- @field delay integer?
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
@@ -1283,7 +1283,7 @@ function DAQ:MeasureInductor(impP, impN, opt)
         DAQ.ImpedanceModeEnum.inductor, {
             frequency = opt.frequency,
             rangeResistor = opt.rangeResistor,
-            voltage = opt.voltage,
+            amplitude = opt.amplitude,
             delay = opt.delay,
             samplesToTake = opt.samplesToTake,
             expectedValue = opt.expectedValue,
