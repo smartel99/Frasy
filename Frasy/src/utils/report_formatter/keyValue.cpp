@@ -36,6 +36,7 @@ void KeyValue::reportInfo()
     *m_output << "Info-Date: " << m_result["info"]["date"].get_or<std::string>("<N/A>") << endline;
     *m_output << "Info-Duration: " << m_result["info"]["time"]["elapsed"].get_or<double>(0.0f) << endline;
     *m_output << "Info-Operator: " << m_result["info"]["operator"].get_or<std::string>("<N/A>") << endline;
+    *m_output << "Info-Serial: " << m_result["info"]["serial"].get_or<std::string>("<N/A>") << endline;
     *m_output << "Info-Result: " << resultToString(m_result["info"]["pass"]) << endline;
 }
 
