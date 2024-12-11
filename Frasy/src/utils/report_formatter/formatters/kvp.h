@@ -20,9 +20,11 @@
 #define FRASY_SRC_UTILS_REPORT_FORMATTER_FORMATTERS_KVP_H
 
 #include <sol/sol.hpp>
+#include <vector>
+#include <string>
 
 namespace Frasy::Report::Formatter::Kvp {
-void makeReport(sol::state_view& lua, const sol::table& results);
+std::vector<std::string> makeReport(sol::state_view& lua, const sol::table& results);
 }
 
 #endif    // FRASY_SRC_UTILS_REPORT_FORMATTER_FORMATTERS_KVP_H

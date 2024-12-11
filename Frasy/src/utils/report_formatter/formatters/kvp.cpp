@@ -74,8 +74,9 @@ Solution loadSolution()
 }
 }    // namespace
 
-void makeReport(sol::state_view& lua, const sol::table& results)
+std::vector<std::string> makeReport(sol::state_view& lua, const sol::table& results)
 {
+    std::vector<std::string> reports = {};
     // Load the solution up, building a list of the sections-solutions-tests-expectations
     // Format them from the results into a kvp format, where keys are <solution>#<test>#<expectation>
     try {
@@ -106,7 +107,7 @@ void makeReport(sol::state_view& lua, const sol::table& results)
         std::ofstream report(smtFilename);
         if (!report.is_open()) {
             BR_LOG_ERROR("KVP Report", "Unable to open file '{}'", smtFilename.string());
-            return;
+            return{};
         }
 
         static constexpr auto endline   = "\n";
@@ -172,9 +173,12 @@ void makeReport(sol::state_view& lua, const sol::table& results)
 
         report.close();
         fs::copy(smtFilename, smtLastFilename, fs::copy_options::overwrite_existing);
+        reports.push_back(smtFilename.string());
+        reports.push_back(smtLastFilename.string());
     }
     catch (const std::exception& e) {
         BR_LOG_ERROR("KVP Report", "Error while making report: {}", e.what());
     }
+    return reports;
 }
 }    // namespace Frasy::Report::Formatter::Kvp
