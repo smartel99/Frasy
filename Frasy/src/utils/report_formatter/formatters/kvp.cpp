@@ -81,7 +81,9 @@ Solution loadSolution()
 }
 }    // namespace
 
-std::vector<std::string> makeReport(sol::state_view& lua, const sol::table& results)
+std::vector<std::string> makeReport(sol::state_view&                lua,
+                                    const sol::table&               results,
+                                    const std::vector<std::string>& filenames)
 {
     std::vector<std::string> reports = {};
     // Load the solution up, building a list of the sections-solutions-tests-expectations
@@ -94,26 +96,23 @@ std::vector<std::string> makeReport(sol::state_view& lua, const sol::table& resu
         namespace fs = std::filesystem;
         // Create log directory if needed.
         static auto logDirectory = fs::current_path() / "logs";
-        fs::create_directories(logDirectory);
+        create_directories(logDirectory);
 
-        // Create SMT log directy if needed.
+        // Create SMT log directly if needed.
         static auto smtDirectory = logDirectory / "smt";
-        fs::create_directories(smtDirectory);
+        create_directories(smtDirectory);
         static auto smtPassDir = smtDirectory / "pass";
-        fs::create_directories(smtPassDir);
+        create_directories(smtPassDir);
         static auto smtFailDir = smtDirectory / "fail";
-        fs::create_directories(smtFailDir);
+        create_directories(smtFailDir);
 
         // Create the log file.
-        auto smtFileDir      = pass ? smtPassDir : smtFailDir;
-        auto smtLastFilename = smtFileDir / std::format("{}.txt", results["info"]["serial"].get<std::string>());
-        auto smtFilename     = smtFileDir / std::format("{}-{}.txt",
-                                                    results["info"]["serial"].get<std::string>(),
-                                                    std::chrono::system_clock::now().time_since_epoch().count());
+        auto        smtFileDir         = pass ? smtPassDir : smtFailDir;
+        static auto lastReportFilepath = smtDirectory / "last.txt";
 
-        std::ofstream report(smtFilename);
+        std::ofstream report(lastReportFilepath);
         if (!report.is_open()) {
-            BR_LOG_ERROR("KVP Report", "Unable to open file '{}'", smtFilename.string());
+            BR_LOG_ERROR("KVP Report", "Unable to open file '{}'", lastReportFilepath.string());
             return {};
         }
 
@@ -130,7 +129,6 @@ std::vector<std::string> makeReport(sol::state_view& lua, const sol::table& resu
         report << endline;
 
         sol::table infos = lua["Context"]["map"]["onReportInfo"]();
-        // todo fix me
         for (const auto& info : infos) {
             report << info.second.as<std::string>() << KeyValue::endline;
         }
@@ -179,9 +177,12 @@ std::vector<std::string> makeReport(sol::state_view& lua, const sol::table& resu
         }
 
         report.close();
-        fs::copy(smtFilename, smtLastFilename, fs::copy_options::overwrite_existing);
-        reports.push_back(smtFilename.string());
-        reports.push_back(smtLastFilename.string());
+        reports.emplace_back(lastReportFilepath.string());
+        for (const auto& filename : filenames) {
+            const auto filepath = smtDirectory / filename;
+            reports.emplace_back(filepath.string());
+            copy(lastReportFilepath, filepath, fs::copy_options::overwrite_existing);
+        }
     }
     catch (const std::exception& e) {
         BR_LOG_ERROR("KVP Report", "Error while making report: {}", e.what());
