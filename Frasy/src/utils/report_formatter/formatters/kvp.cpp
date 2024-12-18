@@ -179,7 +179,7 @@ std::vector<std::string> makeReport(sol::state_view&                lua,
         report.close();
         reports.emplace_back(lastReportFilepath.string());
         for (const auto& filename : filenames) {
-            const auto filepath = smtDirectory / filename;
+            const auto filepath = smtFileDir / filename;
             reports.emplace_back(filepath.string());
             copy(lastReportFilepath, filepath, fs::copy_options::overwrite_existing);
         }
