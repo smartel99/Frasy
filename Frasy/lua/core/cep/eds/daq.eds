@@ -1,5 +1,5 @@
 [FileInfo]
-FileName=daq_1.1.1.eds
+FileName=daq.eds
 FileVersion=1
 FileRevision=1
 LastEDS=
@@ -8,8 +8,8 @@ Description=
 CreationTime=12:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=8:06PM
-ModificationDate=11-27-2024
+ModificationTime=1:13PM
+ModificationDate=01-20-2025
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -397,7 +397,7 @@ ObjectType=0x7
 DataType=0x0009
 AccessType=ro
 StringLengthMin=0
-DefaultValue=1.1.0
+DefaultValue=1.1.1
 PDOMapping=0
 
 [1010]
@@ -651,7 +651,7 @@ PDOMapping=0
 [1019]
 ParameterName=Synchronous counter overflow value
 ObjectType=0x7
-;StorageLocation=PERSIST_COMM
+;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
 StringLengthMin=0
@@ -1294,7 +1294,7 @@ PDOMapping=0
 ParameterName=ADC
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x14
+SubNumber=0x17
 
 [600Asub0]
 ParameterName=Highest sub-index supported
@@ -1303,7 +1303,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x13
+DefaultValue=0x16
 PDOMapping=0
 
 [600Asub1]
@@ -1500,6 +1500,38 @@ PDOMapping=0
 
 [600Asub13]
 ParameterName=Channel 4 Max
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[600Asub14]
+ParameterName=Stored Sample Index
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+HighLimit=999
+LowLimit=0
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[600Asub15]
+ParameterName=Stored Sample Channel 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0008
+AccessType=ro
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
+[600Asub16]
+ParameterName=Stored Sample Channel 3
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0008

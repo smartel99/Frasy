@@ -43,7 +43,7 @@ function DAQ:New(opt)
     if opt.nodeId == nil then opt.nodeId = ib.kind end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/core/cep/eds/daq_1.1.1.eds"
+    ib.eds = "lua/core/cep/eds/daq.eds"
     return setmetatable({ ib = ib, cache = { io = { mode = 0, output = 0, } } }, DAQ)
 end
 
@@ -867,6 +867,27 @@ function DAQ:AdcChannelAverage(channel)
     return self.ib:Upload(od) --[[@as number]]
 end
 
+--- @param index integer
+function DAQ:AdcStoredSampleIndex(index)
+    CheckField(index, "index", IsIntegerIn(index, 0, 999))
+    local od = self.ib.od["ADC"]["Stored Sample Index"]
+    self.ib:Download(od, index)
+end
+
+--- @param channel DAQ_AdcChannelEnum
+--- @return number
+function DAQ:AdcStoredSampleValue(channel)
+    local od
+    if channel == DAQ.AdcChannelEnum.adc2 then
+        od = self.ib.od["ADC"]["Stored Sample Channel 2"]
+    elseif channel == DAQ.AdcChannelEnum.adc3 then
+        od = self.ib.od["ADC"]["Stored Sample Channel 3"]
+    else
+        error("Invalid channel: " .. ToString(channel))
+    end
+    return self.ib:Upload(od) --[[@as number]]
+end
+
 --- @class AdcComplexCalibration
 --- @field gain {r100: number, r4k99: number, r100k: number, r1M: number}
 --- @field offset {r100: number, r4k99: number, r100k: number, r1M: number}
@@ -1147,6 +1168,14 @@ function DAQ:MeasureVoltage(points, opt)
     self:ClearBus(route)
 
     return self:AdcChannelResults(opt.channel)
+end
+
+---@param channel DAQ_AdcChannelEnum
+---@param index integer
+---@return number
+function DAQ:GetStoredSample(channel, index)
+    self:AdcStoredSampleIndex(index)
+    return self:AdcStoredSampleValue(channel)
 end
 
 --- @class DAQ_MeasureResistorOptParameters
