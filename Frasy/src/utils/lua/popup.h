@@ -43,15 +43,15 @@ public:
             SameLine,
             Spring,
         } kind;
-        explicit     Element(Kind kind) : kind(kind) {}
-        virtual ~    Element() = default;
-        virtual void render()  = 0;
+        explicit Element(Kind kind) : kind(kind) {}
+        virtual ~Element()    = default;
+        virtual void render() = 0;
     };
 
     struct Text : Element {
         std::string text;
-                    Text(std::string text) : Element(Kind::Text), text(std::move(text)) {}
-        void        render() final;
+        Text(std::string text) : Element(Kind::Text), text(std::move(text)) {}
+        void render() final;
     };
 
     struct Input : Element {
@@ -60,9 +60,9 @@ public:
         std::string                                                      title;
         std::size_t                                                      index;
         std::function<void(const std::string& value, std::size_t index)> onChange;
-                                                                         Input(std::string                                                      title,
-                                                                               std::size_t                                                      index,
-                                                                               std::function<void(const std::string& value, std::size_t index)> onChange)
+        Input(std::string                                                      title,
+              std::size_t                                                      index,
+              std::function<void(const std::string& value, std::size_t index)> onChange)
         : Element(Kind::Input), title(std::move(title)), index(index), onChange(std::move(onChange))
         {
         }
@@ -110,7 +110,7 @@ public:
     struct SameLine : Element {
         float offsetFromStartX;
         float spacing;
-              SameLine(float offsetFromStartX, float spacing)
+        SameLine(float offsetFromStartX, float spacing)
         : Element(Kind::SameLine), offsetFromStartX(offsetFromStartX), spacing(spacing)
         {
         }
@@ -119,9 +119,9 @@ public:
     };
 
     struct BeginHorizontal : Element {
-        int id;
-        ImVec2      size;
-        float       align;
+        int    id;
+        ImVec2 size;
+        float  align;
 
         BeginHorizontal(int id, ImVec2 size, float align)
         : Element(Kind::BeginHorizontal), id(id), size(size), align(align)
@@ -130,7 +130,7 @@ public:
         void render() final;
     };
     struct EndHorizontal : Element {
-             EndHorizontal() : Element(Kind::EndHorizontal) {}
+        EndHorizontal() : Element(Kind::EndHorizontal) {}
         void render() final;
     };
     struct BeginVertical : Element {
@@ -145,7 +145,7 @@ public:
         void render() final;
     };
     struct EndVertical : Element {
-             EndVertical() : Element(Kind::EndVertical) {}
+        EndVertical() : Element(Kind::EndVertical) {}
         void render() final;
     };
 
@@ -153,7 +153,7 @@ public:
         float weight;
         float spacing;
 
-             Spring(float weight, float spacing) : Element(Kind::Spring), weight(weight), spacing(spacing) {}
+        Spring(float weight, float spacing) : Element(Kind::Spring), weight(weight), spacing(spacing) {}
         void render() final;
     };
 
@@ -164,10 +164,11 @@ private:
     std::atomic_bool                      m_consumed = false;
     std::optional<sol::function>          m_routine;
     std::shared_mutex                     m_luaMutex;
+    std::string                           m_consumeButtonText = "Cancel";
 
 public:
-                                    Popup() = default;
-    explicit                        Popup(std::size_t uut, sol::table builder);
+    Popup() = default;
+    explicit Popup(std::size_t uut, sol::table builder);
     static std::string              GetName(std::size_t uut, sol::table builder);
     const std::string&              GetName() { return m_name; }
     const std::vector<std::string>& GetInputs() { return m_inputs; }

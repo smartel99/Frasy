@@ -45,9 +45,9 @@ void Popup::Button::render()
 {
     if (ImGui::Button(label.c_str(), size)) {
         std::lock_guard lock {*luaMutex};
-        auto state = sol::state_view(action.lua_state());
-        auto result = action(*inputs);
-        if(!result.valid()) {
+        auto            state  = sol::state_view(action.lua_state());
+        auto            result = action(*inputs);
+        if (!result.valid()) {
             sol::error error = result;
             BR_LUA_ERROR(error.what());
         }
@@ -109,6 +109,7 @@ Popup::Popup(std::size_t uut, sol::table builder)
     bool global               = builder["global"];
     m_name                    = builder["name"].operator std::string();
     m_routine                 = builder["routine"].get<sol::function>();
+    m_consumeButtonText       = builder["consumeButtonText"].get_or<std::string>("Cancel");
     std::array<float, 2> size = {};
     if (!global) { m_name = std::format("UUT{} - {}", uut, m_name); }
     for (const auto elements = builder["elements"].get<std::vector<sol::table>>(); const auto& element : elements) {
@@ -214,7 +215,7 @@ void Popup::Render()
     }
 
     if (!hasConsumeButton) {
-        if (ImGui::Button("Cancel")) { Consume(); }
+        if (ImGui::Button(m_consumeButtonText.c_str())) { Consume(); }
     }
     ImGui::End();
 }
