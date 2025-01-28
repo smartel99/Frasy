@@ -19,7 +19,6 @@
 
 #include "Brigerad.h"
 #include "Brigerad/Core/File.h"
-#include "spdlog/fmt/bundled/compile.h"
 
 #include <format>
 #include <imgui.h>
@@ -69,6 +68,8 @@ void Popup::Image::render()
             texture = placeholderTexture;
         }
         BR_CORE_DEBUG("Texture ID -> {}", texture->getRenderId());
+        if (size.x == 0.0f) { size.x = static_cast<float>(texture->GetWidth()); }
+        if (size.y == 0.0f) { size.y = static_cast<float>(texture->GetHeight()); }
     }
     uint64_t texture = this->texture->getRenderId();
     ImGui::Image(reinterpret_cast<void*>(texture), size);
