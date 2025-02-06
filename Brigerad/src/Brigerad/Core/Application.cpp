@@ -85,6 +85,10 @@ void Application::run()
         Timestep timestep = time - m_lastFrameTime;
         m_lastFrameTime   = time;
 
+        for (auto& gif : AssetManager::m_gifs | std::views::values) {
+            gif->onUpdate(timestep);
+        }
+
         // If the window is not minimized:
         // (If the window is minimized, we don't want to waste time rendering stuff!)
         if (!m_minimized) {

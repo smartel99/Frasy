@@ -21,6 +21,7 @@
 
 #include "../Core/File.h"
 #include "../Core/Log.h"
+#include "gif.h"
 #include "Texture.h"
 
 #include <string_view>
@@ -36,8 +37,12 @@ public:
         m_missingTextureTexture->SetData(&magentaTextureData, sizeof(magentaTextureData));
     }
 
+    static Ref<Texture2D> GetMissingTextureTexture() { return m_missingTextureTexture; }
+
     static Ref<Texture2D> AddTexture2D(std::string_view name, std::string_view path)
     {
+        auto it = m_textures2d.find(name);
+        if (it != m_textures2d.end()) { return it->second; }
         if (!File::CheckIfPathExists(path)) {
             BR_CORE_ERROR("Unable to open '{}' to create Texture2D '{}'!", path, name);
             m_textures2d[name] = m_missingTextureTexture;
@@ -47,6 +52,7 @@ public:
         }
         return m_textures2d[name];
     }
+    static Ref<Texture2D> AddTexture2D(std::string_view path) { return AddTexture2D(path, path); }
     static Ref<Texture2D> AddTexture2D(std::string_view name, uint32_t width, uint32_t height, uint32_t channels = 4)
     {
         m_textures2d[name] = Texture2D::Create(width, height, channels);
@@ -55,9 +61,28 @@ public:
 
     static Ref<Texture2D> GetTexture2D(std::string_view name) { return m_textures2d.at(name); }
 
+    static Ref<Gif> AddGif(std::string_view name, std::string_view path)
+    {
+        auto it = m_gifs.find(name);
+        if (it != m_gifs.end()) { return it->second; }
+        if (!File::CheckIfPathExists(path)) {
+            BR_CORE_ERROR("Unable to open '{}' to create Gif '{}'!", path, name);
+            m_gifs[name] = std::make_shared<Gif>(m_missingTextureTexture);
+        }
+        else {
+            m_gifs[name] = std::make_shared<Gif>(path);
+        }
+        return m_gifs[name];
+    }
+    static Ref<Gif> AddGif(std::string_view path) { return AddGif(path, path); }
+
+    static Ref<Gif> GetGif(std::string_view name) { return m_gifs.at(name); }
+
 private:
+    friend class Application;
     inline static Ref<Texture2D>                                       m_missingTextureTexture;
     inline static std::unordered_map<std::string_view, Ref<Texture2D>> m_textures2d;
+    inline static std::unordered_map<std::string_view, Ref<Gif>>       m_gifs;
 };
 }    // namespace Brigerad
 
