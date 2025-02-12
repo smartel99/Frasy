@@ -15,6 +15,7 @@
 
 Context = {
     info = {
+        serial       = "",
         uut          = 0,
         stage        = Stage.idle,
         time         = { start = 0, stop = 0, elapsed = 0, process = 0 },
