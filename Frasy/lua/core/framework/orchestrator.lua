@@ -296,50 +296,31 @@ function Orchestrator.Generate()
     local edges = { first = { sequence = nil, tests = {} }, last = { sequence = nil, tests = {} } }
 
     for _, requirement in ipairs(Context.orchestrator.order_requirements) do
-        if not Orchestrator.HasScope(requirement.scope) then
-            error(InvalidRequirement())
-        end
+        if not Orchestrator.HasScope(requirement.scope) then error(InvalidRequirement()) end
         if requirement.kind == OrderRequirement.Kind.first then
             Sort.AddEdgeRequirement(edges.first, requirement)
         elseif requirement.kind == OrderRequirement.Kind.last then
             Sort.AddEdgeRequirement(edges.last, requirement)
         elseif requirement.kind == OrderRequirement.Kind.after then
-            if requirement.reference == nil then
-                error(InvalidRequirement())
-            end
-            if requirement.reference.sequence == nil then
-                error(InvalidRequirement())
-            end
-            if requirement.scope.sequence == nil then
-                error(InvalidRequirement())
-            end
-            if not Orchestrator.HasScope(requirement.reference) then
-                error(InvalidRequirement())
-            end
+            if requirement.reference == nil then error(InvalidRequirement("no reference", requirement)) end
+            if requirement.reference.sequence == nil then error(InvalidRequirement("no reference sequence", requirement)) end
+            if requirement.scope.sequence == nil then error(InvalidRequirement("no scope sequence", requirement)) end
+            if not Orchestrator.HasScope(requirement.reference) then error(InvalidRequirement("reference scope not found", requirement)) end
             if requirement.scope.sequence == requirement.reference.sequence then
-                if requirement.scope.test == nil then
-                    error(InvalidRequirement())
-                end
-                if requirement.reference.test == nil then
-                    error(InvalidRequirement())
-                end
-                td[requirement.scope.sequence][requirement.scope.test][requirement.reference
-                              .test] = 0
+                if requirement.scope.test == nil then error(InvalidRequirement("scope test not found", requirement)) end
+                if requirement.reference.test == nil then error(InvalidRequirement("reference test no found", requirement)) end
+                td[requirement.scope.sequence][requirement.scope.test][requirement.reference.test] = 0
             else
                 sd[requirement.scope.sequence][requirement.reference.sequence] = 0
             end
         else
-            error(InvalidRequirement())
+            error(InvalidRequirement("generic error", requirement))
         end
     end
 
     for _, requirement in pairs(Context.orchestrator.sync_requirements) do
-        if requirement.scope.sequence == nil then
-            error(InvalidRequirement())
-        end
-        if not Orchestrator.HasScope(requirement.scope) then
-            error(InvalidRequirement())
-        end
+        if requirement.scope.sequence == nil then error(InvalidRequirement("no scope sequence", requirement)) end
+        if not Orchestrator.HasScope(requirement.scope) then error(InvalidRequirement("scope not found", requirement)) end
         if requirement.scope.test ~= nil then
             ss[requirement.scope.sequence] = 0
             ts[requirement.scope.sequence][requirement.scope.test] = 0

@@ -50,7 +50,10 @@ function NestedScope(what) return PopulateException(exceptions_values.NestedScop
 function BadScope(what) return PopulateException(exceptions_values.BadScope, what) end
 function AlreadyDefined(what) return PopulateException(exceptions_values.AlreadyDefined, what) end
 function NotFound(what) return PopulateException(exceptions_values.NotFound, what) end
-function InvalidRequirement(what) return PopulateException(exceptions_values.InvalidRequirement, what) end
+function InvalidRequirement(what, requirement)
+    what = what .. "\nRequirement\n" .. ToString(requirement)
+    return PopulateException(exceptions_values.InvalidRequirement, what)
+end
 function InvalidStage(what) return PopulateException(exceptions_values.InvalidStage, what) end
 function MapperError(what) return PopulateException(exceptions_values.MapperError, what) end
 function TeamError(what) return PopulateException(exceptions_values.TeamError, what) end
