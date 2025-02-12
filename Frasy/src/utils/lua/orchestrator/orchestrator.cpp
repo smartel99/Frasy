@@ -819,6 +819,13 @@ void Orchestrator::ToggleUut(std::size_t index)
     }
 }
 
+void Orchestrator::setUutState(std::size_t index, UutState state)
+{
+    if (isRunning()) { return; }
+    m_uutStates[index] = state;
+}
+
+
 void Orchestrator::Generate()
 {
     if (isRunning()) {

@@ -78,6 +78,14 @@ public:
     void ToggleUut(std::size_t index);
 
     /**
+     * Force update the state of a UUT
+     * Should not be used unless you are performing operation outside lua
+     * @param index uut to update
+     * @param state
+     */
+    void setUutState(std::size_t index, UutState state);
+
+    /**
      * Enable or disable a test from running
      * Use GetSolution() to know a test state
      * @param sequence name of the sequence that hold the test
