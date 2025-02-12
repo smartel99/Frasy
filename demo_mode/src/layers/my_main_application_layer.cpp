@@ -118,7 +118,7 @@ void MyMainApplicationLayer::renderControlRoom()
             // If we just finished the test, check if any UUT have failed.
             m_testJustFinished = true;
             if (std::ranges::any_of(map.uuts, [this](const auto& uut) {
-                    return m_orchestrator.GetUutState(uut) == Frasy::UutState::Failed;
+                    return m_orchestrator.getUutState(uut) == Frasy::UutState::Failed;
                 })) {
                 m_resultViewer->setVisibility(true);
             }
@@ -149,7 +149,7 @@ void MyMainApplicationLayer::renderControlRoom()
             ImGui::TableNextColumn();
             ImGui::PushID(std::format("UUT{}", uut).c_str());
             ImGui::Text("UUT %zu", uut);
-            auto     state = m_orchestrator.GetUutState(uut);
+            auto     state = m_orchestrator.getUutState(uut);
             uint64_t uutTexture {};
             switch (state) {
                 case Frasy::UutState::Disabled: uutTexture = m_disabled->getRenderId(); break;

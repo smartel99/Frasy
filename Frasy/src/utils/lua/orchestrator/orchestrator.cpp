@@ -845,7 +845,7 @@ bool Orchestrator::isRunning() const
     return m_running.valid() && m_running.wait_for(10us) == std::future_status::timeout;
 }
 
-[[nodiscard]] UutState Orchestrator::GetUutState(std::size_t uut) const
+[[nodiscard]] UutState Orchestrator::getUutState(std::size_t uut) const
 {
     return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
 }

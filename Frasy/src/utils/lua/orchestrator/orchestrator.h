@@ -122,7 +122,7 @@ public:
     const Map& getMap() const { return m_map; }
 
     [[nodiscard]] bool     isRunning() const;
-    [[nodiscard]] UutState GetUutState(std::size_t uut) const;
+    [[nodiscard]] UutState getUutState(std::size_t uut) const;
     void                   setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
     void                   setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
     void                   setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
