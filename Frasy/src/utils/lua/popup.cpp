@@ -185,9 +185,7 @@ void Popup::Routine(bool once)
                 BR_LUA_ERROR(err.what());
             }
         }
-        else {
-            std::this_thread::sleep_for(10ms);
-        }
+        std::this_thread::sleep_for(1ms);
     } while (!m_consumed);
 }
 
