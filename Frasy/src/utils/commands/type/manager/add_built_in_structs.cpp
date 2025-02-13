@@ -12,7 +12,7 @@
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * You should have received a copy of the GNU General Public License along with this program. If
- * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+ * not, see <https://www.gnu.org/licenses/>.
  */
 #include "../../built_in/command_info/reply.h"
 #include "../../built_in/identify/reply.h"
