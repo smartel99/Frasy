@@ -199,7 +199,7 @@ void MainApplicationLayer::makeResultViewerVisible()
 
 void MainApplicationLayer::makeResultAnalyzerVisible()
 {
-    m_resultAnalyzer->SetVisibility(true);
+    m_resultAnalyzer->setVisibility(true);
 }
 
 void MainApplicationLayer::makeTestViewerVisible()

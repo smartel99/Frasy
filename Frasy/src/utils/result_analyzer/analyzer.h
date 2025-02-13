@@ -31,7 +31,7 @@ public:
     ResultAnalyzer() = default;
     ResultAnalyzer(const ResultOptions& options) : m_options(options) {}
 
-    ResultAnalysisResults Analyze();
+    ResultAnalysisResults Analyze(const std::string& title);
 
     size_t ToAnalyze = 0;
     size_t Analyzed = 0;

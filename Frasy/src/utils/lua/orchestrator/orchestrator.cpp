@@ -17,7 +17,6 @@
 
 #include "orchestrator.h"
 
-#include "../../commands/built_in/status/reply.h"
 #include "../../communication/can_open/services/sdo.h"
 #include "../../communication/serial/device_map.h"
 #include "../args_checker.h"
@@ -33,15 +32,15 @@
 #include <filesystem>
 #include <fstream>
 #include <json.hpp>
-#include <stdexcept>
 
 #include "../../version.h"
 #include <processthreadsapi.h>
+#include <regex>
 
 namespace Frasy::Lua {
 
 #pragma region Orchestrator
-std::string    Orchestrator::stage2str(Stage stage)
+std::string Orchestrator::stage2str(Stage stage)
 {
     switch (stage) {
         case Stage::generation: return "generation";
@@ -88,18 +87,28 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     m_generated   = false;
     m_environment = environment;
     m_testsDir    = testsDir;
-    initLua(*m_state);
-    if (!loadEnvironment(*m_state, m_environment)) { return false; }
-    if (!loadTests(*m_state, m_testsDir)) { return false; }
+    initLua(sol::state_view(*m_state));
+    if (!loadEnvironment(sol::state_view(*m_state), m_environment)) { return false; }
+    if (!loadTests(sol::state_view(*m_state), m_testsDir)) { return false; }
     populateMap();
     m_uutStates.resize(m_map.uuts.size() + 1, UutState::Idle);
+
+    static const std::regex titlePattern(R"([\\\/]([^\\\/]+)[\\\/]environment$)");
+    if (std::smatch match; std::regex_search(environment, match, titlePattern)) { m_title = match.str(1); }
+    else {
+        m_title = "untitled";
+    }
 
     return true;
 }
 #pragma endregion Test Related
 
-void Orchestrator::runSolution(const std::vector<std::string>& serials, bool regenerate, bool skipVerification)
+void Orchestrator::runSolution(const std::string&              operatorName,
+                               const std::vector<std::string>& serials,
+                               bool                            regenerate,
+                               bool                            skipVerification)
 {
+    m_operator = operatorName;
     if (isRunning()) {
         Brigerad::warningDialog("Frasy", "Test is already running!");
         return;
@@ -128,9 +137,9 @@ bool Orchestrator::createOutputDirs()
     namespace fs = std::filesystem;
     try {
         fs::create_directory(m_outputDirectory);
-        fs::create_directory(std::format("{}/{}", m_outputDirectory, passSubdirectory));
-        fs::create_directory(std::format("{}/{}", m_outputDirectory, failSubdirectory));
-
+        fs::create_directory(std::format("{}/{}", m_outputDirectory, m_title));
+        fs::create_directory(std::format("{}/{}/{}", m_outputDirectory, m_title, passSubdirectory));
+        fs::create_directory(std::format("{}/{}/{}", m_outputDirectory, m_title, failSubdirectory));
         const auto last = std::format("{}/{}", m_outputDirectory, lastSubdirectory);
         fs::remove_all(last);
         fs::create_directory(last);
@@ -249,7 +258,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             SaveAsJson(std::move(table), file);
         };
         lua.require_file("Json", "lua/core/vendor/json.lua");
-        iportLog(lua, uut, stage);
+        importLog(lua, uut, stage);
         importPopup(lua, uut, stage);
         importExclusive(lua, stage);
         lua.script_file("lua/core/framework/exception.lua");
@@ -314,7 +323,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
               try {
                   return tryRequest();
               }
-              catch (sol::error& e) {
+              catch (sol::error&) {
                   BR_LOG_WARN("Orchestrator", "Request failed, trying to re-open port...");
                   m_canOpen->reopen();
                   return tryRequest();
@@ -327,7 +336,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             if (node == nullptr) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
             auto* interface        = node->sdoInterface();
             auto [index, subIndex] = getIndexAndSubIndex(ode);
-            auto sValue            = serializeOdeValue(ode, value);
+            const auto sValue      = serializeOdeValue(ode, value);
 
             auto tryRequest = [&] {
                 auto request = interface->downloadData(index, subIndex, sValue, 100);
@@ -336,8 +345,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
                     request.status() != CanOpen::SdoRequestStatus::Cancelled) {
                     throw sol::error(std::format("Request failed: {}", request.status()));
                 }
-                auto result = request.future.get();
-                if (result != CO_SDO_RT_ok_communicationEnd) {
+                if (auto result = request.future.get(); result != CO_SDO_RT_ok_communicationEnd) {
                     throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
                                                  static_cast<int>(result),
                                                  result,
@@ -348,7 +356,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             try {
                 tryRequest();
             }
-            catch (sol::error& e) {
+            catch (sol::error&) {
                 BR_LOG_WARN("Orchestrator", "Request failed, trying to re-open port...");
                 m_canOpen->reopen();
                 tryRequest();
@@ -413,7 +421,7 @@ bool Orchestrator::loadTests(sol::state_view lua, const std::string& filename)
     return result.valid();
 }
 
-void Orchestrator::runTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification)
+void Orchestrator::runTests(const std::vector<std::string>& serials, const bool regenerate, const bool skipVerification)
 {
     updateUutState(UutState::Waiting);
     {
@@ -453,10 +461,10 @@ bool Orchestrator::runStageGenerate(bool regenerate)
         if (m_generated && !regenerate) { return true; }
 
         sol::state lua;
-        initLua(lua, 1);
+        initLua(sol::state_view(lua), 1);
         // LoadIb(lua);
-        loadEnvironment(lua, m_environment);
-        loadTests(lua, m_testsDir);
+        loadEnvironment(sol::state_view(lua), m_environment);
+        loadTests(sol::state_view(lua), m_testsDir);
         sol::protected_function run = lua.script_file("lua/core/helper/generate.lua");
         run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
         auto result                 = run(solutionFile);
@@ -547,15 +555,14 @@ bool Orchestrator::runStageVerify(sol::state_view team)
                 if (m_uutStates[uut] == UutState::Disabled) { continue; }
                 threads.emplace_back([&, uut, team] {
                     sol::state lua;
-                    initLua(lua, uut, Stage::validation);
-                    // LoadIb(lua);
-                    loadEnvironment(lua, m_environment);
-                    loadTests(lua, m_testsDir);
+                    initLua(sol::state_view(lua), uut, Stage::validation);
+                    loadEnvironment(sol::state_view(lua), m_environment);
+                    loadTests(sol::state_view(lua), m_testsDir);
                     if (hasTeam) {
                         std::lock_guard lock {mutex};
                         int             leader   = team["Context"]["team"]["players"][uut]["leader"];
                         int             position = team["Context"]["team"]["players"][uut]["position"];
-                        teams[leader].InitializeState(lua, uut, position, uut == leader);
+                        teams[leader].InitializeState(sol::state_view(lua), uut, position, uut == leader);
                     }
                     sol::protected_function load_solution =
                       lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
@@ -582,7 +589,6 @@ bool Orchestrator::runStageVerify(sol::state_view team)
 
                     std::lock_guard lock {mutex};
                     results[uut] = true;
-                    return;
                 });
             }
             for (auto& thread : threads) {
@@ -662,7 +668,9 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                         sol::state_view lua = states[uut];
                         mutex.unlock();
                         initLua(lua, uut, Stage::execution);
-                        lua["Context"]["info"]["serial"] = serials[uut];
+                        lua["Context"]["info"]["title"]    = m_title;
+                        lua["Context"]["info"]["operator"] = m_operator;
+                        lua["Context"]["info"]["serial"]   = serials[uut];
                         // LoadIb(lua);
                         loadEnvironment(lua, m_environment);
                         loadTests(lua, m_testsDir);
@@ -781,9 +789,9 @@ void Orchestrator::checkResults(const std::vector<std::size_t>& devices)
 {
     FRASY_PROFILE_FUNCTION();
     using nlohmann::json;
-    for (auto& uut : devices) {
-        std::string resultFile = std::format("{}/{}/{}.json", m_outputDirectory, lastSubdirectory, uut);
-        if (std::filesystem::exists(resultFile)) {
+    for (const auto& uut : devices) {
+        if (std::string resultFile = std::format("{}/{}/{}.json", m_outputDirectory, lastSubdirectory, uut);
+            std::filesystem::exists(resultFile)) {
             std::ifstream ifs {resultFile};
             std::string   content = std::string(std::istreambuf_iterator {ifs}, {});
             json          data    = json::parse(content);
@@ -791,8 +799,9 @@ void Orchestrator::checkResults(const std::vector<std::size_t>& devices)
             std::string   serial  = data["info"]["serial"];
             m_uutStates[uut]      = passed ? UutState::Passed : UutState::Failed;
             std::filesystem::copy(resultFile,
-                                  std::format("{}/{}/{}_{}.txt",
+                                  std::format("{}/{}/{}/{}_{}.txt",
                                               m_outputDirectory,
+                                              m_title,
                                               passed ? passSubdirectory : failSubdirectory,
                                               std::chrono::system_clock::now().time_since_epoch().count(),
                                               serial));
@@ -873,9 +882,8 @@ void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_v
 }
 #pragma endregion
 
-
 #pragma region Exclusive
-void           Orchestrator::importExclusive(sol::state_view lua, Stage stage)
+void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 {
     if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
     switch (stage) {
@@ -906,7 +914,7 @@ void           Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 #pragma endregion
 
 #pragma region Log
-void           Orchestrator::iportLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)
+void Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)
 {
     lua.script_file("lua/core/sdk/log.lua");
     lua["Log"]["C"] = [uut](const std::string& message) { BR_LOG_CRITICAL(std::format("UUT{}", uut), message); };
@@ -919,7 +927,7 @@ void           Orchestrator::iportLog(sol::state_view lua, std::size_t uut, [[ma
 #pragma endregion
 
 #pragma region Populate Map
-void           Orchestrator::populateMap()
+void Orchestrator::populateMap()
 {
     m_map = {};
     for (auto& [k, v] : (*m_state)["Context"]["map"]["ibs"].get<sol::table>()) {
@@ -946,7 +954,7 @@ void           Orchestrator::populateMap()
 #pragma endregion
 
 #pragma region Popup
-void           Orchestrator::renderPopups()
+void Orchestrator::renderPopups()
 {
     std::lock_guard lock {(*m_popupMutex)};
     for (auto& [name, popup] : m_popups) {
@@ -989,7 +997,7 @@ void Orchestrator::importPopup(sol::state_view lua, std::size_t uut, Stage stage
 #pragma endregion
 
 #pragma region Update UUT State
-void           Orchestrator::updateUutState(UutState state, bool force)
+void Orchestrator::updateUutState(UutState state, bool force)
 {
     std::vector<std::size_t> uuts;
     updateUutState(state, m_map.uuts, force);

@@ -34,15 +34,15 @@ void ResultAnalyzer::onImGuiRender()
     if (!m_isVisible) { return; }
 
     if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
-        RenderStringList("Serial Numbers",
+        renderStringList("Serial Numbers",
                          "List of the serial numbers to analyze. When empty, analyze all reports found.",
                          m_options.SerialNumbers);
-        RenderStringList(
+        renderStringList(
           "Locations", "List of the locations to analyze. When empty, analyze all locations found.", m_options.Uuts);
-        RenderStringList("Sequences",
+        renderStringList("Sequences",
                          "List of the sequences to analyze. When empty, analyze all sequences found.",
                          m_options.Sequences);
-        RenderStringList(
+        renderStringList(
           "Tests", "List of the tests to analyze. When empty, analyze all tests found.", m_options.Tests);
 
         ImGui::Checkbox("Combine all locations", &m_options.Ganged);
@@ -58,7 +58,7 @@ void ResultAnalyzer::onImGuiRender()
                 m_doneGenerating  = false;
                 m_generatorThread = std::thread([this]() {
                     m_generating     = true;
-                    m_lastResults    = m_analyzer.Analyze();
+                    m_lastResults    = m_analyzer.Analyze(m_getTitle());
                     m_doneGenerating = true;
                     m_hasGenerated   = true;
                 });
@@ -105,17 +105,17 @@ void ResultAnalyzer::onImGuiRender()
             m_renderResults = true;
         }
 
-        if (m_renderResults) { RenderAnalysisResults(); }
+        if (m_renderResults) { renderAnalysisResults(); }
     }
     ImGui::End();
 }
 
-void ResultAnalyzer::SetVisibility(bool visibility)
+void ResultAnalyzer::setVisibility(bool visibility)
 {
     m_isVisible = visibility;
 }
 
-void ResultAnalyzer::RenderStringList(std::string_view                   name,
+void ResultAnalyzer::renderStringList(std::string_view                   name,
                                       std::string_view                   tooltip,
                                       std::vector<std::array<char, 32>>& strings)
 {
@@ -139,38 +139,38 @@ void ResultAnalyzer::RenderStringList(std::string_view                   name,
     if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%s", tooltip.data()); }
 }
 
-void ResultAnalyzer::RenderAnalysisResults()
+void ResultAnalyzer::renderAnalysisResults()
 {
     if (ImGui::Begin("Results", &m_renderResults)) {
-        if (m_loadedResults.empty()) { RenderSingleAnalysisResults(); }
+        if (m_loadedResults.empty()) { renderSingleAnalysisResults(); }
         else {
-            RenderMultipleAnalysisResults();
+            renderMultipleAnalysisResults();
         }
     }
     ImGui::End();
 }
 
-void ResultAnalyzer::RenderSingleAnalysisResults()
+void ResultAnalyzer::renderSingleAnalysisResults()
 {
     if (ImGui::BeginTabBar("ResultLocationTabs")) {
-        RenderAnalysisResultsFile(m_lastResults);
+        renderAnalysisResultsFile(m_lastResults);
         ImGui::EndTabBar();
     }
 }
 
-void ResultAnalyzer::RenderMultipleAnalysisResults()
+void ResultAnalyzer::renderMultipleAnalysisResults()
 {
     if (ImGui::BeginTabBar("ResultFileTabs")) {
         if (ImGui::BeginTabItem("Last")) {
             ImGui::BeginTabBar("ResultLocationTabs");
-            RenderAnalysisResultsFile(m_lastResults);
+            renderAnalysisResultsFile(m_lastResults);
             ImGui::EndTabBar();
             ImGui::EndTabItem();
         }
         for (auto&& [name, result] : m_loadedResults) {
             if (ImGui::BeginTabItem(name.c_str())) {
                 ImGui::BeginTabBar("ResultLocationTabs");
-                RenderAnalysisResultsFile(result);
+                renderAnalysisResultsFile(result);
                 ImGui::EndTabBar();
                 ImGui::EndTabItem();
             }
@@ -180,12 +180,12 @@ void ResultAnalyzer::RenderMultipleAnalysisResults()
     }
 }
 
-void ResultAnalyzer::RenderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results)
+void ResultAnalyzer::renderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results)
 {
     for (auto&& [locationName, locationResults] : results.Locations) {
         if (ImGui::BeginTabItem(locationName.c_str())) {
             ImGui::BeginChild(locationName.c_str(), ImVec2 {0.0f, 0.0f}, false);
-            RenderLocationAnalysisResults(locationResults);
+            renderLocationAnalysisResults(locationResults);
 
             ImGui::EndChild();
             ImGui::EndTabItem();
@@ -193,7 +193,7 @@ void ResultAnalyzer::RenderAnalysisResultsFile(const Analyzers::ResultAnalysisRe
     }
 }
 
-void ResultAnalyzer::RenderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location)
+void ResultAnalyzer::renderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location)
 {
     ImGui::BulletText("Version: %s", location.Version.c_str());
     ImGui::BulletText(
@@ -210,7 +210,7 @@ void ResultAnalyzer::RenderLocationAnalysisResults(const Analyzers::ResultAnalys
     for (auto&& [name, sequence] : location.Sequences) {
         if (ImGui::BeginTabItem(name.c_str())) {
             ImGui::BeginChild(name.c_str(), ImVec2 {0.0f, 0.0f}, false);
-            RenderSequenceAnalysisResults(sequence);
+            renderSequenceAnalysisResults(sequence);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
@@ -218,7 +218,7 @@ void ResultAnalyzer::RenderLocationAnalysisResults(const Analyzers::ResultAnalys
     ImGui::EndTabBar();
 }
 
-void ResultAnalyzer::RenderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence)
+void ResultAnalyzer::renderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence)
 {
     ImGui::BulletText("Analyzed %zu times", sequence.Total);
     ImGui::BulletText("enabled %zu times (%0.2f%%), Passed %zu times (%0.2f%%), Skipped %zu times (%0.2f%%)",
@@ -240,7 +240,7 @@ void ResultAnalyzer::RenderSequenceAnalysisResults(const Analyzers::ResultAnalys
     for (auto&& [name, test] : sequence.Tests) {
         if (ImGui::BeginTabItem(name.c_str())) {
             ImGui::BeginChild(name.c_str(), ImVec2 {0.0f, 0.0f}, false);
-            RenderTestAnalysisResults(test);
+            renderTestAnalysisResults(test);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
@@ -249,7 +249,7 @@ void ResultAnalyzer::RenderSequenceAnalysisResults(const Analyzers::ResultAnalys
     ImGui::EndTabBar();
 }
 
-void ResultAnalyzer::RenderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test)
+void ResultAnalyzer::renderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test)
 {
     ImGui::BulletText("Analyzed %zu times", test.Total);
     ImGui::BulletText("enabled %zu times (%0.2f%%), Passed %zu times (%0.2f%%), Skipped %zu times (%0.2f%%)",

@@ -24,35 +24,34 @@
 
 #include <array>
 #include <Brigerad.h>
+#include <functional>
 #include <map>
 #include <thread>
 #include <vector>
 
-namespace Frasy
-{
-class ResultAnalyzer : public Brigerad::Layer
-{
+namespace Frasy {
+class ResultAnalyzer : public Brigerad::Layer {
 public:
     ResultAnalyzer() noexcept;
     ~ResultAnalyzer() override = default;
 
     void onImGuiRender() override;
 
-    void SetVisibility(bool visibility);
+    void setVisibility(bool visibility);
+    void setGetTitle(const std::function<std::string()>& getTitle) { m_getTitle = getTitle; }
 
 private:
-    static void RenderStringList(std::string_view                   name,
+    static void renderStringList(std::string_view                   name,
                                  std::string_view                   tooltip,
                                  std::vector<std::array<char, 32>>& strings);
-    void        RenderAnalysisResults();
-    void        RenderSingleAnalysisResults();
-    void        RenderMultipleAnalysisResults();
-    void        RenderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results);
-    void        RenderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location);
-    void        RenderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence);
-    void        RenderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test);
+    void        renderAnalysisResults();
+    void        renderSingleAnalysisResults();
+    void        renderMultipleAnalysisResults();
+    void        renderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results);
+    void        renderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location);
+    void        renderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence);
+    void        renderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test);
 
-private:
     bool                         m_isVisible  = false;
     static constexpr const char* s_windowName = "Result Analyzer Options";
 
@@ -61,11 +60,12 @@ private:
     Analyzers::ResultAnalysisResults                        m_lastResults   = {};
     std::map<std::string, Analyzers::ResultAnalysisResults> m_loadedResults = {};
 
-    Analyzers::ResultAnalyzer m_analyzer;
-    bool                      m_generating     = false;
-    bool                      m_doneGenerating = false;
-    bool                      m_hasGenerated   = false;
-    std::thread               m_generatorThread;
+    Analyzers::ResultAnalyzer    m_analyzer;
+    bool                         m_generating     = false;
+    bool                         m_doneGenerating = false;
+    bool                         m_hasGenerated   = false;
+    std::thread                  m_generatorThread;
+    std::function<std::string()> m_getTitle = []() { return "untitled"; };
 };
 }    // namespace Frasy
 

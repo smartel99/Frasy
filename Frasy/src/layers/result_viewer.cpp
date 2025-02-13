@@ -88,7 +88,7 @@ void ResultViewer::RenderLog(const OverallTestResult& log)
     }
 }
 
-void ResultViewer::RenderSequence(const ResultViewer::SequenceResult& sequence)
+void ResultViewer::RenderSequence(const SequenceResult& sequence)
 {
     ImGui::Text("Name: %s - %s", sequence.Name.c_str(), sequence.Passed ? "PASSED" : "FAILED");
     ImGui::Text("Skipped: %s, enabled: %s", sequence.Skipped ? "True" : "False", sequence.Enabled ? "True" : "False");
@@ -104,7 +104,7 @@ void ResultViewer::RenderSequence(const ResultViewer::SequenceResult& sequence)
     }
 }
 
-void ResultViewer::RenderTest(const ResultViewer::TestResult& test)
+void ResultViewer::RenderTest(const TestResult& test)
 {
     ImGui::Text("Name: %s - %s", test.Name.c_str(), test.Passed ? "PASSED" : "FAILED");
     ImGui::Text("Skipped: %s, enabled: %s", test.Skipped ? "True" : "False", test.Enabled ? "True" : "False");

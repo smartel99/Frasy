@@ -22,8 +22,6 @@
 #include "../../communication/serial/device.h"
 #include "../../UutState.h"
 #include "../map.h"
-#include "../profile_events.h"
-#include "utils/commands/built_in/command_info/reply.h"
 #include "utils/lua/popup.h"
 #include "utils/models/solution.h"
 
@@ -46,13 +44,11 @@ public:
     };
     static std::string stage2str(Stage stage);
 
-public:
     static constexpr std::string_view passSubdirectory = "pass";
     static constexpr std::string_view failSubdirectory = "fail";
     static constexpr std::string_view lastSubdirectory = "last";
     static constexpr std::string_view solutionFile     = "lua/solution.json";
 
-public:
     Orchestrator() = default;
 
     void setCanOpen(CanOpen::CanOpen* instance) { m_canOpen = instance; }
@@ -109,11 +105,15 @@ public:
      * Request will be ignored if a solution is already being run
      * Use isRunning() to know if a solution is already being run
      * Use UutState() to know the state of the UUT
+     * @param operatorName
      * @param serials list of UUT serial, must match the number of UUTs
      * @param regenerate if true, will force the generation of the solution
      * @param skipVerification if true, will skip the validation step
      */
-    void runSolution(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
+    void runSolution(const std::string&              operatorName,
+                     const std::vector<std::string>& serials,
+                     bool                            regenerate,
+                     bool                            skipVerification);
 
     /**
      * Return the calculated solution
@@ -127,23 +127,21 @@ public:
      */
     void renderPopups();
 
-    const Map& getMap() const { return m_map; }
+    [[nodiscard]] const Map& getMap() const { return m_map; }
 
-    [[nodiscard]] bool     isRunning() const;
-    [[nodiscard]] UutState getUutState(std::size_t uut) const;
-    void                   setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
-    void                   setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
-    void                   setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
+    [[nodiscard]] bool        isRunning() const;
+    [[nodiscard]] UutState    getUutState(std::size_t uut) const;
+    void                      setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
+    void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
+    void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
+    [[nodiscard]] std::string getTitle() const { return m_title; }
 
 private:
     bool        createOutputDirs();
     bool        initLua(sol::state_view lua, std::size_t uut = 0, Stage stage = Stage::generation);
     void        importExclusive(sol::state_view lua, Stage stage);
-    static void iportLog(sol::state_view lua, std::size_t uut, Stage stage);
+    static void importLog(sol::state_view lua, std::size_t uut, Stage stage);
     void        importPopup(sol::state_view lua, std::size_t uut, Stage stage);
-    // void        LoadIb(sol::state_view lua);
-    // static void LoadIbCommandForExecution(sol::state_view lua, const Actions::CommandInfo::Reply& fun);
-    // static void LoadIbCommandForValidation(sol::state_view lua, const Actions::CommandInfo::Reply& fun);
     static bool loadEnvironment(sol::state_view lua, const std::string& filename);
     static bool loadTests(sol::state_view lua, const std::string& filename);
     void        runTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
@@ -157,16 +155,17 @@ private:
     void runStageExecute(sol::state_view team, const std::vector<std::string>& serials);
     void checkResults(const std::vector<std::size_t>& devices);
 
-private:
     std::unique_ptr<sol::state> m_state = nullptr;
     std::vector<UutState>       m_uutStates;
     std::future<void>           m_running;
     Map                         m_map;
     bool                        m_generated = false;
+    std::string                 m_title;
     std::string                 m_environment;
     std::string                 m_testsDir;
     std::string                 m_outputDirectory = "logs";
-    bool                        m_ibEnabled       = true;
+    std::string                 m_operator;
+    bool                        m_ibEnabled = true;
 
     std::map<std::string, Popup*> m_popups;
     std::unique_ptr<std::mutex>   m_popupMutex = nullptr;
@@ -184,7 +183,7 @@ private:
     };
     Models::Solution m_solution = {};
 
-    CanOpen::CanOpen* m_canOpen;
+    CanOpen::CanOpen* m_canOpen = nullptr;
 };
 
 }    // namespace Frasy::Lua

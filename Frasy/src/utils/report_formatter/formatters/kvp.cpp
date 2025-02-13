@@ -91,24 +91,27 @@ std::vector<std::string> makeReport(sol::state_view&                lua,
     try {
         Solution solution = loadSolution();
 
-        auto pass = results["info"]["pass"].get<bool>();
+        auto title = results["info"]["title"].get<std::string>();
+        auto pass  = results["info"]["pass"].get<bool>();
 
         namespace fs = std::filesystem;
         // Create log directory if needed.
-        static auto logDirectory = fs::current_path() / "logs";
+        static auto frasyLogDirectory = fs::current_path() / "logs";
+        create_directories(frasyLogDirectory);
+        auto logDirectory = frasyLogDirectory / title;
         create_directories(logDirectory);
 
         // Create SMT log directly if needed.
-        static auto smtDirectory = logDirectory / "smt";
+        auto smtDirectory = logDirectory / "smt";
         create_directories(smtDirectory);
-        static auto smtPassDir = smtDirectory / "pass";
+        auto smtPassDir = smtDirectory / "pass";
         create_directories(smtPassDir);
-        static auto smtFailDir = smtDirectory / "fail";
+        auto smtFailDir = smtDirectory / "fail";
         create_directories(smtFailDir);
 
         // Create the log file.
-        auto        smtFileDir         = pass ? smtPassDir : smtFailDir;
-        static auto lastReportFilepath = smtDirectory / "last.txt";
+        auto smtFileDir         = pass ? smtPassDir : smtFailDir;
+        auto lastReportFilepath = smtDirectory / "last.txt";
 
         std::ofstream report(lastReportFilepath);
         if (!report.is_open()) {

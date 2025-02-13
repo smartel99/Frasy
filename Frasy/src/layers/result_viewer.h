@@ -47,11 +47,11 @@ class ResultViewer : public Brigerad::Layer {
     };
     struct OverallTestResult {
         std::string                           SerialNumber = "<N/A>";
-        double                                Duration = 0.0;
-        std::string                           Date = "<N/A>";
-        bool                                  Passed = true;
-        std::string                           Version = "<N/A>";
-        int                                   Uut = 0;
+        double                                Duration     = 0.0;
+        std::string                           Date         = "<N/A>";
+        bool                                  Passed       = true;
+        std::string                           Version      = "<N/A>";
+        int                                   Uut          = 0;
         std::map<std::string, SequenceResult> Sequences;
     };
     struct LogInfo {
@@ -63,7 +63,7 @@ class ResultViewer : public Brigerad::Layer {
     };
 
 public:
-     ResultViewer() noexcept;
+    ResultViewer() noexcept;
     ~ResultViewer() override = default;
 
     void onImGuiRender() override;
@@ -86,7 +86,6 @@ private:
     static std::string MakeStringFromJson(const std::string& key, const nlohmann::json& value);
 
 
-private:
     bool                 m_isVisible = false;
     std::vector<LogInfo> m_logs;
     bool                 m_isFirstPassOfLogs = true;
