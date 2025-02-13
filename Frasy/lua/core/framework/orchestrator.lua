@@ -392,6 +392,7 @@ function Orchestrator.CompileExecutionResults(outputDir)
             orchestrator = Context.info.version.orchestrator,
             scripts = Context.info.version.scripts
         },
+        title = Context.info.title,
         operator = Context.info.operator,
         serial = Context.info.serial,
         uut = Context.info.uut,
