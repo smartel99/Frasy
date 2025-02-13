@@ -129,11 +129,11 @@ function Orchestrator.RunSequence(sIndex, scope)
         end
         if not incomplete then
             Log.I(string.format("Sequence %s: %s", scope.sequence,
-                    sequence.result.pass and "PASS" or "FAIL"))
+                sequence.result.pass and "PASS" or "FAIL"))
         end
     elseif sequence.time == nil then
         Log.I(string.format("Sequence %s: SKIPPED. Reason: %s", scope.sequence,
-                sequence.result.reason))
+            sequence.result.reason))
     else
         -- Nothing, we already warned that this sequence was skipped or disabled
     end
@@ -201,10 +201,10 @@ function Orchestrator.RunTest(scope)
     Team.Sync(test.result)
     if test.result.skipped then
         Log.W(string.format("Test %s SKIPPED\r\nReason: %s", scope.test,
-                test.result.reason))
+            test.result.reason))
     elseif not test.result.pass then
         Log.E(string.format("Test %s FAILED\r\nReason: %s", scope.test,
-                test.result.reason))
+            test.result.reason))
     else
         Log.I(string.format("Test %s PASSED", scope.test))
     end
@@ -250,11 +250,11 @@ function Orchestrator.Generate()
                         for tName, test in pairs(sequence.tests) do
                             if completedTests[tName] ~= nil then
                                 Log.D("Test " .. tName ..
-                                        " already generated, skipping")
+                                    " already generated, skipping")
                             else
                                 Log.D("Generating test " .. tName)
                                 Context.orchestrator.scope = Scope:New(sName,
-                                        tName)
+                                    tName)
                                 local _, err = xpcall(test.func, ErrorHandler)
                                 if err == nil then
                                     td[sName][tName] = {}
@@ -279,7 +279,7 @@ function Orchestrator.Generate()
                     completedSequences[sName] = 0
                 else
                     if type(err) == "string" or err.code ~=
-                            GenerationError().code then
+                        GenerationError().code then
                         error(err)
                     else
                         Log.D(err.what)
@@ -305,7 +305,8 @@ function Orchestrator.Generate()
             if requirement.reference == nil then error(InvalidRequirement("no reference", requirement)) end
             if requirement.reference.sequence == nil then error(InvalidRequirement("no reference sequence", requirement)) end
             if requirement.scope.sequence == nil then error(InvalidRequirement("no scope sequence", requirement)) end
-            if not Orchestrator.HasScope(requirement.reference) then error(InvalidRequirement("reference scope not found", requirement)) end
+            if not Orchestrator.HasScope(requirement.reference) then error(InvalidRequirement(
+                "reference scope not found", requirement)) end
             if requirement.scope.sequence == requirement.reference.sequence then
                 if requirement.scope.test == nil then error(InvalidRequirement("scope test not found", requirement)) end
                 if requirement.reference.test == nil then error(InvalidRequirement("reference test no found", requirement)) end
@@ -331,13 +332,13 @@ function Orchestrator.Generate()
 
     local ordered = {}
     ordered.sequences = Sort.SortScopes(sn, edges.first.sequence,
-            edges.last.sequence, sd)
+        edges.last.sequence, sd)
     ordered.tests = {}
     for sequence, tests in pairs(tn) do
         ordered.tests[sequence] = Sort.SortScopes(tests,
-                edges.first.tests[sequence],
-                edges.last.tests[sequence],
-                td[sequence])
+            edges.first.tests[sequence],
+            edges.last.tests[sequence],
+            td[sequence])
     end
 
     local sectionized = {}
@@ -348,7 +349,7 @@ function Orchestrator.Generate()
     end
 
     Context.orchestrator.solution = Sort.CombineSectionized(
-            sectionized.sequences, sectionized.tests)
+        sectionized.sequences, sectionized.tests)
     return Context.orchestrator.solution
 end
 
@@ -429,7 +430,7 @@ function Orchestrator.CompileExecutionResults(outputDir)
             report.sequences[sName].tests[tName].expectations = {}
             for _, expectation in pairs(test.expectations) do
                 table.insert(report.sequences[sName].tests[tName].expectations,
-                        expectation)
+                    expectation)
             end
         end
         report.sequences[sName].time = { start = 0, stop = 0, elapsed = 0, process = 0 }
@@ -440,9 +441,9 @@ function Orchestrator.CompileExecutionResults(outputDir)
                 report.sequences[sName].time.process = report.sequences[sName].time.process + time.stop - time.start
             end
             report.sequences[sName].time.elapsed = report.sequences[sName].time.stop -
-                    report.sequences[sName].time.start
+                report.sequences[sName].time.start
             report.info.time.process = report.info.time.process +
-                    report.sequences[sName].time.process
+                report.sequences[sName].time.process
         end
     end
     Context.map.onReport(report) -- report passed as pointer, careful
@@ -501,7 +502,7 @@ function Orchestrator.GetTestScopeRequirement(name)
         name = Context.orchestrator.scope.test
     end
     return ScopeRequirement:New(Orchestrator, Scope:New(
-            Context.orchestrator.scope.sequence, name))
+        Context.orchestrator.scope.sequence, name))
 end
 
 function Orchestrator.GetSyncRequirement()
@@ -517,8 +518,8 @@ end
 
 function Orchestrator.IsInTest()
     return
-    Context.orchestrator.scope ~= nil and Context.orchestrator.scope.test ~=
-            nil
+        Context.orchestrator.scope ~= nil and Context.orchestrator.scope.test ~=
+        nil
 end
 
 function Orchestrator.HasSequence(scope)
@@ -527,13 +528,13 @@ end
 
 function Orchestrator.HasTest(scope)
     return Orchestrator.HasSequence(scope) and
-            Context.orchestrator.sequences[scope.sequence].tests[scope.test] ~=
-                    nil
+        Context.orchestrator.sequences[scope.sequence].tests[scope.test] ~=
+        nil
 end
 
 function Orchestrator.HasScope(scope)
     return scope.test == nil and Orchestrator.HasSequence(scope) or
-            Orchestrator.HasTest(scope)
+        Orchestrator.HasTest(scope)
 end
 
 function Orchestrator.HasValue(scope, name)
@@ -545,7 +546,7 @@ end
 
 function Orchestrator.SetValue(scope, name, value)
     if Orchestrator.HasValue(scope, name) and Context.info.stage ~=
-            Stage.generation then
+        Stage.generation then
         error(AlreadyDefined())
     end
     Context.orchestrator.values[scope.sequence][scope.test][name] = value
@@ -578,8 +579,8 @@ function Orchestrator.AddExpectationResult(result)
     end
     local scope = Context.orchestrator.scope
     table.insert(
-            Context.orchestrator.sequences[scope.sequence].tests[scope.test]
-                   .expectations, result)
+        Context.orchestrator.sequences[scope.sequence].tests[scope.test]
+        .expectations, result)
 end
 
 function Orchestrator.GetScope()
