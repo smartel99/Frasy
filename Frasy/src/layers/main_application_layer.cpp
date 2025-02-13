@@ -127,13 +127,13 @@ void MainApplicationLayer::onImGuiRender()
             ImGui::EndMenu();
         }
 
+        appendToMainTabBar();
+
         if (ImGui::BeginMenu("?")) {
             if (ImGui::MenuItem("About")) { m_renderAbout = true; }
 
             ImGui::EndMenu();
         }
-
-        appendToMainTabBar();
 
         ImGui::EndMainMenuBar();
 
