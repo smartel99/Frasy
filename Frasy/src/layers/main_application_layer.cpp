@@ -63,7 +63,7 @@ void MainApplicationLayer::onAttach()
     m_resultAnalyzer->onAttach();
     m_testViewer->onAttach();
 
-    m_orchestrator.SetCanOpen(&m_canOpen);
+    m_orchestrator.setCanOpen(&m_canOpen);
 
     m_logWindow->SetVisibility(true);
 }
@@ -151,7 +151,7 @@ void MainApplicationLayer::onImGuiRender()
     m_resultAnalyzer->onImGuiRender();
     m_testViewer->onImGuiRender();
 
-    m_orchestrator.RenderPopups();
+    m_orchestrator.renderPopups();
 }
 
 
@@ -518,11 +518,11 @@ void MainApplicationLayer::generate()
 }
 void MainApplicationLayer::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
 {
-    m_orchestrator.SetTestEnable(sequence, test, enable);
+    m_orchestrator.setTestEnable(sequence, test, enable);
 }
 void MainApplicationLayer::setSequenceEnable(const std::string& sequence, bool enable)
 {
-    m_orchestrator.SetSequenceEnable(sequence, enable);
+    m_orchestrator.setSequenceEnable(sequence, enable);
 }
 
 }    // namespace Frasy

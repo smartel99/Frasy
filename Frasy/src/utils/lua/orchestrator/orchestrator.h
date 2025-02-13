@@ -55,12 +55,12 @@ public:
 public:
     Orchestrator() = default;
 
-    void SetCanOpen(CanOpen::CanOpen* instance) { m_canOpen = instance; }
+    void setCanOpen(CanOpen::CanOpen* instance) { m_canOpen = instance; }
 
     /**
      * Load the user environment files
      * @param environment path to the environment file
-     * @param testDir path the folder containing the test files
+     * @param testsDir path the folder containing the test files
      * @return true if the orchestrator successfully loaded the files, false otherwise
      */
     bool loadUserFiles(const std::string& environment, const std::string& testsDir);
@@ -69,13 +69,13 @@ public:
      * Async request to generate the solution
      * Success will be reported through Interface::OnGenerated() callback
      */
-    void Generate();
+    void generate();
 
     /**
      * Toggle the enable state of a uut
      * @param index the index of the UUT (start at 1)
      */
-    void ToggleUut(std::size_t index);
+    void toggleUut(std::size_t index);
 
     /**
      * Force update the state of a UUT
@@ -92,7 +92,7 @@ public:
      * @param test name of the test
      * @param enable state of the test
      */
-    void SetTestEnable(const std::string& sequence, const std::string& test, bool enable);
+    void setTestEnable(const std::string& sequence, const std::string& test, bool enable);
 
     /**
      * Enable or disable a sequence from running
@@ -100,7 +100,7 @@ public:
      * @param sequence name of the sequence
      * @param enable state of the sequence
      */
-    void SetSequenceEnable(const std::string& sequence, bool enable);
+    void setSequenceEnable(const std::string& sequence, bool enable);
 
     /**
      * Execute the solution asynchronously
@@ -113,19 +113,19 @@ public:
      * @param regenerate if true, will force the generation of the solution
      * @param skipVerification if true, will skip the validation step
      */
-    void RunSolution(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
+    void runSolution(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
 
     /**
      * Return the calculated solution
      * @return
      */
-    const Models::Solution& GetSolution();
+    const Models::Solution& getSolution();
 
     /**
      * Allows orchestrator to display Lua popups
      * Already call by Frasy::MainLayer::OnGuiRender()
      */
-    void RenderPopups();
+    void renderPopups();
 
     const Map& getMap() const { return m_map; }
 
@@ -136,26 +136,26 @@ public:
     void                   setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
 
 private:
-    bool        CreateOutputDirs();
-    bool        InitLua(sol::state_view lua, std::size_t uut = 0, Stage stage = Stage::generation);
-    void        ImportExclusive(sol::state_view lua, Stage stage);
-    static void ImportLog(sol::state_view lua, std::size_t uut, Stage stage);
-    void        ImportPopup(sol::state_view lua, std::size_t uut, Stage stage);
+    bool        createOutputDirs();
+    bool        initLua(sol::state_view lua, std::size_t uut = 0, Stage stage = Stage::generation);
+    void        importExclusive(sol::state_view lua, Stage stage);
+    static void iportLog(sol::state_view lua, std::size_t uut, Stage stage);
+    void        importPopup(sol::state_view lua, std::size_t uut, Stage stage);
     // void        LoadIb(sol::state_view lua);
     // static void LoadIbCommandForExecution(sol::state_view lua, const Actions::CommandInfo::Reply& fun);
     // static void LoadIbCommandForValidation(sol::state_view lua, const Actions::CommandInfo::Reply& fun);
-    static bool LoadEnvironment(sol::state_view lua, const std::string& filename);
-    static bool LoadTests(sol::state_view lua, const std::string& filename);
-    void        RunTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
+    static bool loadEnvironment(sol::state_view lua, const std::string& filename);
+    static bool loadTests(sol::state_view lua, const std::string& filename);
+    void        runTests(const std::vector<std::string>& serials, bool regenerate, bool skipVerification);
 
-    void PopulateMap();
-    void UpdateUutState(UutState state, bool force = false);
-    void UpdateUutState(UutState state, const std::vector<std::size_t>& uuts, bool force = false);
+    void populateMap();
+    void updateUutState(UutState state, bool force = false);
+    void updateUutState(UutState state, const std::vector<std::size_t>& uuts, bool force = false);
 
-    bool RunStageGenerate(bool regenerate = false);
-    bool RunStageVerify(sol::state_view team);
-    void RunStageExecute(sol::state_view team, const std::vector<std::string>& serials);
-    void CheckResults(const std::vector<std::size_t>& devices);
+    bool runStageGenerate(bool regenerate = false);
+    bool runStageVerify(sol::state_view team);
+    void runStageExecute(sol::state_view team, const std::vector<std::string>& serials);
+    void checkResults(const std::vector<std::size_t>& devices);
 
 private:
     std::unique_ptr<sol::state> m_state = nullptr;
