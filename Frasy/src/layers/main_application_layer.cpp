@@ -62,6 +62,7 @@ void MainApplicationLayer::onAttach()
     m_resultViewer->onAttach();
     m_resultAnalyzer->onAttach();
     m_testViewer->onAttach();
+    m_resultAnalyzer->setGetTitle([this] { return m_orchestrator.getTitle(); });
 
     m_orchestrator.setCanOpen(&m_canOpen);
 

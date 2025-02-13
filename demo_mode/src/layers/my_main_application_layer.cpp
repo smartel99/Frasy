@@ -161,7 +161,7 @@ void MyMainApplicationLayer::renderControlRoom()
                 case Frasy::UutState::Error: uutTexture = m_error->getRenderId(); break;
             }
             if (ImGui::ImageButton(reinterpret_cast<void*>(uutTexture), uutButtonSize)) {
-                m_orchestrator.ToggleUut(uut);
+                m_orchestrator.toggleUut(uut);
             }
             ImGui::PopID();
         }
@@ -175,7 +175,7 @@ void MyMainApplicationLayer::doTests()
     if (!getSerials()) { return; }
     bool shouldRegen = shouldRegenerate();
     if (shouldRegen) { BR_LOG_INFO("Frasy", "Regenerating sequences..."); }
-    m_orchestrator.RunSolution(m_serials, shouldRegen, m_skipVerification);
+    m_orchestrator.runSolution(std::string(m_operator), m_serials, shouldRegen, m_skipVerification);
 }
 
 bool MyMainApplicationLayer::getSerials()
