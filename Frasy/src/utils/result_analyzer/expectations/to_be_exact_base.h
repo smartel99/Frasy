@@ -23,13 +23,10 @@
 #include <exception>
 #include <imgui/imgui.h>
 
-namespace Frasy::Analyzers
-{
-struct ToBeExactBase : public ResultAnalysisResults::Expectation
-{
+namespace Frasy::Analyzers {
+struct ToBeExactBase : public ResultAnalysisResults::Expectation {
 private:
-    struct ObservedValue
-    {
+    struct ObservedValue {
         std::string Type   = {};
         bool        Passed = false;
         size_t      Seen   = 0;
@@ -44,10 +41,12 @@ public:
         if (value.at("pass").get<bool>()) { Passed++; }
 
         std::string valueStr = value.at("value").dump(2, ' ', true);
-        if (!Values.contains(valueStr))
-        {
+        if (!Values.contains(valueStr)) {
             // First time seen, add to the list.
-            Values[valueStr] = {.Type = value.at("type").get<std::string>(), .Passed = value.at("pass").get<bool>()};
+            Values[valueStr] = {
+              .Type   = value["expected"].type_name(),
+              .Passed = value.at("pass").get<bool>(),
+            };
         }
         Values[valueStr].Seen++;
     }
@@ -66,8 +65,7 @@ public:
         ImGui::TableSetupColumn("Passed");
         ImGui::TableSetupColumn("Occurrences");
         ImGui::TableHeadersRow();
-        for (auto&& [name, info] : Values)
-        {
+        for (auto&& [name, info] : Values) {
             ImGui::TableNextColumn();
             ImGui::TextWrapped("%s", name.c_str());
             ImGui::TableNextColumn();
@@ -86,8 +84,7 @@ public:
         j["total"]       = Total;
         j["passed"]      = Passed;
         j["values"]      = {};
-        for (auto&& [name, value] : Values)
-        {
+        for (auto&& [name, value] : Values) {
             j["values"][name]           = {};
             j["values"][name]["type"]   = value.Type;
             j["values"][name]["passed"] = value.Passed;
