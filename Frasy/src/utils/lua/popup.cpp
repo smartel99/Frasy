@@ -193,9 +193,12 @@ void Popup::Render()
 {
     // ImGui::SetNextWindowFocus();    // Note: Forcing focus will prevent user to be able to open the top menu
     // It's even worse, it blocks everything. To never be used again!
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::Begin(m_name.c_str(),
                  nullptr,
                  ImGuiWindowFlags_NoResize |              //
+                   ImGuiWindowFlags_NoSavedSettings |     //
                    ImGuiWindowFlags_NoCollapse |          //
                    ImGuiWindowFlags_NoSavedSettings |     //
                    ImGuiWindowFlags_AlwaysAutoResize |    //
