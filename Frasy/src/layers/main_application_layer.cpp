@@ -153,6 +153,7 @@ void MainApplicationLayer::onImGuiRender()
     m_testViewer->onImGuiRender();
 
     m_orchestrator.renderPopups();
+    handleResultAnalyserPopup();
 }
 
 
@@ -452,6 +453,26 @@ void MainApplicationLayer::PresetControlRoomOptions()
     }
     ImGui::End();
 }
+
+void MainApplicationLayer::handleResultAnalyserPopup()
+{
+    if (m_orchestrator.isRunning() == m_wasRunning) { return; }
+
+    m_wasRunning = m_orchestrator.isRunning();
+
+    if (m_wasRunning) {
+        m_resultViewer->setVisibility(false);
+        return;
+    }
+
+    // else
+    for (const auto map = m_orchestrator.getMap(); const auto& uut : map.uuts) {
+        if (m_orchestrator.getUutState(uut) != UutState::Failed) { continue; }
+        m_resultViewer->setVisibility(true);
+        break;
+    }
+}
+
 
 namespace {
 

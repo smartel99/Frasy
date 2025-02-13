@@ -45,11 +45,11 @@ class LogWindow;
 
 class MainApplicationLayer : public Brigerad::Layer, public TestViewer::Interface {
 public:
-                          MainApplicationLayer()                            = default;
-                          MainApplicationLayer(const MainApplicationLayer&) = delete;
-    MainApplicationLayer& operator=(const MainApplicationLayer&)            = delete;
-                          MainApplicationLayer(MainApplicationLayer&&)      = delete;
-    MainApplicationLayer& operator=(MainApplicationLayer&&)                 = delete;
+    MainApplicationLayer()                                       = default;
+    MainApplicationLayer(const MainApplicationLayer&)            = delete;
+    MainApplicationLayer& operator=(const MainApplicationLayer&) = delete;
+    MainApplicationLayer(MainApplicationLayer&&)                 = delete;
+    MainApplicationLayer& operator=(MainApplicationLayer&&)      = delete;
 
     ~MainApplicationLayer() override = default;
 
@@ -119,6 +119,8 @@ private:
 
     std::vector<ProfileEventInfo> m_profileGraphPopups;
     void                          PresetControlRoomOptions();
+    void                          handleResultAnalyserPopup();
+    bool                          m_wasRunning = false;
 
     void DumpProfileEvents();
 };
