@@ -224,6 +224,9 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
           fmt::format("{}.{}.{}-{}", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD);
         lua["Context"]["info"]["version"]["orchestrator"] = "1.1.0";
         lua["Context"]["info"]["version"]["scripts"]      = "0.0.1";
+        lua["Context"]["info"]["title"]                   = "";
+        lua["Context"]["info"]["operator"]                = "";
+        lua["Context"]["info"]["serial"]                  = "";
         std::atomic_thread_fence(std::memory_order_release);
 
         // Utils
