@@ -128,11 +128,14 @@ function Orchestrator.RunSequence(sIndex, scope)
             end
         end
         if not incomplete then
-            Log.I(string.format("Sequence %s: %s", scope.sequence,
-                sequence.result.pass and "PASS" or "FAIL"))
+            if sequence.result.pass then
+                Log.I(string.format("Sequence %s PASSED", scope.sequence))
+            else
+                Log.E(string.format("Sequence %s FAILED", scope.sequence))
+            end
         end
     elseif sequence.time == nil then
-        Log.I(string.format("Sequence %s: SKIPPED. Reason: %s", scope.sequence,
+        Log.W(string.format("Sequence %s SKIPPED. Reason: %s", scope.sequence,
             sequence.result.reason))
     else
         -- Nothing, we already warned that this sequence was skipped or disabled
@@ -305,8 +308,10 @@ function Orchestrator.Generate()
             if requirement.reference == nil then error(InvalidRequirement("no reference", requirement)) end
             if requirement.reference.sequence == nil then error(InvalidRequirement("no reference sequence", requirement)) end
             if requirement.scope.sequence == nil then error(InvalidRequirement("no scope sequence", requirement)) end
-            if not Orchestrator.HasScope(requirement.reference) then error(InvalidRequirement(
-                "reference scope not found", requirement)) end
+            if not Orchestrator.HasScope(requirement.reference) then
+                error(InvalidRequirement(
+                    "reference scope not found", requirement))
+            end
             if requirement.scope.sequence == requirement.reference.sequence then
                 if requirement.scope.test == nil then error(InvalidRequirement("scope test not found", requirement)) end
                 if requirement.reference.test == nil then error(InvalidRequirement("reference test no found", requirement)) end
