@@ -299,7 +299,7 @@ function Orchestrator.Generate()
     local edges = { first = { sequence = nil, tests = {} }, last = { sequence = nil, tests = {} } }
 
     for _, requirement in ipairs(Context.orchestrator.order_requirements) do
-        if not Orchestrator.HasScope(requirement.scope) then error(InvalidRequirement()) end
+        if not Orchestrator.HasScope(requirement.scope) then error(InvalidRequirement("scope not found", requirement)) end
         if requirement.kind == OrderRequirement.Kind.first then
             Sort.AddEdgeRequirement(edges.first, requirement)
         elseif requirement.kind == OrderRequirement.Kind.last then
