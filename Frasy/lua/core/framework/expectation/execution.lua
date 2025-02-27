@@ -12,6 +12,7 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+require("lua/core/framework/expectation/common")
 local ExpectationResult = require("lua/core/framework/expectation/result")
 ---@class Expectation
 ---@field New function
@@ -20,6 +21,12 @@ local ExpectationResult = require("lua/core/framework/expectation/result")
 ---
 local Expectation = { mandatory = false, result = nil }
 Expectation.__index = Expectation
+
+local function resultToSelfTable(result, self)
+    for k, v in pairs(result) do
+        self.result[k] = v
+    end
+end
 
 ---@param value any
 ---@param name string
@@ -49,127 +56,96 @@ function Expectation:Not()
 end
 
 function Expectation:ToBeTrue()
-    self.result.method = "ToBeTrue"
-    self.result.expected = true
-    self.result.pass = self.result.value == self.result.expected
+    local result = ExpectToBeTrue(self.result.value)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToBeFalse()
-    self.result.method = "ToBeFalse"
-    self.result.expected = false
-    self.result.pass = self.result.value == self.result.expected
+    local result = ExpectToBeFalse(self.result.value)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToBeEqual(expected)
-    self.result.method = "ToBeEqual"
-    self.result.expected = expected
-    self.result.pass = self.result.value == self.result.expected
+    local result = ExpectToBeEqual(self.result.value, expected)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToBeNear(expected, deviation)
-    self.result.method = "ToBeNear"
-    self.result.expected = expected
-    self.result.deviation = math.abs(deviation)
-    self.result.min = expected - deviation
-    self.result.max = expected + deviation
-    self.result.pass = self.result.min <= self.result.value and
-        self.result.value <= self.result.max
+    local result = ExpectToBeNear(self.result.value, expected, deviation)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToBeInRange(min, max)
-    self.result.method = "ToBeInRange"
-    self.result.min = min
-    self.result.max = max
-    self.result.pass = min <= self.result.value and self.result.value <= max
+    local result = ExpectToBeInRange(self.result.value, min, max)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToBeInPercentage(expected, percentage)
-    self.result.method = "ToBeInPercentage"
-    self.result.expected = expected
-    self.result.percentage = percentage
-    self.result.deviation = math.abs(expected * percentage / 100)
-    self.result.min = expected - self.result.deviation
-    self.result.max = expected + self.result.deviation
-    self.result.pass = self.result.min <= self.result.value and self.result.value <= self.result.max
+    local result = ExpectToBeInPercentage(self.result.value, expected, percentage)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToBeGreater(min)
-    self.result.method = "ToBeGreater"
-    self.result.min = min
-    self.result.pass = (self.result.value > min)
+    local result = ExpectToBeGreater(self.result.value, min)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
-
     return self
 end
 
 function Expectation:ToBeGreaterOrEqual(min)
-    self.result.method = "ToBeGreaterOrEqual"
-    self.result.min = min
-    self.result.pass = (self.result.value >= min)
+    local result = ExpectToBeGreaterOrEqual(self.result.value, min)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
-
     return self
 end
 
 function Expectation:ToBeLesser(max)
-    self.result.method = "ToBeLesser"
-    self.result.max = max
-    self.result.pass = (self.result.value < max)
+    local result = ExpectToBeLesser(self.result.value, max)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
-
     return self
 end
 
 function Expectation:ToBeLesserOrEqual(max)
-    self.result.method = "ToBeLesserOrEqual"
-    self.result.max = max
-    self.result.pass = (self.result.value <= max)
+    local result = ExpectToBeLesserOrEqual(self.result.value, max)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
-
     return self
 end
 
 function Expectation:ToBeType(expected)
-    self.result.method = "ToBeType"
-    self.result.expected = expected
-    self.result.type = type(self.result.value)
-    self.result.pass = self.result.type == expected
+    local result = ExpectToBeType(self.result.value, expected)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
 end
 
 function Expectation:ToMatch(pattern)
-    self.result.method = "ToMatch"
-    self.result.pattern = pattern
-    self.result.pass = false
-
-    for w in string.gmatch(self.result.value, pattern) do
-        self.result.pass = true
-    end
-
+    local result = ExpectToBeMatch(self.result.value, pattern)
+    resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
     return self
