@@ -103,7 +103,7 @@ function PIO:New(opt)
     end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/core/cep/eds/pio_1.1.0.eds"
+    ib.eds = "lua/core/cep/eds/pio.eds"
     return setmetatable({
         ib = ib,
         cache = {
@@ -215,6 +215,18 @@ function PIO:SupplyGracePeriod(supply, period)
     else
         CheckField(period, "Grace Period", IsIntegerInOd(period, od))
         self.ib:Download(od, period)
+    end
+end
+
+function PIO:SupplyFeedbackControllerEnable(supply, enable)
+    CheckVariableSupplyEnum(supply)
+    local odName = PIO.SupplyEnumToOdName(supply)
+    local od = self.ib.od[odName]["Feedback Controller Enable"]
+    if enable == nil then
+        return self.ib:Upload(od) --[[@as boolean]]
+    else
+        CheckField(enable, "feedback enable", IsBoolean(enable))
+        self.ib:Download(od, enable --[[@as OdEntryType]])
     end
 end
 

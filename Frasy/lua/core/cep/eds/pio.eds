@@ -1,5 +1,5 @@
 [FileInfo]
-FileName=pio_1.1.0.eds
+FileName=pio.eds
 FileVersion=1
 FileRevision=1
 LastEDS=
@@ -8,8 +8,8 @@ Description=
 CreationTime=8:23AM
 CreationDate=06-03-2024
 CreatedBy=Samuel Martel
-ModificationTime=8:06PM
-ModificationDate=11-27-2024
+ModificationTime=4:25PM
+ModificationDate=02-27-2025
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -381,7 +381,7 @@ ObjectType=0x7
 DataType=0x0009
 AccessType=ro
 StringLengthMin=0
-DefaultValue=A1
+DefaultValue=A2
 PDOMapping=0
 
 [100A]
@@ -391,7 +391,7 @@ ObjectType=0x7
 DataType=0x0009
 AccessType=ro
 StringLengthMin=0
-DefaultValue=1.1.0
+DefaultValue=1.2.0
 PDOMapping=0
 
 [1010]
@@ -1018,7 +1018,7 @@ PDOMapping=0
 ParameterName=Variable Supply 1
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x7
+SubNumber=0x8
 
 [6004sub0]
 ParameterName=Highest sub-index supported
@@ -1027,7 +1027,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x06
+DefaultValue=0x07
 PDOMapping=0
 
 [6004sub1]
@@ -1096,11 +1096,21 @@ StringLengthMin=0
 DefaultValue=10
 PDOMapping=0
 
+[6004sub7]
+ParameterName=Feedback Controller Enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
+PDOMapping=0
+
 [6005]
 ParameterName=Variable Supply 2
 ObjectType=0x9
 ;StorageLocation=RAM
-SubNumber=0x7
+SubNumber=0x8
 
 [6005sub0]
 ParameterName=Highest sub-index supported
@@ -1109,7 +1119,7 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=ro
 StringLengthMin=0
-DefaultValue=0x06
+DefaultValue=0x07
 PDOMapping=0
 
 [6005sub1]
@@ -1176,6 +1186,16 @@ HighLimit=32567
 LowLimit=-1
 StringLengthMin=0
 DefaultValue=10
+PDOMapping=0
+
+[6005sub7]
+ParameterName=Feedback Controller Enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rw
+StringLengthMin=0
+DefaultValue=0
 PDOMapping=0
 
 [6006]
