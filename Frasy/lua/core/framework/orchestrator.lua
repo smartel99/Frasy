@@ -310,7 +310,7 @@ function Orchestrator.Generate()
             if requirement.scope.sequence == nil then error(InvalidRequirement("no scope sequence", requirement)) end
             if not Orchestrator.HasScope(requirement.reference) then
                 error(InvalidRequirement(
-                    "reference scope not found", requirement))
+                    "Requested scope not found", requirement))
             end
             if requirement.scope.sequence == requirement.reference.sequence then
                 if requirement.scope.test == nil then error(InvalidRequirement("scope test not found", requirement)) end
