@@ -15,12 +15,12 @@
 
 if Print ~= nil then error("Common utils already defined. Do not required this file") end
 
----Convert a lua object to a string
----Unlike tostring, it will print a table content
----@param t any Object to convert to string
----@param max_depth number? max depth when converting a table to string, default to infinite depth
----@param depth number? Current level, user should not provide that argument
----@return string
+--- Convert a lua object to a string
+--- Unlike tostring, it will print a table content
+--- @param t any Object to convert to string
+--- @param max_depth number? max depth when converting a table to string, default to infinite depth
+--- @param depth number? Current level, user should not provide that argument
+--- @return string
 local function PrettyPrint(t, max_depth, depth)
     if (type(t) == "table") then
         local indent = ""
@@ -32,7 +32,7 @@ local function PrettyPrint(t, max_depth, depth)
         for k, v in pairs(t) do
             if (not first or depth ~= 0) then str = str .. "\n" end
             if (first) then first = false end
-            if (type(max_depth) == 'number' and max_depth == depth) then
+            if (type(max_depth) == "number" and max_depth == depth) then
                 str = str .. indent .. tostring(k) .. ": " .. tostring(v)
             else
                 str = str .. indent .. tostring(k) .. ": " ..
@@ -48,10 +48,10 @@ local function PrettyPrint(t, max_depth, depth)
     end
 end
 
----Print a Lua Object
----Unlike lua print(), it will print tables content
----@param t any Object to print
----@param max_depth number? max depth to print if passing a table, default to infinite depth
+--- Print a Lua Object
+--- Unlike lua print(), it will print tables content
+--- @param t any Object to print
+--- @param max_depth number? max depth to print if passing a table, default to infinite depth
 function Print(t, max_depth)
     if (type(t) == "table") then
         print(PrettyPrint(t, max_depth))
@@ -60,30 +60,34 @@ function Print(t, max_depth)
     end
 end
 
----Convert a Lua Object to a String
----Unlike lua tostring(), it will convert tables content
----@param t any Object to print
----@param max_depth number? max depth to convert if passing a table, default to infinite depth
----@return string
+--- Convert a Lua Object to a String
+--- Unlike lua tostring(), it will convert tables content
+--- @param t any Object to print
+--- @param max_depth number? max depth to convert if passing a table, default to infinite depth
+--- @return string
 function ToString(t, max_depth)
     if (type(t) == "table") then
+        local maybeMeta = getmetatable(t)
+        if maybeMeta ~= nil and type(maybeMeta.__tostring) == "function" then
+            return tostring(t)
+        end
         return PrettyPrint(t, max_depth)
     else
         return tostring(t)
     end
 end
 
----Check if two object are equals
----Unlike lua basic == operator, it also check tables content.
----Only check contents, not object pointers
----@param t1 any Object to compare
----@param t2 any Object to compare
----@return boolean
+--- Check if two object are equals
+--- Unlike lua basic == operator, it also check tables content.
+--- Only check contents, not object pointers
+--- @param t1 any Object to compare
+--- @param t2 any Object to compare
+--- @return boolean
 function Equals(t1, t2)
     if type(t1) ~= type(t2) then
         return false
     end
-    if type(t1) == 'table' then
+    if type(t1) == "table" then
         -- Check both table have the same number of keys
         -- If not, then tables cannot be identical
         local t1_keys = 0
@@ -111,15 +115,15 @@ function Equals(t1, t2)
     end
 end
 
----Get value from a table by passing chain of keys
----If the chain of keys is broken, will return nil
----ie. for table A = {B = {C = 0}}
----Traverse(A, "B", "C") == 0, Chain of keys OK
----Traverse(A, "B", "D") == nil, Chain of keys broken at end
----Traverse(A, "C", "B") == nil, Chain of keys broken in the middle
----@param t table Table to access
----@param ... string chain of keys
----@return any value
+--- Get value from a table by passing chain of keys
+--- If the chain of keys is broken, will return nil
+--- ie. for table A = {B = {C = 0}}
+--- Traverse(A, "B", "C") == 0, Chain of keys OK
+--- Traverse(A, "B", "D") == nil, Chain of keys broken at end
+--- Traverse(A, "C", "B") == nil, Chain of keys broken in the middle
+--- @param t table Table to access
+--- @param ... string chain of keys
+--- @return any value
 function Traverse(t, ...)
     local args = { ... }
     if #args == 0 or t == nil or t[args[1]] == nil then
@@ -131,10 +135,10 @@ function Traverse(t, ...)
     end
 end
 
----Split a string per line
----ie. "Hello\nWorld" => ['Hello', 'World']
----@param content string text to split
----@return table lines
+--- Split a string per line
+--- ie. "Hello\nWorld" => ['Hello', 'World']
+--- @param content string text to split
+--- @return table lines
 function LineSplit(content)
     local lines = {}
     for line in string.gmatch(content, "^[\r\n]+") do
@@ -150,16 +154,16 @@ function ToInt(value)
     if (value >= 0) then return math.floor(value + 0.5) else return math.ceil(value + 0.5) end
 end
 
----Get List of files and folder from a directory
----@param path string folder path where to look
----@return table entries
+--- Get List of files and folder from a directory
+--- @param path string folder path where to look
+--- @return table entries
 function DirList(path) return {} end -- C++ call
 
----Pause the program for set duration
----@param ms integer duration in ms
-function SleepFor(ms) end --C++ call
+--- Pause the program for set duration
+--- @param ms integer duration in ms
+function SleepFor(ms) end -- C++ call
 
----Save a table to a JSON file
----@param table table Table to save
----@param filepath string filepath where to save the json
-function SaveAsJson(table, filepath) end --C++ call
+--- Save a table to a JSON file
+--- @param table table Table to save
+--- @param filepath string filepath where to save the json
+function SaveAsJson(table, filepath) end -- C++ call
