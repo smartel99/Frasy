@@ -43,11 +43,11 @@ protected:
     void reportToBeNear(const sol::table& expectation) override { reportExpectation(expectation); }
 
 private:
-    void                  reportExpectation(const sol::table& expectation);
-    void                  reportSectionBaseResult(const sol::table& section) const override;
-    static nlohmann::json reportSectionTime(const sol::table& section);
-    nlohmann::json        m_object  = nlohmann::json::object();
-    nlohmann::json*       m_section = nullptr;
+    void                          reportExpectation(const sol::table& expectation);
+    void                          reportSectionBaseResult(const sol::table& section) const override;
+    static nlohmann::ordered_json reportSectionTime(const sol::table& section);
+    nlohmann::ordered_json        m_object  = nlohmann::json::object();
+    nlohmann::ordered_json*       m_section = nullptr;
 };
 }    // namespace Frasy::Report::Formatter
 

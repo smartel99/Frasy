@@ -25,9 +25,9 @@ namespace Frasy::Report::Formatter {
 
 Json::Json(const sol::table& result) : Formatter(result)
 {
-    m_object["ib"]        = nlohmann::json::object();
-    m_object["info"]      = nlohmann::json::object();
-    m_object["sequences"] = nlohmann::json::object();
+    m_object["ib"]        = nlohmann::ordered_json::object();
+    m_object["info"]      = nlohmann::ordered_json::object();
+    m_object["sequences"] = nlohmann::ordered_json::object();
 }
 
 void Json::reportInfo()
@@ -41,7 +41,7 @@ void Json::reportInfo()
     info["time"]        = reportSectionTime(section);
     info["title"]       = section["title"].get<std::string>();
     info["uut"]         = section["uut"].get<int>();
-    info["version"]     = nlohmann::json::object();
+    info["version"]     = nlohmann::ordered_json::object();
     for (const auto& field : {"frasy", "orchestrator", "scripts"}) {
         info["version"][field] = section["version"][field].get<std::string>();
     }
@@ -70,7 +70,7 @@ void Json::reportUserInfo(const sol::table& table)
 
 void Json::reportIb(const std::string& name)
 {
-    auto ib              = nlohmann::json::object();
+    auto ib              = nlohmann::ordered_json::object();
     ib["hardware"]       = m_result["ib"][name]["hardware"].get<std::string>();
     ib["nodeId"]         = m_result["ib"][name]["nodeId"].get<int>();
     ib["serial"]         = m_result["ib"][name]["serial"].get<std::string>();
@@ -81,23 +81,23 @@ void Json::reportIb(const std::string& name)
 void Json::reportSequenceResult(const std::string& name)
 {
     setSequence(name);
-    auto obj  = nlohmann::json::object();
+    auto obj  = nlohmann::ordered_json::object();
     m_section = &obj;
     reportSectionBaseResult(m_result["sequences"][name]);
     m_section                   = nullptr;
-    obj["tests"]                = nlohmann::json::object();
+    obj["tests"]                = nlohmann::ordered_json::object();
     m_object["sequences"][name] = obj;
 }
 
 void Json::reportTestResult(const std::string& name)
 {
     setTest(name);
-    auto obj  = nlohmann::json::object();
+    auto obj  = nlohmann::ordered_json::object();
     m_section = &obj;
     reportSectionBaseResult(m_result["sequences"][m_sequenceName]["tests"][name]);
     m_section                                            = nullptr;
-    obj["expectations"]                                  = nlohmann::json::array();
-    m_object["sequences"][m_sequenceName]["tests"][name] = nlohmann::json::object();
+    obj["expectations"]                                  = nlohmann::ordered_json::array();
+    m_object["sequences"][m_sequenceName]["tests"][name] = nlohmann::ordered_json::object();
 }
 
 void Json::toFile(const std::string& filename)
@@ -110,7 +110,7 @@ void Json::reportExpectation(const sol::table& expectation)
 {
     auto&      expectations = m_object["sequences"][m_sequenceName]["tests"][m_testName]["expectations"];
     const auto jEx          = Lua::tableToJson(expectation);
-    expectations.push_back(jEx);
+    expectations.push_back(nlohmann::ordered_json(jEx)); // We can ignore order here, expectations are in array
 }
 
 void Json::reportSectionBaseResult(const sol::table& section) const
@@ -122,9 +122,9 @@ void Json::reportSectionBaseResult(const sol::table& section) const
     obj["time"]    = reportSectionTime(section);
 }
 
-nlohmann::json Json::reportSectionTime(const sol::table& section)
+nlohmann::ordered_json Json::reportSectionTime(const sol::table& section)
 {
-    auto time = nlohmann::json::object();
+    auto time = nlohmann::ordered_json::object();
     for (const auto& field : {"elapsed", "process", "start", "stop"}) {
         time[field] = section["time"][field].get<double>();
     }
