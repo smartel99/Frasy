@@ -2,34 +2,22 @@
 
 #include <Brigerad.h>
 #include <Brigerad/Core/Log.h>
+#include <fstream>
 
-namespace Frasy
-{
+namespace Frasy {
 Config::Config(const std::string& path) : m_path(path)
 {
     BR_PROFILE_FUNCTION();
-    // Open the file or create it if it doesn't exist.
-    std::fstream file(m_path, std::ios::out | std::ios::app);
-    file.close();
-    std::ifstream j(m_path);
+    if (!std::filesystem::exists(m_path)) { return; }
 
-    std::string fullFile;
-    std::string line;
-
-    while (std::getline(j, line)) { fullFile += line; }
-
-    try
-    {
-        m_config = config_t::parse(fullFile);
+    std::ifstream ifs(m_path);
+    try {
+        ifs >> m_config;
     }
-    catch (config_t::parse_error& e)
-    {
-        BR_APP_ERROR("An error occurred while parsing the internal config: {}", e.what());
-        m_config = "{}"_json;
-        save(m_path, *this);
+    catch (const std::exception& e) {
+        BR_APP_ERROR("Failed to load configuration. Reason: {}", e.what());
     }
-
-    j.close();
+    ifs.close();
 }
 
 Config Config::load(const std::string& path)
@@ -40,18 +28,9 @@ Config Config::load(const std::string& path)
 void Config::save(const std::string& path, const Config& cfg)
 {
     BR_PROFILE_FUNCTION();
-    std::fstream file(path, std::ios::out);
-    std::string  j = cfg.m_config.dump(-1, ' ', true, config_t::error_handler_t::replace);
-
-    if (!file.is_open())
-    {
-        BR_LOG_ERROR(s_tag, "Unable to open file '{}'!", path);
-        return;
-    }
-
-    // file << std::setw(4) << DO_NOT_USE::config;
-    file << j;
-
+    if (std::filesystem::exists(path)) { std::filesystem::remove(path); }
+    std::ofstream file(path, std::ios::out);
+    file << std::setw(4) << cfg.m_config << std::endl;
     file.close();
 }
 }    // namespace Frasy
