@@ -1,1 +1,38 @@
-{"LogWindow":{"AutoScroll":true,"CombineLoggers":true,"EntriesToShow":4096,"Loggers":{"APP":0,"BRIGERAD":0,"LUA":1,"UUT1":1},"ShowLevels":[true,true,true,true,true,true,true],"ShowLogSource":true,"ShowSourceLocation":true,"ShowTimeStamp":true,"SourceLocationRenderStyle":4},"UserConfigPath":"usr_config.json","communication":{"lastDevice":"COM31","usbWhitelist":[{"mi":0,"pid":42180,"vid":1155}]},"maximized":true}
+{
+  "LogWindow": {
+    "AutoScroll": true,
+    "CombineLoggers": true,
+    "EntriesToShow": 4096,
+    "Loggers": {
+      "APP": 0,
+      "BRIGERAD": 0,
+      "LUA": 1,
+      "UUT1": 1
+    },
+    "ShowLevels": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "ShowLogSource": true,
+    "ShowSourceLocation": true,
+    "ShowTimeStamp": true,
+    "SourceLocationRenderStyle": 4
+  },
+  "UserConfigPath": "usr_config.json",
+  "communication": {
+    "lastDevice": "COM31",
+    "usbWhitelist": [
+      {
+        "mi": 0,
+        "pid": 42180,
+        "vid": 1155
+      }
+    ]
+  },
+  "maximized": true
+}
