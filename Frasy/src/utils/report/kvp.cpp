@@ -64,7 +64,7 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
         auto smtFileDir         = pass ? smtPassDir : smtFailDir;
         auto lastReportFilepath = smtDirectory / "last.txt";
 
-        std::ofstream report(lastReportFilepath);
+        std::ofstream report(lastReportFilepath, std::ios::out | std::ios::trunc | std::ios::binary);
         if (!report.is_open()) {
             BR_LOG_ERROR(s_tag, "Unable to open file '{}'", lastReportFilepath.string());
             return {};
