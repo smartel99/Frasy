@@ -178,7 +178,7 @@ bool DeviceViewer::DeviceViewerOptions::WhitelistItem::operator==(const std::str
 
 void DeviceViewer::onAttach()
 {
-    m_options = FrasyInterpreter::Get().getConfig().getField<DeviceViewerOptions>("communication");
+    m_options = Interpreter::Get().getConfig().value("communication", DeviceViewerOptions {});
     m_ports   = serial::list_ports();
 
     auto isValidUsb = [&usbWhitelist = m_options.usbWhitelist](const serial::PortInfo& info) -> bool {
@@ -222,7 +222,7 @@ void DeviceViewer::onAttach()
 void DeviceViewer::onDetach()
 {
     // Save the currently opened device, if one exists.
-    FrasyInterpreter::Get().getConfig().setField("communication", m_options);
+    Interpreter::Get().getConfig()["communication"] = m_options;
 }
 
 void DeviceViewer::onEvent(Brigerad::Event& event)

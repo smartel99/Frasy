@@ -17,7 +17,6 @@
 #include "log_window.h"
 
 #include "frasy_interpreter.h"
-#include "utils/config.h"
 #include "utils/logging/log_window_sink.h"
 
 #include <Brigerad/Core/Log.h>
@@ -27,8 +26,8 @@
 namespace Frasy {
 LogWindow::LogWindow() noexcept
 {
-    Config cfg = FrasyInterpreter::Get().getConfig().getField("LogWindow");
-    m_options  = LogWindowOptions(cfg);
+    const auto cfg = Interpreter::Get().getConfig().value("LogWindow", nlohmann::json::object());
+    m_options      = LogWindowOptions::from_json(cfg);
 
     m_renderLoggersFunc = m_options.CombineLoggers ? &RenderCombinedLoggers : &RenderSeparateLoggers;
 }
@@ -49,7 +48,7 @@ void LogWindow::onDetach()
 {
     BR_PROFILE_FUNCTION();
 
-    FrasyInterpreter::Get().getConfig().setField("LogWindow", m_options.serialize());
+    Interpreter::Get().getConfig()["LogWindow"] = m_options.to_json();
 
     Brigerad::Log::RemoveSink(m_sink);
 }
@@ -80,16 +79,18 @@ void LogWindow::RenderOptions()
         const auto& loggers = Brigerad::Log::GetLoggers();
 
         for (auto&& [name, ptr] : loggers) {
+            if (name.empty()) { continue; }    // No clue what this logger is, and it affects nothing
             auto currentLevel    = ptr->level();
-            auto currentLevelStr = spdlog::level::to_string_view(currentLevel);
+            auto currentLevelStr = to_string_view(currentLevel);
             if (ImGui::BeginCombo(name.c_str(), currentLevelStr.data())) {
                 for (spdlog::level::level_enum level = spdlog::level::trace; level != spdlog::level::n_levels;
                      level = static_cast<spdlog::level::level_enum>(static_cast<int>(level) + 1)) {
-                    if (ImGui::Selectable(spdlog::level::to_string_view(level).data())) {
-                        Brigerad::Log::SetLoggerLevel(name, level);
-                    }
+                    if (ImGui::Selectable(to_string_view(level).data())) { Brigerad::Log::SetLoggerLevel(name, level); }
                 }
                 ImGui::EndCombo();
+
+                Interpreter::Get().getConfig()["LogWindow"] = m_options.to_json();
+                Interpreter::Get().saveConfig();
             }
         }
 
@@ -114,11 +115,11 @@ void LogWindow::RenderSeparateLoggers(LogWindowOptions& options, const std::shar
         try {
             LogWindowMultiSink& multiSink = *dynamic_cast<LogWindowMultiSink*>(sink.get());
 
-            static LogWindow::LoggerName defaultLogger = {};
-            const LogWindow::LoggerName* activeLogger  = &defaultLogger;
+            static LoggerName defaultLogger = {};
+            const LoggerName* activeLogger  = &defaultLogger;
 
-            static LogWindow::LoggerEntries defaultEntries = {};
-            const LogWindow::LoggerEntries* activeEntries  = &defaultEntries;
+            static LoggerEntries defaultEntries = {};
+            const LoggerEntries* activeEntries  = &defaultEntries;
 
             for (auto&& [logger, entries] : multiSink.GetLoggers()) {
                 // TODO: Indicate new entries from inactive tabs to the user through the unsaved
@@ -142,9 +143,9 @@ void LogWindow::RenderSeparateLoggers(LogWindowOptions& options, const std::shar
 }
 
 
-void LogWindow::RenderLoggerEntries(LogWindowOptions&               options,
-                                    const LogWindow::LoggerName&    loggerName,
-                                    const LogWindow::LoggerEntries& loggerEntries)
+void LogWindow::RenderLoggerEntries(LogWindowOptions&    options,
+                                    const LoggerName&    loggerName,
+                                    const LoggerEntries& loggerEntries)
 {
     static ImGuiTableFlags tableFlags =
       ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |

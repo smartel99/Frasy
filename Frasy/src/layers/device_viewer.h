@@ -19,9 +19,9 @@
 #define FRASY_LAYERS_DEVICE_VIEWER_H
 
 #include "utils/communication/can_open/can_open.h"
-#include "utils/config.h"
 
 #include <Brigerad.h>
+#include <json.hpp>
 
 #include <optional>
 #include <unordered_map>
@@ -57,7 +57,7 @@ class DeviceViewer : public Brigerad::Layer {
     friend void from_json(const nlohmann::json& j, DeviceViewerOptions& options);
 
 public:
-     DeviceViewer(CanOpen::CanOpen& canOpen) noexcept;
+    DeviceViewer(CanOpen::CanOpen& canOpen) noexcept;
     ~DeviceViewer() override = default;
 
     void onAttach() override;

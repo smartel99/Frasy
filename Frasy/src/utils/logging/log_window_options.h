@@ -18,17 +18,15 @@
 #ifndef FRASY_UTILS_LOG_WINDOW_OPTIONS_H
 #define FRASY_UTILS_LOG_WINDOW_OPTIONS_H
 
-#include "../config.h"
 #include "imgui.h"
 #include "log_entry.h"
 #include "spdlog/common.h"
+#include <json.hpp>
 
 #include <array>
 
-namespace Frasy
-{
-struct LogWindowOptions
-{
+namespace Frasy {
+struct LogWindowOptions {
     static constexpr size_t DEFAULT_ENTRIES_TO_SHOW = 4096;
     size_t                  EntriesToShow           = DEFAULT_ENTRIES_TO_SHOW;
 
@@ -44,11 +42,10 @@ struct LogWindowOptions
     bool                                 ShowSourceLocation        = true;
     LogEntry::SourceLocationRenderStyles SourceLocationRenderStyle = LogEntry::SourceLocationRenderStyle_All;
 
-
-    LogWindowOptions() noexcept = default;
-    explicit LogWindowOptions(const Config& cfg) noexcept
+    static LogWindowOptions from_json(const nlohmann::json& cfg) noexcept
     {
-#define LOAD_FIELD(v) v = cfg.getField<decltype(v)>(#v, this->v)
+        LogWindowOptions options;
+#define LOAD_FIELD(v) options.v = cfg.value<decltype(v)>(#v, options.v)
         LOAD_FIELD(EntriesToShow);
         LOAD_FIELD(AutoScroll);
         LOAD_FIELD(CombineLoggers);
@@ -60,27 +57,24 @@ struct LogWindowOptions
 #undef LOAD_FIELD
 
         // Load the configured logger levels.
-        auto loggers = cfg.getField("Loggers");
-        for (auto&& logger : loggers)
-        {
-            try
-            {
-                std::string name  = logger.key();
-                auto        level = static_cast<spdlog::level::level_enum>(logger.value().get<int>());
+        auto loggers = cfg.value("Loggers", nlohmann::json::object());
+        for (auto& [name, logger] : loggers.items()) {
+            try {
+                const auto level = static_cast<spdlog::level::level_enum>(logger.get<int>());
                 Brigerad::Log::SetLoggerLevel(name, level);
             }
-            catch (...)
-            {
+            catch (...) {
                 DebugBreak();
             }
         }
+        return options;
     }
 
-    [[nodiscard]] Config serialize() const noexcept
+    [[nodiscard]] nlohmann::json to_json() const noexcept
     {
-        Config cfg = {};
+        nlohmann::json cfg = nlohmann::json::object();
 
-#define SET_FIELD(v) cfg.setField(#v, v)
+#define SET_FIELD(v) cfg[#v] = v
         SET_FIELD(EntriesToShow);
         SET_FIELD(AutoScroll);
         SET_FIELD(CombineLoggers);
@@ -92,13 +86,12 @@ struct LogWindowOptions
 #undef SET_FIELD
 
         // Save the overriden log levels, if any.
-        Config loggerLevels;
-        const auto&                loggers = Brigerad::Log::GetLoggers();
-        for (auto&& [name, ptr] : loggers)
-        {
-            if (ptr->level() != Brigerad::Log::s_defaultLevel) { loggerLevels.setField(name,ptr->level()); }
+        nlohmann::json loggerLevels = nlohmann::json::object();
+        const auto&    loggers      = Brigerad::Log::GetLoggers();
+        for (auto&& [name, ptr] : loggers) {
+            if (ptr->level() != Brigerad::Log::s_defaultLevel) { loggerLevels[name] = ptr->level(); }
         }
-        cfg.setField("Loggers", loggerLevels);
+        cfg["Loggers"] = loggerLevels;
 
         return cfg;
     }

@@ -20,7 +20,52 @@
 
 #include <serial/serial.h>
 
-namespace Frasy
+namespace Frasy {
+namespace {
+constexpr auto configFilepath = "config.json";
+}
+
+nlohmann::json Interpreter::loadConfig()
 {
+    if (!std::filesystem::exists(configFilepath)) { return nlohmann::json::object(); }
+    nlohmann::json json;
+    try {
+        std::ifstream ifs(configFilepath);
+        try {
+            ifs >> json;
+            if (!json.is_object()) { throw std::runtime_error("JSON is not an object"); }
+        }
+        catch (const std::exception& e) {
+            BR_APP_ERROR("Failed to parse configuration file. Reason: {}", e.what());
+            json = nlohmann::json::object();
+        }
+        ifs.close();
+    }
+    catch (const std::exception& e) {
+        BR_APP_ERROR("Failure during IO operation on config file. Reason: {}", e.what());
+        json = nlohmann::json::object();
+    }
+    return json;
+}
+
+void Interpreter::saveConfig() const
+{
+    if (std::filesystem::exists(configFilepath)) { std::filesystem::remove(configFilepath); }
+    try {
+        std::ofstream ofs(configFilepath, std::ios::out | std::ios::binary | std::ios::trunc);
+        try {
+            ofs << std::setw(4) << m_config << std::endl;
+        }
+        catch (const std::exception& e) {
+            BR_APP_ERROR("Failed to write config to file. Reason: {}", e.what());
+        }
+        ofs.close();
+    }
+    catch (const std::exception& e) {
+        BR_APP_ERROR("Failure during IO operation on config file. Reason: {}", e.what());
+    }
+}
+
+
 
 }    // namespace Frasy

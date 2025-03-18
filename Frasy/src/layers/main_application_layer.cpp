@@ -49,8 +49,8 @@ void MainApplicationLayer::onAttach()
     m_testViewer     = std::make_unique<TestViewer>();
     m_testViewer->SetInterface(this);
 
-    bool  maximized = FrasyInterpreter::Get().getConfig().getField("maximized", true);
-    auto& window    = FrasyInterpreter::Get().getWindow();
+    bool  maximized = Interpreter::Get().getConfig().value("maximized", true);
+    auto& window    = Interpreter::Get().getWindow();
     if (maximized) { window.Maximize(); }
     else {
         window.Restore();
@@ -163,11 +163,11 @@ void MainApplicationLayer::onEvent(Brigerad::Event& e)
     Brigerad::EventDispatcher dispatcher(e);
     // Dispatch it to the proper handling function in the Application, if the type matches.
     dispatcher.Dispatch<Brigerad::WindowMaximizedEvent>([this](Brigerad::WindowMaximizedEvent& e) {
-        FrasyInterpreter::Get().getConfig().setField("maximized", true);
+        Interpreter::Get().getConfig()["maximized"] = true;
         return true;
     });
     dispatcher.Dispatch<Brigerad::WindowRestoredEvent>([this](Brigerad::WindowRestoredEvent& e) {
-        FrasyInterpreter::Get().getConfig().setField("maximized", false);
+        Interpreter::Get().getConfig()["maximized"] = false;
         return true;
     });
 

@@ -21,12 +21,9 @@
 
 #include "can_open_viewer/open_node.h"
 #include "utils/communication/can_open/can_open.h"
-#include "utils/communication/can_open/services/sdo_uploader.h"
-#include "utils/config.h"
 
 #include <Brigerad.h>
 #include <cstdint>
-#include <string>
 #include <vector>
 
 namespace Frasy::CanOpenViewer {
@@ -47,7 +44,6 @@ private:
     void renderNodes();
     void renderErrorGenerator();
 
-private:
     bool m_isVisible = false;
 
     bool                    m_shouldRenderErrorGenerator = false;

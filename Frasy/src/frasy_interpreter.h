@@ -1,90 +1,53 @@
 /**
- ******************************************************************************
- * @addtogroup frasy_interpreter
- * @{
  * @file    frasy_interpreter.h
  * @author  Samuel Martel
  * @brief   Header for the frasy_interpreter module.
  *
  * @date 12/1/2022 10:59:10 AM
- *
- ******************************************************************************
  */
-#ifndef frasy_interpreter_H
-#    define frasy_interpreter_H
+#ifndef FRASY_INTERPRETER_H
+#define FRASY_INTERPRETER_H
 
-/*****************************************************************************/
-/* Includes */
+#include "Brigerad.h"
+#include "utils/communication/serial/device_map.h"
 
-#    include "Brigerad.h"
-#    include "utils/communication/serial/device_map.h"
-#    include "utils/config.h"
+#include <json.hpp>
+#include <string>
 
-#    include <memory>
-#    include <string>
-#    include <thread>
-#    include <WinSock2.h>
-
-/*****************************************************************************/
-/* Exported Defines and Macros */
-
-
-/*****************************************************************************/
-/* Exported Variables */
-
-
-/*****************************************************************************/
-/* Exported Enums */
-
-
-/*****************************************************************************/
-/* Exported Structs and Classes */
-namespace Frasy
-{
-class FrasyInterpreter : public Brigerad::Application
-{
+namespace Frasy {
+class Interpreter : public Brigerad::Application {
 public:
-    FrasyInterpreter(const std::string& name, const std::string& cfgPath = "config.json") : Application(name)
+    explicit Interpreter(const std::string& name) : Application(name), m_config(loadConfig())
     {
         if (s_instance != nullptr) { throw std::exception("Interpreter instance already created!"); }
-
-        s_instance                               = this;
-        m_internalConfig                         = Frasy::Config(cfgPath);
-        static constexpr const char* s_usrCfgKey = "UserConfigPath";
-        std::string                  userCfgPath = m_internalConfig.getField<std::string>(s_usrCfgKey);
-        if (!userCfgPath.empty()) { m_userConfig = Frasy::Config(userCfgPath); }
-        else { BR_CORE_ERROR("'{}' not found in {}!", s_usrCfgKey, cfgPath); }
+        s_instance = this;
     }
 
-    ~FrasyInterpreter() override
+    ~Interpreter() override
     {
-        m_internalConfig.save();
-        m_userConfig.save();
-
+        saveConfig();
         s_instance = nullptr;
     }
 
-    static FrasyInterpreter& Get() { return *s_instance; }
+    static Interpreter& Get() { return *s_instance; }
 
-    virtual Config&                   getConfig() { return m_internalConfig; }
-    virtual Config&                   GetUserConfig() { return m_userConfig; }
-    virtual Serial::DeviceMap& GetDevices() { return m_deviceMap; }
+    Serial::DeviceMap& GetDevices() { return m_deviceMap; }
 
+    nlohmann::json& getConfig() { return m_config; }
+    void            saveConfig() const;
 
 protected:
-    inline static FrasyInterpreter* s_instance = nullptr;
+    inline static Interpreter* s_instance = nullptr;
 
-    Config m_internalConfig;
-    Config m_userConfig;
 
+    nlohmann::json    m_config;
     Serial::DeviceMap m_deviceMap;
+
+private:
+    static nlohmann::json loadConfig();
 };
 }    // namespace Frasy
 
 
 /* Have a wonderful day :) */
 #endif /* frasy_interpreter_H */
-/**
- * @}
- */
-/****** END OF FILE ******/
