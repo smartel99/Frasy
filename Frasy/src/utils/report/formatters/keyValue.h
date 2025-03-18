@@ -22,36 +22,34 @@
 #include "formatter.h"
 #include <sol/sol.hpp>
 
-namespace Frasy::Report::Formatter
-{
-    class KeyValue final : public Formatter
-    {
-    public:
-        KeyValue(sol::state_view& lua, std::ofstream& output, const sol::table& result);
-        void reportInfo() override;
-        void reportUserInfo(const sol::table& table) override;
-        void reportIb(const std::string& name) override;
-        void reportSequenceResult(const std::string& name) override;
-        void reportTestResult(const std::string& name) override;
+namespace Frasy::Report::Formatter {
+class KeyValue final : public Formatter {
+public:
+    KeyValue(std::ofstream& output, const sol::table& result);
+    void reportInfo() override;
+    void reportUserInfo(const sol::table& table) override;
+    void reportIb(const std::string& name) override;
+    void reportSequenceResult(const std::string& name) override;
+    void reportTestResult(const std::string& name) override;
 
-        static constexpr auto endline = "\n";
+    static constexpr auto endline = "\n";
 
-    protected:
-        void reportToBeEqualBoolean(const sol::table& expectation) override;
-        void reportToBeEqualNumber(const sol::table& expectation) override;
-        void reportToBeEqualString(const sol::table& expectation) override;
-        void reportToBeInPercentage(const sol::table& expectation) override;
-        void reportToBeInRange(const sol::table& expectation) override;
-        void reportToBeGreater(const sol::table& expectation) override;
-        void reportToBeLesser(const sol::table& expectation) override;
-        void reportToBeNear(const sol::table& expectation) override;
+protected:
+    void reportToBeEqualBoolean(const sol::table& expectation) override;
+    void reportToBeEqualNumber(const sol::table& expectation) override;
+    void reportToBeEqualString(const sol::table& expectation) override;
+    void reportToBeInPercentage(const sol::table& expectation) override;
+    void reportToBeInRange(const sol::table& expectation) override;
+    void reportToBeGreater(const sol::table& expectation) override;
+    void reportToBeLesser(const sol::table& expectation) override;
+    void reportToBeNear(const sol::table& expectation) override;
 
-    private:
-        void reportSectionBaseResult(const sol::table& section) const override;
-        std::string m_sectionPrefix;
+private:
+    void        reportSectionBaseResult(const sol::table& section) const override;
+    std::string m_sectionPrefix;
 
-        std::ofstream* m_output;
-    };
-}; // namespace Frasy::Report::Formatter
+    std::ofstream* m_output;
+};
+};    // namespace Frasy::Report::Formatter
 
 #endif    // KEYVALUE_H

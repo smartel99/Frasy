@@ -18,14 +18,12 @@
 #ifndef FRASY_SRC_UTILS_REPORT_JSON_H
 #define FRASY_SRC_UTILS_REPORT_JSON_H
 
-#include <vector>
-#include <string>
 #include <sol/sol.hpp>
+#include <string>
+#include <vector>
 
 namespace Frasy::Report::Json {
-std::vector<std::string> makeReport(sol::state_view&                lua,
-                                    const sol::table&               results,
-                                    const std::vector<std::string>& filenames);
+std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames);
 }
 
-#endif //FRASY_SRC_UTILS_REPORT_FORMATTER_JSON_H
+#endif    // FRASY_SRC_UTILS_REPORT_FORMATTER_JSON_H

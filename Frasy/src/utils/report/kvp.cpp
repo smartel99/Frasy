@@ -16,10 +16,10 @@
  */
 #include "kvp.h"
 
-#include <Brigerad/Core/Log.h>
-#include <json.hpp>
 #include "formatters/keyValue.h"
 #include "utils/solution_loader.h"
+#include <Brigerad/Core/Log.h>
+#include <json.hpp>
 
 #include <chrono>
 #include <filesystem>
@@ -31,10 +31,10 @@
 namespace Frasy::Report::Kvp {
 // namespace
 
-std::vector<std::string> makeReport(sol::state_view&                lua,
-                                    const sol::table&               results,
-                                    const std::vector<std::string>& filenames)
+std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames)
 {
+    static constexpr auto    s_tag   = "KVP Report";
+    const auto               lua     = sol::state_view(results.lua_state());
     std::vector<std::string> reports = {};
     // Load the solution up, building a list of the sections-solutions-tests-expectations
     // Format them from the results into a kvp format, where keys are <solution>#<test>#<expectation>
@@ -66,12 +66,12 @@ std::vector<std::string> makeReport(sol::state_view&                lua,
 
         std::ofstream report(lastReportFilepath);
         if (!report.is_open()) {
-            BR_LOG_ERROR("KVP Report", "Unable to open file '{}'", lastReportFilepath.string());
+            BR_LOG_ERROR(s_tag, "Unable to open file '{}'", lastReportFilepath.string());
             return {};
         }
 
         static constexpr auto endline   = "\n";
-        auto                  formatter = Formatter::KeyValue(lua, report, results);
+        auto                  formatter = Formatter::KeyValue(report, results);
 
         formatter.reportInfo();
         formatter.reportUserInfo(lua["Context"]["map"]["onReportInfo"]());
@@ -105,8 +105,8 @@ std::vector<std::string> makeReport(sol::state_view&                lua,
         }
     }
     catch (const std::exception& e) {
-        BR_LOG_ERROR("KVP Report", "Error while making report: {}", e.what());
+        BR_LOG_ERROR(s_tag, "Error while making report: {}", e.what());
     }
     return reports;
 }
-} // namespace Frasy::Report::Formatter::Kvp
+}    // namespace Frasy::Report::Kvp

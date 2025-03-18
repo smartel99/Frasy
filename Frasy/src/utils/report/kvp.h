@@ -24,9 +24,7 @@
 #include <vector>
 
 namespace Frasy::Report::Kvp {
-std::vector<std::string> makeReport(sol::state_view&                lua,
-                                    const sol::table&               results,
-                                    const std::vector<std::string>& filenames);
+std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames);
 }
 
 #endif    // FRASY_SRC_UTILS_REPORT_KVP_H

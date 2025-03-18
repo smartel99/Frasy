@@ -22,63 +22,61 @@
 #include <sol/sol.hpp>
 #include <string>
 
-namespace Frasy::Report::Formatter
+namespace Frasy::Report::Formatter {
+template<typename T>
+    requires !std::is_same_v<T, std::string>
+             static std::string getFieldAsStr(const sol::object& field)
 {
-    template <typename T>
-        requires !std::is_same_v<T, std::string>
-    static std::string getFieldAsStr(const sol::object& field)
-    {
-        if (field == sol::nil) { return "Not provided"; }
-        return std::to_string(field.as<T>());
-    }
+    if (field == sol::nil) { return "Not provided"; }
+    return std::to_string(field.as<T>());
+}
 
-    template <typename T>
-        requires std::is_same_v<T, std::string>
-    static std::string getFieldAsStr(const sol::object& field)
-    {
-        if (field == sol::nil) { return "Not provided"; }
-        return field.as<T>();
-    }
+template<typename T>
+    requires std::is_same_v<T, std::string>
+static std::string getFieldAsStr(const sol::object& field)
+{
+    if (field == sol::nil) { return "Not provided"; }
+    return field.as<T>();
+}
 
-    class Formatter
-    {
-    public:
-        Formatter(sol::state_view& lua, const sol::table& result);
-        virtual ~Formatter() = default;
-        virtual void reportInfo() = 0;
-        virtual void reportUserInfo(const sol::table& table) = 0;
-        virtual void reportIb(const std::string& name) = 0;
-        virtual void reportSequenceResult(const std::string& name) = 0;
-        virtual void reportTestResult(const std::string& name) = 0;
-        void reportExpectationResult(const sol::table& expectation);
-        sol::table getNextExpectation();
+class Formatter {
+public:
+    Formatter(const sol::table& result);
+    virtual ~Formatter()                                       = default;
+    virtual void reportInfo()                                  = 0;
+    virtual void reportUserInfo(const sol::table& table)       = 0;
+    virtual void reportIb(const std::string& name)             = 0;
+    virtual void reportSequenceResult(const std::string& name) = 0;
+    virtual void reportTestResult(const std::string& name)     = 0;
+    void         reportExpectationResult(const sol::table& expectation);
+    sol::table   getNextExpectation();
 
-    protected:
-        virtual void reportToBeEqualBoolean(const sol::table& expectation) = 0;
-        virtual void reportToBeEqualNumber(const sol::table& expectation) = 0;
-        virtual void reportToBeEqualString(const sol::table& expectation) = 0;
-        virtual void reportToBeInPercentage(const sol::table& expectation) = 0;
-        virtual void reportToBeInRange(const sol::table& expectation) = 0;
-        virtual void reportToBeGreater(const sol::table& expectation) = 0;
-        virtual void reportToBeLesser(const sol::table& expectation) = 0;
-        virtual void reportToBeNear(const sol::table& expectation) = 0;
+protected:
+    virtual void reportToBeEqualBoolean(const sol::table& expectation) = 0;
+    virtual void reportToBeEqualNumber(const sol::table& expectation)  = 0;
+    virtual void reportToBeEqualString(const sol::table& expectation)  = 0;
+    virtual void reportToBeInPercentage(const sol::table& expectation) = 0;
+    virtual void reportToBeInRange(const sol::table& expectation)      = 0;
+    virtual void reportToBeGreater(const sol::table& expectation)      = 0;
+    virtual void reportToBeLesser(const sol::table& expectation)       = 0;
+    virtual void reportToBeNear(const sol::table& expectation)         = 0;
 
 
-        static std::string resultToString(const sol::object& field);
-        static std::string sectionResultToString(const sol::table& section);
-        void setSequence(const std::string& name);
-        void setTest(const std::string& name);
-        virtual void reportSectionBaseResult(const sol::table& section) const = 0;
+    static std::string resultToString(const sol::object& field);
+    static std::string sectionResultToString(const sol::table& section);
+    void               setSequence(const std::string& name);
+    void               setTest(const std::string& name);
+    virtual void       reportSectionBaseResult(const sol::table& section) const = 0;
 
-        sol::table m_result;
-        sol::table m_emptyTable{};
-        std::string m_title;
-        std::string m_sequenceName;
-        sol::table m_sequence;
-        std::string m_testName;
-        sol::table m_test;
-        uint8_t m_expectationIndex = 0;
-    };
-} // namespace Frasy::Report::Formatter
+    sol::table  m_result;
+    sol::table  m_emptyTable;
+    std::string m_title;
+    std::string m_sequenceName;
+    sol::table  m_sequence;
+    std::string m_testName;
+    sol::table  m_test;
+    uint8_t     m_expectationIndex = 0;
+};
+}    // namespace Frasy::Report::Formatter
 
 #endif    // FORMATTER_H

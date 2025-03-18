@@ -22,31 +22,29 @@
 #include "formatter.h"
 #include <sol/sol.hpp>
 
-namespace Frasy::Report::Formatter
-{
-    class Markdown final : public Formatter
-    {
-    public:
-        Markdown(sol::state_view& lua, std::ofstream* output, const sol::table& result);
-        void reportInfo() override;
-        void reportUserInfo(const sol::table& table);
-        void reportIb(const std::string& name) override;
-        void reportSequenceResult(const std::string& name) override;
-        void reportTestResult(const std::string& name) override;
-        void reportToBeEqualBoolean(const sol::table& expectation) override;
-        void reportToBeEqualNumber(const sol::table& expectation) override;
-        void reportToBeEqualString(const sol::table& expectation) override;
-        void reportToBeInPercentage(const sol::table& expectation) override;
-        void reportToBeInRange(const sol::table& expectation) override;
-        void reportToBeGreater(const sol::table& expectation) override;
-        void reportToBeLesser(const sol::table& expectation) override;
-        void reportToBeNear(const sol::table& expectation) override;
+namespace Frasy::Report::Formatter {
+class Markdown final : public Formatter {
+public:
+    Markdown(std::ofstream* output, const sol::table& result);
+    void reportInfo() override;
+    void reportUserInfo(const sol::table& table) override;
+    void reportIb(const std::string& name) override;
+    void reportSequenceResult(const std::string& name) override;
+    void reportTestResult(const std::string& name) override;
+    void reportToBeEqualBoolean(const sol::table& expectation) override;
+    void reportToBeEqualNumber(const sol::table& expectation) override;
+    void reportToBeEqualString(const sol::table& expectation) override;
+    void reportToBeInPercentage(const sol::table& expectation) override;
+    void reportToBeInRange(const sol::table& expectation) override;
+    void reportToBeGreater(const sol::table& expectation) override;
+    void reportToBeLesser(const sol::table& expectation) override;
+    void reportToBeNear(const sol::table& expectation) override;
 
-        static constexpr auto endline = "  \n";
+    static constexpr auto endline = "  \n";
 
-    private:
-        void reportSectionBaseResult(const sol::table& section) const override;
-        std::ofstream* m_output;
-    };
-}; // namespace Frasy::Report::Formatter
+private:
+    void           reportSectionBaseResult(const sol::table& section) const override;
+    std::ofstream* m_output;
+};
+};    // namespace Frasy::Report::Formatter
 #endif    // FRASY_REPORT_FORMATTER_MARKDOWN_H

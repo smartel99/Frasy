@@ -23,8 +23,7 @@
 
 namespace Frasy::Report::Formatter {
 
-Json::Json(sol::state_view& lua, const sol::table& result)
-    : Formatter(lua, result)
+Json::Json(const sol::table& result) : Formatter(result)
 {
     m_object["ib"]        = nlohmann::json::object();
     m_object["info"]      = nlohmann::json::object();
@@ -36,9 +35,9 @@ void Json::reportInfo()
     auto&       info    = m_object["info"];
     const auto& section = m_result["info"];
     info["date"]        = section["date"].get<std::string>();
-    info["operator"]    = section["operator"].get<std::string>();
+    info["operator"]    = section["operator"].get<std::string>().c_str();
     info["pass"]        = section["pass"].get<bool>();
-    info["serial"]      = section["serial"].get<std::string>();
+    info["serial"]      = section["serial"].get<std::string>().c_str();
     info["time"]        = reportSectionTime(section);
     info["title"]       = section["title"].get<std::string>();
     info["uut"]         = section["uut"].get<int>();
@@ -54,28 +53,17 @@ void Json::reportUserInfo(const sol::table& table)
     for (const auto& [keyObj, value] : table) {
         const auto key = obj2str(keyObj);
         switch (value.get_type()) {
-            case sol::type::none: info[key] = "none";
-                break;
-            case sol::type::nil: info[key] = "nil";
-                break;
-            case sol::type::string: info[key] = value.as<std::string>();
-                break;
-            case sol::type::number: info[key] = value.as<double>();
-                break;
-            case sol::type::thread: info[key] = fmt::format("thread: {}", value.pointer());
-                break;
-            case sol::type::boolean: info[key] = value.as<bool>();
-                break;
-            case sol::type::function: info[key] = fmt::format("function: {}", value.pointer());
-                break;
-            case sol::type::userdata: info[key] = fmt::format("userdata: {}", value.pointer());
-                break;
-            case sol::type::lightuserdata: info[key] = fmt::format("lightuserdata: {}", value.pointer());
-                break;
-            case sol::type::table: info[key] = fmt::format("table: {}", value.pointer());
-                break;
-            case sol::type::poly: info[key] = fmt::format("poly: {}", value.pointer());
-                break;
+            case sol::type::none: info[key] = "none"; break;
+            case sol::type::nil: info[key] = "nil"; break;
+            case sol::type::string: info[key] = value.as<std::string>(); break;
+            case sol::type::number: info[key] = value.as<double>(); break;
+            case sol::type::thread: info[key] = fmt::format("thread: {}", value.pointer()); break;
+            case sol::type::boolean: info[key] = value.as<bool>(); break;
+            case sol::type::function: info[key] = fmt::format("function: {}", value.pointer()); break;
+            case sol::type::userdata: info[key] = fmt::format("userdata: {}", value.pointer()); break;
+            case sol::type::lightuserdata: info[key] = fmt::format("lightuserdata: {}", value.pointer()); break;
+            case sol::type::table: info[key] = fmt::format("table: {}", value.pointer()); break;
+            case sol::type::poly: info[key] = fmt::format("poly: {}", value.pointer()); break;
         }
     }
 }
@@ -99,7 +87,6 @@ void Json::reportSequenceResult(const std::string& name)
     m_section                   = nullptr;
     obj["tests"]                = nlohmann::json::object();
     m_object["sequences"][name] = obj;
-
 }
 
 void Json::reportTestResult(const std::string& name)
@@ -116,7 +103,7 @@ void Json::reportTestResult(const std::string& name)
 void Json::toFile(const std::string& filename)
 {
     std::ofstream ofs(filename, std::ios::out | std::ios::trunc);
-    ofs << std::setw(4) << m_object << std::endl; // setw to prettify
+    ofs << std::setw(4) << m_object << std::endl;    // setw to prettify
 }
 
 void Json::reportExpectation(const sol::table& expectation)
@@ -139,10 +126,10 @@ nlohmann::json Json::reportSectionTime(const sol::table& section)
 {
     auto time = nlohmann::json::object();
     for (const auto& field : {"elapsed", "process", "start", "stop"}) {
-        time[field] = section["time"][section].get<double>();
+        time[field] = section["time"][field].get<double>();
     }
     return time;
 }
 
 
-}
+}    // namespace Frasy::Report::Formatter

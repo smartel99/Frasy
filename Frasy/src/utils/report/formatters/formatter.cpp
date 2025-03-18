@@ -19,9 +19,8 @@
 
 namespace Frasy::Report::Formatter {
 
-Formatter::Formatter(sol::state_view& lua, const sol::table& result)
-    : m_emptyTable(lua.create_table()),
-      m_result(result)
+Formatter::Formatter(const sol::table& result)
+: m_result(result), m_emptyTable(sol::state_view(result.lua_state()).create_table())
 {
 }
 
@@ -30,9 +29,7 @@ void Formatter::reportExpectationResult(const sol::table& expectation)
 
     const auto kind = expectation["method"].get<std::string>();
     using namespace std::string_view_literals;
-    if (kind == "ToBeTrue"sv || kind == "ToBeFalse"sv) {
-        reportToBeEqualBoolean(expectation);
-    }
+    if (kind == "ToBeTrue"sv || kind == "ToBeFalse"sv) { reportToBeEqualBoolean(expectation); }
     else if (kind == "ToBeEqual"sv) {
         if (const sol::type type = expectation["value"].get_type(); type == sol::type::boolean) {
             reportToBeEqualBoolean(expectation);
@@ -99,4 +96,4 @@ std::string Formatter::sectionResultToString(const sol::table& section)
     return section["pass"].get<bool>() ? "PASS" : "FAIL";
 }
 
-} // namespace Frasy::Report::Formatter
+}    // namespace Frasy::Report::Formatter

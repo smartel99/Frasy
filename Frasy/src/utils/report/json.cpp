@@ -20,16 +20,15 @@
 
 #include "formatters/keyValue.h"
 #include "utils/solution_loader.h"
+#include <Brigerad/Core/Log.h>
 #include <filesystem>
 #include <fstream>
-#include <Brigerad/Core/Log.h>
 
 namespace Frasy::Report::Json {
-std::vector<std::string> makeReport(sol::state_view&                lua,
-                                    const sol::table&               results,
-                                    const std::vector<std::string>& filenames)
+std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames)
 {
     static constexpr auto    s_tag   = "JSON Report";
+    const auto               lua     = sol::state_view(results.lua_state());
     std::vector<std::string> reports = {};
     // Load the solution up, building a list of the sections-solutions-tests-expectations
     // Format them from the results into a kvp format, where keys are <solution>#<test>#<expectation>
@@ -59,7 +58,7 @@ std::vector<std::string> makeReport(sol::state_view&                lua,
         auto jsonFileDir        = pass ? jsonPassDir : jsonFailDir;
         auto lastReportFilepath = jsonDirectory / "last.json";
 
-        auto formatter = Formatter::Json(lua, results);
+        auto formatter = Formatter::Json(results);
 
         formatter.reportInfo();
         formatter.reportUserInfo(lua["Context"]["map"]["onReportInfo"]());
@@ -74,7 +73,7 @@ std::vector<std::string> makeReport(sol::state_view&                lua,
                 formatter.reportTestResult(test);
                 for (sol::table expectation = formatter.getNextExpectation(); !expectation.empty();
                      expectation            = formatter.getNextExpectation()) {
-                    formatter.reportSequenceResult(expectation.as<std::string>());
+                    formatter.reportExpectationResult(expectation);
                 }
             }
         }
@@ -92,4 +91,4 @@ std::vector<std::string> makeReport(sol::state_view&                lua,
     }
     return reports;
 }
-}
+}    // namespace Frasy::Report::Json

@@ -25,9 +25,7 @@
 
 namespace Frasy::Report::Formatter {
 
-Markdown::Markdown(sol::state_view& lua, std::ofstream* output, const sol::table& result)
-    : Formatter(lua, result),
-      m_output(output)
+Markdown::Markdown(std::ofstream* output, const sol::table& result) : Formatter(result), m_output(output)
 {
 }
 
@@ -172,4 +170,4 @@ void Markdown::reportSectionBaseResult(const sol::table& section) const
     *m_output << "Duration: " << getFieldAsStr<double>(time["elapsed"]) << endline;
 }
 
-} // namespace Frasy::Report::Formatter
+}    // namespace Frasy::Report::Formatter
