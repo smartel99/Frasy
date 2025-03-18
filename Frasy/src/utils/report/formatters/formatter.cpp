@@ -19,10 +19,48 @@
 
 namespace Frasy::Report::Formatter {
 
-Formatter::Formatter(sol::state_view& lua, std::ofstream& output, const sol::table& result)
-: m_emptyTable(lua.create_table()), m_output(&output), m_result(result)
+Formatter::Formatter(sol::state_view& lua, const sol::table& result)
+    : m_emptyTable(lua.create_table()),
+      m_result(result)
 {
 }
+
+void Formatter::reportExpectationResult(const sol::table& expectation)
+{
+
+    const auto kind = expectation["method"].get<std::string>();
+    using namespace std::string_view_literals;
+    if (kind == "ToBeTrue"sv || kind == "ToBeFalse"sv) {
+        reportToBeEqualBoolean(expectation);
+    }
+    else if (kind == "ToBeEqual"sv) {
+        if (const sol::type type = expectation["value"].get_type(); type == sol::type::boolean) {
+            reportToBeEqualBoolean(expectation);
+        }
+        else if (type == sol::type::number) {
+            reportToBeEqualNumber(expectation);
+        }
+        else if (type == sol::type::string) {
+            reportToBeEqualString(expectation);
+        }
+    }
+    else if (kind == "ToBeNear"sv) {
+        reportToBeNear(expectation);
+    }
+    else if (kind == "ToBeInRange"sv) {
+        reportToBeInRange(expectation);
+    }
+    else if (kind == "ToBeInPercentage"sv) {
+        reportToBeInPercentage(expectation);
+    }
+    else if (kind == "ToBeGreaterOrEqual"sv || kind == "ToBeGreater"sv) {
+        reportToBeGreater(expectation);
+    }
+    else if (kind == "ToBeLesserOrEqual"sv || kind == "ToBeLesser"sv) {
+        reportToBeLesser(expectation);
+    }
+}
+
 
 void Formatter::setSequence(const std::string& name)
 {
@@ -61,4 +99,4 @@ std::string Formatter::sectionResultToString(const sol::table& section)
     return section["pass"].get<bool>() ? "PASS" : "FAIL";
 }
 
-}    // namespace Frasy::Report::Formatter
+} // namespace Frasy::Report::Formatter

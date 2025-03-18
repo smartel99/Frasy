@@ -17,15 +17,17 @@
  */
 
 #include "markdown.h"
+#include "../utils/obj2str.h"
 
-#include "Brigerad/Core/Log.h"
+#include <Brigerad/Core/Log.h>
 
 #include <fstream>
 
 namespace Frasy::Report::Formatter {
 
-Markdown::Markdown(sol::state_view& lua, std::ofstream& output, const sol::table& result)
-: Formatter(lua, output, result)
+Markdown::Markdown(sol::state_view& lua, std::ofstream* output, const sol::table& result)
+    : Formatter(lua, result),
+      m_output(output)
 {
 }
 
@@ -36,15 +38,20 @@ void Markdown::reportInfo()
     *m_output << "Duration: " << m_result["info"]["time"]["elapsed"].get<double>() << endline;
     *m_output << "Operator: " << m_result["info"]["operator"].get<std::string>() << endline;
     *m_output << "Result: " << resultToString(m_result["info"]["pass"]) << endline;
-}
-
-void Markdown::reportVersion()
-{
-    *m_output << "# Version" << endline;
+    *m_output << "## Version" << endline;
     *m_output << "Frasy: " << m_result["info"]["version"]["frasy"].get<std::string>() << endline;
     *m_output << "Orchestrator: " << m_result["info"]["version"]["orchestrator"].get<std::string>() << endline;
     *m_output << "Scripts: " << m_result["info"]["version"]["scripts"].get<std::string>() << endline;
 }
+
+void Markdown::reportUserInfo(const sol::table& table)
+{
+    *m_output << "## User" << endline;
+    for (const auto& [key, value] : table) {
+        *m_output << obj2str(key) << ": " << obj2str(value) << endline;
+    }
+}
+
 
 void Markdown::reportIb(const std::string& name)
 {
@@ -165,4 +172,4 @@ void Markdown::reportSectionBaseResult(const sol::table& section) const
     *m_output << "Duration: " << getFieldAsStr<double>(time["elapsed"]) << endline;
 }
 
-}    // namespace Frasy::Report::Formatter
+} // namespace Frasy::Report::Formatter

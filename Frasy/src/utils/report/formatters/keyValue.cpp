@@ -19,7 +19,7 @@
 #include "keyValue.h"
 
 #include "spdlog/fmt/bundled/format.h"
-#include "spdlog/fmt/bundled/ranges.h"
+#include "../utils/obj2str.h"
 
 #include <fstream>
 
@@ -27,7 +27,8 @@ namespace Frasy::Report::Formatter {
 
 
 KeyValue::KeyValue(sol::state_view& lua, std::ofstream& output, const sol::table& result)
-: Formatter(lua, output, result)
+    : Formatter(lua, result),
+      m_output(&output)
 {
 }
 
@@ -39,13 +40,17 @@ void KeyValue::reportInfo()
     *m_output << "Info-Operator: " << m_result["info"]["operator"].get_or<std::string>("<N/A>") << endline;
     *m_output << "Info-Serial: " << m_result["info"]["serial"].get_or<std::string>("<N/A>") << endline;
     *m_output << "Info-Result: " << resultToString(m_result["info"]["pass"]) << endline;
+    *m_output << "Info-Version-Frasy: " << m_result["info"]["version"]["frasy"].get<std::string>() << endline;
+    *m_output << "Info-Version-Orchestrator: " << m_result["info"]["version"]["orchestrator"].get<std::string>() <<
+        endline;
+    *m_output << "Info-Version-Scripts: " << m_result["info"]["version"]["scripts"].get<std::string>() << endline;
 }
 
-void KeyValue::reportVersion()
+void KeyValue::reportUserInfo(const sol::table& table)
 {
-    *m_output << "Version-Frasy: " << m_result["info"]["version"]["frasy"].get<std::string>() << endline;
-    *m_output << "Version-Orchestrator: " << m_result["info"]["version"]["orchestrator"].get<std::string>() << endline;
-    *m_output << "Version-Scripts: " << m_result["info"]["version"]["scripts"].get<std::string>() << endline;
+    for (const auto& [key, value] : table) {
+        *m_output << "Info-" << obj2str(key) << ": " << obj2str(value) << endline;
+    }
 }
 
 void KeyValue::reportIb(const std::string& name)
@@ -173,4 +178,4 @@ void KeyValue::reportSectionBaseResult(const sol::table& section) const
     *m_output << m_sectionPrefix << "-Duration: " << getFieldAsStr<double>(time["elapsed"]) << endline;
 }
 
-}    // namespace Frasy::Report::Formatter
+} // namespace Frasy::Report::Formatter

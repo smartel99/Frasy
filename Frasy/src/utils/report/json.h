@@ -1,7 +1,7 @@
 /**
- * @file    kvp.h
- * @author  Samuel Martel
- * @date    2024-12-05
+ * @file    json.h
+ * @author  Paul Thomas
+ * @date    3/17/2025
  * @brief
  *
  * @copyright
@@ -12,21 +12,20 @@
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * You should have received a copy of the GNU General Public License along with this program. If
- * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+ * not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef FRASY_SRC_UTILS_REPORT_JSON_H
+#define FRASY_SRC_UTILS_REPORT_JSON_H
 
-#ifndef FRASY_SRC_UTILS_REPORT_FORMATTER_FORMATTERS_KVP_H
-#define FRASY_SRC_UTILS_REPORT_FORMATTER_FORMATTERS_KVP_H
-
-#include <sol/sol.hpp>
-#include <string>
 #include <vector>
+#include <string>
+#include <sol/sol.hpp>
 
-namespace Frasy::Report::Formatter::Kvp {
+namespace Frasy::Report::Json {
 std::vector<std::string> makeReport(sol::state_view&                lua,
                                     const sol::table&               results,
                                     const std::vector<std::string>& filenames);
 }
 
-#endif    // FRASY_SRC_UTILS_REPORT_FORMATTER_FORMATTERS_KVP_H
+#endif //FRASY_SRC_UTILS_REPORT_FORMATTER_JSON_H
