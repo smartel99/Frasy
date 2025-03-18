@@ -28,15 +28,11 @@
 #include <mutex>
 #include <string>
 
-namespace Frasy
-{
+namespace Frasy {
 
-class LogWindowSink : public spdlog::sinks::base_sink<std::mutex>
-{
-};
+class LogWindowSink : public spdlog::sinks::base_sink<std::mutex> {};
 
-class LogWindowMultiSink : public LogWindowSink
-{
+class LogWindowMultiSink : public LogWindowSink {
 public:
     using LoggerMap = std::map<fmt::basic_string_view<char>, spdlog::details::circular_q<LogEntry>>;
 
@@ -47,21 +43,16 @@ public:
 protected:
     void sink_it_(const spdlog::details::log_msg& msg) override
     {
-        if (!m_loggers.contains(msg.logger_name))
-        {
+        if (!m_loggers.contains(msg.logger_name)) {
             // New logger!
             m_loggers[msg.logger_name] = spdlog::details::circular_q<LogEntry>(m_maxLen);
         }
-
-        spdlog::memory_buf_t formatted;
-        base_sink<std::mutex>::formatter_->format(msg, formatted);
-
         m_loggers[msg.logger_name].push_back({msg.level,
                                               fmt::to_string(msg.logger_name),
                                               msg.source.filename,
                                               msg.source.funcname,
                                               msg.source.line,
-                                              std::move(SPDLOG_BUF_TO_STRING(formatted)),
+                                              std::move(SPDLOG_BUF_TO_STRING(msg.payload)),
                                               fmt::format("{}", msg.time)});
     }
 
@@ -71,11 +62,10 @@ private:
     size_t    m_maxLen = 0;
     LoggerMap m_loggers;
 
-    friend class ::Frasy::LogWindowSink;
+    friend class LogWindowSink;
 };
 
-class LogWindowSingleSink : public LogWindowSink
-{
+class LogWindowSingleSink : public LogWindowSink {
 public:
     explicit LogWindowSingleSink(size_t max) noexcept : m_maxLen {max}, m_entries(m_maxLen) {}
 
@@ -84,14 +74,12 @@ public:
 protected:
     void sink_it_(const spdlog::details::log_msg& msg) override
     {
-        spdlog::memory_buf_t formatted;
-        base_sink<std::mutex>::formatter_->format(msg, formatted);
         m_entries.push_back({msg.level,
                              fmt::to_string(msg.logger_name),
                              msg.source.filename,
                              msg.source.funcname,
                              msg.source.line,
-                             std::move(SPDLOG_BUF_TO_STRING(formatted)),
+                             std::move(SPDLOG_BUF_TO_STRING(msg.payload)),
                              fmt::format("{}", msg.time)});
     }
 
