@@ -759,8 +759,12 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                         run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
                         auto result       = run(std::format("{}/{}", m_outputDirectory, lastSubdirectory));
                         if (!result.valid()) {
-                            sol::error err = result;
-                            lua["Log"]["E"](err.what());
+                            try {
+                                sol::error err = result;
+                                lua["Log"]["E"](err.what());
+                            } catch (...) {
+                                lua["Log"]["E"]("That's a tough one..."); // TODO find why sol::error throw an exception
+                            }
                         }
                         results[uut] = result.valid();
                     });
