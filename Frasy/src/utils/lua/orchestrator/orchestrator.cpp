@@ -222,8 +222,9 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["Context"]["info"]["version"] = lua.create_table();
         lua["Context"]["info"]["version"]["frasy"] =
           fmt::format("{}.{}.{}-{}", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD);
-        lua["Context"]["info"]["version"]["orchestrator"] = "1.1.0";
-        lua["Context"]["info"]["version"]["scripts"]      = "0.0.1";
+        lua["Context"]["info"]["version"]["application"]  = m_getApplicationVersion();
+        lua["Context"]["info"]["version"]["orchestrator"] = "1.2.0";
+        lua["Context"]["info"]["version"]["scripts"]      = "1.0.0";
         lua["Context"]["info"]["title"]                   = "";
         lua["Context"]["info"]["operator"]                = "";
         lua["Context"]["info"]["serial"]                  = "";
@@ -379,6 +380,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         // User content
         lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
+        lua.script("Print(Context.values.gui)");
         m_loadUserFunctions(lua);
         auto userIbs = m_loadUserBoards(lua);
         for (auto& [k, v] : userIbs) {
@@ -762,8 +764,10 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                             try {
                                 sol::error err = result;
                                 lua["Log"]["E"](err.what());
-                            } catch (...) {
-                                lua["Log"]["E"]("That's a tough one..."); // TODO find why sol::error throw an exception
+                            }
+                            catch (...) {
+                                lua["Log"]["E"](
+                                  "That's a tough one...");    // TODO find why sol::error throw an exception
                             }
                         }
                         results[uut] = result.valid();

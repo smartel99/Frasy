@@ -40,6 +40,7 @@ void Markdown::reportInfo()
     *m_output << "Frasy: " << m_result["info"]["version"]["frasy"].get<std::string>() << endline;
     *m_output << "Orchestrator: " << m_result["info"]["version"]["orchestrator"].get<std::string>() << endline;
     *m_output << "Scripts: " << m_result["info"]["version"]["scripts"].get<std::string>() << endline;
+    *m_output << "Application: " << m_result["info"]["version"]["application"].get<std::string>() << endline;
 }
 
 void Markdown::reportUserInfo(const sol::table& table)

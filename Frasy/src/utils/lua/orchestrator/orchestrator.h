@@ -135,6 +135,7 @@ public:
     void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
     void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
     [[nodiscard]] std::string getTitle() const { return m_title; }
+    void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
 private:
     bool        createOutputDirs();
@@ -184,6 +185,8 @@ private:
     Models::Solution m_solution = {};
 
     CanOpen::CanOpen* m_canOpen = nullptr;
+
+    const char* (*m_getApplicationVersion)() = [] { return "1.0.0"; };
 };
 
 }    // namespace Frasy::Lua

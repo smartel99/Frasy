@@ -42,7 +42,7 @@ void Json::reportInfo()
     info["title"]       = section["title"].get<std::string>();
     info["uut"]         = section["uut"].get<int>();
     info["version"]     = nlohmann::ordered_json::object();
-    for (const auto& field : {"frasy", "orchestrator", "scripts"}) {
+    for (const auto& field : {"frasy", "orchestrator", "scripts", "application"}) {
         info["version"][field] = section["version"][field].get<std::string>();
     }
 }

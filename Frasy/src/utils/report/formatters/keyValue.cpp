@@ -42,6 +42,8 @@ void KeyValue::reportInfo()
     *m_output << "Info-Version-Orchestrator: " << m_result["info"]["version"]["orchestrator"].get<std::string>()
               << endline;
     *m_output << "Info-Version-Scripts: " << m_result["info"]["version"]["scripts"].get<std::string>() << endline;
+    *m_output << "Info-Version-Application: " << m_result["info"]["version"]["application"].get<std::string>()
+              << endline;
 }
 
 void KeyValue::reportUserInfo(const sol::table& table)
