@@ -396,7 +396,8 @@ function Orchestrator.CompileExecutionResults(outputDir)
         version = {
             frasy = Context.info.version.frasy,
             orchestrator = Context.info.version.orchestrator,
-            scripts = Context.info.version.scripts
+            scripts = Context.info.version.scripts,
+            application = Context.info.version.application
         },
         title = Context.info.title,
         operator = Context.info.operator,

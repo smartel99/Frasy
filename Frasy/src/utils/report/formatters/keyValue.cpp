@@ -57,7 +57,7 @@ void KeyValue::reportIb(const std::string& name)
 {
     const auto& ibs    = m_result["ib"].get_or(m_emptyTable);
     const auto& ib     = ibs[name].get_or(m_emptyTable);
-    const auto  prefix = "Version-" + name + "-";
+    const auto  prefix = "Ib-" + name + "-";
 
     std::string serial = getFieldAsStr<std::string>(ib["serial"]);
     *m_output << prefix << "Serial: " << fmt::format("{:02x}", fmt::join(serial, "")) << endline;
