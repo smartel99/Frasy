@@ -260,7 +260,7 @@ function DefineFrasy()
     files {
         "%{prj.name}/src/**.cpp",
         "%{prj.name}/src/utils/communication/can_open/OD.c",
-        "%{prj.name}/vendor/**.cpp",
+        "%{prj.name}/vendor/hashdir/src/hashdir.cpp",
     }
 
     files {
@@ -280,7 +280,9 @@ function DefineFrasy()
         "%{prj.name}/src",
         "Brigerad/vendor",
         "Brigerad/src",
-        "%{prj.name}/vendor"
+        "%{prj.name}/vendor",
+        "%{prj.name}/vendor/hashdir/include",
+        "%{prj.name}/vendor/hashdir/vendor/highwayhash"
     }
 
     CANopenIncludes()

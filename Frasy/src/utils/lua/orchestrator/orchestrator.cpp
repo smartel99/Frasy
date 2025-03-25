@@ -34,12 +34,24 @@
 #include <json.hpp>
 
 #include "../../version.h"
+#include "spdlog/fmt/bundled/os.h"
+
+#include <hashdir/hashdir.h>
 #include <processthreadsapi.h>
 #include <regex>
 
 namespace Frasy::Lua {
 
 #pragma region Orchestrator
+
+const std::vector<HashDir::Filter> Orchestrator::s_coreFilters = {
+  HashDir::Filter {
+    .kind    = HashDir::Filter::include,
+    .target  = HashDir::Filter::file,
+    .pattern = ".+\\.lua",
+  },
+};
+
 std::string Orchestrator::stage2str(Stage stage)
 {
     switch (stage) {
@@ -77,7 +89,7 @@ int OnPanic(lua_State* lua)
 bool Orchestrator::loadUserFiles(const std::string& environment, const std::string& testsDir)
 {
     if (FAILED(SetThreadDescription(GetCurrentThread(), L"Lua File Loader"))) {
-        BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+        BR_LOG_ERROR(s_tag, "Unable to set thread name");
     }
     FRASY_PROFILE_FUNCTION();
     m_map        = {};    // IBs contain a sol::table that needs to be released before the state is reset.
@@ -101,6 +113,37 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
 
     return true;
 }
+
+bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
+                              const std::filesystem::path&        hashfile,
+                              const std::vector<HashDir::Filter>& filters)
+{
+    if (!exists(hashfile)) {
+        BR_LOG_ERROR(s_tag, "Hash file not found");
+        return false;
+    }
+
+    std::string   expectedHash;
+    std::ifstream is(hashfile, std::ios::binary);
+    is >> expectedHash;
+    std::erase_if(expectedHash, [](const char c) { return c < 0 || !std::isalnum(c); });    // Handle Windows UTF16-LE
+    expectedHash = std::string(expectedHash.begin(), expectedHash.end());
+    if (expectedHash.length() != 64) {
+        BR_LOG_ERROR(s_tag, "Hash has an invalid length ({})", expectedHash.length());
+        return false;
+    }
+
+    if (const auto hash = hashDir(folder, filters); hash != expectedHash) {
+        BR_LOG_ERROR(s_tag,
+                     "hash mismatch.\n"
+                     "E: {}\n"
+                     "C: {}",
+                     expectedHash,
+                     hash);
+        return false;
+    }
+    return true;
+}
 #pragma endregion Test Related
 
 void Orchestrator::runSolution(const std::string&              operatorName,
@@ -119,7 +162,7 @@ void Orchestrator::runSolution(const std::string&              operatorName,
     }
     m_running = std::async(std::launch::async, [this, &serials, regenerate, skipVerification] {
         if (FAILED(SetThreadDescription(GetCurrentThread(), L"Solution Runner"))) {
-            BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+            BR_LOG_ERROR(s_tag, "Unable to set thread name");
         }
         FRASY_PROFILE_FUNCTION();
         runTests(serials, regenerate, skipVerification);
@@ -154,6 +197,8 @@ bool Orchestrator::createOutputDirs()
 bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 {
     FRASY_PROFILE_FUNCTION();
+    if (!verifyHash("lua/core", "lua/core/hash", s_coreFilters)) { return false; }
+    if (!verifyHash("lua/user", "lua/hash", m_filters)) { return false; }
     try {
         lua.open_libraries(sol::lib::debug,
                            sol::lib::base,
@@ -328,7 +373,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
                   return tryRequest();
               }
               catch (sol::error&) {
-                  BR_LOG_WARN("Orchestrator", "Request failed, trying to re-open port...");
+                  BR_LOG_WARN(s_tag, "Request failed, trying to re-open port...");
                   m_canOpen->reopen();
                   return tryRequest();
               }
@@ -361,7 +406,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
                 tryRequest();
             }
             catch (sol::error&) {
-                BR_LOG_WARN("Orchestrator", "Request failed, trying to re-open port...");
+                BR_LOG_WARN(s_tag, "Request failed, trying to re-open port...");
                 m_canOpen->reopen();
                 tryRequest();
             }
@@ -466,7 +511,7 @@ bool Orchestrator::runStageGenerate(bool regenerate)
         if (m_generated && !regenerate) { return true; }
 
         sol::state lua;
-        initLua(sol::state_view(lua), 1);
+        if (!initLua(sol::state_view(lua), 1)) { return false; }
         // LoadIb(lua);
         loadEnvironment(sol::state_view(lua), m_environment);
         loadTests(sol::state_view(lua), m_testsDir);
@@ -560,7 +605,7 @@ bool Orchestrator::runStageVerify(sol::state_view team)
                 if (m_uutStates[uut] == UutState::Disabled) { continue; }
                 threads.emplace_back([&, uut, team] {
                     sol::state lua;
-                    initLua(sol::state_view(lua), uut, Stage::validation);
+                    if (!initLua(sol::state_view(lua), uut, Stage::validation)) { return; }
                     loadEnvironment(sol::state_view(lua), m_environment);
                     loadTests(sol::state_view(lua), m_testsDir);
                     if (hasTeam) {
@@ -664,7 +709,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                 for (auto& uut : devices) {
                     threads.emplace_back([&, uut, team] {
                         if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
-                            BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                            BR_LOG_ERROR(s_tag, "Unable to set thread name");
                         }
                         if (m_uutStates[uut] == UutState::Disabled) { return; }
                         // states[] is not yet populated, each call will modify it
@@ -672,7 +717,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                         mutex.lock();
                         sol::state_view lua = states[uut];
                         mutex.unlock();
-                        initLua(lua, uut, Stage::execution);
+                        if (!initLua(lua, uut, Stage::execution)) { return; }
                         lua["Context"]["info"]["title"]    = m_title;
                         lua["Context"]["info"]["operator"] = m_operator;
                         lua["Context"]["info"]["serial"]   = serials[uut];
@@ -681,8 +726,8 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                         loadTests(lua, m_testsDir);
                         if (hasTeam) {
                             std::lock_guard lock {mutex};
-                            int             leader   = team["Context"]["team"]["players"][uut]["leader"];
-                            int             position = team["Context"]["team"]["players"][uut]["position"];
+                            const int       leader   = team["Context"]["team"]["players"][uut]["leader"];
+                            const int       position = team["Context"]["team"]["players"][uut]["position"];
                             teams[leader].InitializeState(lua, uut, position, uut == leader);
                         }
 
@@ -715,7 +760,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                     for (auto& uut : devices) {
                         threads.emplace_back([&, uut] {
                             if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
-                                BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                                BR_LOG_ERROR(s_tag, "Unable to set thread name");
                             }
                             if (m_uutStates[uut] == UutState::Disabled) { return; }
                             mutex.lock();
@@ -750,7 +795,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                 for (auto& uut : devices) {
                     threads.emplace_back([&, uut] {
                         if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
-                            BR_LOG_ERROR("Orchestrator", "Unable to set thread name");
+                            BR_LOG_ERROR(s_tag, "Unable to set thread name");
                         }
                         if (m_uutStates[uut] == UutState::Disabled) { return; }
                         mutex.lock();
@@ -792,7 +837,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
         checkAllResults();
     }
     catch (const std::exception& e) {
-        BR_LOG_ERROR("Orchestrator", "Exception during Execute stage: {}", e.what());
+        BR_LOG_ERROR(s_tag, "Exception during Execute stage: {}", e.what());
     }
 }
 

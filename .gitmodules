@@ -22,3 +22,6 @@
 [submodule "Brigerad/vendor/imspinner"]
 	path = Brigerad/vendor/imspinner
 	url = https://github.com/dalerank/imspinner
+[submodule "Frasy/vendor/hashdir"]
+	path = Frasy/vendor/hashdir
+	url = https://gitlab.com/conception-electronique-prive/tools/hashdir.git

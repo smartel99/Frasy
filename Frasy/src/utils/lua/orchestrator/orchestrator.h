@@ -27,6 +27,7 @@
 
 #include <functional>
 #include <future>
+#include <hashdir/hashdir.h>
 #include <map>
 #include <sol/sol.hpp>
 #include <string>
@@ -60,6 +61,12 @@ public:
      * @return true if the orchestrator successfully loaded the files, false otherwise
      */
     bool loadUserFiles(const std::string& environment, const std::string& testsDir);
+
+    /**
+     * Update filters to use when verifying user files
+     * @param filters
+     */
+    void setVerifyFilters(const std::vector<HashDir::Filter>& filters) { m_filters = filters; }
 
     /**
      * Async request to generate the solution
@@ -156,6 +163,10 @@ private:
     void runStageExecute(sol::state_view team, const std::vector<std::string>& serials);
     void checkResults(const std::vector<std::size_t>& devices);
 
+    static bool verifyHash(const std::filesystem::path&        folder,
+                           const std::filesystem::path&        hashfile,
+                           const std::vector<HashDir::Filter>& filters);
+
     std::unique_ptr<sol::state> m_state = nullptr;
     std::vector<UutState>       m_uutStates;
     std::future<void>           m_running;
@@ -184,9 +195,14 @@ private:
     };
     Models::Solution m_solution = {};
 
+    static const std::vector<HashDir::Filter> s_coreFilters;
+    std::vector<HashDir::Filter>              m_filters {};
+
     CanOpen::CanOpen* m_canOpen = nullptr;
 
     const char* (*m_getApplicationVersion)() = [] { return "1.0.0"; };
+
+    static constexpr auto s_tag = "Orchestrator";
 };
 
 }    // namespace Frasy::Lua
