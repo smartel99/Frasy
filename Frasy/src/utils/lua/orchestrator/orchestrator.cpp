@@ -135,9 +135,10 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
 
     if (const auto hash = hashDir(folder, filters); hash != expectedHash) {
         BR_LOG_ERROR(s_tag,
-                     "hash mismatch.\n"
+                     "{} hash mismatch.\n"
                      "E: {}\n"
                      "C: {}",
+                     folder.string(),
                      expectedHash,
                      hash);
         return false;
@@ -197,8 +198,6 @@ bool Orchestrator::createOutputDirs()
 bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 {
     FRASY_PROFILE_FUNCTION();
-    if (!verifyHash("lua/core", "lua/core/hash", s_coreFilters)) { return false; }
-    if (!verifyHash("lua/user", "lua/hash", m_filters)) { return false; }
     try {
         lua.open_libraries(sol::lib::debug,
                            sol::lib::base,
@@ -422,6 +421,10 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             ibs[k] = v;
         }
 
+        // Validation of hashes must happen after everything is loaded, in case code that is executed anyways uses our
+        // stuff.
+        if (!verifyHash("lua/core", "lua/core/hash", s_coreFilters)) { return false; }
+        if (!verifyHash("lua/user", "lua/hash", m_filters)) { return false; }
 
         // User content
         lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
