@@ -145,12 +145,12 @@ public:
     [[nodiscard]] std::string getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
-    [[nodiscard]] const std::vector<Expectation>& getExpectations(std::size_t uut) const
+    [[nodiscard]] std::pair<std::mutex&, const std::vector<Expectation>&> getExpectations(std::size_t uut)
     {
-        static auto empty = std::vector<Expectation> {};
-        return uut < m_expectations.size() ? m_expectations[uut] : empty;
+        static auto empty        = std::vector<Expectation> {};
+        const auto& expectations = uut < m_expectations.size() ? m_expectations[uut] : empty;
+        return std::make_pair(std::ref(m_expectationsMutex), expectations);
     }
-    [[nodiscard]] std::mutex& getExpectationsMutex() { return m_expectationsMutex; }
 
 private:
     bool        createOutputDirs();

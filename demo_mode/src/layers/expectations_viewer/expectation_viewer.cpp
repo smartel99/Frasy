@@ -16,36 +16,30 @@
  */
 
 #include "expectations_viewer.h"
+#include "utils/imgui/table.h"
 #include "utils/lua/expectation.h"
-#include <imgui.h>
 
 void renderExpectations(const std::vector<Frasy::Lua::Expectation>& expectations)
 {
     static constexpr auto tableFlags =
       ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY;
-    ImGui::BeginTable("ExpectationsTable", 5, tableFlags);
     static constexpr auto columnFlags = ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoHide |
                                         ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_NoReorder |
                                         ImGuiTableColumnFlags_NoSortAscending | ImGuiTableColumnFlags_NoSortDescending;
-    ImGui::TableSetupColumn("Name", columnFlags, 8.0f);
-    ImGui::TableSetupColumn("Measure", columnFlags, 3.0f);
-    ImGui::TableSetupColumn("Min", columnFlags, 3.0f);
-    ImGui::TableSetupColumn("Max", columnFlags, 3.0f);
-    ImGui::TableSetupColumn("Passed", columnFlags, 2.0f);
-    ImGui::TableSetupScrollFreeze(0, 1);
-    ImGui::TableHeadersRow();
-    for (const auto& expectation : expectations) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("%s", expectation.name.c_str());
-        ImGui::TableNextColumn();
-        ImGui::Text("%s", expectation.measure.c_str());
-        ImGui::TableNextColumn();
-        ImGui::Text("%s", expectation.min.c_str());
-        ImGui::TableNextColumn();
-        ImGui::Text("%s", expectation.max.c_str());
-        ImGui::TableNextColumn();
-        ImGui::Text("%s", expectation.pass ? "Yes" : "No");
-    }
-    ImGui::EndTable();
+
+    Frasy::Widget::Table("ExpectationsTable", 5, tableFlags)
+      .ColumnHeader("Name", columnFlags, 8.0f)
+      .ColumnHeader("Measure", columnFlags, 3.0f)
+      .ColumnHeader("Min", columnFlags, 3.0f)
+      .ColumnHeader("Max", columnFlags, 3.0f)
+      .ColumnHeader("Passed", columnFlags, 2.0f)
+      .ScrollFreeze(0, 1)
+      .FinishHeader()
+      .Content(expectations, [](auto& table, const auto& e) {
+          table.CellContentText(e.name);
+          table.CellContentText(e.measure);
+          table.CellContentText(e.min);
+          table.CellContentText(e.max);
+          table.CellContentText(e.pass ? "Yes" : "No");
+      });
 }
