@@ -6,5 +6,5 @@ set lua_core_dir=%root_dir%\Frasy\lua\core
 set lua_core_hash=%root_dir%\Frasy\lua\core\hash
 
 @echo on
-hashdir.exe %lua_user_dir% %* > %lua_user_hash%
-hashdir.exe %lua_core_dir% -f in f .+\.lua > %lua_core_hash%
+%root_dir%\scripts\Windows\hashdir.exe %lua_user_dir% %* > %lua_user_hash%
+%root_dir%\scripts\Windows\hashdir.exe %lua_core_dir% -f in f .+\.lua > %lua_core_hash%
