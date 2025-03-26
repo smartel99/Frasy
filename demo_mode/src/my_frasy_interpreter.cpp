@@ -19,9 +19,9 @@
 #include <string>
 
 
-class MyFrasyInterpreter : public Frasy::FrasyInterpreter {
+class MyFrasyInterpreter : public Frasy::Interpreter {
 public:
-    MyFrasyInterpreter() : FrasyInterpreter("Frasy - Demo Mode") { pushLayer(new MyMainApplicationLayer()); }
+    MyFrasyInterpreter() : Interpreter("Frasy - Demo Mode") { pushLayer(new MyMainApplicationLayer()); }
 };
 
 

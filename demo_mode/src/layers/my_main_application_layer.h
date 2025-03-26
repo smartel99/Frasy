@@ -35,16 +35,15 @@ class MyMainApplicationLayer final : public Frasy::MainApplicationLayer {
     };
 
 public:
-                            MyMainApplicationLayer()                              = default;
-                            MyMainApplicationLayer(const MyMainApplicationLayer&) = delete;
-    MyMainApplicationLayer& operator=(const MyMainApplicationLayer&)              = delete;
-                            MyMainApplicationLayer(MyMainApplicationLayer&&)      = delete;
-    MyMainApplicationLayer& operator=(MyMainApplicationLayer&&)                   = delete;
+    MyMainApplicationLayer()                                         = default;
+    MyMainApplicationLayer(const MyMainApplicationLayer&)            = delete;
+    MyMainApplicationLayer& operator=(const MyMainApplicationLayer&) = delete;
+    MyMainApplicationLayer(MyMainApplicationLayer&&)                 = delete;
+    MyMainApplicationLayer& operator=(MyMainApplicationLayer&&)      = delete;
 
     ~MyMainApplicationLayer() override = default;
 
     void onAttach() override;
-    void onDetach() override;
 
     void onUpdate(Brigerad::Timestep ts) override;
 
@@ -52,11 +51,20 @@ protected:
     void renderControlRoom() override;
 
 private:
+    bool renderEnvironmentError();
+    bool renderProductDropdownMenu();
+    void renderReloadAndRefreshLuaButton();
+    void renderOperatorField();
+    void renderSerialField(std::size_t uut);
+    void renderRunButton();
+    void renderUutIcon(std::size_t uut);
+    void handleTestRepeat();
+
     void doTests();
-    bool getSerials();
 
     void makeOrchestrator(const std::string& name, const std::string& envPath, const std::string& testPath);
 
+    void loadLuaFunctions(sol::state_view lua);
     void loadProducts();
     bool shouldRegenerate();
 
@@ -74,13 +82,11 @@ private:
     }
 
 private:
-    static constexpr std::size_t s_operatorLength                              = 20;
-    char                         m_operator[s_operatorLength]                  = "Paul\0";
-    static constexpr std::size_t serialNumberLength                            = 32;
-    char                         m_serialNumberTopLeft[serialNumberLength]     = "0000\0";
-    char                         m_serialNumberBottomRight[serialNumberLength] = "0000\0";
-    bool                         m_serialIsDirty                               = false;
-    std::vector<std::string>     m_serials;
+    static constexpr std::size_t                        s_operatorNameMaxLength = 20;
+    std::array<char, s_operatorNameMaxLength>           m_operatorField {};
+    static constexpr std::size_t                        s_serialNumberLength = 32;
+    std::vector<std::array<char, s_serialNumberLength>> m_serialsFields {};
+    std::vector<std::string>                            m_serials {};
 
     bool                     m_skipVerification = false;
     std::string              m_activeProduct;
@@ -88,6 +94,16 @@ private:
 
     bool m_testJustFinished = false;
     int  m_repeatCount      = 0;
+
+    const ImVec2          m_buttonSize       = ImVec2 {100.0f, 100.0f};
+    static constexpr auto s_lineWidth        = 400;
+    static constexpr auto s_labelWidth       = 150;
+    static constexpr auto s_inputWidth       = s_lineWidth - s_labelWidth;
+    ImGuiWindowFlags      m_imGuiWindowFlags = ImGuiWindowFlags_NoTitleBar |    //
+                                          ImGuiWindowFlags_NoResize |           //
+                                          ImGuiWindowFlags_NoMove |             //
+                                          ImGuiWindowFlags_NoNavFocus |         //
+                                          ImGuiWindowFlags_NoCollapse;
 };
 
 #endif    // GUARD_MY_MAIN_APPLICATION_LAYER_H

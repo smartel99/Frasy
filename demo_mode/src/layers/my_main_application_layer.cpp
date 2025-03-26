@@ -20,6 +20,7 @@
 #include <frasy_interpreter.h>
 #include <imgui.h>
 
+#include "expectations_viewer/expectations_viewer.h"
 #include <filesystem>
 #include <regex>
 
@@ -28,13 +29,6 @@ void MyMainApplicationLayer::onAttach()
 {
     MainApplicationLayer::onAttach();
     loadProducts();
-}
-
-void MyMainApplicationLayer::onDetach()
-{
-    MainApplicationLayer::onDetach();
-
-    // TODO Save the currently selected product.
 }
 
 void MyMainApplicationLayer::onUpdate(Brigerad::Timestep ts)
@@ -46,31 +40,142 @@ void MyMainApplicationLayer::onUpdate(Brigerad::Timestep ts)
 
 void MyMainApplicationLayer::renderControlRoom()
 {
-    const auto& map = m_orchestrator.getMap();
-    if (m_activeProduct.empty() || map.uuts.empty() || map.ibs.empty()) {
-        ImGui::Begin("Control Room");
+    static auto first = true;
+    if (!first) { m_imGuiWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus; }
+    first = false;
+    ImGui::SetNextWindowPos(ImGui::GetWindowContentRegionMin(), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImGui::GetWindowContentRegionMax(), ImGuiCond_Always);
+
+    if (!ImGui::Begin("ControlRoom", nullptr, m_imGuiWindowFlags)) {
+        ImGui::End();
+        return;
+    }
+
+    renderReloadAndRefreshLuaButton();
+
+    if (renderProductDropdownMenu()) {
+        ImGui::End();
+        return;
+    }
+
+    if (renderEnvironmentError()) {
+        ImGui::End();
+        return;
+    }
+
+    if (m_activeProduct == "expectation") {
+        ImGui::BeginChild("Expectations", ImVec2(800.0f, 300.0f));
+        renderExpectations(m_orchestrator.getExpectations(1));
+        ImGui::EndChild();
+    }
+
+    const auto& [ibs, uuts, teams] = m_orchestrator.getMap();
+
+    if (uuts.size() == 1) {
+        renderRunButton();
+        ImGui::SameLine();
+        renderUutIcon(1);
+    }
+    else if (!teams.empty()) {
+        for (auto team : teams) {
+            auto title = std::format("Team {}", team.front());
+            ImGui::BeginChild("Team");
+            bool isFirst = true;
+            for (const auto uut : team) {
+                if (isFirst) { isFirst = false; }
+                else {
+                    ImGui::SameLine();
+                }
+                renderUutIcon(uut);
+            }
+        }
+        renderRunButton();
+    }
+    else if (!uuts.empty()) {
+        bool isFirst = true;
+        for (auto uut : uuts) {
+            if (isFirst) { isFirst = false; }
+            else {
+                ImGui::SameLine();
+            }
+            renderUutIcon(uut);
+        }
+        renderRunButton();
+    }
+
+    ImGui::End();
+}
+
+bool MyMainApplicationLayer::renderEnvironmentError()
+{
+    if (const auto& [ibs, uuts, teams] = m_orchestrator.getMap(); m_activeProduct.empty() || uuts.empty()) {
+        if (uuts.empty()) { ImGui::Text("No UUTs found!"); }
+        if (m_products.empty()) { ImGui::Text("No products found!"); }
         if (ImGui::Button("Reload")) { loadProducts(); }
-        ImGui::End();
-        return;
+        return true;
     }
+    return false;
+}
 
-    if (!ImGui::Begin("ControlRoom")) {
-        ImGui::End();
-        return;
-    }
-
-    if (ImGui::BeginCombo("Product", m_activeProduct.c_str())) {
+bool MyMainApplicationLayer::renderProductDropdownMenu()
+{
+    ImGui::Text("Product");
+    ImGui::SameLine(s_labelWidth);
+    ImGui::SetNextItemWidth(s_inputWidth);
+    bool update = false;
+    if (ImGui::BeginCombo("##Product", m_activeProduct.c_str())) {
         for (auto&& [env, testPath, name, modified] : m_products) {
             if (ImGui::Selectable(name.c_str(), name == m_activeProduct)) {
                 makeOrchestrator(name, env, testPath);
-                Frasy::Config cfg;
-                cfg.setField("LastProduct", m_activeProduct);
-                Frasy::FrasyInterpreter::Get().getConfig().setField("Demo", cfg);
+                auto& fi           = Frasy::Interpreter::Get();
+                auto& cfg          = fi.getConfig();
+                cfg["LastProduct"] = m_activeProduct;
+                fi.saveConfig();
+                update = true;
             }
         }
         ImGui::EndCombo();
     }
+    return update;
+}
 
+void MyMainApplicationLayer::renderReloadAndRefreshLuaButton()
+{
+#ifdef BR_DEBUG
+    if (ImGui::Button("DEBUG - Update & Refresh Lua")) {
+#    ifdef WIN32
+        static const auto cdCmd   = R"(cd ..\..\..)";
+        static const auto script  = R"(.\generate_hashes.bat)";
+        static const auto filters = "";    // TODO: Change per-project requirements
+
+        const auto generateHashesCommand = std::format("{} && {} {}", cdCmd, script, filters);
+        system(generateHashesCommand.c_str());
+
+        system(R"(cd ..\..\.. && ..\vendor\bin\premake\premake5.exe frasy)");
+#    endif
+        loadProducts();
+    }
+#endif
+}
+
+void MyMainApplicationLayer::renderOperatorField()
+{
+    ImGui::Text("Operator");
+    ImGui::SameLine(s_labelWidth);
+    ImGui::SetNextItemWidth(s_inputWidth);
+    ImGui::InputText("##Operator", m_operatorField.data(), m_operatorField.size());
+}
+
+void MyMainApplicationLayer::renderSerialField(std::size_t uut)
+{
+    ImGui::Text("Serial Number");
+    ImGui::SameLine(s_labelWidth);
+    ImGui::SetNextItemWidth(s_inputWidth);
+    ImGui::InputText("##SerialNumber", m_serialsFields[uut].data(), m_serialsFields[uut].size());
+}
+
+void MyMainApplicationLayer::renderRunButton()
+{
     uint64_t texture {};
     if (m_orchestrator.isRunning()) { texture = m_testing->getRenderId(); }
     else if (m_skipVerification) {
@@ -80,177 +185,112 @@ void MyMainApplicationLayer::renderControlRoom()
         texture = m_run->getRenderId();
     }
 
-    ImGui::BeginTable("Launcher", 2);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-
-    static const ImVec2 buttonSize = ImVec2 {100.0f, 100.0f};
-
-    if (ImGui::ImageButton(reinterpret_cast<void*>(texture), buttonSize)) {
-        m_resultViewer->setVisibility(false);    // Close the result viewer while we run the test.
-        doTests();
-        m_testJustFinished = false;
-    }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) { ImGui::OpenPopup("Stress Test"); }
     if (ImGui::BeginPopup("Stress Test")) {
         ImGui::SliderInt("Repeat Count", &m_repeatCount, 0, 200);
         ImGui::EndPopup();
     }
-    ImGui::TableNextColumn();
-    ImGui::InputText("Operator", &m_operator[0], s_operatorLength);
-    if (ImGui::InputText("Serial Number - Top Left", &m_serialNumberTopLeft[0], serialNumberLength)) {
-        m_serialIsDirty = false;
+
+    if (ImGui::ImageButton(reinterpret_cast<void*>(texture), m_buttonSize) && !m_orchestrator.isRunning()) {
+        m_resultViewer->setVisibility(false);    // Close the result viewer while we run the test.
+        doTests();
     }
-    if (ImGui::InputText("Serial Number - Bottom Right", &m_serialNumberBottomRight[0], serialNumberLength)) {
-        m_serialIsDirty = false;
+}
+
+void MyMainApplicationLayer::renderUutIcon(std::size_t uut)
+{
+    uint64_t texture {};
+    switch (m_orchestrator.getUutState(uut)) {
+        case Frasy::UutState::Disabled: texture = m_disabled->getRenderId(); break;
+        case Frasy::UutState::Idle: texture = m_idle->getRenderId(); break;
+        case Frasy::UutState::Waiting: texture = m_waiting->getRenderId(); break;
+        case Frasy::UutState::Running: texture = m_testing->getRenderId(); break;
+        case Frasy::UutState::Passed: texture = m_pass->getRenderId(); break;
+        case Frasy::UutState::Failed: texture = m_fail->getRenderId(); break;
+        case Frasy::UutState::Error: texture = m_error->getRenderId(); break;
     }
-
-    if (ImGui::Button("Scan serials")) {}
-    ImGui::EndTable();
-
-
-    if (!m_testJustFinished && !m_orchestrator.isRunning()) {
-        if (m_repeatCount != 0) {
-            m_repeatCount--;
-            doTests();
-        }
-        else {
-            // If we just finished the test, check if any UUT have failed.
-            m_testJustFinished = true;
-            if (std::ranges::any_of(map.uuts, [this](const auto& uut) {
-                    return m_orchestrator.getUutState(uut) == Frasy::UutState::Failed;
-                })) {
-                m_resultViewer->setVisibility(true);
-            }
-        }
-    }
-
-    static constexpr std::size_t          unteamedUutsPerLine = 4;
-    std::vector<std::vector<std::size_t>> uutLines            = {};
-    if (map.teams.empty()) {
-        auto it = map.uuts.begin();
-        uutLines.emplace_back();
-        while (it != map.uuts.end()) {
-            if (uutLines.back().size() == unteamedUutsPerLine) { uutLines.emplace_back(); }
-            uutLines.back().push_back(*it);
-            ++it;
-        }
+    if (m_orchestrator.getMap().uuts.size() > 1) {
+        if (ImGui::ImageButton(reinterpret_cast<void*>(texture), m_buttonSize)) { m_orchestrator.toggleUut(uut); }
     }
     else {
-        for (const auto& team : map.teams) {
-            uutLines.emplace_back(team);
-        }
+        auto style = ImGui::GetStyle().FramePadding;
+        auto size  = ImVec2(m_buttonSize.x + style.x * 2, m_buttonSize.y + style.y * 2);
+        ImGui::Image(reinterpret_cast<void*>(texture), size);
     }
-    ImGui::BeginTable("UUT", unteamedUutsPerLine);
-    for (const auto& line : uutLines) {
-        static constexpr ImVec2 uutButtonSize = ImVec2 {80.0f, 80.0f};
-        ImGui::TableNextRow();
-        for (const auto& uut : line) {
-            ImGui::TableNextColumn();
-            ImGui::PushID(std::format("UUT{}", uut).c_str());
-            ImGui::Text("UUT %zu", uut);
-            auto     state = m_orchestrator.getUutState(uut);
-            uint64_t uutTexture {};
-            switch (state) {
-                case Frasy::UutState::Disabled: uutTexture = m_disabled->getRenderId(); break;
-                case Frasy::UutState::Idle: uutTexture = m_idle->getRenderId(); break;
-                case Frasy::UutState::Waiting: uutTexture = m_waiting->getRenderId(); break;
-                case Frasy::UutState::Running: uutTexture = m_testing->getRenderId(); break;
-                case Frasy::UutState::Passed: uutTexture = m_pass->getRenderId(); break;
-                case Frasy::UutState::Failed: uutTexture = m_fail->getRenderId(); break;
-                case Frasy::UutState::Error: uutTexture = m_error->getRenderId(); break;
-            }
-            if (ImGui::ImageButton(reinterpret_cast<void*>(uutTexture), uutButtonSize)) {
-                m_orchestrator.toggleUut(uut);
-            }
-            ImGui::PopID();
-        }
-    }
-    ImGui::EndTable();
-    ImGui::End();
+}
+
+void MyMainApplicationLayer::handleTestRepeat()
+{
+    if (m_orchestrator.isRunning()) { return; }
+    if (m_testJustFinished) { return; }
+    if (m_repeatCount == 0) { return; }
+    m_repeatCount--;
+    doTests();
 }
 
 void MyMainApplicationLayer::doTests()
 {
-    if (!getSerials()) { return; }
+
+    const auto operatorName = std::string(m_operatorField.begin(), m_operatorField.end());
+    if (operatorName.empty()) {
+        BR_APP_ERROR("Operator name cannot be empty");
+        return;
+    }
+    const auto& [ibs, uuts, teams] = m_orchestrator.getMap();
+    for (auto uut = 1; uut <= uuts.size(); ++uut) {
+        m_serials[uut] = std::string(m_serialsFields[uut].begin(), m_serialsFields[uut].end());
+        if (m_orchestrator.getUutState(uut) != Frasy::UutState::Disabled && m_serials[uut].empty()) {
+            BR_APP_ERROR("UUT {} serial number cannot be empty", uut);
+            return;
+        }
+    }
+    m_serials[0]     = m_serials[1];
     bool shouldRegen = shouldRegenerate();
     if (shouldRegen) { BR_LOG_INFO("Frasy", "Regenerating sequences..."); }
-    m_orchestrator.runSolution(std::string(m_operator), m_serials, shouldRegen, m_skipVerification);
-}
-
-bool MyMainApplicationLayer::getSerials()
-{
-    m_serials.clear();
-    std::regex  snRe("(.+)([0-9A-F]{3})$");
-    std::cmatch matches;
-    std::string snPrefix;
-    int         snStart {};
-    int         snEnd {};
-
-    if (std::regex_search(&m_serialNumberTopLeft[0], matches, snRe)) {
-        snPrefix = matches[1];
-        snStart  = std::stoi(matches[2], nullptr, 10);
-    }
-    else {
-        Brigerad::warningDialog("Frasy", "Top left serial number is not valid!");
-        return false;
-    }
-
-    if (std::regex_search(&m_serialNumberBottomRight[0], matches, snRe)) {
-        if (snPrefix != matches[1]) {
-            Brigerad::warningDialog("Frasy", "The format of the serial numbers do not match!");
-            return false;
-        }
-        snEnd = std::stoi(matches[2], nullptr, 10);
-    }
-    else {
-        Brigerad::warningDialog("Frasy", "Bottom right serial number is not valid!");
-        return false;
-    }
-
-    const auto& map = m_orchestrator.getMap();
-    if (snEnd - snStart != map.uuts.size() - 1) {
-        Brigerad::warningDialog("Frasy", "Unable to verify serial numbers. Have you scanned the right UUTs?");
-        return false;
-    }
-
-    m_serials.reserve(map.uuts.size() + 1);
-    m_serials.emplace_back();
-    for (int i = snStart; i <= snStart + map.uuts.size() - 1; ++i) {
-        m_serials.push_back(std::format("{}{:03x}", snPrefix, i));
-    }
-    return true;
+    m_orchestrator.runSolution(operatorName, m_serials, shouldRegen, m_skipVerification);
 }
 
 void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
                                               const std::string& envPath,
                                               const std::string& testPath)
 {
+
     if (m_orchestrator.loadUserFiles(envPath, testPath)) {
+
         m_canOpen.stop();
         m_canOpen.clearNodes();
-        m_activeProduct = name;
-        const auto& map = m_orchestrator.getMap();
-        for (const auto& ib : map.ibs) {
-            m_canOpen.addNode(ib.nodeId, ib.name, ib.edsPath);
-            if (uint16_t period = ib.od["Producer heartbeat time"]["value"].get_or<uint16_t>(0); period != 0) {
+        m_activeProduct                = name;
+        const auto& [ibs, uuts, teams] = m_orchestrator.getMap();
+        m_serials.clear();
+        m_serials.resize(uuts.size() + 1, {});
+        m_serialsFields.clear();
+        m_serialsFields.resize(uuts.size() + 1, {});
+        for (const auto& ib : ibs | std::views::values) {
+            const auto& [kind, nodeId, name, edsPath, od] = ib;
+            m_canOpen.addNode(nodeId, name, edsPath);
+            if (const uint16_t period = od["Producer heartbeat time"]["value"].get_or<uint16_t>(0); period != 0) {
                 // Make frasy aware of a new heartbeat producer, if this node is such a thing.
-                // We add a grace period to the beat's period to compensate for the inevitable variability in timing.
-                // TODO Fix heartbeat issues.
-                m_canOpen.setNodeHeartbeatProdTime(ib.nodeId, period + (period / 2));
+                // We add a grace period to the beat's period to compensate for the inevitable variability in
+                // timing.
+                // m_canOpen.setNodeHeartbeatProdTime(ib.nodeId, static_cast<uint16_t>(10 * period));
             }
             else {
-                BR_APP_WARN("Node {} ('{}') is not a heartbeat producer!", ib.nodeId, ib.name);
+                BR_APP_WARN("Node {} ('{}') is not a heartbeat producer!", nodeId, name);
             }
         }
-        m_canOpen.start();
-        // m_canOpen.reset();    // CANopen needs to be reloaded on environment changes.
+        m_canOpen.start();    // CANopen needs to be reloaded on environment changes.
+        m_orchestrator.setLoadUserFunctions([&](const sol::state_view& lua) { loadLuaFunctions(lua); });
     }
     else {
         Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");
         makeLogWindowVisible();
         BR_LOG_ERROR("APP", "Unable to initialize orchestrator!");
     }
+}
+
+void MyMainApplicationLayer::loadLuaFunctions(sol::state_view lua)
+{
+    //..
 }
 
 std::vector<MyMainApplicationLayer::ProductInfo> MyMainApplicationLayer::detectProducts()
@@ -312,9 +352,8 @@ void MyMainApplicationLayer::loadProducts()
     if (m_products.empty()) { Brigerad::FatalErrorDialog("Error", "No products found!"); }
 
     // Re-select the previously selected products, if it still exists.
-    Frasy::Config cfg         = Frasy::FrasyInterpreter::Get().getConfig().getField("Demo");
-    auto          lastProduct = cfg.getField<std::string>("LastProduct");
-    auto          it = std::ranges::find_if(m_products, [&](const auto& item) { return item.name == lastProduct; });
+    auto lastProduct = Frasy::Interpreter::Get().getConfig().value("LastProduct", "");
+    auto it          = std::ranges::find_if(m_products, [&](const auto& item) { return item.name == lastProduct; });
     if (it != m_products.end()) { makeOrchestrator(it->name, it->environmentPath, it->testPath); }
     else {
         const auto& [envPath, testPath, name, modified] = m_products.front();

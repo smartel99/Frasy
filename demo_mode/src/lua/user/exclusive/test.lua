@@ -1,6 +1,6 @@
---- @file    environment.lua
+--- @file    exclusive.lua
 --- @author  Paul Thomas
---- @date    4/3/2023
+--- @date    4/4/2023
 --- @brief
 ---
 --- @copyright
@@ -13,19 +13,20 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-Environment.Make(function()
-    -- Tell how many UUT we have
-    Environment.Uut.Count(1)
+Sequence("Exclusive", function()
+    Test("T1", function()
+        -- Unique ID to define exclusive scope, must be an integer
+        local id = 1
 
---     Team.Add(1, 2, 3, 4) -- {L: 1, M: {2, 3, 4}}. Create team with UUT 1 as the leader and UUT 2, 3 and 4 as members.
---     Team.Add(5, 6, 7, 8) -- {L: 5, M: {6, 7, 8}}
---     Team.Add(9, 10)      -- {L: 9, M: {10}}
+        -- function to run in exclusive scope
+        local function routine()
+            Log.I("UUT " .. tostring(Context.info.uut) .. " is now in exclusive region")
+            SleepFor(1000)
+        end
 
-    -- -- Limits the number of teams that can be simultaneously executed
-    -- Worker.Limit(Team).To(1)
-
-    -- Define IBs
-    local daq = Environment.Ib.Add(DAQ:New())
-    --local pio = Environment.Ib.Add(PIO:New())
-    --local r8l = Environment.Ib.Add(R8L:New(nil, 26))
+        -- Call function routine with scope id 1
+        -- Only 1 uut can run in the same scope at a time
+        -- Use different scope id if you need to run multiple UUT at the same time
+        Exclusive(id, routine)
+    end)
 end)
