@@ -155,4 +155,8 @@ function Expectation:ExportAs(name)
     Orchestrator.SetValue(Orchestrator.GetScope(), name, self.result.value)
 end
 
+function Expectation:Show()
+    ShowExpectation(self.result)
+end
+
 return Expectation

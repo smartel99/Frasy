@@ -25,6 +25,7 @@
 #include "utils/lua/popup.h"
 #include "utils/models/solution.h"
 
+#include "../expectation.h"
 #include <functional>
 #include <future>
 #include <hashdir/hashdir.h>
@@ -143,6 +144,11 @@ public:
     void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
     [[nodiscard]] std::string getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
+    const std::vector<Expectation>& getExpectations(std::size_t uut) const
+    {
+        static auto empty = std::vector<Expectation> {};
+        return uut < m_expectations.size() ? m_expectations[uut] : empty;
+    }
 
 private:
     bool        createOutputDirs();
@@ -193,7 +199,8 @@ private:
         // Values will be available at Context.values.gui
         return lua.create_table();
     };
-    Models::Solution m_solution = {};
+    Models::Solution                      m_solution     = {};
+    std::vector<std::vector<Expectation>> m_expectations = {};
 
     static const std::vector<HashDir::Filter> s_coreFilters;
     std::vector<HashDir::Filter>              m_filters {};

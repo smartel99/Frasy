@@ -103,6 +103,8 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     if (!loadEnvironment(sol::state_view(*m_state), m_environment)) { return false; }
     if (!loadTests(sol::state_view(*m_state), m_testsDir)) { return false; }
     populateMap();
+    m_expectations.clear();
+    m_expectations.resize(m_map.uuts.size() + 1, {});
     m_uutStates.resize(m_map.uuts.size() + 1, UutState::Idle);
 
     static const std::regex titlePattern(R"([\\\/]([^\\\/]+)[\\\/]environment$)");
@@ -306,6 +308,12 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             FRASY_PROFILE_FUNCTION();
             SaveAsJson(std::move(table), file);
         };
+        lua["ShowExpectation"] = [this](const sol::table& expectation) {
+            FRASY_PROFILE_FUNCTION();
+            auto      lua = sol::state_view(expectation.lua_state());
+            const int uut = lua["Context"]["info"]["uut"].get<int>();
+            m_expectations[uut].push_back(Expectation::fromTable(expectation));
+        };
         lua.require_file("Json", "lua/core/vendor/json.lua");
         importLog(lua, uut, stage);
         importPopup(lua, uut, stage);
@@ -474,6 +482,9 @@ bool Orchestrator::loadTests(sol::state_view lua, const std::string& filename)
 void Orchestrator::runTests(const std::vector<std::string>& serials, const bool regenerate, const bool skipVerification)
 {
     updateUutState(UutState::Waiting);
+    for (const auto& uut : m_map.uuts) {
+        m_expectations[uut].clear();
+    }
     {
         FRASY_PROFILE_SCOPE("Create Output Dir");
         if (!createOutputDirs()) {
@@ -512,7 +523,6 @@ bool Orchestrator::runStageGenerate(bool regenerate)
 
         sol::state lua;
         if (!initLua(sol::state_view(lua), 1)) { return false; }
-        // LoadIb(lua);
         loadEnvironment(sol::state_view(lua), m_environment);
         loadTests(sol::state_view(lua), m_testsDir);
         sol::protected_function run = lua.script_file("lua/core/helper/generate.lua");
