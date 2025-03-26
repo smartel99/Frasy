@@ -883,7 +883,7 @@ void Orchestrator::toggleUut(std::size_t index)
 {
     if (isRunning()) { return; }
     auto state   = m_uutStates[index] == UutState::Disabled ? UutState::Idle : UutState::Disabled;
-    bool hasTeam = (*m_state)["Team"]["HasTeam"]();
+    bool hasTeam = (*m_state)["Team"]["hasTeam"].get<bool>();
     if (hasTeam) {
         std::size_t leader = (*m_state)["Context"]["team"]["players"][index]["leader"];
         auto        team   = (*m_state)["Context"]["team"]["teams"][leader].get<std::vector<std::size_t>>();
@@ -997,25 +997,25 @@ void Orchestrator::populateMap()
 {
     m_map = {};
     for (auto& [k, v] : (*m_state)["Context"]["map"]["ibs"].get<sol::table>()) {
-        auto ib = v.as<sol::table>();
-        m_map.ibs.emplace_back(static_cast<int>(ib["ib"]["kind"].get<std::size_t>()),
-                               static_cast<int>(ib["ib"]["nodeId"].get<std::size_t>()),
-                               ib["ib"]["name"].get<std::string>(),
-                               ib["ib"]["eds"].get<std::string>(),
-                               ib["ib"]["od"].get<sol::table>());
+        auto ib         = v.as<sol::table>();
+        auto name       = ib["ib"]["name"].get<std::string>();
+        m_map.ibs[name] = IbView(static_cast<int>(ib["ib"]["kind"].get<std::size_t>()),
+                                 static_cast<int>(ib["ib"]["nodeId"].get<std::size_t>()),
+                                 ib["ib"]["name"].get<std::string>(),
+                                 ib["ib"]["eds"].get<std::string>(),
+                                 ib["ib"]["od"].get<sol::table>());
     }
 
     for (auto& [k, v] : (*m_state)["Context"]["map"]["uuts"].get<sol::table>()) {
         m_map.uuts.emplace_back(v.as<std::size_t>());
     }
 
-    // TODO load teams
-    //
-    //    if ((*m_state)["Context"]["team"]["HasTeam"]()) {
-    //        for (auto& [k, v] : (*m_state)["Context"]["team"]["teams"].get<sol::table>()) {
-    //            m_map.teams.emplace_back();
-    //        }
-    //    }
+    if ((*m_state)["Context"]["team"]["hasTeam"].get<bool>()) {
+        for (auto& [k, v] : (*m_state)["Context"]["team"]["teams"].get<sol::table>()) {
+            auto team = v.as<std::vector<std::size_t>>();
+            m_map.teams.emplace_back(team);
+        }
+    }
 }
 #pragma endregion
 

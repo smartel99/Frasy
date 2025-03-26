@@ -24,7 +24,7 @@
 
 namespace Frasy::Lua {
 struct Map {
-    std::vector<IbView>                   ibs;
+    std::map<std::string, IbView>         ibs;
     std::vector<std::size_t>              uuts;
     std::vector<std::vector<std::size_t>> teams;
 };
