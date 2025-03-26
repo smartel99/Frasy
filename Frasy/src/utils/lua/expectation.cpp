@@ -16,6 +16,7 @@
  */
 
 #include "expectation.h"
+#include <Brigerad.h>
 
 namespace Frasy::Lua {
 
@@ -23,15 +24,21 @@ namespace {
 
 std::string solObjectToString(const sol::object& object)
 {
-    const auto type = object.get_type();
-    if (type == sol::type::string) { return object.as<std::string>(); }
-    if (type == sol::type::number) {
-        if (object.is<int>()) { return std::to_string(object.as<int>()); }
-        if (object.is<double>()) { return std::to_string(object.as<double>()); }
-        throw std::runtime_error("Invalid number type");
+    try {
+        const auto type = object.get_type();
+        if (type == sol::type::string) { return object.as<std::string>(); }
+        if (type == sol::type::number) {
+            if (object.is<int>()) { return std::to_string(object.as<int>()); }
+            if (object.is<double>()) { return std::to_string(object.as<double>()); }
+            throw std::runtime_error("Invalid number type");
+        }
+        if (type == sol::type::boolean) { return object.as<bool>() ? "True" : "False"; }
+        throw std::runtime_error("Invalid type");
     }
-    if (type == sol::type::boolean) { return object.as<bool>() ? "True" : "False"; }
-    throw std::runtime_error("Invalid type");
+    catch (const std::exception& e) {
+        BR_LUA_ERROR("Failed to convert sol object to string. Reason: {}", e.what());
+    }
+    return "";
 }
 
 }    // namespace
@@ -39,8 +46,8 @@ std::string solObjectToString(const sol::object& object)
 Expectation Expectation::fromTable(const sol::table& table)
 {
     Expectation expectation;
-    expectation.name   = table["name"].get_or<std::string>("");
-    expectation.pass   = table["pass"].get<bool>();
+    expectation.name = table["name"].get_or<std::string>("");
+    expectation.pass = table["pass"].get<bool>();
     if (table["inverted"].get<bool>()) { expectation.pass = !expectation.pass; }
     if (const auto method = table["method"].get_or<std::string>(""); method == "ToBeTrue") {
         expectation.method  = toBeTrue;
