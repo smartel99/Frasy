@@ -1119,7 +1119,7 @@ DAQ.MeasureVoltageDefault = {
     channel = DAQ.AdcChannelEnum.adc2 --[[@as DAQ_AdcChannelEnum]],
     samplesToTake = 10,
     gain = DAQ.AdcChannelGainEnum.g1 --[[@as DAQ_AdcChannelGainEnum]],
-    sampleRate = DAQ.AdcSampleRateEnum.f250Hz --[[@as DAQ_AdcSampleRateEnum]]
+    sampleRate = DAQ.AdcSampleRateEnum.f1000Hz --[[@as DAQ_AdcSampleRateEnum]]
 }
 
 --- @class DAQ_MeasureVoltageOptParameters
