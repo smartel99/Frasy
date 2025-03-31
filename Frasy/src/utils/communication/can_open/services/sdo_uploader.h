@@ -20,6 +20,7 @@
 #define FRASY_UTILS_COMMUNICATION_CAN_OPEN_SERVICES_SDO_UPLOADER_H
 
 #include "sdo_request_status.h"
+#include "var_type.h"
 
 #include <CO_SDOclient.h>
 
@@ -38,6 +39,7 @@ struct SdoUploadRequest {
     uint16_t         index        = 0;
     uint8_t          subIndex     = 0;
     bool             isBlock      = false;
+    VarType          varType      = VarType::Undefined;
     uint16_t         sdoTimeoutMs = 1000;
     uint8_t          retries      = 5;    // number of time it will retry the transfer if needed.
 
@@ -80,7 +82,8 @@ struct SdoUploadDataResult {
     //! Total size of the data which will be transferred. It is optionally used by the server.
     [[nodiscard]] size_t sizeIndicated() const { return m_request->sizeIndicated; }
     //! Number of bytes that has been sent so far.
-    [[nodiscard]] size_t sizeTransferred() const { return m_request->sizeTransferred; }
+    [[nodiscard]] size_t  sizeTransferred() const { return m_request->sizeTransferred; }
+    [[nodiscard]] VarType varType() const { return m_request->varType; }
 
     bool cancel()
     {

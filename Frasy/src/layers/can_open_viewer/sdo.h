@@ -27,21 +27,6 @@
 
 namespace Frasy::CanOpenViewer {
 
-enum class VarType {
-    Boolean = 0,
-    Signed8,
-    Signed16,
-    Signed32,
-    Signed64,
-    Unsigned8,
-    Unsigned16,
-    Unsigned32,
-    Unsigned64,
-    Real32,
-    Real64,
-    String,
-    Max
-};
 
 
 struct FulfilledSdoRequest {
@@ -74,11 +59,12 @@ private:
 private:
     std::string m_tabBarName;
 
-    int  m_uploadRequestIndex    = 0;
-    int  m_uploadRequestSubIndex = 0;
-    int  m_uploadRequestTimeout  = 1000;
-    int  m_uploadRequestTries    = 5;
-    bool m_uploadRequestIsBlock  = false;
+    int              m_uploadRequestIndex    = 0;
+    int              m_uploadRequestSubIndex = 0;
+    int              m_uploadRequestTimeout  = 1000;
+    int              m_uploadRequestTries    = 5;
+    bool             m_uploadRequestIsBlock  = false;
+    CanOpen::VarType m_uploadRequestType     = CanOpen::VarType::Undefined;
 
     std::vector<CanOpen::SdoUploadDataResult> m_uploadRequestQueue;
     std::vector<FulfilledSdoRequest>          m_uploadRequestHistory;
@@ -88,7 +74,7 @@ private:
     int                                            m_downloadRequestTimeout     = 1000;
     int                                            m_downloadRequestTries       = 5;
     bool                                           m_downloadRequestIsBlock     = false;
-    VarType                                        m_downloadRequestType        = VarType::Boolean;
+    CanOpen::VarType                               m_downloadRequestType        = CanOpen::VarType::Boolean;
     bool                                           m_downloadVariableHex        = false;
     static constexpr std::size_t                   s_downloadVariableBufferSize = 50;
     std::array<char, s_downloadVariableBufferSize> m_downloadVariableBuffer;

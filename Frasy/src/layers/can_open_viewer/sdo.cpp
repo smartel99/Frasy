@@ -16,24 +16,28 @@
  */
 #include "sdo.h"
 
-#include "utils/communication/can_open/to_string.h"
 #include "utils/imgui/table.h"
-#include "utils/imgui/types.h"
 #include "utils/misc/visit.h"
 
 #include <Brigerad/Debug/Instrumentor.h>
-
-
+#include <cstdint>
 #include <format>
-
 #include <imgui.h>
 
 namespace Frasy::CanOpenViewer {
 
+using VarType = CanOpen::VarType;
+CanOpen::VarType operator++(CanOpen::VarType& var, int)
+{
+    VarType old = var;
+    var         = static_cast<VarType>(std::to_underlying(var) + 1);
+    return old;
+}
 
-constexpr std::string_view toString(VarType type)
+constexpr std::string_view toString(CanOpen::VarType type)
 {
     switch (type) {
+        case VarType::Undefined: return "undefined";
         case VarType::Boolean: return "bool";
         case VarType::Signed8: return "int8_t";
         case VarType::Signed16: return "int16_t";
@@ -88,6 +92,45 @@ void Sdo::renderUploadTab(CanOpen::Node& node)
     renderUploadRequestHistory();
 }
 
+namespace {
+auto _resultArrayToString(const std::span<uint8_t>& result) -> std::string
+{
+    return fmt::format("{:02x}", fmt::join(result, ", "));
+}
+auto _resultArrayAsString(const std::span<uint8_t>& result) -> std::string
+{
+    return std::string(result.begin(), result.end());
+}
+template<typename T>
+auto _resultToString(const std::span<uint8_t>& result) -> std::string
+{
+    if (result.size() != sizeof(T)) { return fmt::format("Invalid size ({})", result.size()); }
+    std::array<uint8_t, sizeof(T)> a {};
+    std::copy_n(result.data(), sizeof(T), a.data());
+    T v = std::bit_cast<T, std::array<uint8_t, sizeof(T)>>(a);
+    return fmt::format("{}", v);
+}
+auto resultToString(const auto& request, const auto& result) -> std::string
+{
+    const std::span<uint8_t> resultSpan = result.value();
+    switch (request.varType()) {
+        case VarType::Boolean: return _resultToString<bool>(result.value());
+        case VarType::Signed8: return _resultToString<int8_t>(result.value());
+        case VarType::Signed16: return _resultToString<int16_t>(result.value());
+        case VarType::Signed32: return _resultToString<int32_t>(result.value());
+        case VarType::Signed64: return _resultToString<int64_t>(result.value());
+        case VarType::Unsigned8: return _resultToString<uint8_t>(result.value());
+        case VarType::Unsigned16: return _resultToString<uint16_t>(result.value());
+        case VarType::Unsigned32: return _resultToString<uint32_t>(result.value());
+        case VarType::Unsigned64: return _resultToString<uint64_t>(result.value());
+        case VarType::Real32: return _resultToString<float>(result.value());
+        case VarType::Real64: return _resultToString<double>(result.value());
+        case VarType::String: return _resultArrayAsString(result.value());
+        default: return _resultArrayToString(resultSpan);
+    }
+}
+};    // namespace
+
 void Sdo::purgeCompletedUploadRequests()
 {
     BR_PROFILE_FUNCTION();
@@ -102,7 +145,7 @@ void Sdo::purgeCompletedUploadRequests()
           .abortCode = std::format("{}", request.abortCode()),
         };
 
-        if (result.has_value()) { requestResult.result = fmt::format("{:02x}", fmt::join(result.value(), ", ")); }
+        if (result.has_value()) { requestResult.result = resultToString(request, result); }
         else {
             requestResult.result = fmt::format("Request Failed: {}", result.error());
         }
@@ -119,13 +162,20 @@ void Sdo::renderUploadRequestMaker(CanOpen::Node& node)
     ImGui::SliderInt("Sub Index##upload", &m_uploadRequestSubIndex, 0, 255, "0x%02x");
     ImGui::SliderInt("Timeout##upload", &m_uploadRequestTimeout, 0, 65535, "%d ms");
     ImGui::SliderInt("Retries##upload", &m_uploadRequestTries, 0, 255, "%d");
+    if (ImGui::BeginCombo("Type##upload", toString(m_uploadRequestType).data())) {
+        for (VarType type = VarType::Undefined; type < VarType::Max; type++) {
+            if (ImGui::Selectable(toString(type).data())) { m_uploadRequestType = type; }
+        }
+        ImGui::EndCombo();
+    }
     ImGui::Checkbox("Is Block##upload", &m_uploadRequestIsBlock);
     if (ImGui::Button("Send##upload")) {
         m_uploadRequestQueue.push_back(node.sdoInterface()->uploadData(static_cast<uint16_t>(m_uploadRequestIndex),
                                                                        static_cast<uint8_t>(m_uploadRequestSubIndex),
                                                                        static_cast<uint16_t>(m_uploadRequestTimeout),
                                                                        m_uploadRequestTries,
-                                                                       m_uploadRequestIsBlock));
+                                                                       m_uploadRequestIsBlock,
+                                                                       m_uploadRequestType));
     }
 }
 
@@ -147,7 +197,6 @@ void Sdo::renderActiveUploadRequests()
                    if (request.status() == CanOpen::SdoRequestStatus::OnGoing) {
                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_onGoingRequestColor);
                    }
-
                    table.CellContentTextWrapped(request.status());
                    table.CellContentTextWrapped("0x{:04x}", request.index());
                    table.CellContentTextWrapped("0x{:02x}", request.subIndex());
@@ -173,7 +222,6 @@ void Sdo::renderUploadRequestHistory()
       .Content(m_uploadRequestHistory | std::views::reverse,
                [](Widget::Table& table, const FulfilledSdoRequest& request) {
                    if (request.hasFailed) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_requestFailedColor); }
-
                    table.CellContentTextWrapped("0x{:04x}", request.index);
                    table.CellContentTextWrapped("0x{:02x}", request.subIndex);
                    table.CellContentTextWrapped(request.abortCode);
@@ -218,12 +266,6 @@ void Sdo::purgeCompletedDownloadRequests()
                   [](const auto& r) { return r.status() == CanOpen::SdoRequestStatus::Complete; });
 }
 
-VarType operator++(VarType& var, int)
-{
-    VarType old = var;
-    var         = static_cast<VarType>(std::to_underlying(var) + 1);
-    return old;
-}
 
 void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
 {

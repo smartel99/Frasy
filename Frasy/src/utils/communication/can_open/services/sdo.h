@@ -51,7 +51,7 @@ class SdoManager {
     friend Node;
 
 public:
-             SdoManager();
+    SdoManager();
     explicit SdoManager(uint8_t nodeId);
 
     [[nodiscard]] bool   hasUploadRequestsPending() const;
@@ -69,8 +69,12 @@ public:
      * @return On success, returns a future on which the entire data transfered can be received, as well as values that
      * can be used to keep track of the transfer. On failure, returns the reason.
      */
-    SdoUploadDataResult uploadData(
-      uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs = 1000, uint8_t retries = 5, bool isBlock = false);
+    SdoUploadDataResult uploadData(uint16_t index,
+                                   uint8_t  subIndex,
+                                   uint16_t sdoTimeoutTimeMs = 1000,
+                                   uint8_t  retries          = 5,
+                                   bool     isBlock          = false,
+                                   VarType  type             = VarType::Undefined);
 
     SdoDownloadDataResult downloadData(uint16_t                    index,
                                        uint8_t                     subIndex,
