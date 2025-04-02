@@ -29,6 +29,40 @@ void Popup::Text::render()
     ImGui::Text("%s", text.c_str());
 }
 
+void Popup::TextDynamic::render()
+{
+    static constexpr auto type2str = [](const sol::type t) {
+        switch (t) {
+            case sol::type::none: return "none";
+            case sol::type::nil: return "nil";
+            case sol::type::string: return "string";
+            case sol::type::number: return "number";
+            case sol::type::thread: return "thread";
+            case sol::type::boolean: return "boolean";
+            case sol::type::function: return "function";
+            case sol::type::userdata: return "userdata";
+            case sol::type::lightuserdata: return "lightuserdata";
+            case sol::type::table: return "table";
+            case sol::type::poly: return "poly";
+            default: return "unknown";
+        }
+    };
+    if (routine.get_type() == sol::type::function) {
+        std::lock_guard lock {*mutex};
+        if (auto result = routine(); !result.valid()) {
+            sol::error error = result;
+            BR_LUA_ERROR(error.what());
+        }
+        else if (result.get_type() != sol::type::string) {
+            BR_LUA_ERROR("Expected a string, got {} instead.", type2str(result.get_type()));
+        }
+        else {
+            text = result.get<std::string>();
+        }
+    }
+    ImGui::Text("%s", text);
+}
+
 void Popup::Input::render()
 {
     if (!title.empty()) {
@@ -118,6 +152,9 @@ Popup::Popup(std::size_t uut, sol::table builder)
             case Element::Kind::Text:
                 m_elements.push_back(std::make_unique<Text>(element["text"].get<std::string>()));
                 break;
+            case Element::Kind::TextDynamic:
+                m_elements.push_back(
+                  std::make_unique<TextDynamic>(m_luaMutex, element["routine"].get<sol::function>()));
             case Element::Kind::Input:
                 m_elements.push_back(std::make_unique<Input>(
                   element["title"].get<std::string>(),
@@ -179,8 +216,7 @@ void Popup::Routine(bool once)
     do {
         if (m_routine && m_routine != sol::nil) {
             std::lock_guard lock {m_luaMutex};
-            auto            result = (*m_routine)(m_inputs);
-            if (!result.valid()) {
+            if (auto result = (*m_routine)(m_inputs); !result.valid()) {
                 sol::error err = result;
                 BR_LUA_ERROR(err.what());
             }
