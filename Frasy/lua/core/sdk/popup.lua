@@ -88,7 +88,7 @@ end
 ---@param routine function
 ---@return PopupBuilder builder
 function PopupBuilder:TextDynamic(routine)
-    CheckField(routine, "routine", type(routine) == "routine")
+    CheckField(routine, "routine", type(routine) == "function")
     table.insert(self.elements, {
         kind = ElementKind.textDynamic,
         routine = routine,

@@ -60,7 +60,7 @@ void Popup::TextDynamic::render()
             text = result.get<std::string>();
         }
     }
-    ImGui::Text("%s", text);
+    ImGui::Text("%s", text.c_str());
 }
 
 void Popup::Input::render()
@@ -154,7 +154,8 @@ Popup::Popup(std::size_t uut, sol::table builder)
                 break;
             case Element::Kind::TextDynamic:
                 m_elements.push_back(
-                  std::make_unique<TextDynamic>(m_luaMutex, element["routine"].get<sol::function>()));
+                  std::make_unique<TextDynamic>(&m_luaMutex, element["routine"].get<sol::function>()));
+                break;
             case Element::Kind::Input:
                 m_elements.push_back(std::make_unique<Input>(
                   element["title"].get<std::string>(),
