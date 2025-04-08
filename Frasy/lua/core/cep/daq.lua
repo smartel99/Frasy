@@ -13,8 +13,6 @@ local CheckField = require("lua/core/utils/check_field")
 local StringizeValues = require("lua/core/utils/stringize_values")
 local TryFunction = require("lua/core/utils/try_function")
 
---- @enum DAQ_AdcChannelEnum
-
 --- @class DAQ_CacheIo
 --- @field mode integer
 --- @field output integer
@@ -25,12 +23,11 @@ local TryFunction = require("lua/core/utils/try_function")
 --- @class DAQ
 --- @field ib? Ib
 --- @field cache DAQ_Cache
-DAQ = {
-    AdcChannelEnum = { adc1 = 1, adc2 = 2, adc3 = 3, adc4 = 4 },
-    ib = nil,
-    cache = { io = { mode = 0, output = 0, }, adc = {} },
-}
+DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, }, adc = {} }, }
 DAQ.__index = DAQ
+
+--- @enum DAQ_AdcChannelEnum
+DAQ.AdcChannelEnum = { adc1 = 1, adc2 = 2, adc3 = 3, adc4 = 4 }
 
 --- @class DAQ_NewOptionalParameters
 --- @field name string? default to "daq"
