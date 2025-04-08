@@ -5,11 +5,11 @@ FileRevision=1
 LastEDS=
 EDSVersion=4.0
 Description=
-CreationTime=12:46PM
+CreationTime=1:46PM
 CreationDate=06-10-2024
 CreatedBy=Samuel Martel
-ModificationTime=1:13PM
-ModificationDate=01-20-2025
+ModificationTime=11:55AM
+ModificationDate=04-08-2025
 ModifiedBy=Samuel Martel
 
 [DeviceInfo]
@@ -397,7 +397,7 @@ ObjectType=0x7
 DataType=0x0009
 AccessType=ro
 StringLengthMin=0
-DefaultValue=1.1.1
+DefaultValue=1.1.2
 PDOMapping=0
 
 [1010]

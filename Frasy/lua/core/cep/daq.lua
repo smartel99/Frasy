@@ -13,6 +13,8 @@ local CheckField = require("lua/core/utils/check_field")
 local StringizeValues = require("lua/core/utils/stringize_values")
 local TryFunction = require("lua/core/utils/try_function")
 
+--- @enum DAQ_AdcChannelEnum
+
 --- @class DAQ_CacheIo
 --- @field mode integer
 --- @field output integer
@@ -23,7 +25,11 @@ local TryFunction = require("lua/core/utils/try_function")
 --- @class DAQ
 --- @field ib? Ib
 --- @field cache DAQ_Cache
-DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, } } }
+DAQ = {
+    AdcChannelEnum = { adc1 = 1, adc2 = 2, adc3 = 3, adc4 = 4 },
+    ib = nil,
+    cache = { io = { mode = 0, output = 0, }, adc = {} },
+}
 DAQ.__index = DAQ
 
 --- @class DAQ_NewOptionalParameters
@@ -44,7 +50,15 @@ function DAQ:New(opt)
     ib.name = opt.name
     ib.nodeId = opt.nodeId
     ib.eds = "lua/core/cep/eds/daq.eds"
-    return setmetatable({ ib = ib, cache = { io = { mode = 0, output = 0, } } }, DAQ)
+    return setmetatable(
+        {
+            ib = ib,
+            cache = {
+                io = { mode = 0, output = 0, },
+                adc = { lastStoredSamples = { [DAQ.AdcChannelEnum.adc2] = 0, [DAQ.AdcChannelEnum.adc3] = 0, }, }
+            }
+        },
+        DAQ)
 end
 
 function DAQ:Reset()
@@ -704,8 +718,7 @@ function DAQ:SpiGpioPolarities(value)
 end
 
 -- ADC
---- @enum DAQ_AdcChannelEnum
-DAQ.AdcChannelEnum = { adc1 = 1, adc2 = 2, adc3 = 3, adc4 = 4 }
+
 --- @enum DAQ_AdcSampleRateEnum
 DAQ.AdcSampleRateEnum = {
     f250Hz = 0,
@@ -959,10 +972,10 @@ DAQ.ImpedanceDefaults = {
     favorSpeed = false
 }
 
----@param samplesToTake integer
----@param sampleRate DAQ_AdcSampleRateEnum
----@param delay integer? delay in us
----@return number duration in s
+--- @param samplesToTake integer
+--- @param sampleRate DAQ_AdcSampleRateEnum
+--- @param delay integer? delay in us
+--- @return number duration in s
 local function computeMeasureDuration(samplesToTake, sampleRate, delay)
     local delayDuration = delay / 1000 / 1000
     local measureDuration = samplesToTake / DAQ.AdcSampleRateValues[sampleRate]
@@ -1170,12 +1183,21 @@ function DAQ:MeasureVoltage(points, opt)
     return self:AdcChannelResults(opt.channel)
 end
 
----@param channel DAQ_AdcChannelEnum
----@param index integer
----@return number
+--- @param channel DAQ_AdcChannelEnum
+--- @param index integer
+--- @return number
 function DAQ:GetStoredSample(channel, index)
     self:AdcStoredSampleIndex(index)
-    return self:AdcStoredSampleValue(channel)
+    local res = self:AdcStoredSampleValue(channel)
+    -- We might be too fast for the value to be updated in time.
+    -- If that's the case, wait 10ms then check the value again, it is more than likely to have been updated by then.
+    -- It is possible, even if unlikely, that we get the exact same value twice. But whatever, it's possible.
+    if res == self.cache.adc.lastStoredSamples[channel] then
+        SleepFor(10)
+        res = self:AdcStoredSampleValue(channel)
+    end
+    self.cache.adc.lastStoredSamples[channel] = res
+    return res
 end
 
 --- @class DAQ_MeasureResistorOptParameters
