@@ -14,26 +14,36 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 Sequence("UI", function()
-    Test("T1", function()
-        local a1    = false
-        local a2    = false
-        local popup = Popup("My popup")
-        popup:Text("Line 1"):Text("Line 2")
-        popup:Input("Input 1"):Input("Input 2")
-        popup:Button("Action 1", function(inputs)
-            a1 = true
-            Log.D("Click on Action 1")
-        end)
-        popup:Button("Action 2", function(inputs)
-            a2 = true
-            Log.D("Click on Action 2")
-        end)
-        popup:Text("Click on both button, and input Frasy and 42 in both inputs to close this popup")
-        popup:Routine(function(inputs)
-            if (a1 and a2 and inputs[1] == "Frasy" and inputs[2] == "42") then
-                popup:Consume()
-            end
-        end)
+    Test("Basic Popup", function()
+        Popup("My Basic Popup")
+            :Text("My basic text")
+            :Button("A button", function() Log.I("Button was pressed") end)
+            :ConsumeButtonText("Pass") -- Default text is cancel
+            :Show()
+    end)
+
+    Test("Routine Button", function()
+        local start = os.clock()
+        local popup = Popup("My Routine Button")
+        popup:Text("This popup will disappear after 5 seconds")
+        popup:Routine(function() if os.clock() - start > 5 then popup:Consume() end end)
+        popup:ConsumeButtonText("Pass")
         popup:Show()
+    end)
+
+    Test("Advanced Popup", function()
+        local state = false
+        Popup("My Advanced Popup")
+            :Button("Toggle", function() state = not state end)
+            :SameLine({spacing = 25})
+            :TextDynamic(function() return "State: " .. (state and "ON" or "OFF") end)
+            :BeginHorizontal(1)
+            :BeginVertical(2)
+            :Button("Nice dragon", function() Log.I("I know right!") end)
+            :Button("Bad dragon", function() Log.I("This will consume the popup") end, { consume = true })
+            :EndVertical()
+            :Image("assets/textures/icon.png", { width = 100, height = 100 })
+            :EndHorizontal()
+            :Show()
     end)
 end)

@@ -33,6 +33,7 @@ public:
     struct Element {
         enum class Kind : std::uint8_t {
             Text,
+            TextDynamic,
             Input,
             Button,
             Image,
@@ -51,6 +52,18 @@ public:
     struct Text : Element {
         std::string text;
         Text(std::string text) : Element(Kind::Text), text(std::move(text)) {}
+        void render() final;
+    };
+
+    struct TextDynamic : Element {
+        std::shared_mutex*                                          mutex;
+        sol::function                                               routine;
+        std::string                                                 text;
+        std::chrono::time_point<std::chrono::high_resolution_clock> lastUpdate;
+        TextDynamic(std::shared_mutex* mutex, const sol::function& routine)
+        : Element(Kind::TextDynamic), mutex(mutex), routine(routine)
+        {
+        }
         void render() final;
     };
 

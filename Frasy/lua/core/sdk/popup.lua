@@ -37,15 +37,16 @@ PopupBuilder.__index = PopupBuilder
 ---@enum ElementKind
 local ElementKind    = {
     text            = 0,
-    input           = 1,
-    button          = 2,
-    image           = 3,
-    beginHorizontal = 4,
-    endHorizontal   = 5,
-    beginVertical   = 6,
-    endVertical     = 7,
-    sameLine        = 8,
-    spring          = 9,
+    textDynamic     = 1,
+    input           = 2,
+    button          = 3,
+    image           = 4,
+    beginHorizontal = 5,
+    endHorizontal   = 6,
+    beginVertical   = 7,
+    endVertical     = 8,
+    sameLine        = 9,
+    spring          = 10,
 }
 
 ---@class ImGui_Size
@@ -79,6 +80,18 @@ function PopupBuilder:Text(text)
     table.insert(self.elements, {
         kind = ElementKind.text,
         text = text,
+    })
+    return self
+end
+
+--- Create a label with dynamic text
+---@param routine function
+---@return PopupBuilder builder
+function PopupBuilder:TextDynamic(routine)
+    CheckField(routine, "routine", type(routine) == "function")
+    table.insert(self.elements, {
+        kind = ElementKind.textDynamic,
+        routine = routine,
     })
     return self
 end
