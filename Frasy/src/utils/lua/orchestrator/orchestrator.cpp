@@ -893,7 +893,7 @@ void Orchestrator::toggleUut(std::size_t index)
 {
     if (isRunning()) { return; }
     auto state   = m_uutStates[index] == UutState::Disabled ? UutState::Idle : UutState::Disabled;
-    bool hasTeam = (*m_state)["Team"]["hasTeam"].get<bool>();
+    bool hasTeam = (*m_state)["Context"]["team"]["hasTeam"].get<bool>();
     if (hasTeam) {
         std::size_t leader = (*m_state)["Context"]["team"]["players"][index]["leader"];
         auto        team   = (*m_state)["Context"]["team"]["teams"][leader].get<std::vector<std::size_t>>();
