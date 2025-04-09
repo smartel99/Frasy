@@ -103,10 +103,13 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     if (!loadEnvironment(sol::state_view(*m_state), m_environment)) { return false; }
     if (!loadTests(sol::state_view(*m_state), m_testsDir)) { return false; }
     populateMap();
-    {
-        std::lock_guard lock(m_expectationsMutex);
-        m_expectations.clear();
-        m_expectations.resize(m_map.uuts.size() + 1, {});
+    m_expectationsMutexes.reserve(m_map.uuts.size() + 1);
+    m_expectationsVectors.reserve(m_map.uuts.size() + 1);
+    m_expectationsVectors.clear();
+    m_expectationsVectors.clear();
+    for (int i = 0; i < m_map.uuts.size(); ++i) {
+        m_expectationsMutexes.emplace_back(std::make_unique<std::mutex>());
+        m_expectationsVectors.emplace_back();
     }
     m_uutStates.resize(m_map.uuts.size() + 1, UutState::Idle);
 
@@ -165,6 +168,10 @@ void Orchestrator::runSolution(const std::string&              operatorName,
     if (m_map.uuts.empty()) {
         Brigerad::warningDialog("Frasy", "No UUTs to test!");
         return;
+    }
+    for (const auto& uut : m_map.uuts) {
+        std::lock_guard lock(*m_expectationsMutexes[uut]);
+        m_expectationsVectors[uut].clear();
     }
     m_running = std::async(std::launch::async, [this, &serials, regenerate, skipVerification] {
         if (FAILED(SetThreadDescription(GetCurrentThread(), L"Solution Runner"))) {
@@ -312,10 +319,10 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         };
         lua["ShowExpectation"] = [this](const sol::table& expectation) {
             FRASY_PROFILE_FUNCTION();
-            std::lock_guard lock(m_expectationsMutex);
             auto            lua = sol::state_view(expectation.lua_state());
             const int       uut = lua["Context"]["info"]["uut"].get<int>();
-            m_expectations[uut].push_back(Expectation::fromTable(expectation));
+            std::lock_guard lock(*m_expectationsMutexes[uut]);
+            m_expectationsVectors[uut].push_back(Expectation::fromTable(expectation));
         };
         lua.require_file("Json", "lua/core/vendor/json.lua");
         importLog(lua, uut, stage);
@@ -489,12 +496,6 @@ bool Orchestrator::loadTests(sol::state_view lua, const std::string& filename)
 void Orchestrator::runTests(const std::vector<std::string>& serials, const bool regenerate, const bool skipVerification)
 {
     updateUutState(UutState::Waiting);
-    {
-        std::lock_guard lock(m_expectationsMutex);
-        for (const auto& uut : m_map.uuts) {
-            m_expectations[uut].clear();
-        }
-    }
     {
         FRASY_PROFILE_SCOPE("Create Output Dir");
         if (!createOutputDirs()) {

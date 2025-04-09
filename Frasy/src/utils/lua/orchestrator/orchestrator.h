@@ -32,6 +32,9 @@
 #include <map>
 #include <sol/sol.hpp>
 #include <string>
+#include <vector>
+#include <mutex>
+#include <memory>
 
 namespace Frasy::Lua {
 class Orchestrator {
@@ -145,11 +148,15 @@ public:
     [[nodiscard]] std::string getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
-    [[nodiscard]] std::pair<std::mutex&, const std::vector<Expectation>&> getExpectations(std::size_t uut)
+    [[nodiscard]] std::mutex* getExpectationsMutex(std::size_t uut)
     {
-        static auto empty        = std::vector<Expectation> {};
-        const auto& expectations = uut < m_expectations.size() ? m_expectations[uut] : empty;
-        return std::make_pair(std::ref(m_expectationsMutex), expectations);
+        if (m_expectationsMutexes.size() <= uut) { throw std::runtime_error("Invalid uut"); }
+        return m_expectationsMutexes[uut].get();
+    }
+    [[nodiscard]] const std::vector<Expectation>& getExpectationsVector(std::size_t uut)
+    {
+        if (m_expectationsVectors.size() <= uut) { throw std::runtime_error("Invalid uut"); }
+        return m_expectationsVectors[uut];
     }
 
 private:
@@ -201,9 +208,9 @@ private:
         // Values will be available at Context.values.gui
         return lua.create_table();
     };
-    Models::Solution                      m_solution = {};
-    std::vector<std::vector<Expectation>> m_expectations;
-    std::mutex                            m_expectationsMutex;
+    Models::Solution                         m_solution = {};
+    std::vector<std::vector<Expectation>>    m_expectationsVectors;
+    std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes = {};
 
     static const std::vector<HashDir::Filter> s_coreFilters;
     std::vector<HashDir::Filter>              m_filters;
