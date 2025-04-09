@@ -17,6 +17,7 @@
 #ifdef BR_DEBUG
 #    define IMSPINNER_DEMO
 #endif
+#include "Brigerad/Renderer/asset_manager.h"
 #include <imspinner.h>
 
 // TEMP
@@ -48,12 +49,11 @@ void ImGuiLayer::onAttach()
                                                              //   io.ConfigFlags |=
     //     ImGuiConfigFlags_ViewportsEnable;    // Enable multi-viewport / platform window.
 
-    // io.Fonts->AddFontFromFileTTF("assets/fonts/OpenSans-Bold.ttf", 18.0f);
-    auto* defaultFont = io.Fonts->AddFontFromFileTTF(
-      "assets/fonts/JetBrains Mono Regular Nerd Font Complete Windows Compatible.ttf", 18.0f);
-    io.Fonts->AddFontFromFileTTF("assets/fonts/JetBrains Mono Regular Nerd Font Complete Windows Compatible.ttf",
-                                 24.0f);
-    io.FontDefault = defaultFont;
+    auto defaultFont = AssetManager::AddFont(
+      "body", "assets/fonts/JetBrains Mono Regular Nerd Font Complete Windows Compatible.ttf", 18.0f);
+    AssetManager::AddFont(
+      "title", "assets/fonts/JetBrains Mono Regular Nerd Font Complete Windows Compatible.ttf", 24.0f);
+    AssetManager::BuildFontAtlas();
 
     // Setup dear Imgui style.
     ImGui::StyleColorsDark();
@@ -72,6 +72,8 @@ void ImGuiLayer::onAttach()
     // Setup Platform/Renderer bindings.
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 410");
+
+    io.FontDefault = defaultFont->font;
 }
 
 void ImGuiLayer::onDetach()

@@ -21,7 +21,9 @@
 
 #include "../Core/File.h"
 #include "../Core/Log.h"
+#include "font.h"
 #include "gif.h"
+#include "imgui.h"
 #include "Texture.h"
 
 #include <string_view>
@@ -78,11 +80,34 @@ public:
 
     static Ref<Gif> GetGif(std::string_view name) { return m_gifs.at(name); }
 
+    static Ref<Font> AddFont(std::string_view name, std::string_view path, double size)
+    {
+        BR_ASSERT(!m_isFontBuilt, "Fonts already built!");
+        auto font     = std::make_shared<Font>(std::string(path), size);
+        m_fonts[name] = font;
+        return font;
+    }
+
+    static ImFont* GetFont(std::string_view name) { return m_fonts.at(name)->font; }
+
 private:
+    friend class ImGuiLayer;
     friend class Application;
     inline static Ref<Texture2D>                                       m_missingTextureTexture;
     inline static std::unordered_map<std::string_view, Ref<Texture2D>> m_textures2d;
     inline static std::unordered_map<std::string_view, Ref<Gif>>       m_gifs;
+    inline static std::unordered_map<std::string_view, Ref<Font>>      m_fonts;
+
+    inline static bool m_isFontBuilt = false;
+
+    static void BuildFontAtlas()
+    {
+        auto& io = ImGui::GetIO();
+        for (auto& font : m_fonts | std::views::values) {
+            font->font = io.Fonts->AddFontFromFileTTF(font->path.c_str(), font->size);
+        }
+        m_isFontBuilt = true;
+    }
 };
 }    // namespace Brigerad
 
