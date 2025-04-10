@@ -107,7 +107,7 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     m_expectationsVectors.reserve(m_map.uuts.size() + 1);
     m_expectationsVectors.clear();
     m_expectationsVectors.clear();
-    for (int i = 0; i < m_map.uuts.size(); ++i) {
+    for (int i = 0; i < m_map.uuts.size() + 1; ++i) {
         m_expectationsMutexes.emplace_back(std::make_unique<std::mutex>());
         m_expectationsVectors.emplace_back();
     }
