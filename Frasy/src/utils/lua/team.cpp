@@ -111,9 +111,7 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
         if (std::ranges::any_of(m_syncStates, [](SyncState state) { return state == critical_failure; })) {
             return critical_failure;
         }
-        if (std::ranges::any_of(m_syncStates, [](SyncState state) { return state == fail; })) {
-            return fail;
-        }
+        if (std::ranges::any_of(m_syncStates, [](SyncState state) { return state == fail; })) { return fail; }
         return pass;
     };
 
@@ -213,13 +211,9 @@ std::optional<sol::object> Team::_Load(sol::state_view lua, std::size_t& cur)
 {
     auto tp = Deserialize<sol::type>(cur);
     if (tp == sol::type::number) { return make_object(lua, Deserialize<double>(cur)); }
-    else if (tp == sol::type::boolean) {
-        return make_object(lua, Deserialize<bool>(cur));
-    }
-    else if (tp == sol::type::string) {
-        return make_object(lua, Deserialize<std::string>(cur));
-    }
-    else if (tp == sol::type::table) {
+    if (tp == sol::type::boolean) { return make_object(lua, Deserialize<bool>(cur)); }
+    if (tp == sol::type::string) { return make_object(lua, Deserialize<std::string>(cur)); }
+    if (tp == sol::type::table) {
         auto t    = lua.create_table();
         auto size = Deserialize<std::size_t>(cur);
         for (std::size_t i = 0; i < size; ++i) {
@@ -238,7 +232,8 @@ std::optional<sol::object> Team::Load(sol::state_view lua)
 {
     std::size_t                attempt = 3;
     std::optional<sol::object> value;
-    while (--attempt != 0) {
+    while (attempt != 0) {
+        --attempt;
         try {
             std::size_t cur = 0;
             value           = _Load(lua, cur);
