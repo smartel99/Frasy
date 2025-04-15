@@ -25,7 +25,7 @@
 
 #    define VERSION_MAJOR            5
 #    define VERSION_MINOR            5
-#    define VERSION_REVISION         0
+#    define VERSION_REVISION         1
 #    define VERSION_BUILD            1274
 #    define VER_FILE_DESCRIPTION_STR "Frasy Universal Test-Bench Control Station"
 #    define VER_FILE_VERSION         VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD

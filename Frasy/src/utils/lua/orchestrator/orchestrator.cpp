@@ -972,7 +972,10 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
                 m_exclusiveLock->unlock();
                 std::lock_guard lock {mutex};
                 std::cout << "Exclusive part: Start " << std::endl;
-                func();
+                if (auto result = func(); !result.valid()) {
+                    sol::error err = result;
+                    BR_LUA_ERROR(err.what());
+                }
                 std::cout << "Exclusive part: End " << std::endl;
             };
             break;
@@ -983,7 +986,10 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
         default:
             lua["__exclusive"] = [&](std::size_t index, sol::function func) {
                 FRASY_PROFILE_FUNCTION();
-                func();
+                if (auto result = func(); !result.valid()) {
+                    sol::error err = result;
+                    BR_LUA_ERROR(err.what());
+                }
             };
             break;
     }
