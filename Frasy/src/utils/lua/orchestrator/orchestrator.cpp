@@ -974,7 +974,7 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
                 std::cout << "Exclusive part: Start " << std::endl;
                 if (auto result = func(); !result.valid()) {
                     sol::error err = result;
-                    BR_LUA_ERROR(err.what());
+                    throw std::runtime_error(err.what());
                 }
                 std::cout << "Exclusive part: End " << std::endl;
             };
@@ -988,7 +988,7 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
                 FRASY_PROFILE_FUNCTION();
                 if (auto result = func(); !result.valid()) {
                     sol::error err = result;
-                    BR_LUA_ERROR(err.what());
+                    throw std::runtime_error(err.what());
                 }
             };
             break;
