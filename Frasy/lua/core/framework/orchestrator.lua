@@ -266,7 +266,17 @@ function Orchestrator.Generate()
                                     completedTests[tName] = 0
                                     hasProgressOnTests = true
                                 else
-                                    Log.D(err.what)
+                                    local what = "Failure, but no information returned"
+                                    if type(err) == "string" then
+                                        what = err
+                                    elseif type(err) == "table" then
+                                        if type(err.what) == "string" then
+                                            what = err.what
+                                        else
+                                            what = "Failure, but return type is odd: \n" .. ToString(err)
+                                        end
+                                    end
+                                    Log.D(what)
                                     hasFailedTests = true
                                 end
                             end
