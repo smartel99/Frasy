@@ -971,12 +971,10 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
                 auto& mutex = m_exclusiveLockMap[index];
                 m_exclusiveLock->unlock();
                 std::lock_guard lock {mutex};
-                std::cout << "Exclusive part: Start " << std::endl;
                 if (auto result = func(); !result.valid()) {
                     sol::error err = result;
                     throw std::runtime_error(err.what());
                 }
-                std::cout << "Exclusive part: End " << std::endl;
             };
             break;
 
