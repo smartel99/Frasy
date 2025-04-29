@@ -172,6 +172,7 @@ public:
 
 private:
     std::string                           m_name;
+    std::optional<std::array<float, 2>>   m_initialPosition;
     std::vector<std::unique_ptr<Element>> m_elements;
     std::vector<std::string>              m_inputs;
     std::atomic_bool                      m_consumed = false;

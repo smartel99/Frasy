@@ -143,6 +143,7 @@ Popup::Popup(std::size_t uut, sol::table builder)
 {
     bool global               = builder["global"];
     m_name                    = builder["name"].operator std::string();
+    m_initialPosition         = builder["initialPosition"].get<std::optional<std::array<float, 2>>>();
     m_routine                 = builder["routine"].get<sol::function>();
     m_consumeButtonText       = builder["consumeButtonText"].get_or<std::string>("Cancel");
     std::array<float, 2> size = {};
@@ -232,6 +233,9 @@ void Popup::Render()
     // It's even worse, it blocks everything. To never be used again!
     // ImVec2 center = ImGui::GetMainViewport()->GetCenter();
     // ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    if (m_initialPosition) {
+        ImGui::SetNextWindowPos(ImVec2(m_initialPosition->at(0), m_initialPosition->at(1)), ImGuiCond_Appearing);
+    }
     ImGui::Begin(m_name.c_str(),
                  nullptr,
                  ImGuiWindowFlags_NoResize |              //

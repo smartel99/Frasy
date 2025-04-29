@@ -30,10 +30,6 @@ local function PrepareImguiSize(value, name)
     return { value.width * 1.0, value.height * 1.0 }
 end
 
---- @class PopupBuilder
-local PopupBuilder   = { name = "", elements = {}, global = false }
-PopupBuilder.__index = PopupBuilder
-
 ---@enum ElementKind
 local ElementKind    = {
     text            = 0,
@@ -49,20 +45,30 @@ local ElementKind    = {
     spring          = 10,
 }
 
+--- @class PopupBuilder
+--- @field name string
+--- @field initialPosition number[]?
+--- @field elements ElementKind[]
+--- @field global boolean
+local PopupBuilder   = { name = "", elements = {}, global = false }
+PopupBuilder.__index = PopupBuilder
+
 ---@class ImGui_Size
 ---@field width number?
 ---@field height number?
 
 ---Creates a new popup.
 ---@param name string? Name to be displayed.
+---@param initialPosition number[]?
 ---@return PopupBuilder
-function PopupBuilder:New(name)
+function PopupBuilder:New(name, initialPosition)
     if name == nil then name = "" end
     return setmetatable(
         {
-            name     = name,
-            elements = {},
-            global   = false,
+            name            = name,
+            elements        = {},
+            initialPosition = initialPosition,
+            global          = false,
         },
         PopupBuilder)
 end
@@ -266,7 +272,8 @@ end
 
 ---Creates a new popup
 ---@param name string? Name of the popup.
+---@param initialPosition number[]?
 ---@return PopupBuilder
-function Popup(name)
-    return PopupBuilder:New(name)
+function Popup(name, initialPosition)
+    return PopupBuilder:New(name, initialPosition)
 end
