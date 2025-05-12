@@ -331,6 +331,7 @@ function DAQ:DacEnable(state)
 end
 
 --- Gets or sets the amplitude of the DAC, in volt.
+--- When DAQ:DacShape is not DAQ.DacShapeEnum.dc, the voltage is expressed in Volts Peak-Peak.
 --- @param amplitude? number
 --- @return number? amplitude
 function DAQ:DacAmplitude(amplitude)
