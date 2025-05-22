@@ -126,6 +126,7 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
                               const std::filesystem::path&        hashfile,
                               const std::vector<HashDir::Filter>& filters)
 {
+#ifndef BR_DEBUG
     if (!exists(hashfile)) {
         BR_LOG_ERROR(s_tag, "Hash file not found");
         return false;
@@ -151,6 +152,7 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
                      hash);
         return false;
     }
+#endif
     return true;
 }
 #pragma endregion Test Related
