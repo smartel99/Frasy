@@ -80,7 +80,7 @@ void ResultViewer::RenderLog(const OverallTestResult& log)
     ImGui::Text("Version: %s", log.Version.c_str());
 
     for (auto&& [sequenceName, sequence] : log.Sequences) {
-        if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!sequence.Passed, ImGuiCond_Always); }
+        if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!sequence.Passed && !sequence.Skipped, ImGuiCond_Always); }
         if (ImGui::TreeNode(sequenceName.c_str())) {
             RenderSequence(sequence);
             ImGui::TreePop();
@@ -95,7 +95,7 @@ void ResultViewer::RenderSequence(const SequenceResult& sequence)
     ImGui::Text("Duration: %0.3f seconds", sequence.Duration);
 
     for (auto&& [testName, test] : sequence.Tests) {
-        if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed, ImGuiCond_Always); }
+        if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed && !test.Skipped, ImGuiCond_Always); }
         if (ImGui::TreeNode(testName.c_str())) {
             RenderTest(test);
             ImGui::TreePop();
@@ -110,7 +110,7 @@ void ResultViewer::RenderTest(const TestResult& test)
     ImGui::Text("Skipped: %s, enabled: %s", test.Skipped ? "True" : "False", test.Enabled ? "True" : "False");
     ImGui::Text("Duration: %0.3f seconds", test.Duration);
 
-    if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed, ImGuiCond_Always); }
+    if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed && !test.Skipped, ImGuiCond_Always); }
     if (ImGui::TreeNode(std::format("Expectations ({})", test.Expectations.size()).c_str())) {
         size_t at = 1;
         for (auto&& expectation : test.Expectations) {
