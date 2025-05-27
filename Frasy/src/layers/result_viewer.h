@@ -71,9 +71,9 @@ public:
     void setVisibility(bool visibility);
 
 private:
-    void        RenderLog(const OverallTestResult& log);
-    void        RenderSequence(const SequenceResult& sequence);
-    void        RenderTest(const TestResult& test);
+    void        RenderLog(const OverallTestResult& log, std::size_t index);
+    void        RenderSequence(const SequenceResult& sequence, std::size_t index);
+    void        RenderTest(const TestResult& test, std::size_t index);
     static void RenderExpectation(const ExpectationDetails& expectation);
 
     bool                                         AreLogsNew();
@@ -88,7 +88,7 @@ private:
 
     bool                 m_isVisible = false;
     std::vector<LogInfo> m_logs;
-    bool                 m_isFirstPassOfLogs = true;
+    std::vector<bool>    m_isFirstPassOfLogs = {};
 
     static constexpr const char* s_windowName       = "Last Results";
     static constexpr const char* s_lastLogsPath     = "logs/last";
