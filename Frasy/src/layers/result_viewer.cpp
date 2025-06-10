@@ -30,6 +30,7 @@ void ResultViewer::onImGuiRender()
 
     if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
         if (AreLogsNew()) {
+            if (m_isFirstPassOfLogs.size() != m_logs.size()) { m_isFirstPassOfLogs.resize(m_logs.size()); }
             // One or more files have been modified, reload their data.
             std::for_each(m_logs.begin(), m_logs.end(), [](auto& log) {
                 try {
@@ -41,18 +42,19 @@ void ResultViewer::onImGuiRender()
                     log.IsGood = false;
                 }
             });
-            m_isFirstPassOfLogs = true;
+            std::ranges::fill(m_isFirstPassOfLogs, true);
         }
 
         if (ImGui::BeginTabBar("ResultTabBar",
                                ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll)) {
-            for (auto&& log : m_logs) {
-                bool passed = log.Results.Passed;
+            for (std::size_t i = 0; i < m_logs.size(); ++i) {
+                auto&& log    = m_logs[i];
+                bool   passed = log.Results.Passed;
                 if (!passed) { ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF); }
                 if (ImGui::BeginTabItem(log.Name.c_str())) {
                     if (!passed) { ImGui::PopStyleColor(); }
                     if (ImGui::BeginChild(log.Name.c_str(), ImVec2 {0.0f, 0.0f}, false)) {
-                        if (log.IsGood) { RenderLog(log.Results); }
+                        if (log.IsGood) { RenderLog(log.Results, i); }
                         else {
                             ImGui::Text("Log is not valid");
                         }
@@ -60,6 +62,7 @@ void ResultViewer::onImGuiRender()
                     ImGui::EndChild();
 
                     ImGui::EndTabItem();
+                    m_isFirstPassOfLogs[i] = false;
                 }
                 else {
                     if (!passed) { ImGui::PopStyleColor(); }
@@ -68,53 +71,54 @@ void ResultViewer::onImGuiRender()
 
             ImGui::EndTabBar();
         }
-        m_isFirstPassOfLogs = false;
     }
     ImGui::End();
 }
 
-void ResultViewer::RenderLog(const OverallTestResult& log)
+void ResultViewer::RenderLog(const OverallTestResult& log, std::size_t index)
 {
     ImGui::Text("Serial Number: %s, UUT %d - %s", log.SerialNumber.c_str(), log.Uut, log.Passed ? "PASSED" : "FAILED");
     ImGui::Text("Date: %s, Duration: %0.3f seconds", log.Date.c_str(), log.Duration);
     ImGui::Text("Version: %s", log.Version.c_str());
 
     for (auto&& [sequenceName, sequence] : log.Sequences) {
-        if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!sequence.Passed, ImGuiCond_Always); }
+        if (m_isFirstPassOfLogs[index]) {
+            ImGui::SetNextItemOpen(!sequence.Passed && !sequence.Skipped, ImGuiCond_Always);
+        }
         if (ImGui::TreeNode(sequenceName.c_str())) {
-            RenderSequence(sequence);
+            RenderSequence(sequence, index);
             ImGui::TreePop();
         }
     }
 }
 
-void ResultViewer::RenderSequence(const SequenceResult& sequence)
+void ResultViewer::RenderSequence(const SequenceResult& sequence, std::size_t index)
 {
     ImGui::Text("Name: %s - %s", sequence.Name.c_str(), sequence.Passed ? "PASSED" : "FAILED");
     ImGui::Text("Skipped: %s, enabled: %s", sequence.Skipped ? "True" : "False", sequence.Enabled ? "True" : "False");
     ImGui::Text("Duration: %0.3f seconds", sequence.Duration);
 
     for (auto&& [testName, test] : sequence.Tests) {
-        if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed, ImGuiCond_Always); }
+        if (m_isFirstPassOfLogs[index]) { ImGui::SetNextItemOpen(!test.Passed && !test.Skipped, ImGuiCond_Always); }
         if (ImGui::TreeNode(testName.c_str())) {
-            RenderTest(test);
+            RenderTest(test, index);
             ImGui::TreePop();
         }
         ImGui::Separator();
     }
 }
 
-void ResultViewer::RenderTest(const TestResult& test)
+void ResultViewer::RenderTest(const TestResult& test, std::size_t index)
 {
     ImGui::Text("Name: %s - %s", test.Name.c_str(), test.Passed ? "PASSED" : "FAILED");
     ImGui::Text("Skipped: %s, enabled: %s", test.Skipped ? "True" : "False", test.Enabled ? "True" : "False");
     ImGui::Text("Duration: %0.3f seconds", test.Duration);
 
-    if (m_isFirstPassOfLogs) { ImGui::SetNextItemOpen(!test.Passed, ImGuiCond_Always); }
+    if (m_isFirstPassOfLogs[index]) { ImGui::SetNextItemOpen(!test.Passed && !test.Skipped, ImGuiCond_Always); }
     if (ImGui::TreeNode(std::format("Expectations ({})", test.Expectations.size()).c_str())) {
         size_t at = 1;
         for (auto&& expectation : test.Expectations) {
-            if (m_isFirstPassOfLogs) {
+            if (m_isFirstPassOfLogs[index]) {
                 bool passed = true;
                 if (expectation.contains("pass")) { passed = expectation.at("pass").get<bool>(); }
                 ImGui::SetNextItemOpen(!passed, ImGuiCond_Always);

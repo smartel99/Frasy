@@ -24,6 +24,25 @@
 #include <imgui.h>
 
 namespace Frasy::Lua {
+namespace {
+constexpr auto type2str = [](const sol::type t) {
+    switch (t) {
+        case sol::type::none: return "none";
+        case sol::type::nil: return "nil";
+        case sol::type::string: return "string";
+        case sol::type::number: return "number";
+        case sol::type::thread: return "thread";
+        case sol::type::boolean: return "boolean";
+        case sol::type::function: return "function";
+        case sol::type::userdata: return "userdata";
+        case sol::type::lightuserdata: return "lightuserdata";
+        case sol::type::table: return "table";
+        case sol::type::poly: return "poly";
+        default: return "unknown";
+    }
+};
+}    // namespace
+
 void Popup::Text::render()
 {
     ImGui::Text("%s", text.c_str());
@@ -31,24 +50,8 @@ void Popup::Text::render()
 
 void Popup::TextDynamic::render()
 {
-    static constexpr auto type2str = [](const sol::type t) {
-        switch (t) {
-            case sol::type::none: return "none";
-            case sol::type::nil: return "nil";
-            case sol::type::string: return "string";
-            case sol::type::number: return "number";
-            case sol::type::thread: return "thread";
-            case sol::type::boolean: return "boolean";
-            case sol::type::function: return "function";
-            case sol::type::userdata: return "userdata";
-            case sol::type::lightuserdata: return "lightuserdata";
-            case sol::type::table: return "table";
-            case sol::type::poly: return "poly";
-            default: return "unknown";
-        }
-    };
+    std::lock_guard lock {*mutex};
     if (routine.get_type() == sol::type::function) {
-        std::lock_guard lock {*mutex};
         if (auto result = routine(); !result.valid()) {
             sol::error error = result;
             BR_LUA_ERROR(error.what());
@@ -57,7 +60,7 @@ void Popup::TextDynamic::render()
             BR_LUA_ERROR("Expected a string, got {} instead.", type2str(result.get_type()));
         }
         else {
-            text = result.get<std::string>();
+            text = std::string(result.get<const char*>());
         }
     }
     ImGui::Text("%s", text.c_str());
