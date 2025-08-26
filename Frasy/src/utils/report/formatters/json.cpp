@@ -83,7 +83,7 @@ void Json::reportSequenceResult(const std::string& name)
     setSequence(name);
     auto obj  = nlohmann::ordered_json::object();
     m_section = &obj;
-    reportSectionBaseResult(m_result["sequences"][name]);
+    reportSectionBaseResult(m_result["sequences"][name].get_or(m_emptyTable));
     m_section                   = nullptr;
     obj["tests"]                = nlohmann::ordered_json::object();
     m_object["sequences"][name] = obj;
@@ -94,10 +94,10 @@ void Json::reportTestResult(const std::string& name)
     setTest(name);
     auto obj  = nlohmann::ordered_json::object();
     m_section = &obj;
-    reportSectionBaseResult(m_result["sequences"][m_sequenceName]["tests"][name]);
+    reportSectionBaseResult(m_result["sequences"][m_sequenceName]["tests"].get_or(m_emptyTable)[name].get_or(m_emptyTable));
     m_section                                            = nullptr;
     obj["expectations"]                                  = nlohmann::ordered_json::array();
-    m_object["sequences"][m_sequenceName]["tests"][name] = nlohmann::ordered_json::object();
+    m_object["sequences"][m_sequenceName]["tests"][name] = obj;
 }
 
 void Json::toFile(const std::string& filename)
@@ -116,9 +116,9 @@ void Json::reportExpectation(const sol::table& expectation)
 void Json::reportSectionBaseResult(const sol::table& section) const
 {
     auto& obj      = *m_section;
-    obj["enabled"] = section["enabled"].get<bool>();
-    obj["pass"]    = section["pass"].get<bool>();
-    obj["skipped"] = section["skipped"].get<bool>();
+    obj["enabled"] = section["enabled"].get_or(false);
+    obj["pass"]    = section["pass"].get_or(false);
+    obj["skipped"] = section["skipped"].get_or(true);
     obj["time"]    = reportSectionTime(section);
 }
 
@@ -126,7 +126,7 @@ nlohmann::ordered_json Json::reportSectionTime(const sol::table& section)
 {
     auto time = nlohmann::ordered_json::object();
     for (const auto& field : {"elapsed", "process", "start", "stop"}) {
-        time[field] = section["time"][field].get<double>();
+        time[field] = section["time"][field].get_or(0.0);
     }
     return time;
 }
