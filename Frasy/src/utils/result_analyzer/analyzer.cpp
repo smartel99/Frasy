@@ -194,7 +194,7 @@ void ResultAnalyzer::AnalyzeSequence(const nlohmann::json& sequence, ResultAnaly
     if (sequence.at("skipped").get<bool>()) { results.Skipped++; }
     results.SkippedPercent = Percent(results.Skipped, results.Total);
     if (sequence.at("pass").get<bool>()) { results.Passed++; }
-    results.PassedPercent = Percent(results.Passed, results.Total);
+    results.PassedPercent = Percent(results.Passed, results.Total - results.Skipped);
 
     results.Durations.push_back(sequence.at("time").at("elapsed").get<double>());
     results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
@@ -222,7 +222,7 @@ void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResul
     if (test.at("skipped").get<bool>()) { results.Skipped++; }
     results.SkippedPercent = Percent(results.Skipped, results.Total);
     if (test.at("pass").get<bool>()) { results.Passed++; }
-    results.PassedPercent = Percent(results.Passed, results.Total);
+    results.PassedPercent = Percent(results.Passed, results.Total - results.Skipped);
 
     results.Durations.push_back(test.at("time").at("elapsed").get<double>());
     results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
