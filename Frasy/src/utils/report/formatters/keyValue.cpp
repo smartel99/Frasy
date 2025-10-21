@@ -48,9 +48,20 @@ void KeyValue::reportInfo()
 
 void KeyValue::reportUserInfo(const sol::table& table)
 {
-    for (const auto& [key, value] : table) {
-        *m_output << "Info-" << obj2str(key) << ": " << obj2str(value) << endline;
-    }
+    std::function<void(const sol::table&, const std::string&)> traverse =
+      [&traverse, this](const sol::table& table, const std::string& path) {
+          for (const auto& [key, value] : table) {
+              std::string label = path;
+              if (!label.empty()) { label += "-"; }
+              label += obj2str(key);
+              if (value.get_type() == sol::type::table) { traverse(value, label); }
+              else {
+                  *m_output << label << ": " << obj2str(value) << endline;
+              }
+          };
+      };
+    if (!table.empty()) *m_output << endline;
+    traverse(table, "");
 }
 
 void KeyValue::reportIb(const std::string& name)
