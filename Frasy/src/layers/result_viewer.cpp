@@ -137,9 +137,12 @@ void ResultViewer::RenderTest(const TestResult& test, std::size_t index)
 
 void ResultViewer::RenderExpectation(const ResultViewer::ExpectationDetails& expectation)
 {
+    bool has_value = false;
     for (const auto& [key, value] : expectation) {
+        if (key == "value") { has_value = true; }
         ImGui::TextWrapped("%s", MakeStringFromJson(key, value).c_str());
     }
+    if (!has_value) { ImGui::TextWrapped("value: nil"); }
 }
 
 void ResultViewer::setVisibility(bool visibility)
