@@ -12,6 +12,7 @@ Brigerad/vendor/glm/doc
 Brigerad/vendor/yaml-cpp/yaml-cpp.vcxproj*
 Brigerad/vendor/implot/ImPlot.vcxproj
 Brigerad/vendor/implot/bin-int/
+Frasy/lua/core/hash
 
 # Build files
 .lib
