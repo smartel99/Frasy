@@ -55,8 +55,9 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
         create_directories(jsonFailDir);
 
         // Create the log file.
-        auto jsonFileDir        = pass ? jsonPassDir : jsonFailDir;
-        auto lastReportFilepath = jsonDirectory / "last.json";
+        auto jsonFileDir = pass ? jsonPassDir : jsonFailDir;
+        auto lastReportFilepath =
+          jsonDirectory / fmt::format("last_uut{}.json", results.get<sol::table>("info").get_or("uut", 0));
 
         auto formatter = Formatter::Json(results);
 
