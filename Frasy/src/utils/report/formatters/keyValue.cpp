@@ -25,7 +25,6 @@
 
 namespace Frasy::Report::Formatter {
 
-
 KeyValue::KeyValue(std::ofstream& output, const sol::table& result) : Formatter(result), m_output(&output)
 {
 }
@@ -37,6 +36,7 @@ void KeyValue::reportInfo()
     *m_output << "Info-Title: " << m_result["info"]["title"].get_or<std::string>("<N/A>") << endline;
     *m_output << "Info-Operator: " << m_result["info"]["operator"].get_or<std::string>("<N/A>").c_str() << endline;
     *m_output << "Info-Serial: " << m_result["info"]["serial"].get_or<std::string>("<N/A>").c_str() << endline;
+    *m_output << "Info-UUT: " << static_cast<int>(m_result["info"]["uut"].get_or<double>(0.0f)) << endline;
     *m_output << "Info-Result: " << resultToString(m_result["info"]["pass"]) << endline;
     *m_output << "Info-Version-Frasy: " << m_result["info"]["version"]["frasy"].get<std::string>() << endline;
     *m_output << "Info-Version-Orchestrator: " << m_result["info"]["version"]["orchestrator"].get<std::string>()
@@ -48,19 +48,19 @@ void KeyValue::reportInfo()
 
 void KeyValue::reportUserInfo(const sol::table& table)
 {
-    std::function<void(const sol::table&, const std::string&)> traverse =
-      [&traverse, this](const sol::table& table, const std::string& path) {
-          for (const auto& [key, value] : table) {
-              std::string label = path;
-              if (!label.empty()) { label += "-"; }
-              label += obj2str(key);
-              if (value.get_type() == sol::type::table) { traverse(value, label); }
-              else {
-                  *m_output << label << ": " << obj2str(value) << endline;
-              }
-          };
-      };
-    if (!table.empty()) *m_output << endline;
+    std::function<void(const sol::table&, const std::string&)> traverse = [&traverse, this](const sol::table&  table,
+                                                                                            const std::string& path) {
+        for (const auto& [key, value] : table) {
+            std::string label = path;
+            if (!label.empty()) { label += "-"; }
+            label += obj2str(key);
+            if (value.get_type() == sol::type::table) { traverse(value, label); }
+            else {
+                *m_output << label << ": " << obj2str(value) << endline;
+            }
+        };
+    };
+    if (!table.empty()) { *m_output << endline; }
     traverse(table, "");
 }
 
