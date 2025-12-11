@@ -24,11 +24,11 @@
 #include <Windows.h>
 
 
-namespace Brigerad::Details
-{
+namespace Brigerad::Details {
 void FatalErrorDialogImpl(std::string_view title, const std::string& msg)
 {
-    MessageBoxA(nullptr, msg.c_str(), title.data(), MB_OK | MB_ICONERROR | MB_TASKMODAL);
+    MessageBoxA(
+      nullptr, msg.c_str(), title.data(), MB_OK | MB_ICONERROR | MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST);
     std::abort();
 }
 }    // namespace Brigerad::Details

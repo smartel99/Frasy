@@ -24,10 +24,10 @@
 #include <Windows.h>
 
 
-namespace Brigerad::Details
-{
+namespace Brigerad::Details {
 void WarningDialogImpl(std::string_view title, const std::string& msg)
 {
-    MessageBoxA(nullptr, msg.c_str(), title.data(), MB_OK | MB_ICONWARNING | MB_TASKMODAL);
+    MessageBoxA(
+      nullptr, msg.c_str(), title.data(), MB_OK | MB_ICONWARNING | MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST);
 }
 }    // namespace Brigerad::Details
