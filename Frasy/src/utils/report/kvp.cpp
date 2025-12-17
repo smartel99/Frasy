@@ -47,7 +47,7 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
 
         namespace fs = std::filesystem;
         // Create log directory if needed.
-        static auto frasyLogDirectory = fs::current_path() / "logs";
+        static auto frasyLogDirectory = fs::current_path() / ".."/ "logs";
         create_directories(frasyLogDirectory);
         auto logDirectory = frasyLogDirectory / title;
         create_directories(logDirectory);
