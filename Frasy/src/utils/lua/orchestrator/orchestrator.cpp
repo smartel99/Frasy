@@ -315,6 +315,10 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
                 FRASY_PROFILE_FUNCTION();
                 std::this_thread::sleep_for(std::chrono::milliseconds(duration)); }
             : [](int duration) { FRASY_PROFILE_FUNCTION(); };
+        lua["CombineAndBitcast"] = [](std::span<uint8_t, 4> data) -> float {
+            return std::bit_cast<float>(static_cast<uint32_t>(data[0]) | static_cast<uint32_t>(data[1]) << 8 |
+                                        static_cast<uint32_t>(data[2]) << 16 | static_cast<uint32_t>(data[3]) << 24);
+        };
         lua["SaveAsJson"] = [](sol::table table, const std::string& file) {
             FRASY_PROFILE_FUNCTION();
             SaveAsJson(std::move(table), file);

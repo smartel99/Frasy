@@ -163,6 +163,11 @@ function DirList(path) return {} end -- C++ call
 --- @param ms integer duration in ms
 function SleepFor(ms) end -- C++ call
 
+--- Combines 4 bytes in big-endian and bit-casts them into a float
+--- @param data integer[] Array of 4 bytes
+--- @return number value The float represented by the 4 bytes.
+function CombineAndBitcast(data) return 0 end -- C++ call
+
 --- Save a table to a JSON file
 --- @param table table Table to save
 --- @param filepath string filepath where to save the json
