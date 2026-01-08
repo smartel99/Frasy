@@ -42,6 +42,7 @@
 #include <string_view>
 #include <thread>
 #include <vector>
+#include <optional>
 
 namespace Frasy {
 class DeviceViewer;
@@ -84,7 +85,7 @@ public:
     void stop();
 
     std::vector<Node>& getNodes();
-    Node*              getNode(uint8_t nodeId);
+    std::optional<Node*> getNode(uint8_t nodeId);
     Node*              addNode(uint8_t nodeId, std::string_view name = "", std::string_view edsPath = "");
     void               removeNode(uint8_t nodeId);
     void               removeNode(const Node& node);

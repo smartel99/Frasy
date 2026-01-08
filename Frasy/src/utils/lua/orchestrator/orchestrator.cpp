@@ -369,10 +369,10 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["CanOpen"]["__upload"] =
           [this, &getIndexAndSubIndex](sol::this_state state, std::size_t nodeId, const sol::table& ode) {
               FRASY_PROFILE_FUNCTION();
-              sol::state_view lua  = sol::state_view(state.lua_state());
-              auto*           node = m_canOpen->getNode(nodeId);
-              if (node == nullptr) { throw sol::error("Invalid node id"); }
-              auto* interface        = node->sdoInterface();
+              sol::state_view lua       = sol::state_view(state.lua_state());
+              auto            maybeNode = m_canOpen->getNode(nodeId);
+              if (!maybeNode.has_value()) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
+              auto* interface        = (*maybeNode)->sdoInterface();
               auto [index, subIndex] = getIndexAndSubIndex(ode);
 
               auto tryRequest = [&] {
@@ -405,9 +405,9 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         lua["CanOpen"]["__download"] = [&](std::size_t nodeId, const sol::table& ode, sol::object value) {
             FRASY_PROFILE_FUNCTION();
-            auto* node = m_canOpen->getNode(nodeId);
-            if (node == nullptr) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
-            auto* interface        = node->sdoInterface();
+            auto maybeNode = m_canOpen->getNode(nodeId);
+            if (!maybeNode.has_value()) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
+            auto* interface        = (*maybeNode)->sdoInterface();
             auto [index, subIndex] = getIndexAndSubIndex(ode);
             const auto sValue      = serializeOdeValue(ode, value);
 
@@ -966,7 +966,7 @@ void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_v
 #pragma endregion
 
 #pragma region Exclusive
-void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
+void           Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 {
     if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
     switch (stage) {
@@ -1001,7 +1001,7 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 #pragma endregion
 
 #pragma region Log
-void Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)
+void           Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)
 {
     lua.script_file("lua/core/sdk/log.lua");
     lua["Log"]["C"] = [uut](const std::string& message) { BR_LOG_CRITICAL(std::format("UUT{}", uut), message); };
@@ -1014,7 +1014,7 @@ void Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unuse
 #pragma endregion
 
 #pragma region Populate Map
-void Orchestrator::populateMap()
+void           Orchestrator::populateMap()
 {
     m_map = {};
     for (auto& [k, v] : (*m_state)["Context"]["map"]["ibs"].get<sol::table>()) {
@@ -1041,7 +1041,7 @@ void Orchestrator::populateMap()
 #pragma endregion
 
 #pragma region Popup
-void Orchestrator::renderPopups()
+void           Orchestrator::renderPopups()
 {
     std::lock_guard lock {(*m_popupMutex)};
     for (auto& [name, popup] : m_popups) {
@@ -1084,7 +1084,7 @@ void Orchestrator::importPopup(sol::state_view lua, std::size_t uut, Stage stage
 #pragma endregion
 
 #pragma region Update UUT State
-void Orchestrator::updateUutState(UutState state, bool force)
+void           Orchestrator::updateUutState(UutState state, bool force)
 {
     std::vector<std::size_t> uuts;
     updateUutState(state, m_map.uuts, force);

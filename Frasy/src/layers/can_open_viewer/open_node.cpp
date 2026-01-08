@@ -30,11 +30,13 @@ CanOpenViewer::OpenNode::OpenNode(uint8_t nodeId, CanOpen::CanOpen* canOpen)
 
 void CanOpenViewer::OpenNode::onImGuiRender()
 {
-    auto* node = m_canOpen->getNode(m_nodeId);
-    if (node == nullptr) {
+    auto maybeNode = m_canOpen->getNode(m_nodeId);
+    if (maybeNode.has_value()) {
         m_open = false;
         return;
     }
+
+    auto* node = maybeNode.value();
 
     if (ImGui::BeginTabItem(node->name().data(), &m_open)) {
         if (ImGui::BeginTabBar(m_tabBarName.c_str(),

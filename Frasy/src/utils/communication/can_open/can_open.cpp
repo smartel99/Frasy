@@ -202,16 +202,16 @@ void CanOpen::stop()
     if (m_coThread.joinable()) { m_coThread.join(); }
 }
 
-#pragma region Nodes
+#pragma region     Nodes
 std::vector<Node>& CanOpen::getNodes()
 {
     return m_nodes;
 }
 
-Node* CanOpen::getNode(uint8_t nodeId)
+std::optional<Node*> CanOpen::getNode(uint8_t nodeId)
 {
     auto it = std::ranges::find_if(m_nodes, [nodeId](const auto& node) { return node.nodeId() == nodeId; });
-    return it == m_nodes.end() ? nullptr : &*it;
+    return it == m_nodes.end() ? std::optional<Node*> {} : std::optional {&*it};
 }
 
 Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view edsPath)
@@ -344,7 +344,7 @@ void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
     // Increment the number of producers.
     // If heartbeatTimeMs is 0, the entry needs to be deleted.
 
-#define ENTRY_ID(entry) (uint8_t)(((entry) & 0x00FF0000) >> 16)
+#define ENTRY_ID(entry) (uint8_t)(((entry)&0x00FF0000) >> 16)
     if (heartbeatTimeMs == 0) {
         size_t pos = 0;
         // Find the entry:
@@ -416,6 +416,7 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
             // any time acquiring and releasing it.
             struct {
                 void lock() {}
+
                 void unlock() {}
             } fakeLock;
             m_sleepOrTimeout.wait_for(
@@ -435,7 +436,7 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
 }
 
 #pragma region Initialization
-bool CanOpen::initialInit()
+bool           CanOpen::initialInit()
 {
     // Initialize CANopen.
     OD_INIT_CONFIG(m_canOpenConfig);
@@ -509,11 +510,16 @@ bool CanOpen::runtimeInit()
     }
 
     uint32_t errInfo = 0;
-    err              = CO_CANopenInit(m_co,       // CANopen object.
-                         nullptr,    // alternate NMT handle.
-                         nullptr,    // alternate emergency handle, might be required.
-                         OD,    // TODO: Object dictionary must be dynamically built from the loaded environment.
-                         nullptr,    // Optional OD_statusBits.
+    err              = CO_CANopenInit(m_co,
+                         // CANopen object.
+                         nullptr,
+                         // alternate NMT handle.
+                         nullptr,
+                         // alternate emergency handle, might be required.
+                         OD,
+                         // TODO: Object dictionary must be dynamically built from the loaded environment.
+                         nullptr,
+                         // Optional OD_statusBits.
                          s_nmtControlFlags,
                          s_firstHeartbeatTime,
                          s_sdoServerTimeoutTime,
@@ -676,7 +682,7 @@ CO_SDOclient_t* CanOpen::findSdoClientHandle(uint8_t nodeId)
 }
 
 #pragma region Callbacks
-void CanOpen::emRxCallback(void*          arg,
+void           CanOpen::emRxCallback(void*          arg,
                            const uint16_t ident,
                            const uint16_t errorCode,
                            const uint8_t  errorRegister,
@@ -715,7 +721,8 @@ void CanOpen::emRxCallback(void*          arg,
 
     // The source is us?
     if (emergencyMessage.nodeId == 0) {
-        that->getNode(0x01)->addEmergency(emergencyMessage);
+        auto maybeNode = that->getNode(0x01);
+        if (maybeNode.has_value()) { (*maybeNode)->addEmergency(emergencyMessage); }
         return;
     }
 
