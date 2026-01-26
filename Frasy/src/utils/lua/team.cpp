@@ -65,7 +65,7 @@ void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t p
         return value;
     };
 
-    other["Team"]["__wait"] = [&](sol::function routine) {
+    other["Team"]["__wait"] = [&](sol::unsafe_function routine) {
         m_mutex->lock();
         m_wCount++;
         m_mutex->unlock();

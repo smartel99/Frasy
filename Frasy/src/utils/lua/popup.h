@@ -57,10 +57,10 @@ public:
 
     struct TextDynamic : Element {
         std::shared_mutex*                                          mutex;
-        sol::function                                               routine;
+        sol::unsafe_function                                        routine;
         std::string                                                 text;
         std::chrono::time_point<std::chrono::high_resolution_clock> lastUpdate;
-        TextDynamic(std::shared_mutex* mutex, const sol::function& routine)
+        TextDynamic(std::shared_mutex* mutex, const sol::unsafe_function& routine)
         : Element(Kind::TextDynamic), mutex(mutex), routine(routine)
         {
         }
@@ -85,7 +85,7 @@ public:
     struct Button : Element {
         Button(std::string               label,
                std::array<float, 2>      size,
-               sol::function             action,
+               sol::unsafe_function      action,
                bool                      consume,
                std::function<void()>     onConsume,
                std::shared_mutex*        luaMutex,
@@ -102,7 +102,7 @@ public:
         }
         std::string               label;
         ImVec2                    size;
-        sol::function             action;
+        sol::unsafe_function      action;
         bool                      consume;
         std::function<void()>     onConsume;
         std::shared_mutex*        luaMutex;
@@ -176,7 +176,7 @@ private:
     std::vector<std::unique_ptr<Element>> m_elements;
     std::vector<std::string>              m_inputs;
     std::atomic_bool                      m_consumed = false;
-    std::optional<sol::function>          m_routine;
+    std::optional<sol::unsafe_function>   m_routine;
     std::shared_mutex                     m_luaMutex;
     std::string                           m_consumeButtonText = "Cancel";
 

@@ -147,7 +147,7 @@ Popup::Popup(std::size_t uut, sol::table builder)
     bool global               = builder["global"];
     m_name                    = builder["name"].operator std::string();
     m_initialPosition         = builder["initialPosition"].get<std::optional<std::array<float, 2>>>();
-    m_routine                 = builder["routine"].get<sol::function>();
+    m_routine                 = builder["routine"].get<sol::unsafe_function>();
     m_consumeButtonText       = builder["consumeButtonText"].get_or<std::string>("Cancel");
     std::array<float, 2> size = {};
     if (!global) { m_name = std::format("UUT{} - {}", uut, m_name); }
@@ -158,7 +158,7 @@ Popup::Popup(std::size_t uut, sol::table builder)
                 break;
             case Element::Kind::TextDynamic:
                 m_elements.push_back(
-                  std::make_unique<TextDynamic>(&m_luaMutex, element["routine"].get<sol::function>()));
+                  std::make_unique<TextDynamic>(&m_luaMutex, element["routine"].get<sol::unsafe_function>()));
                 break;
             case Element::Kind::Input:
                 m_elements.push_back(std::make_unique<Input>(
@@ -171,7 +171,7 @@ Popup::Popup(std::size_t uut, sol::table builder)
                 m_elements.push_back(std::make_unique<Button>(
                   element["label"].get<std::string>(),
                   element["size"].get<std::array<float, 2>>(),
-                  element["action"].get<sol::function>(),
+                  element["action"].get<sol::unsafe_function>(),
                   element["consume"].get<bool>(),
                   [&] { Consume(); },
                   &m_luaMutex,

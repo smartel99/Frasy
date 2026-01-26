@@ -971,7 +971,7 @@ void           Orchestrator::importExclusive(sol::state_view lua, Stage stage)
     if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
     switch (stage) {
         case Stage::execution:
-            lua["__exclusive"] = [&](std::size_t index, sol::function func) {
+            lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
                 FRASY_PROFILE_FUNCTION();
                 m_exclusiveLock->lock();
                 auto& mutex = m_exclusiveLockMap[index];
@@ -988,7 +988,7 @@ void           Orchestrator::importExclusive(sol::state_view lua, Stage stage)
         case Stage::generation:
         case Stage::validation:
         default:
-            lua["__exclusive"] = [&](std::size_t index, sol::function func) {
+            lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
                 FRASY_PROFILE_FUNCTION();
                 if (auto result = func(); !result.valid()) {
                     sol::error err = result;
