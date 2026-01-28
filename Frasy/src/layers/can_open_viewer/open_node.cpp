@@ -26,19 +26,22 @@ namespace Frasy {
 CanOpenViewer::OpenNode::OpenNode(uint8_t nodeId, CanOpen::CanOpen* canOpen)
 : m_nodeId(nodeId), m_canOpen(canOpen), m_sdo(std::make_unique<Sdo>(nodeId))
 {
+    auto             maybeNode = canOpen->getNode(nodeId);
+    std::string_view nodeName  = maybeNode.has_value() ? maybeNode.value()->name() : "Unknown";
+    m_tabBarName               = std::format("{} - 0x{:2X}", nodeName, nodeId);
 }
 
 void CanOpenViewer::OpenNode::onImGuiRender()
 {
     auto maybeNode = m_canOpen->getNode(m_nodeId);
-    if (maybeNode.has_value()) {
+    if (!maybeNode.has_value()) {
         m_open = false;
         return;
     }
 
     auto* node = maybeNode.value();
 
-    if (ImGui::BeginTabItem(node->name().data(), &m_open)) {
+    if (ImGui::BeginTabItem(m_tabBarName.c_str(), &m_open)) {
         if (ImGui::BeginTabBar(m_tabBarName.c_str(),
                                ImGuiTabBarFlags_NoCloseWithMiddleMouseButton |
                                  ImGuiTabBarFlags_FittingPolicyResizeDown | ImGuiTabBarFlags_FittingPolicyScroll)) {
