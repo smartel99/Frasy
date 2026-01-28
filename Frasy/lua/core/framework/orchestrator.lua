@@ -462,7 +462,11 @@ function Orchestrator.CompileExecutionResults(outputDir)
                 report.sequences[sName].time.process
         end
     end
-    Context.map.onReport(report) -- report passed as pointer, careful
+    xpcall(function() Context.map.onReport(report) end, function(error)
+        Log.E("On Report failed")
+        Log.E(ToString(error))
+        Log.E(debug.traceback())
+    end) -- report passed as pointer, careful
     SaveAsJson(report, string.format("%s/%s.json", outputDir, Context.info.uut))
 end
 
