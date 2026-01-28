@@ -76,17 +76,24 @@ public:
                                    bool     isBlock          = false,
                                    VarType  type             = VarType::Undefined);
 
-    SdoDownloadDataResult downloadData(uint16_t                    index,
-                                       uint8_t                     subIndex,
-                                       const std::vector<uint8_t>& data,
-                                       uint16_t                    sdoTimeoutTimeMs = 1000,
-                                       uint8_t                     retries          = 5,
-                                       bool                        isBlock          = false)
+    template<std::ranges::range R>
+    SdoDownloadDataResult downloadData(uint16_t index,
+                                       uint8_t  subIndex,
+                                       R&&      data,
+                                       uint16_t sdoTimeoutTimeMs = 1000,
+                                       uint8_t  retries          = 5,
+                                       bool     isBlock          = false)
     {
         FRASY_PROFILE_FUNCTION();
         SdoDownloadDataResult result;
-        result.m_request = std::make_shared<SdoDownloadRequest>(
-          SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, sdoTimeoutTimeMs, retries, data);
+        result.m_request = std::make_shared<SdoDownloadRequest>(SdoRequestStatus::Queued,
+                                                                m_nodeId,
+                                                                index,
+                                                                subIndex,
+                                                                isBlock,
+                                                                sdoTimeoutTimeMs,
+                                                                retries,
+                                                                std::ranges::to<std::vector<uint8_t>>(data));
 
         result.future = result.m_request->promise.get_future();
 
