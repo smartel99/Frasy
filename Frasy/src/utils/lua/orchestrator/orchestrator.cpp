@@ -143,6 +143,7 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
     }
 
     if (const auto hash = hashDir(folder, filters); hash != expectedHash) {
+#    ifdef DEBUG
         BR_LOG_ERROR(s_tag,
                      "{} hash mismatch.\n"
                      "E: {}\n"
@@ -150,6 +151,9 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
                      folder.string(),
                      expectedHash,
                      hash);
+#    else
+        BR_LOG_ERROR(s_tag, "{} hash mismatch", folder.string());
+#    endif
         return false;
     }
 #endif
@@ -185,9 +189,7 @@ void Orchestrator::runSolution(const std::string&              operatorName,
 }
 
 const Models::Solution& Orchestrator::getSolution()
-{
-    return m_solution;
-}
+{ return m_solution; }
 
 bool Orchestrator::createOutputDirs()
 {
@@ -929,14 +931,10 @@ void Orchestrator::generate()
 }
 
 void Orchestrator::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
-{
-    m_solution.SetTestEnable(sequence, test, enable);
-}
+{ m_solution.SetTestEnable(sequence, test, enable); }
 
 void Orchestrator::setSequenceEnable(const std::string& sequence, bool enable)
-{
-    m_solution.SetSequenceEnable(sequence, enable);
-}
+{ m_solution.SetSequenceEnable(sequence, enable); }
 
 bool Orchestrator::isRunning() const
 {
@@ -945,28 +943,20 @@ bool Orchestrator::isRunning() const
 }
 
 [[nodiscard]] UutState Orchestrator::getUutState(std::size_t uut) const
-{
-    return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
-}
+{ return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle; }
 
 void Orchestrator::setLoadUserFunctions(const std::function<void(sol::state_view)>& callback)
-{
-    m_loadUserFunctions = callback;
-}
+{ m_loadUserFunctions = callback; }
 
 void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback)
-{
-    m_loadUserBoards = callback;
-}
+{ m_loadUserBoards = callback; }
 
 void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback)
-{
-    m_loadUserValues = callback;
-}
+{ m_loadUserValues = callback; }
 #pragma endregion
 
 #pragma region Exclusive
-void           Orchestrator::importExclusive(sol::state_view lua, Stage stage)
+void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 {
     if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
     switch (stage) {
@@ -1001,7 +991,7 @@ void           Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 #pragma endregion
 
 #pragma region Log
-void           Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)
+void Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)
 {
     lua.script_file("lua/core/sdk/log.lua");
     lua["Log"]["C"] = [uut](const std::string& message) { BR_LOG_CRITICAL(std::format("UUT{}", uut), message); };
@@ -1014,7 +1004,7 @@ void           Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[m
 #pragma endregion
 
 #pragma region Populate Map
-void           Orchestrator::populateMap()
+void Orchestrator::populateMap()
 {
     m_map = {};
     for (auto& [k, v] : (*m_state)["Context"]["map"]["ibs"].get<sol::table>()) {
@@ -1041,7 +1031,7 @@ void           Orchestrator::populateMap()
 #pragma endregion
 
 #pragma region Popup
-void           Orchestrator::renderPopups()
+void Orchestrator::renderPopups()
 {
     std::lock_guard lock {(*m_popupMutex)};
     for (auto& [name, popup] : m_popups) {
@@ -1084,7 +1074,7 @@ void Orchestrator::importPopup(sol::state_view lua, std::size_t uut, Stage stage
 #pragma endregion
 
 #pragma region Update UUT State
-void           Orchestrator::updateUutState(UutState state, bool force)
+void Orchestrator::updateUutState(UutState state, bool force)
 {
     std::vector<std::size_t> uuts;
     updateUutState(state, m_map.uuts, force);
