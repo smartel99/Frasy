@@ -118,7 +118,7 @@ void PDF::reportUserInfo(const sol::table& table)
 
 void PDF::startReportIb()
 {
-    m_ss << "<h2>Material Used:</h2>\n"
+    m_ss << "<h2>Equipment Used:</h2>\n"
          << "<div class=\"ibs\">\n"
          << "<div class=\"ib\"><h4>Frasy</h4>\n"
          << "<table style=\"width:100%\">\n";
