@@ -63,7 +63,7 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
 
         formatter.reportInfo();
         if (lua["Context"]["map"]["onReportInfo"].get_type() != sol::type::nil) {
-            BR_LOG_ERROR(s_tag, "reportUserInfo not implemented for PDF output!");
+            BR_LOG_WARN(s_tag, "reportUserInfo not implemented for PDF output!");
         }
 
         formatter.startReportIb();
