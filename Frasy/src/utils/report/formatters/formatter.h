@@ -28,7 +28,7 @@ template<typename T>
              static std::string getFieldAsStr(const sol::object& field)
 {
     if (field == sol::nil) { return "Not provided"; }
-    return std::to_string(field.as<T>());
+    return std::format("{}", field.as<T>());
 }
 
 template<typename T>
@@ -62,11 +62,11 @@ protected:
     virtual void reportToBeNear(const sol::table& expectation)         = 0;
 
 
-    static std::string resultToString(const sol::object& field);
-    static std::string sectionResultToString(const sol::table& section);
-    void               setSequence(const std::string& name);
-    void               setTest(const std::string& name);
-    virtual void       reportSectionBaseResult(const sol::table& section) const = 0;
+    static std::string  resultToString(const sol::object& field);
+    virtual std::string sectionResultToString(const sol::table& section) const;
+    void                setSequence(const std::string& name);
+    void                setTest(const std::string& name);
+    virtual void        reportSectionBaseResult(const sol::table& section) const = 0;
 
     sol::table  m_result;
     sol::table  m_emptyTable;

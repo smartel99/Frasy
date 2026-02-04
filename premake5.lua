@@ -282,7 +282,8 @@ function DefineFrasy()
         "Brigerad/src",
         "%{prj.name}/vendor",
         "%{prj.name}/vendor/hashdir/include",
-        "%{prj.name}/vendor/hashdir/vendor/highwayhash"
+        "%{prj.name}/vendor/hashdir/vendor/highwayhash",
+        "%{prj.name}/vendor/wkhtmltox/include"
     }
 
     CANopenIncludes()

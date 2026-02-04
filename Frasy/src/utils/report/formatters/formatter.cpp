@@ -89,7 +89,7 @@ std::string Formatter::resultToString(const sol::object& field)
     return (field.as<bool>() ? "PASS" : "FAIL");
 }
 
-std::string Formatter::sectionResultToString(const sol::table& section)
+std::string Formatter::sectionResultToString(const sol::table& section) const
 {
     if (section["skipped"] != sol::nil && section["skipped"].get<bool>()) { return "SKIPPED"; }
     if (section["pass"] == sol::nil) { return "Not provided"; }

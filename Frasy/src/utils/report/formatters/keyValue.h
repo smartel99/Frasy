@@ -26,6 +26,7 @@ namespace Frasy::Report::Formatter {
 class KeyValue final : public Formatter {
 public:
     KeyValue(std::ofstream& output, const sol::table& result);
+    ~KeyValue() override = default;
     void reportInfo() override;
     void reportUserInfo(const sol::table& table) override;
     void reportIb(const std::string& name) override;

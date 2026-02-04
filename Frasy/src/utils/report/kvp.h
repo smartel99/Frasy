@@ -16,8 +16,8 @@
  */
 
 
-#ifndef FRASY_SRC_UTILS_KVP_H
-#define FRASY_SRC_UTILS_KVP_H
+#ifndef FRASY_SRC_UTILS_REPORT_KVP_H
+#define FRASY_SRC_UTILS_REPORT_KVP_H
 
 #include <sol/sol.hpp>
 #include <string>
