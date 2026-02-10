@@ -21,6 +21,8 @@
 
 #include <sol/sol.hpp>
 #include <string>
+#include <format>
+#include <type_traits>
 
 namespace Frasy::Report::Formatter {
 template<typename T>
