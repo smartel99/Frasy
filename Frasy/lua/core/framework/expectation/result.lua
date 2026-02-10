@@ -13,10 +13,14 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
+--- @class ExpectationResultOpt
+--- @field note string? Extra note added to the expectation
+--- @field extra table? Extra data to be added to the expectation
+
 --- @class ExpectationResult
 --- @field value any
 --- @field name string
---- @field note string? deprecated field, previously used as name/extra
+--- @field note string?
 --- @field pass boolean tell if the value fulfilled requirement
 --- @field inverted boolean tell if the result should be interpreted with invert logic
 --- @field extra any? additional data that could be useful for developer
@@ -40,12 +44,11 @@ ExpectationResult.__index = ExpectationResult
 
 --- @param value any
 --- @param name string
---- @param extra any?
-function ExpectationResult:New(value, name, extra)
+--- @param opt ExpectationResultOpt?
+function ExpectationResult:New(value, name, opt)
     local note = name
-    if type(extra) == "table" and type(extra["note"]) ~= "nil" then
-        note = extra["note"]
-        extra["note"] = nil
+    if type(opt) == "table" and type(opt.note) == "string" then
+        note = opt.note
     end
     return setmetatable({
         value    = value,
@@ -53,7 +56,7 @@ function ExpectationResult:New(value, name, extra)
         note     = note,
         pass     = false,
         inverted = false,
-        extra    = extra
+        extra    = opt.extra
     }, ExpectationResult)
 end
 

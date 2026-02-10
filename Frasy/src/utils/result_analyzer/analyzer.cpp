@@ -231,7 +231,7 @@ void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResul
     auto expectations = test.at("expectations");
     for (auto expectation : expectations) {
         std::string name = std::format("Expectation {}", results.Expectations.size() + 1);
-        if (expectation.contains("note")) { name = expectation.at("note").get<std::string>(); }
+        if (expectation.contains("name")) { name = expectation.at("name").get<std::string>(); }
         try {
             if (!results.Expectations.contains(name)) {
                 results.Expectations[name] = std::move(MakeExpectationFromDetails(expectation));
