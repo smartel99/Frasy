@@ -128,12 +128,12 @@ struct fmt::formatter<std::basic_string_view<uint8_t>> : formatter<std::span<uin
     ::Brigerad::Log::GetLogger(logger)->log( \
       ::Brigerad::Log::FormatSourceLocation(std::source_location::current()), level, msg __VA_OPT__(, ) __VA_ARGS__)
 
-#define BR_LOG_TRACE(logger, ...)    BR_LOG(logger, spdlog::level::trace, __VA_ARGS__)
-#define BR_LOG_DEBUG(logger, ...)    BR_LOG(logger, spdlog::level::debug, __VA_ARGS__)
-#define BR_LOG_INFO(logger, ...)     BR_LOG(logger, spdlog::level::info, __VA_ARGS__)
-#define BR_LOG_WARN(logger, ...)     BR_LOG(logger, spdlog::level::warn, __VA_ARGS__)
-#define BR_LOG_ERROR(logger, ...)    BR_LOG(logger, spdlog::level::err, __VA_ARGS__)
-#define BR_LOG_CRITICAL(logger, ...) BR_LOG(logger, spdlog::level::critical, __VA_ARGS__)
+#define BR_LOG_TRACE(logger, ...)    BR_LOG(logger, ::spdlog::level::trace, __VA_ARGS__)
+#define BR_LOG_DEBUG(logger, ...)    BR_LOG(logger, ::spdlog::level::debug, __VA_ARGS__)
+#define BR_LOG_INFO(logger, ...)     BR_LOG(logger, ::spdlog::level::info, __VA_ARGS__)
+#define BR_LOG_WARN(logger, ...)     BR_LOG(logger, ::spdlog::level::warn, __VA_ARGS__)
+#define BR_LOG_ERROR(logger, ...)    BR_LOG(logger, ::spdlog::level::err, __VA_ARGS__)
+#define BR_LOG_CRITICAL(logger, ...) BR_LOG(logger, ::spdlog::level::critical, __VA_ARGS__)
 
 // Core Log Macros.
 #define BR_CORE_TRACE(...)    BR_LOG_TRACE(::Brigerad::Log::s_coreLoggerName, __VA_ARGS__)

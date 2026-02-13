@@ -58,7 +58,7 @@ private:
 public:
     Instrumentor() : m_currentSession(nullptr), m_profileCount(0) {}
 
-    void BeginSession(const std::string& name, const std::string& filepath = "results.json", long long duration = 0)
+    void BeginSession(const std::string& name, const std::string& filepath = "results.json", [[maybe_unused]] long long duration = 0)
     {
         m_outputStream.open(filepath);
         WriteHeader();

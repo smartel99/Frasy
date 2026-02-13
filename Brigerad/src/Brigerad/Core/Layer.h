@@ -39,11 +39,11 @@ public:
 
     virtual void onDetach() {}
 
-    virtual void onUpdate(Brigerad::Timestep timestep) {}
+    virtual void onUpdate([[maybe_unused]] Timestep timestep) {}
 
     virtual void onImGuiRender() {}
 
-    virtual void onEvent(Event& event) {}
+    virtual void onEvent([[maybe_unused]] Event& event) {}
 
     inline const std::string& getName() const { return m_debugName; }
 

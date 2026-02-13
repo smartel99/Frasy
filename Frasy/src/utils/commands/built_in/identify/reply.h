@@ -28,6 +28,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <format>
 
 namespace Frasy::Actions::Identify
 {
@@ -61,10 +62,10 @@ struct Info
     Info() = default;
     explicit Info(const Reply& reply)
     {
-        Uuid    = fmt::format("{:08X}", fmt::join(reply.Uuid, ""));
+        Uuid    = std::format("{::08X}", reply.Uuid);
         Version = std::string {reply.Version.begin(), reply.Version.end()};
         PrjName = std::string {reply.PrjName.begin(), reply.PrjName.end()};
-        Built   = fmt::format("{} - {}",
+        Built   = std::format("{} - {}",
                             std::string {reply.BuildDate.begin(), reply.BuildDate.end()}.c_str(),
                             std::string {reply.BuildTime.begin(), reply.BuildTime.end()}.c_str());
     }

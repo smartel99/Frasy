@@ -224,7 +224,7 @@ void Application::close()
  * @param   e The event
  * @retval  Always return true
  */
-bool Application::onWindowClose(WindowCloseEvent& e)
+bool Application::onWindowClose([[maybe_unused]] WindowCloseEvent& e)
 {
     m_running = false;
     return true;

@@ -39,7 +39,7 @@ Gif::Gif(std::string_view path)
     {
         BR_PROFILE_SCOPE("stbi_load_gif_from_memory - Gif::Gif(const std::string&)");
         m_data = stbi_load_gif_from_memory(
-          data.data(), data.size(), &m_delays, &m_width, &m_height, &m_frames, &m_channels, 0);
+          data.data(), static_cast<int>(data.size()), &m_delays, &m_width, &m_height, &m_frames, &m_channels, 0);
     }
     if (m_data == nullptr) {
         BR_APP_ERROR("Unable to load Gif from file '{}': {}", path, stbi_failure_reason());
@@ -55,7 +55,7 @@ Gif::Gif(std::string_view path)
                  m_channels,
                  std::accumulate(m_delays, m_delays + m_frames, 0));
 
-    m_texture = Texture2D::Create(m_width, m_height, m_channels);
+    m_texture = Texture2D::Create(m_width, m_height, static_cast<uint8_t>(m_channels));
     m_texture->SetData(getFrameData(m_atFrame), m_width * m_height * m_channels);
     nextFrame();
 }
@@ -68,7 +68,7 @@ Gif::~Gif()
 
 void Gif::onUpdate(Timestep timestep)
 {
-    m_currentFrameDelay -= timestep.GetMilliseconds();
+    m_currentFrameDelay -= static_cast<int>(timestep.GetMilliseconds());
 
     while (m_currentFrameDelay <= 0) {
         int remainder = m_currentFrameDelay;

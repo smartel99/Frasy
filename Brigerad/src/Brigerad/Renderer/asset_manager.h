@@ -57,7 +57,7 @@ public:
     static Ref<Texture2D> AddTexture2D(std::string_view path) { return AddTexture2D(path, path); }
     static Ref<Texture2D> AddTexture2D(std::string_view name, uint32_t width, uint32_t height, uint32_t channels = 4)
     {
-        m_textures2d[name] = Texture2D::Create(width, height, channels);
+        m_textures2d[name] = Texture2D::Create(width, height, static_cast<uint8_t>(channels));
         return m_textures2d[name];
     }
 
@@ -104,7 +104,7 @@ private:
     {
         auto& io = ImGui::GetIO();
         for (auto& font : m_fonts | std::views::values) {
-            font->font = io.Fonts->AddFontFromFileTTF(font->path.c_str(), font->size);
+            font->font = io.Fonts->AddFontFromFileTTF(font->path.c_str(), static_cast<float>(font->size));
         }
         m_isFontBuilt = true;
     }

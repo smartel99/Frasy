@@ -135,7 +135,7 @@ OpenGLFontAtlas::OpenGLFontAtlas(const std::string& fontPath)
         glyph.m_size    = {cX2 - cX1, -1 * (cY2 - cY1)};
         glyph.m_lead    = roundf(lsb * scale);
         glyph.m_advance = roundf(ax * scale);
-        glyph.m_char    = c;
+        glyph.m_char    = static_cast<char>(c);
         m_atlas.emplace_back(glyph);
         // BR_TRACE(
         //  "{}: offset ({}, {}), size ({}, {}), lead {}, advance {}, c1 ({}, {}), c2 ({}, {}), pos
@@ -178,10 +178,10 @@ OpenGLFontAtlas::OpenGLFontAtlas(const std::string& fontPath)
     for (size_t y = 0; y < textureHeight; y++)
     {
         size_t ry = textureHeight - y;
-        for (size_t x = 0; x < textureWidth; x++)
+        for (size_t x_ = 0; x_ < textureWidth; x_++)
         {
-            size_t i  = (y * textureWidth + x);
-            size_t ri = ((ry - 1) * textureWidth + x);
+            size_t i  = (y * textureWidth + x_);
+            size_t ri = ((ry - 1) * textureWidth + x_);
             // Basically duplicate the alpha channel on each colors.
             uint32_t r     = (uint32_t)bitmap[ri] << 24;
             uint32_t g     = (uint32_t)bitmap[ri] << 16;

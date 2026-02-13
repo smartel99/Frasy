@@ -10,8 +10,8 @@
 #include "Brigerad/Core/Log.h"
 #include "Brigerad/Debug/Instrumentor.h"
 
-#include <GLFW/glfw3.h>
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #include <string_view>
 

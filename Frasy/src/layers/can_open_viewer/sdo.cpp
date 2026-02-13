@@ -95,7 +95,7 @@ void Sdo::renderUploadTab(CanOpen::Node& node)
 namespace {
 auto _resultArrayToString(const std::span<uint8_t>& result) -> std::string
 {
-    return fmt::format("{:02x}", fmt::join(result, ", "));
+    return std::format("{::02x}", result);
 }
 auto _resultArrayAsString(const std::span<uint8_t>& result) -> std::string
 {
@@ -147,7 +147,7 @@ void Sdo::purgeCompletedUploadRequests()
 
         if (result.has_value()) { requestResult.result = resultToString(request, result); }
         else {
-            requestResult.result = fmt::format("Request Failed: {}", result.error());
+            requestResult.result = std::format("Request Failed: {}", result.error());
         }
         m_uploadRequestHistory.push_back(requestResult);
     }
@@ -343,7 +343,7 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
       },
       [this, &send]<typename T>(T& v) {
           auto vs = std::to_string(v);
-          std::copy_n(vs.data(), std::min(s_downloadVariableBufferSize, vs.size()), m_downloadVariableBuffer.data());
+          std::copy_n(vs.data(), (std::min)(s_downloadVariableBufferSize, vs.size()), m_downloadVariableBuffer.data());
           if (vs.size() < s_downloadVariableBufferSize) { m_downloadVariableBuffer[vs.size()] = 0; }
           else {
               m_downloadVariableBuffer.back() = 0;
@@ -402,7 +402,7 @@ void Sdo::renderActiveDownloadRequests()
                    table.CellContentTextWrapped("0x{:02x}", request.subIndex());
                    table.CellContentTextWrapped(request.data().size());
                    table.CellContentTextWrapped(request.sizeTransferred());
-                   table.CellContentTextWrapped(fmt::format("{:02x}", fmt::join(request.data(), ", ")));
+                   table.CellContentTextWrapped(std::format("{::02x}", request.data()));
                    if (table.CellContent([] { return ImGui::Button("Cancel"); })) { request.cancel(); }
                });
 }
