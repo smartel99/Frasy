@@ -14,6 +14,7 @@ file(GLOB_RECURSE CANOPEN_APP_SOURCES
         "${CANOPEN_APP_DIR}/*.c"
         "${CANOPEN_APP_DIR}/*.cpp"
 )
+message(STATUS "CANOPEN_APP_SOURCES: ${CANOPEN_APP_SOURCES}")
 
 add_library(CanOpen STATIC
         ${CANOPEN_SOURCES}

@@ -29,8 +29,8 @@
 #include <chrono>
 #include <utility>
 
-#include <Windows.h>
 #include <processthreadsapi.h>
+#include <Windows.h>
 
 #define EARLY_EXIT(msg, ...)                                                                                           \
     do {                                                                                                               \
@@ -40,68 +40,6 @@
     } while (0)
 
 namespace Frasy::CanOpen {
-namespace {
-std::string_view canOpenErrorToStr(CO_ReturnError_t err)
-{
-    using namespace std::string_view_literals;
-    switch (err) {
-        case CO_ERROR_NO: return "No error"sv;
-        case CO_ERROR_ILLEGAL_ARGUMENT: return "Illegal Argument"sv;
-        case CO_ERROR_OUT_OF_MEMORY: return "Out of Memory"sv;
-        case CO_ERROR_TIMEOUT: return "Timeout"sv;
-        case CO_ERROR_ILLEGAL_BAUDRATE: return "Illegal Baudrate"sv;
-        case CO_ERROR_RX_OVERFLOW: return "RX Overflow"sv;
-        case CO_ERROR_RX_PDO_OVERFLOW: return "RX PDO Overflow"sv;
-        case CO_ERROR_RX_MSG_LENGTH: return "RX MSG Length"sv;
-        case CO_ERROR_RX_PDO_LENGTH: return "RX PDO Length"sv;
-        case CO_ERROR_TX_OVERFLOW: return "TX Overflow"sv;
-        case CO_ERROR_TX_PDO_WINDOW: return "TX PDO Window"sv;
-        case CO_ERROR_TX_UNCONFIGURED: return "TX Uncofigured"sv;
-        case CO_ERROR_OD_PARAMETERS: return "OD Parameters"sv;
-        case CO_ERROR_DATA_CORRUPT: return "Data Corrupt"sv;
-        case CO_ERROR_CRC: return "CRC Error"sv;
-        case CO_ERROR_TX_BUSY: return "TX Busy"sv;
-        case CO_ERROR_WRONG_NMT_STATE: return "Wrong NMT State"sv;
-        case CO_ERROR_SYSCALL: return "Syscall Error"sv;
-        case CO_ERROR_INVALID_STATE: return "Invalid State"sv;
-        case CO_ERROR_NODE_ID_UNCONFIGURED_LSS: return "Unconfigured LSS Node ID"sv;
-        default: return "Unknown"sv;
-    }
-}
-
-std::string_view canOpenNmtStateToStr(CO_NMT_internalState_t state)
-{
-    using namespace std::string_view_literals;
-    switch (state) {
-        case CO_NMT_INITIALIZING: return "Initializing"sv;
-        case CO_NMT_PRE_OPERATIONAL: return "Pre-Operational"sv;
-        case CO_NMT_OPERATIONAL: return "Operational"sv;
-        case CO_NMT_STOPPED: return "Stopped"sv;
-        case CO_NMT_UNKNOWN:
-        default: return "Unknown"sv;
-    }
-}
-
-std::string_view canOpenLssMasterReturnToStr(CO_LSSmaster_return_t val)
-{
-    using namespace std::string_view_literals;
-    switch (val) {
-        case CO_LSSmaster_SCAN_FINISHED: return "Scan Finished"sv;
-        case CO_LSSmaster_WAIT_SLAVE: return "Wait Slave"sv;
-        case CO_LSSmaster_OK: return "OK"sv;
-        case CO_LSSmaster_TIMEOUT: return "Timeout"sv;
-        case CO_LSSmaster_ILLEGAL_ARGUMENT: return "Illegal Argument"sv;
-        case CO_LSSmaster_INVALID_STATE: return "Invalid State"sv;
-        case CO_LSSmaster_SCAN_NOACK: return "No ACK from scan"sv;
-        case CO_LSSmaster_SCAN_FAILED: return "Scan Failed"sv;
-        case CO_LSSmaster_OK_ILLEGAL_ARGUMENT: return "OK - Illegal Argument"sv;
-        case CO_LSSmaster_OK_MANUFACTURER: return "OK - Manufacturer"sv;
-        default: return "Unknown"sv;
-    }
-}
-}    // namespace
-
-
 CanOpen::CanOpen()
 {
     start();
@@ -271,7 +209,7 @@ bool CanOpen::isNodeRegistered(uint8_t nodeId)
     return std::ranges::any_of(m_nodes, [nodeId](const auto& node) { return node.nodeId() == nodeId; });
 }
 
-bool CanOpen::isNodeOnNetwork(uint8_t nodeId)
+bool CanOpen::isNodeOnNetwork([[maybe_unused]] uint8_t nodeId)
 {
     throw std::runtime_error("Not implemented");
 }
@@ -284,12 +222,12 @@ void CanOpen::addEmergencyMessageCallback(const EmergencyMessageCallback& callba
 
 void CanOpen::reportError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code, uint32_t infoCode)
 {
-    CO_errorReport(m_co->em, kind, code, infoCode);
+    CO_errorReport(m_co->em, static_cast<uint8_t>(kind), static_cast<uint16_t>(code), infoCode);
 }
 
 void CanOpen::clearError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code)
 {
-    CO_errorReset(m_co->em, kind, code);
+    CO_errorReset(m_co->em, static_cast<uint8_t>(kind), code);
 }
 
 void CanOpen::scanForDevices()
@@ -304,7 +242,7 @@ void CanOpen::scanForDevices()
 
     // No nodes must be selected at first.
     if (auto res = CO_LSSmaster_switchStateDeselect(m_co->LSSmaster); res != CO_LSSmaster_OK) {
-        BR_LOG_ERROR(m_tag, "Unable to deselect LSS slaves: ({:X}) {}", res, canOpenLssMasterReturnToStr(res));
+        BR_LOG_ERROR(m_tag, "Unable to deselect LSS slaves: ({:X}) {}", std::to_underlying(res), res);
         return;
     }
 
@@ -324,18 +262,18 @@ void CanOpen::scanForDevices()
         scanRes = CO_LSSmaster_IdentifyFastscan(m_co->LSSmaster, delta, &scanPass);
 
         if (scanRes != CO_LSSmaster_WAIT_SLAVE) {
-            BR_LOG_ERROR(m_tag, "Error while scanning: ({:X}) {}", scanRes, canOpenLssMasterReturnToStr(scanRes));
+            BR_LOG_ERROR(m_tag, "Error while scanning: ({:X}) {}", std::to_underlying(scanRes), scanRes);
             break;
         }
 
-        delta = duration_cast<microseconds>(steady_clock::now() - last).count();
+        delta = static_cast<uint32_t>(duration_cast<microseconds>(steady_clock::now() - last).count());
         last  = steady_clock::now();
         std::this_thread::sleep_for(microseconds {100});
     }
 
     auto taken = static_cast<float>(duration_cast<milliseconds>(steady_clock::now() - start).count()) / 1000.0f;
     BR_LOG_INFO(m_tag, "Scan complete! Found {} nodes in {} seconds and {} passes", nodesFound.size(), taken, passes);
-    BR_LOG_INFO(m_tag, "Found: {:x}", fmt::join(scanPass.found.addr, ", "));
+    BR_LOG_INFO(m_tag, "Found: {::x}", scanPass.found.addr);
 }
 
 void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
@@ -441,7 +379,7 @@ bool           CanOpen::initialInit()
 {
     // Initialize CANopen.
     OD_INIT_CONFIG(m_canOpenConfig);
-    m_canOpenConfig.CNT_SDO_CLI = m_nodes.size();
+    m_canOpenConfig.CNT_SDO_CLI = static_cast<uint8_t>(m_nodes.size());
     m_canOpenConfig.ENTRY_H1280 = m_sdoClientODEntries.data();
 
     // TODO these fields should be determined based on a loaded environment.
@@ -476,7 +414,7 @@ bool           CanOpen::initialInit()
                                                   OD_ENTRY_H1010_storeParameters,
                                                   OD_ENTRY_H1011_restoreDefaultParameters,
                                                   m_storageEntries.data(),
-                                                  m_storageEntries.size(),
+                                                  static_cast<uint8_t>(m_storageEntries.size()),
                                                   &storageInitError);
     if (err == CO_ERROR_DATA_CORRUPT) { BR_LOG_WARN(m_tag, "Persistence data corrupted!"); }
     else if (err != CO_ERROR_NO) {
@@ -506,7 +444,7 @@ bool CanOpen::runtimeInit()
     // Initialize CANopen.
     auto err = CO_CANinit(m_co, &m_devices, 0 /* bit rate not used*/);
     if (err != CO_ERROR_NO) {
-        BR_LOG_ERROR(m_tag, "CANopen error in CO_CANinit(): ({}) {}", err, canOpenErrorToStr(err));
+        BR_LOG_ERROR(m_tag, "CANopen error in CO_CANinit(): ({}) {}", std::to_underlying(err), err);
         return false;
     }
 
@@ -531,7 +469,7 @@ bool CanOpen::runtimeInit()
     if (err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
         if (err == CO_ERROR_OD_PARAMETERS) { BR_LOG_ERROR(m_tag, "Error in Object Dictionary entry {:#08x}", errInfo); }
         else {
-            BR_LOG_ERROR(m_tag, "CANopen error in CO_CANopenInit(): ({}) {}", err, canOpenErrorToStr(err));
+            BR_LOG_ERROR(m_tag, "CANopen error in CO_CANopenInit(): ({}) {}", std::to_underlying(err), err);
         }
         return false;
     }
@@ -545,7 +483,7 @@ bool CanOpen::runtimeInit()
     if (err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
         if (err == CO_ERROR_OD_PARAMETERS) { BR_LOG_ERROR(m_tag, "Error in Object Dictionary entry {:#08x}", errInfo); }
         else {
-            BR_LOG_ERROR(m_tag, "CANopen error in CO_CANopenInitPDO(): ({}) {}", err, canOpenErrorToStr(err));
+            BR_LOG_ERROR(m_tag, "CANopen error in CO_CANopenInitPDO(): ({}) {}", std::to_underlying(err), err);
         }
         return false;
     }
@@ -625,7 +563,7 @@ CO_NMT_reset_cmd_t CanOpen::mainLoop()
         auto ret       = CO_storageWindows_auto_process(&m_storage, false);
         if (ret != 0) { BR_LOG_ERROR(m_tag, "Unable to save persistence data on fields: {:08x}", ret); }
     }
-    auto cmd   = CO_process(m_co, true, deltaUs.count(), &m_sleepForUs);
+    auto cmd   = CO_process(m_co, true, static_cast<uint32_t>(deltaUs.count()), &m_sleepForUs);
     m_greenLed = CO_LED_GREEN(m_co->LEDs, CO_LED_CANopen);
     m_redLed   = CO_LED_RED(m_co->LEDs, CO_LED_CANopen);
 
@@ -745,15 +683,14 @@ void CanOpen::hbConsumerPreCallback(void* arg)
 {
     FRASY_PROFILE_FUNCTION();
     BR_CORE_ASSERT(arg != nullptr, "Arg pointer null in hbConsumerPreCallback");
-    CanOpen* that = static_cast<CanOpen*>(arg);
+    [[maybe_unused]] CanOpen* that = static_cast<CanOpen*>(arg);
 }
 
 void CanOpen::hbConsumerNmtChangedCallback(uint8_t nodeId, uint8_t idx, CO_NMT_internalState_t nmtState, void* arg)
 {
     BR_CORE_ASSERT(arg != nullptr, "Arg pointer null in hbConsumerNmtChangedCallback");
     CanOpen* that = static_cast<CanOpen*>(arg);
-    BR_LOG_DEBUG(
-      that->m_tag, "NMT state changed to {} on node {:#02x} (idx: {})", canOpenNmtStateToStr(nmtState), nodeId, idx);
+    BR_LOG_DEBUG(that->m_tag, "NMT state changed to {} on node {:#02x} (idx: {})", nmtState, nodeId, idx);
 }
 
 void CanOpen::hbConsumerStartedCallback(uint8_t nodeId, uint8_t idx, void* arg)
@@ -786,7 +723,7 @@ void CanOpen::nmtPreCallback(void* arg)
 
 void CanOpen::nmtChangedCallback(CO_NMT_internalState_t state)
 {
-    BR_LOG_DEBUG(s_tag, "NMT state changed to {}", canOpenNmtStateToStr(state));
+    BR_LOG_DEBUG(s_tag, "NMT state changed to {}", state);
 }
 
 void CanOpen::pdoPreCallback(void* arg)

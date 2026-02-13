@@ -21,6 +21,8 @@
 #include <utils/lua/json_converter.h>
 #include <utils/report/utils/obj2str.h>
 
+#include <format>
+
 namespace Frasy::Report::Formatter {
 
 Json::Json(const sol::table& result) : Formatter(result)
@@ -57,13 +59,13 @@ void Json::reportUserInfo(const sol::table& table)
             case sol::type::nil: info[key] = "nil"; break;
             case sol::type::string: info[key] = value.as<std::string>(); break;
             case sol::type::number: info[key] = value.as<double>(); break;
-            case sol::type::thread: info[key] = fmt::format("thread: {}", value.pointer()); break;
+            case sol::type::thread: info[key] = std::format("thread: {}", value.pointer()); break;
             case sol::type::boolean: info[key] = value.as<bool>(); break;
-            case sol::type::function: info[key] = fmt::format("function: {}", value.pointer()); break;
-            case sol::type::userdata: info[key] = fmt::format("userdata: {}", value.pointer()); break;
-            case sol::type::lightuserdata: info[key] = fmt::format("lightuserdata: {}", value.pointer()); break;
-            case sol::type::table: info[key] = fmt::format("table: {}", value.pointer()); break;
-            case sol::type::poly: info[key] = fmt::format("poly: {}", value.pointer()); break;
+            case sol::type::function: info[key] = std::format("function: {}", value.pointer()); break;
+            case sol::type::userdata: info[key] = std::format("userdata: {}", value.pointer()); break;
+            case sol::type::lightuserdata: info[key] = std::format("lightuserdata: {}", value.pointer()); break;
+            case sol::type::table: info[key] = std::format("table: {}", value.pointer()); break;
+            case sol::type::poly: info[key] = std::format("poly: {}", value.pointer()); break;
         }
     }
 }

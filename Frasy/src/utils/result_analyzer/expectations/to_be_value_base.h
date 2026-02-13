@@ -18,8 +18,8 @@
 #ifndef FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_VALUE_BASE_H
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_VALUE_BASE_H
 
-#include <imgui/imgui.h>
-#include <implot/implot.h>
+#include <imgui.h>
+#include <implot.h>
 #include <limits>
 
 namespace Frasy::Analyzers

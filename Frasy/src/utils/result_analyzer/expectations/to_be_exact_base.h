@@ -21,7 +21,7 @@
 #include "json.hpp"
 
 #include <exception>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 namespace Frasy::Analyzers {
 struct ToBeExactBase : public ResultAnalysisResults::Expectation {

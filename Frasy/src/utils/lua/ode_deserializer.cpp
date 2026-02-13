@@ -81,7 +81,7 @@ static uint64_t deserializeUnsigned(const std::span<uint8_t>& value)
 static sol::object deserializeTimeStruct(sol::state_view& lua, const std::span<uint8_t>& value)
 {
     auto     table = lua.create_table();
-    uint32_t ms    = deserializeUnsigned(value.subspan(0, 4));
+    uint32_t ms    = static_cast<uint32_t>(deserializeUnsigned(value.subspan(0, 4)));
     table["ms"]    = 0x0F'FF'FF'FF & ms;    // u28, not u24
     table["days"]  = deserializeUnsigned(value.subspan(4, 2));
     return table;

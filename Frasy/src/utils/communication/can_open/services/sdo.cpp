@@ -26,6 +26,8 @@
 
 #include <CO_SDOclient.h>
 
+#include <Windows.h>
+
 #include <processthreadsapi.h>
 #include <synchapi.h>
 
@@ -249,7 +251,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
         }
 
         if (ret != CO_SDO_RT_ok_communicationEnd) {
-            delta = duration_cast<microseconds>(steady_clock::now() - last).count();
+            delta = static_cast<uint32_t>(duration_cast<microseconds>(steady_clock::now() - last).count());
             last  = steady_clock::now();
         }
     } while (ret != CO_SDO_RT_ok_communicationEnd);
@@ -349,13 +351,12 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
     auto     last  = steady_clock::now();
     uint32_t delta = 0;
     // Upload the data.
-    size_t lastTransSize = -1;
+    size_t lastTransSize = static_cast<size_t>(-1);
     // Write a first bunch of data into the buffer.
     size_t totalBytesWritten =
       CO_SDOclientDownloadBufWrite(m_sdoClient,
                                    request.data.data() + request.sizeTransferred,
                                    request.data.size() - std::min(request.sizeTransferred, request.data.size()));
-    uint8_t tries = request.retries;
     do {
         FRASY_PROFILE_SCOPE("SDO Download Loop");
         if (request.status == SdoRequestStatus::CancelRequested) {
@@ -401,7 +402,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
         }
 
         if (ret != CO_SDO_RT_ok_communicationEnd) {
-            delta = duration_cast<microseconds>(steady_clock::now() - last).count();
+            delta = static_cast<uint32_t>(duration_cast<microseconds>(steady_clock::now() - last).count());
             last  = steady_clock::now();
         }
     } while (ret != CO_SDO_RT_ok_communicationEnd);

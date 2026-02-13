@@ -19,9 +19,10 @@
 #include "keyValue.h"
 
 #include "../utils/obj2str.h"
-#include "spdlog/fmt/bundled/format.h"
 
+#include <format>
 #include <fstream>
+#include <ranges>
 
 namespace Frasy::Report::Formatter {
 
@@ -71,7 +72,10 @@ void KeyValue::reportIb(const std::string& name)
     const auto  prefix = "Ib-" + name + "-";
 
     std::string serial = getFieldAsStr<std::string>(ib["serial"]);
-    *m_output << prefix << "Serial: " << fmt::format("{:02x}", fmt::join(serial, "")) << endline;
+    *m_output << prefix << "Serial: ";
+    for (const auto& c : serial) {
+        *m_output << std::format("{:02x}", c);
+    }
     *m_output << prefix << "Hardware: " << getFieldAsStr<std::string>(ib["hardware"]) << endline;
     *m_output << prefix << "Software: " << getFieldAsStr<std::string>(ib["software"]) << endline;
 }

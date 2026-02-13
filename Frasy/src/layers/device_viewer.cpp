@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <charconv>
+#include <format>
 #include <regex>
 #include <string>
 #include <utils/get_serial_port.h>
@@ -385,7 +386,7 @@ void DeviceViewer::renderNetworkPacket(const SlCan::CanPacket& packet)
         }
     };
     auto formatData = [](const uint8_t* data, size_t len) -> std::string {
-        return fmt::format("{:#02x}", fmt::join(std::span {data, len}, ", "));
+        return std::format("{::#02x}", std::span {data, len});
     };
 
     ImGui::BeginGroup();
@@ -406,7 +407,7 @@ void DeviceViewer::renderMenuBar()
 {
     if (ImGui::BeginMainMenuBar()) {
         ImGui::BeginHorizontal("deviceViewerMenuBarSpan", ImVec2 {ImGui::GetContentRegionAvail().x, 0.0f});
-        ImGui::Spring(0.1);
+        ImGui::Spring(0.1f);
         ImGui::Separator();
 
         static constexpr ImVec4 s_red   = {1, 0, 0, 1};
@@ -434,7 +435,7 @@ void DeviceViewer::renderMenuBar()
         static constexpr ImVec4 s_disconnectedColor = {255, 0, 0, 255};
         ImVec4                  color               = m_canOpen.isOpen() ? s_connectedColor : s_disconnectedColor;
         ImGui::PushStyleColor(ImGuiCol_Text, color);
-        if (m_canOpen.isOpen()) { ImGui::Text("Connected (%d)  ", m_canOpen.m_devices.size()); }
+        if (m_canOpen.isOpen()) { ImGui::Text("Connected (%d)  ", static_cast<int>(m_canOpen.m_devices.size())); }
         else {
             ImGui::Text("Disconnected  ");
         }

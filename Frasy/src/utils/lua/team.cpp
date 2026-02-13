@@ -40,7 +40,7 @@ Team::Team(std::size_t teamSize)
     m_syncStates.resize(m_teamSize);
 }
 
-void Team::InitializeState(sol::state_view other, std::size_t uut, std::size_t position, bool is_leader)
+void Team::InitializeState(sol::state_view other, [[maybe_unused]] std::size_t uut, std::size_t position, bool is_leader)
 {
     other["Team"]["__tell"] = [&](const sol::object& value) {
         m_bShare[0]->arrive_and_wait();

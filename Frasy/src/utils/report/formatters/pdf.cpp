@@ -111,7 +111,7 @@ void PDF::reportInfo()
     divLine();
 }
 
-void PDF::reportUserInfo(const sol::table& table)
+void PDF::reportUserInfo([[maybe_unused]] const sol::table& table)
 {
     throw std::runtime_error("Not implemented");
 }
@@ -135,7 +135,13 @@ void PDF::reportIb(const std::string& name)
     m_ss << "<div class=\"ib\">\n"
          << "<h4>" << name << "</h4>\n"
          << "<table style=\"width:100%\">\n";
-    reportLine("Serial", fmt::format("{:02x}", fmt::join(serial, "")));
+    reportLine("Serial", [&serial]() {
+        std::string result;
+        for (const auto& c : serial) {
+            result += std::format("{:02x}", c);
+        }
+        return result;
+    }());
     reportLine("Hardware", getFieldAsStr<std::string>(ib["hardware"]));
     reportLine("Software", getFieldAsStr<std::string>(ib["software"]));
     m_ss << "</table>\n</div>\n";
@@ -273,7 +279,7 @@ void PDF::reportToBeNear(const sol::table& e)
     });
 }
 
-void PDF::reportSectionBaseResult(const sol::table& section) const
+void PDF::reportSectionBaseResult([[maybe_unused]] const sol::table& section) const
 {
 }
 

@@ -25,6 +25,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <format>
 #include <vector>
 
 
@@ -62,7 +63,7 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
 
         // Create the log file.
         auto smtFileDir         = pass ? smtPassDir : smtFailDir;
-        auto lastReportFilepath = smtDirectory / fmt::format("last_uut{}.txt", results.get<sol::table>("info").get_or("uut", 0));
+        auto lastReportFilepath = smtDirectory / std::format("last_uut{}.txt", results.get<sol::table>("info").get_or("uut", 0));
 
         std::ofstream report(lastReportFilepath, std::ios::out | std::ios::trunc | std::ios::binary);
         if (!report.is_open()) {

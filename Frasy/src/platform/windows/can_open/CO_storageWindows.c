@@ -40,7 +40,7 @@
 static ODR_t storeWindows(CO_storage_entry_t* entry, CO_CANmodule_t* CANmodule)
 {
     ODR_t    ret = ODR_OK;
-    uint16_t crc_store;
+    uint16_t crc_store = 0;
 
     /* Create names for temporary and old file */
     size_t fn_len       = strlen(entry->filename) + 5;

@@ -6,6 +6,7 @@ add_subdirectory(Brigerad)
 
 file(GLOB_RECURSE FRASY_SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/Frasy/src/*.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/Frasy/src/*.c"
 )
 
 set(CANOPEN_APP_DIR "${CMAKE_CURRENT_LIST_DIR}/Frasy/src/platform/windows/can_open")
@@ -13,6 +14,7 @@ set(CANOPEN_OD_DIR "${CMAKE_CURRENT_LIST_DIR}/Frasy/src/utils/communication/can_
 include(Frasy/vendor/cmake/canopennode.cmake)
 include(Frasy/vendor/cmake/json.cmake)
 add_subdirectory(Frasy/vendor/hashdir)
+include(Frasy/vendor/cmake/wkhtmltox.cmake)
 
 add_library(${PROJECT_NAME} STATIC ${FRASY_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -35,4 +37,14 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_LIST_DIR}/Frasy/assets"
         "$<TARGET_FILE_DIR:${APP_NAME}>/assets"
+)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${WKHTMLTOX_DIR}/bin/wkhtmltox.dll"
+        "$<TARGET_FILE_DIR:${APP_NAME}>/wkhtmltox.dll"
+)
+
+set_source_files_properties(${CANOPEN_OD_DIR}/OD.c PROPERTIES
+    COMPILE_OPTIONS "/wd4305"
 )

@@ -19,6 +19,9 @@
 #ifndef FRASY_UTILS_COMMUNICATION_CAN_OPEN_TO_STRING_H
 #define FRASY_UTILS_COMMUNICATION_CAN_OPEN_TO_STRING_H
 
+#include "CO_LSSmaster.h"
+
+
 #include <CO_HBconsumer.h>
 #include <CO_NMT_Heartbeat.h>
 #include <CO_SDOserver.h>
@@ -253,6 +256,52 @@ constexpr std::string_view toString(SdoRequestStatus status)
         case SdoRequestStatus::Cancelled: return "Cancelled";
         case SdoRequestStatus::Unknown:
         default: return "Unknown";
+    }
+}
+
+constexpr std::string_view toString(CO_LSSmaster_return_t status)
+{
+    using namespace std::string_view_literals;
+    switch (status) {
+        case CO_LSSmaster_SCAN_FINISHED: return "Scan Finished"sv;
+        case CO_LSSmaster_WAIT_SLAVE: return "Wait Slave"sv;
+        case CO_LSSmaster_OK: return "OK"sv;
+        case CO_LSSmaster_TIMEOUT: return "Timeout"sv;
+        case CO_LSSmaster_ILLEGAL_ARGUMENT: return "Illegal Argument"sv;
+        case CO_LSSmaster_INVALID_STATE: return "Invalid State"sv;
+        case CO_LSSmaster_SCAN_NOACK: return "No ACK from scan"sv;
+        case CO_LSSmaster_SCAN_FAILED: return "Scan Failed"sv;
+        case CO_LSSmaster_OK_ILLEGAL_ARGUMENT: return "OK - Illegal Argument"sv;
+        case CO_LSSmaster_OK_MANUFACTURER: return "OK - Manufacturer"sv;
+        default: return "Unknown"sv;
+    }
+}
+
+constexpr std::string_view toString(CO_ReturnError_t err)
+{
+    using namespace std::string_view_literals;
+    switch (err) {
+        case CO_ERROR_NO: return "No error"sv;
+        case CO_ERROR_ILLEGAL_ARGUMENT: return "Illegal Argument"sv;
+        case CO_ERROR_OUT_OF_MEMORY: return "Out of Memory"sv;
+        case CO_ERROR_TIMEOUT: return "Timeout"sv;
+        case CO_ERROR_ILLEGAL_BAUDRATE: return "Illegal Baudrate"sv;
+        case CO_ERROR_RX_OVERFLOW: return "RX Overflow"sv;
+        case CO_ERROR_RX_PDO_OVERFLOW: return "RX PDO Overflow"sv;
+        case CO_ERROR_RX_MSG_LENGTH: return "RX MSG Length"sv;
+        case CO_ERROR_RX_PDO_LENGTH: return "RX PDO Length"sv;
+        case CO_ERROR_TX_OVERFLOW: return "TX Overflow"sv;
+        case CO_ERROR_TX_PDO_WINDOW: return "TX PDO Window"sv;
+        case CO_ERROR_TX_UNCONFIGURED: return "TX Uncofigured"sv;
+        case CO_ERROR_OD_PARAMETERS: return "OD Parameters"sv;
+        case CO_ERROR_DATA_CORRUPT: return "Data Corrupt"sv;
+        case CO_ERROR_CRC: return "CRC Error"sv;
+        case CO_ERROR_TX_BUSY: return "TX Busy"sv;
+        case CO_ERROR_WRONG_NMT_STATE: return "Wrong NMT State"sv;
+        case CO_ERROR_SYSCALL: return "Syscall Error"sv;
+        case CO_ERROR_INVALID_STATE: return "Invalid State"sv;
+        case CO_ERROR_NODE_ID_UNCONFIGURED_LSS: return "Unconfigured LSS Node ID"sv;
+        default: return "Unknown"sv;
     }
 }
 

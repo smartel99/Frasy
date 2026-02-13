@@ -162,11 +162,11 @@ void MainApplicationLayer::onEvent(Brigerad::Event& e)
     // Creates a dispatch context with the event.
     Brigerad::EventDispatcher dispatcher(e);
     // Dispatch it to the proper handling function in the Application, if the type matches.
-    dispatcher.Dispatch<Brigerad::WindowMaximizedEvent>([this](Brigerad::WindowMaximizedEvent& e) {
+    dispatcher.Dispatch<Brigerad::WindowMaximizedEvent>([]([[maybe_unused]] Brigerad::WindowMaximizedEvent& e) {
         Interpreter::Get().getConfig()["maximized"] = true;
         return true;
     });
-    dispatcher.Dispatch<Brigerad::WindowRestoredEvent>([this](Brigerad::WindowRestoredEvent& e) {
+    dispatcher.Dispatch<Brigerad::WindowRestoredEvent>([]([[maybe_unused]] Brigerad::WindowRestoredEvent& e) {
         Interpreter::Get().getConfig()["maximized"] = false;
         return true;
     });
@@ -409,7 +409,7 @@ void MainApplicationLayer::renderProfilerGraphs()
                       }
                   },
                   &event,
-                  event.event->history.size());
+                  static_cast<int>(event.event->history.size()));
 
                 double average = static_cast<double>(event.event->avgTime.count());
                 ImPlot::PlotInfLines("Average", &average, 1, ImPlotInfLinesFlags_Horizontal);

@@ -32,6 +32,8 @@
 #include <numeric>
 #include <string>
 
+#include <Windows.h>
+
 #include "processthreadsapi.h"
 
 namespace Frasy {
@@ -56,8 +58,8 @@ struct ProfileEvent {
     ProfileEventHeader              header;
     int                             hitCount  = 0;
     std::chrono::microseconds       totalTime = std::chrono::microseconds(0);
-    std::chrono::microseconds       minTime   = std::chrono::microseconds(std::numeric_limits<int64_t>::max());
-    std::chrono::microseconds       maxTime   = std::chrono::microseconds(std::numeric_limits<int64_t>::min());
+    std::chrono::microseconds       minTime   = std::chrono::microseconds((std::numeric_limits<int64_t>::max)());
+    std::chrono::microseconds       maxTime   = std::chrono::microseconds((std::numeric_limits<int64_t>::min)());
     std::chrono::microseconds       avgTime   = std::chrono::microseconds(0);
     std::deque<ProfileEventMarkers> history;    //! Need fast insert/erase on front and back + pointer stability.
 
@@ -156,7 +158,7 @@ public:
         }
     }
 
-    void reportReturnEvent(const ProfileEventHeader& header)
+    void reportReturnEvent([[maybe_unused]] const ProfileEventHeader& header)
     {
         if (!m_enabled) { return; }
         auto id = std::this_thread::get_id();
@@ -172,8 +174,8 @@ public:
         marker.end   = std::chrono::steady_clock::now();
         marker.delta = std::chrono::duration_cast<std::chrono::microseconds>(marker.end - marker.start);
         event.m_activeEvent->totalTime += marker.delta;
-        event.m_activeEvent->minTime = std::min(event.m_activeEvent->minTime, marker.delta);
-        event.m_activeEvent->maxTime = std::max(event.m_activeEvent->maxTime, marker.delta);
+        event.m_activeEvent->minTime = (std::min)(event.m_activeEvent->minTime, marker.delta);
+        event.m_activeEvent->maxTime = (std::max)(event.m_activeEvent->maxTime, marker.delta);
         event.m_activeEvent->avgTime = event.m_activeEvent->totalTime / event.m_activeEvent->hitCount;
 
         // Prune old data from the history.

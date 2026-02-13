@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(Brigerad CXX)
+project(Brigerad CXX C)
 
 file(GLOB_RECURSE SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/src/Brigerad/*.cpp"
@@ -70,7 +70,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         yaml-cpp::yaml-cpp
         cpptrace::cpptrace
         opengl32.lib
-        Winm.lib
+        Winmm.lib
+        Dwmapi.lib
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/src

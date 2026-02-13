@@ -32,6 +32,7 @@
 #include <Brigerad.h>
 #include <Brigerad/Debug/Instrumentor.h>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <json.hpp>
 #include <string_view>
@@ -104,8 +105,8 @@ std::vector<std::string> LoadMatchingFiles(const std::string&                   
 std::vector<std::string> LoadAllMatchingFiles(const std::string&                       title,
                                               const std::vector<std::array<char, 32>>& serialNumbers)
 {
-    auto r   = LoadMatchingFiles(fmt::format("logs/{}/fail", title), serialNumbers);
-    auto tmp = LoadMatchingFiles(fmt::format("logs/{}/pass", title), serialNumbers);
+    auto r   = LoadMatchingFiles(std::format("logs/{}/fail", title), serialNumbers);
+    auto tmp = LoadMatchingFiles(std::format("logs/{}/pass", title), serialNumbers);
     r.insert(r.end(), tmp.begin(), tmp.end());
     return r;
 }

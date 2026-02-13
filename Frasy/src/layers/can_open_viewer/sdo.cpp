@@ -104,11 +104,11 @@ auto _resultArrayAsString(const std::span<uint8_t>& result) -> std::string
 template<typename T>
 auto _resultToString(const std::span<uint8_t>& result) -> std::string
 {
-    if (result.size() != sizeof(T)) { return fmt::format("Invalid size ({})", result.size()); }
+    if (result.size() != sizeof(T)) { return std::format("Invalid size ({})", result.size()); }
     std::array<uint8_t, sizeof(T)> a {};
     std::copy_n(result.data(), sizeof(T), a.data());
     T v = std::bit_cast<T, std::array<uint8_t, sizeof(T)>>(a);
-    return fmt::format("{}", v);
+    return std::format("{}", v);
 }
 auto resultToString(const auto& request, const auto& result) -> std::string
 {
@@ -173,7 +173,7 @@ void Sdo::renderUploadRequestMaker(CanOpen::Node& node)
         m_uploadRequestQueue.push_back(node.sdoInterface()->uploadData(static_cast<uint16_t>(m_uploadRequestIndex),
                                                                        static_cast<uint8_t>(m_uploadRequestSubIndex),
                                                                        static_cast<uint16_t>(m_uploadRequestTimeout),
-                                                                       m_uploadRequestTries,
+                                                                       static_cast<uint8_t>(m_uploadRequestTries),
                                                                        m_uploadRequestIsBlock,
                                                                        m_uploadRequestType));
     }
@@ -311,8 +311,8 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
                   node.sdoInterface()->downloadData(static_cast<uint16_t>(m_downloadRequestIndex),
                                                     static_cast<uint8_t>(m_downloadRequestSubIndex),
                                                     data,
-                                                    m_downloadRequestTimeout,
-                                                    m_downloadRequestTries,
+                                                    static_cast<uint16_t>(m_downloadRequestTimeout),
+                                                    static_cast<uint8_t>(m_downloadRequestTries),
                                                     m_downloadRequestIsBlock));
             }
         };
@@ -353,25 +353,25 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
               auto base = m_downloadVariableHex ? 16 : 10;
               try {
                   if constexpr (std::is_integral_v<T>) {
-                      if (std::is_signed_v<T>) { v = std::stoll(m_downloadVariableBuffer.data(), nullptr, base); }
+                      if (std::is_signed_v<T>) { v = static_cast<T>(std::stoll(m_downloadVariableBuffer.data(), nullptr, base)); }
                       else if (std::is_unsigned_v<T>) {
-                          v = std::stoull(m_downloadVariableBuffer.data(), nullptr, base);
+                          v = static_cast<T>(std::stoull(m_downloadVariableBuffer.data(), nullptr, base));
                       }
                   }
                   else if (std::is_floating_point_v<T>) {
-                      v = std::stod(m_downloadVariableBuffer.data());
+                      v = static_cast<T>(std::stod(m_downloadVariableBuffer.data()));
                   }
                   else {
                       BR_APP_ERROR("Cannot parse value");
                   }
               }
               catch (const std::exception& e) {
-                  BR_APP_WARN("Failed to parse value");
+                  BR_APP_WARN("Failed to parse value: {}", e.what());
               }
           }
           send.operator()<T>();
       },
-      [this, &send](std::array<char, 128>& v) {
+      [&send](std::array<char, 128>& v) {
           ImGui::InputText("Value", v.data(), v.size());
           send.operator()<std::array<char, 128>>();
       });

@@ -32,13 +32,15 @@
 #include <filesystem>
 #include <fstream>
 #include <json.hpp>
+#include <regex>
 
 #include "../../version.h"
-#include "spdlog/fmt/bundled/os.h"
 
 #include <hashdir/hashdir.h>
+
+#include <Windows.h>
+
 #include <processthreadsapi.h>
-#include <regex>
 
 namespace Frasy::Lua {
 
@@ -156,6 +158,10 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
 #    endif
         return false;
     }
+#else
+    (void)folder;
+    (void)hashfile;
+    (void)filters;
 #endif
     return true;
 }
@@ -189,7 +195,9 @@ void Orchestrator::runSolution(const std::string&              operatorName,
 }
 
 const Models::Solution& Orchestrator::getSolution()
-{ return m_solution; }
+{
+    return m_solution;
+}
 
 bool Orchestrator::createOutputDirs()
 {
@@ -281,7 +289,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["Context"]["info"]["uut"]     = uut;
         lua["Context"]["info"]["version"] = lua.create_table();
         lua["Context"]["info"]["version"]["frasy"] =
-          fmt::format("{}.{}.{}-{}", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD);
+          std::format("{}.{}.{}-{}", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD);
         lua["Context"]["info"]["version"]["application"]  = m_getApplicationVersion();
         lua["Context"]["info"]["version"]["orchestrator"] = "1.2.0";
         lua["Context"]["info"]["version"]["scripts"]      = "1.0.0";
@@ -316,7 +324,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             stage == Stage::execution ? [](int duration) {
                 FRASY_PROFILE_FUNCTION();
                 std::this_thread::sleep_for(std::chrono::milliseconds(duration)); }
-            : [](int duration) { FRASY_PROFILE_FUNCTION(); };
+            : []([[maybe_unused]] int duration) { FRASY_PROFILE_FUNCTION(); };
         lua["CombineAndBitcast"] = [](std::span<uint8_t, 4> data) -> float {
             return std::bit_cast<float>(static_cast<uint32_t>(data[0]) | static_cast<uint32_t>(data[1]) << 8 |
                                         static_cast<uint32_t>(data[2]) << 16 | static_cast<uint32_t>(data[3]) << 24);
@@ -368,53 +376,54 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             return std::make_pair(index, subIndex);
         };
 
-        lua["CanOpen"]["__upload"] =
-          [this, &getIndexAndSubIndex](sol::this_state state, std::size_t nodeId, const sol::table& ode) {
-              FRASY_PROFILE_FUNCTION();
-              sol::state_view lua       = sol::state_view(state.lua_state());
-              auto            maybeNode = m_canOpen->getNode(nodeId);
-              if (!maybeNode.has_value()) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
-              auto* interface        = (*maybeNode)->sdoInterface();
-              auto [index, subIndex] = getIndexAndSubIndex(ode);
+        lua["CanOpen"]["__upload"] = [this, &getIndexAndSubIndex](
+                                       sol::this_state state, std::size_t nodeId, const sol::table& ode) {
+            FRASY_PROFILE_FUNCTION();
+            sol::state_view lua       = sol::state_view(state.lua_state());
+            auto            maybeNode = m_canOpen->getNode(static_cast<uint8_t>(nodeId));
+            if (!maybeNode.has_value()) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
+            auto* interface        = (*maybeNode)->sdoInterface();
+            auto [index, subIndex] = getIndexAndSubIndex(ode);
 
-              auto tryRequest = [&] {
-                  auto request = interface->uploadData(index, subIndex, 100);
-                  request.future.wait();
-                  if (request.status() != CanOpen::SdoRequestStatus::Complete &&
-                      request.status() != CanOpen::SdoRequestStatus::Cancelled) {
-                      throw sol::error(std::format("Request failed: {}", request.status()));
-                  }
-                  auto result = request.future.get();
-                  if (!result.has_value()) {
-                      throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
-                                                   static_cast<int>(result.error()),
-                                                   result.error(),
-                                                   request.abortCode()));
-                  }
-                  auto value = deserializeOdeValue(lua, ode, result.value());
-                  return value;
-              };
+            auto tryRequest = [&] {
+                auto request = interface->uploadData(static_cast<uint16_t>(index), static_cast<uint8_t>(subIndex), 100);
+                request.future.wait();
+                if (request.status() != CanOpen::SdoRequestStatus::Complete &&
+                    request.status() != CanOpen::SdoRequestStatus::Cancelled) {
+                    throw sol::error(std::format("Request failed: {}", request.status()));
+                }
+                auto result = request.future.get();
+                if (!result.has_value()) {
+                    throw sol::error(std::format("Request failed with code {}: {}\nExtra: {}",
+                                                 static_cast<int>(result.error()),
+                                                 result.error(),
+                                                 request.abortCode()));
+                }
+                auto value = deserializeOdeValue(lua, ode, result.value());
+                return value;
+            };
 
-              try {
-                  return tryRequest();
-              }
-              catch (sol::error&) {
-                  BR_LOG_WARN(s_tag, "Request failed, trying to re-open port...");
-                  m_canOpen->reopen();
-                  return tryRequest();
-              }
-          };
+            try {
+                return tryRequest();
+            }
+            catch (sol::error&) {
+                BR_LOG_WARN(s_tag, "Request failed, trying to re-open port...");
+                m_canOpen->reopen();
+                return tryRequest();
+            }
+        };
 
         lua["CanOpen"]["__download"] = [&](std::size_t nodeId, const sol::table& ode, sol::object value) {
             FRASY_PROFILE_FUNCTION();
-            auto maybeNode = m_canOpen->getNode(nodeId);
+            auto maybeNode = m_canOpen->getNode(static_cast<uint8_t>(nodeId));
             if (!maybeNode.has_value()) { throw sol::error(std::format("Node '{}' not found!", nodeId)); }
             auto* interface        = (*maybeNode)->sdoInterface();
             auto [index, subIndex] = getIndexAndSubIndex(ode);
             const auto sValue      = serializeOdeValue(ode, value);
 
             auto tryRequest = [&] {
-                auto request = interface->downloadData(index, subIndex, sValue, 100);
+                auto request =
+                  interface->downloadData(static_cast<uint16_t>(index), static_cast<uint8_t>(subIndex), sValue, 100);
                 request.future.wait();
                 if (request.status() != CanOpen::SdoRequestStatus::Complete &&
                     request.status() != CanOpen::SdoRequestStatus::Cancelled) {
@@ -438,7 +447,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             }
         };
 
-        lua["CanOpen"]["__reset"] = [&](std::size_t nodeId) { m_canOpen->resetNode(nodeId); };
+        lua["CanOpen"]["__reset"] = [&](std::size_t nodeId) { m_canOpen->resetNode(static_cast<uint8_t>(nodeId)); };
 
 
         // Boards
@@ -473,8 +482,8 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 bool Orchestrator::loadEnvironment(sol::state_view lua, const std::string& filename)
 {
     sol::protected_function run = lua.script_file("lua/core/helper/load_environment.lua");
-    run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-    auto result                 = run(filename);
+    run.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+    auto result = run(filename);
     if (!result.valid()) {
         sol::error err = result;
         lua["Log"]["E"](err.what());
@@ -489,8 +498,8 @@ bool Orchestrator::loadTests(sol::state_view lua, const std::string& filename)
 {
     FRASY_PROFILE_FUNCTION();
     sol::protected_function run = lua.script_file("lua/core/helper/load_tests.lua");
-    run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-    auto result                 = run(filename);
+    run.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+    auto result = run(filename);
     if (!result.valid()) {
         sol::error err = result;
         lua["Log"]["E"](err.what());
@@ -545,8 +554,8 @@ bool Orchestrator::runStageGenerate(bool regenerate)
         loadEnvironment(sol::state_view(lua), m_environment);
         loadTests(sol::state_view(lua), m_testsDir);
         sol::protected_function run = lua.script_file("lua/core/helper/generate.lua");
-        run.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-        auto result                 = run(solutionFile);
+        run.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+        auto result = run(solutionFile);
         if (!result.valid()) {
             sol::error err = result;
             lua["Log"]["E"](err.what());
@@ -645,8 +654,8 @@ bool Orchestrator::runStageVerify(sol::state_view team)
                     }
                     sol::protected_function load_solution =
                       lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
-                    load_solution.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                    auto rls                    = load_solution(solutionFile);
+                    load_solution.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+                    auto rls = load_solution(solutionFile);
                     if (!rls.valid()) {
                         sol::error err = rls;
                         lua["Log"]["e"](err.what());
@@ -656,8 +665,8 @@ bool Orchestrator::runStageVerify(sol::state_view team)
                     }
 
                     sol::protected_function verify = lua.script("return function() Orchestrator.Validate() end");
-                    verify.error_handler           = lua.script_file("lua/core/framework/error_handler.lua");
-                    auto rv                        = verify();
+                    verify.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+                    auto rv = verify();
                     if (!rv.valid()) {
                         sol::error err = rv;
                         lua["Log"]["e"](err.what());
@@ -762,8 +771,8 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
 
                         sol::protected_function run =
                           lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
-                        run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                        auto result       = run(solutionFile);
+                        run.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+                        auto result = run(solutionFile);
                         if (!result.valid()) {
                             sol::error err = result;
                             lua["Log"]["E"](err.what());
@@ -797,8 +806,8 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                             mutex.unlock();
                             sol::protected_function run =
                               lua.script("return function(is) Orchestrator.ExecuteSection(is) end");
-                            run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                            auto result       = run(is);
+                            run.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+                            auto result = run(is);
                             if (!result.valid()) {
                                 sol::error err = result;
                                 BR_LUA_ERROR(err.what());
@@ -832,8 +841,8 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                         mutex.unlock();
                         sol::protected_function run =
                           lua.script("return function(dir) Orchestrator.CompileExecutionResults(dir) end");
-                        run.error_handler = lua.script_file("lua/core/framework/error_handler.lua");
-                        auto result       = run(std::format("{}/{}", m_outputDirectory, lastSubdirectory));
+                        run.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+                        auto result = run(std::format("{}/{}", m_outputDirectory, lastSubdirectory));
                         if (!result.valid()) {
                             try {
                                 sol::error err = result;
@@ -931,10 +940,14 @@ void Orchestrator::generate()
 }
 
 void Orchestrator::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
-{ m_solution.SetTestEnable(sequence, test, enable); }
+{
+    m_solution.SetTestEnable(sequence, test, enable);
+}
 
 void Orchestrator::setSequenceEnable(const std::string& sequence, bool enable)
-{ m_solution.SetSequenceEnable(sequence, enable); }
+{
+    m_solution.SetSequenceEnable(sequence, enable);
+}
 
 bool Orchestrator::isRunning() const
 {
@@ -943,20 +956,28 @@ bool Orchestrator::isRunning() const
 }
 
 [[nodiscard]] UutState Orchestrator::getUutState(std::size_t uut) const
-{ return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle; }
+{
+    return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
+}
 
 void Orchestrator::setLoadUserFunctions(const std::function<void(sol::state_view)>& callback)
-{ m_loadUserFunctions = callback; }
+{
+    m_loadUserFunctions = callback;
+}
 
 void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback)
-{ m_loadUserBoards = callback; }
+{
+    m_loadUserBoards = callback;
+}
 
 void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback)
-{ m_loadUserValues = callback; }
+{
+    m_loadUserValues = callback;
+}
 #pragma endregion
 
 #pragma region Exclusive
-void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
+void           Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 {
     if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
     switch (stage) {
@@ -978,7 +999,7 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
         case Stage::generation:
         case Stage::validation:
         default:
-            lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
+            lua["__exclusive"] = [&]([[maybe_unused]] std::size_t index, sol::unsafe_function func) {
                 FRASY_PROFILE_FUNCTION();
                 if (auto result = func(); !result.valid()) {
                     sol::error err = result;
@@ -991,7 +1012,7 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 #pragma endregion
 
 #pragma region Log
-void Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)
+void           Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)
 {
     lua.script_file("lua/core/sdk/log.lua");
     lua["Log"]["C"] = [uut](const std::string& message) { BR_LOG_CRITICAL(std::format("UUT{}", uut), message); };
@@ -1004,7 +1025,7 @@ void Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unuse
 #pragma endregion
 
 #pragma region Populate Map
-void Orchestrator::populateMap()
+void           Orchestrator::populateMap()
 {
     m_map = {};
     for (auto& [k, v] : (*m_state)["Context"]["map"]["ibs"].get<sol::table>()) {
@@ -1031,7 +1052,7 @@ void Orchestrator::populateMap()
 #pragma endregion
 
 #pragma region Popup
-void Orchestrator::renderPopups()
+void           Orchestrator::renderPopups()
 {
     std::lock_guard lock {(*m_popupMutex)};
     for (auto& [name, popup] : m_popups) {
@@ -1074,7 +1095,7 @@ void Orchestrator::importPopup(sol::state_view lua, std::size_t uut, Stage stage
 #pragma endregion
 
 #pragma region Update UUT State
-void Orchestrator::updateUutState(UutState state, bool force)
+void           Orchestrator::updateUutState(UutState state, bool force)
 {
     std::vector<std::size_t> uuts;
     updateUutState(state, m_map.uuts, force);

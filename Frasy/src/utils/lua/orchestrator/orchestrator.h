@@ -200,7 +200,7 @@ private:
     std::unique_ptr<std::mutex>       m_exclusiveLock = nullptr;
     std::map<std::size_t, std::mutex> m_exclusiveLockMap;
 
-    std::function<void(sol::state_view lua)>       m_loadUserFunctions = [](sol::state_view lua) {};
+    std::function<void(sol::state_view lua)>       m_loadUserFunctions = []([[maybe_unused]] sol::state_view lua) {};
     std::function<sol::table(sol::state_view lua)> m_loadUserBoards    = [](sol::state_view lua) {
         return lua.create_table();
     };

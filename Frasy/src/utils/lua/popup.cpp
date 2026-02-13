@@ -108,8 +108,8 @@ void Popup::Image::render()
         if (size.x == 0.0f) { size.x = static_cast<float>(texture->GetWidth()); }
         if (size.y == 0.0f) { size.y = static_cast<float>(texture->GetHeight()); }
     }
-    uint64_t texture = this->texture->getRenderId();
-    ImGui::Image(reinterpret_cast<void*>(texture), size);
+    uint64_t text = this->texture->getRenderId();
+    ImGui::Image(reinterpret_cast<void*>(text), size);
 }
 
 void Popup::BeginHorizontal::render()

@@ -55,7 +55,7 @@ Serial::Packet ToPacket(const Actions::Command& command, const sol::variadic_arg
 }
 
 
-sol::table FromPacket(sol::state& lua, const Serial::Device& device, const Serial::Packet& packet)
+sol::table FromPacket(sol::state& lua,[[maybe_unused]] const Serial::Device& device, const Serial::Packet& packet)
 {
     sol::table table = lua.create_table();
     table["id"]      = packet.Header.CommandId;

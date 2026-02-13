@@ -4,9 +4,23 @@ add_library(frasy_build_options INTERFACE)
 set(CMAKE_CXX_STANDARD 23)
 
 if (MSVC)
-    target_compile_options(frasy_build_options INTERFACE /W4)
-    target_compile_options(frasy_dep_build_options INTERFACE /EHa /Zc:preprocessor)
+    target_compile_options(frasy_build_options INTERFACE
+            /W4
+    )
+    target_compile_options(frasy_dep_build_options INTERFACE
+#            /EHa # might not need to have it, depends on CPPTRACE
+            /Zc:preprocessor
+            /openmp:experimental
+            /wd4505 # unreferenced local function has been removed
+    )
+    target_compile_definitions(frasy_dep_build_options INTERFACE
+            WINVER=0x0A00
+            _WIN32_WINNT=0x0A00
+            WIN32_LEAN_AND_MEAN
+            NOMINMAX
+    )
     target_compile_definitions(frasy_dep_build_options INTERFACE -D_CRT_SECURE_NO_WARNINGS)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 else ()
     target_compile_options(frasy_build_options INTERFACE -Wall -Wextra -pedantic-errors)
 endif ()
@@ -16,7 +30,6 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     if (MSVC)
         target_compile_options(frasy_dep_build_options INTERFACE
                 /O2
-                /MT
         )
     else ()
         target_compile_options(frasy_dep_build_options INTERFACE
@@ -31,7 +44,6 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
     if (MSVC)
         target_compile_options(frasy_dep_build_options INTERFACE
                 /O2
-                /MTd
         )
     else ()
         target_compile_options(frasy_dep_build_options INTERFACE
@@ -46,7 +58,6 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
     if (MSVC)
         target_compile_options(frasy_dep_build_options INTERFACE
                 /Os
-                /MT
         )
     else ()
         target_compile_options(frasy_dep_build_options INTERFACE
@@ -65,7 +76,6 @@ else ()
     if (MSVC)
         target_compile_options(frasy_dep_build_options INTERFACE
                 /Od
-                /MTd
         )
     else ()
         target_compile_options(frasy_dep_build_options INTERFACE

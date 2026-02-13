@@ -25,6 +25,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <format>
 
 namespace Frasy::Report::PDF {
 std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames)
@@ -58,7 +59,7 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
         // Create the log file.
         auto clientFileDir = pass ? clientPassDir : clientFailDir;
         auto lastReportFilepath =
-          clientDirectory / fmt::format("last_uut{}.pdf", results.get<sol::table>("info").get_or("uut", 0));
+          clientDirectory / std::format("last_uut{}.pdf", results.get<sol::table>("info").get_or("uut", 0));
         auto formatter = Formatter::PDF(lastReportFilepath.string(), "Frasy Report", results);
 
         formatter.reportInfo();

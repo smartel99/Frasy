@@ -48,14 +48,14 @@ std::mutex CO_SEND_mutex;
 std::mutex CO_EMCY_mutex;
 std::mutex CO_OD_mutex;
 
-int CO_LOCK_CAN_SEND(CO_CANmodule_t* CANmodule)
+int CO_LOCK_CAN_SEND([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
     FRASY_PROFILE_FUNCTION();
     CO_SEND_mutex.lock();
     return 0;    // Always assume success.
 }
 
-void CO_UNLOCK_CAN_SEND(CO_CANmodule_t* CANmodule)
+void CO_UNLOCK_CAN_SEND([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
     FRASY_PROFILE_FUNCTION();
     CO_SEND_mutex.unlock();
@@ -68,7 +68,7 @@ int CO_LOCK_EMCY([[maybe_unused]] CO_CANmodule_t* CANmodule)
     return 0;    // Always assume success.
 }
 
-void CO_UNLOCK_EMCY([[maybe_unsed]] CO_CANmodule_t* CANmodule)
+void CO_UNLOCK_EMCY([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
     FRASY_PROFILE_FUNCTION();
     CO_EMCY_mutex.unlock();
@@ -297,7 +297,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
 
 
 /******************************************************************************/
-void CO_CANclearPendingSyncPDOs([[nodiscard]] CO_CANmodule_t* CANmodule)
+void CO_CANclearPendingSyncPDOs([[maybe_unused]]  CO_CANmodule_t* CANmodule)
 {
     /* Messages are either written to the socket queue or dropped */
 }

@@ -25,12 +25,12 @@ auto obj2str(const sol::object& object) -> std::string
         case sol::type::nil: return "nil";
         case sol::type::string: return object.as<std::string>();
         case sol::type::number: return std::to_string(object.as<double>());
-        case sol::type::thread: return fmt::format("thread: {}", object.pointer());
+        case sol::type::thread: return std::format("thread: {}", object.pointer());
         case sol::type::boolean: return "boolean";
-        case sol::type::function: return fmt::format("function: {}", object.pointer());
-        case sol::type::userdata: return fmt::format("userdata: {}", object.pointer());
-        case sol::type::lightuserdata: return fmt::format("lightuserdata", object.pointer());
-        case sol::type::table: return fmt::format("table: {}", object.pointer());
+        case sol::type::function: return std::format("function: {}", object.pointer());
+        case sol::type::userdata: return std::format("userdata: {}", object.pointer());
+        case sol::type::lightuserdata: return std::format("lightuserdata", object.pointer());
+        case sol::type::table: return std::format("table: {}", object.pointer());
         case sol::type::poly: return "poly";
         default: return "unknown";
     }

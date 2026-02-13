@@ -17,16 +17,16 @@
 
 #include "solution_loader.h"
 
+#include <Brigerad/Core/Log.h>
 #include <filesystem>
 #include <fstream>
-#include <Brigerad/Core/Log.h>
 
 namespace Frasy::Report::SolutionLoader {
 nlohmann::json loadJson(const std::string& path)
 {
     if (!std::filesystem::exists(path)) { return {}; }
     std::ifstream  ifs(path);
-    nlohmann::json jObject{};
+    nlohmann::json jObject {};
     if (ifs.is_open()) {
         ifs >> jObject;
         ifs.close();
@@ -46,17 +46,17 @@ Solution loadSolution()
     for (const auto& section : json) {
         for (const auto& sequenceList : section) {
             for (const auto& sequence : sequenceList) {
-                BR_LOG_DEBUG("KVP Report", "Loading sequence '{}'", sequence["name"]);
+                BR_LOG_DEBUG("KVP Report", "Loading sequence '{}'", sequence["name"].get<std::string>());
                 for (const auto& testGroup : sequence["tests"]) {
                     for (const auto& test : testGroup) {
-                        BR_LOG_DEBUG("KVP Report", "Test '{}'", test);
+                        BR_LOG_DEBUG("KVP Report", "Test '{}'", test.get<std::string>());
                         auto it = std::ranges::find_if(solution,
                                                        [name = sequence["name"].get<std::string>()](const auto& test) {
                                                            return test.first == name;
                                                        });
                         if (it != solution.end()) { it->second.push_back(test); }
                         else {
-                            solution.emplace_back(sequence["name"], std::vector{test.get<std::string>()});
+                            solution.emplace_back(sequence["name"], std::vector {test.get<std::string>()});
                         }
                     }
                 }
@@ -66,4 +66,4 @@ Solution loadSolution()
 
     return solution;
 }
-}
+}    // namespace Frasy::Report::SolutionLoader

@@ -23,6 +23,7 @@
 #include <Brigerad/Core/Log.h>
 #include <filesystem>
 #include <fstream>
+#include <format>
 
 namespace Frasy::Report::Json {
 std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames)
@@ -57,7 +58,7 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
         // Create the log file.
         auto jsonFileDir = pass ? jsonPassDir : jsonFailDir;
         auto lastReportFilepath =
-          jsonDirectory / fmt::format("last_uut{}.json", results.get<sol::table>("info").get_or("uut", 0));
+          jsonDirectory / std::format("last_uut{}.json", results.get<sol::table>("info").get_or("uut", 0));
 
         auto formatter = Formatter::Json(results);
 

@@ -19,8 +19,7 @@
 
 #include "imgui.h"
 
-namespace Frasy
-{
+namespace Frasy {
 
 TestViewer::TestViewer() : m_interface(Interface::GetDefault())
 {
@@ -29,19 +28,18 @@ TestViewer::TestViewer() : m_interface(Interface::GetDefault())
 void TestViewer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
-    if (ImGui::Begin("Test Viewer", &m_isVisible, ImGuiWindowFlags_NoDocking))
-    {
-        bool                   first    = true;
+    if (ImGui::Begin("Test Viewer", &m_isVisible, ImGuiWindowFlags_NoDocking)) {
+        bool                    first    = true;
         const Models::Solution& solution = m_interface->GetSolution();
-        for (auto& [name, sequence] : solution.sequences)
-        {
+        for (auto& [name, sequence] : solution.sequences) {
             if (first) { first = false; }
-            else { ImGui::Separator(); }
+            else {
+                ImGui::Separator();
+            }
             RenderSequence(name, sequence);
         }
 
-        if (solution.sequences.empty())
-        {
+        if (solution.sequences.empty()) {
             ImGui::Text("Not loaded, is the test sequence generated?");
             if (ImGui::Button("generate")) { m_interface->generate(); }
         }
@@ -64,22 +62,18 @@ void TestViewer::RenderSequence(const std::string& sName, const Models::Sequence
 
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    if (ImGui::SmallButton(listStatus == ListStatus::expanded ? "v" : ">"))
-    {
+    if (ImGui::SmallButton(listStatus == ListStatus::expanded ? "v" : ">")) {
         listStatus = listStatus == ListStatus::expanded ? ListStatus::folded : ListStatus::expanded;
     }
     ImGui::TableNextColumn();
     ImGui::Text("%s", sName.c_str());
     ImGui::TableNextColumn();
-    if (ImGui::Checkbox("##enable", &sEnabled))
-    {
+    if (ImGui::Checkbox("##enable", &sEnabled)) {
         m_interface->setSequenceEnable(sName, sEnabled);
         listStatus = ListStatus::unknown;    // Will be recomputed next frame
     }
-    if (listStatus == ListStatus::expanded)
-    {
-        for (auto& [tName, test] : sequence.tests)
-        {
+    if (listStatus == ListStatus::expanded) {
+        for (auto& [tName, test] : sequence.tests) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TableNextColumn();
@@ -110,12 +104,15 @@ void TestViewer::Interface::generate()
     // Default empty call
 }
 
-void TestViewer::Interface::setSequenceEnable(const std::string& sequence, bool enable)
+void TestViewer::Interface::setSequenceEnable([[maybe_unused]] const std::string& sequence,
+                                              [[maybe_unused]] bool               enable)
 {
     // Default empty call
 }
 
-void TestViewer::Interface::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
+void TestViewer::Interface::setTestEnable([[maybe_unused]] const std::string& sequence,
+                                          [[maybe_unused]] const std::string& test,
+                                          [[maybe_unused]] bool               enable)
 {
     // Default empty call
 }

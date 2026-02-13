@@ -64,7 +64,7 @@ public:
     {
     }
     Table(std::string_view name, size_t columnCount, ImVec2 size, ImGuiTableFlags flags = s_defaultFlags)
-    : m_columnCount(columnCount), m_active(ImGui::BeginTable(name.data(), columnCount, flags, size))
+    : m_columnCount(columnCount), m_active(ImGui::BeginTable(name.data(), static_cast<int>(columnCount), flags, size))
     {
     }
     ~Table()
