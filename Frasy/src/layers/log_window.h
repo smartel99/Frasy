@@ -25,7 +25,7 @@
 
 #include <array>
 #include <functional>
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <memory>
 #include <spdlog/common.h>
 

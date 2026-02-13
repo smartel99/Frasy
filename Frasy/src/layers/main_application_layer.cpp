@@ -16,7 +16,7 @@
 
 #include <Brigerad/Renderer/asset_manager.h>
 #include <frasy_interpreter.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <implot.h>
 #include <utils/imgui/table.h>
 

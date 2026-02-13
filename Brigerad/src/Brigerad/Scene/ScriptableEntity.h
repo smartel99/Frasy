@@ -62,9 +62,9 @@ public:
 
 protected:
     virtual void OnCreate() {}
-    virtual void OnUpdate(Timestep ts) {}
+    virtual void OnUpdate([[maybe_unused]] Timestep ts) {}
     virtual void OnDestroy() {}
-    virtual void OnEvent(Event& e) {}
+    virtual void OnEvent([[maybe_unused]] Event& e) {}
 
 private:
     Entity m_entity;

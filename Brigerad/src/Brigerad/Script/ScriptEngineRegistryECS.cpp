@@ -66,7 +66,7 @@ inline static void RegisterColorRendererComponent();
 /*********************************************************************************************************************/
 void Brigerad::ScriptEngineRegistry::RegisterEntity()
 {
-    auto lua = Scripting::GetState();
+    [[maybe_unused]] auto lua = Scripting::GetState();
 }
 
 void Brigerad::ScriptEngineRegistry::RegisterComponents()

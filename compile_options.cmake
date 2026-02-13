@@ -58,6 +58,10 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
     endif ()
 else ()
     message(STATUS "Minimal optimization, debug info included")
+    target_compile_definitions(frasy_dep_build_options INTERFACE
+            BR_DEBUG
+            BR_ENABLE_ASSERTS
+    )
     if (MSVC)
         target_compile_options(frasy_dep_build_options INTERFACE
                 /Od

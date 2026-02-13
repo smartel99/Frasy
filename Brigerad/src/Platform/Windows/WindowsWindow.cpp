@@ -13,8 +13,8 @@
 #include "Brigerad/Core/Application.h"
 #include "Brigerad/Events/usb_event.h"
 
+#include <format>
 
-#include <spdlog/fmt/fmt.h>
 #include <windows.h>
 
 #include <dbt.h>
@@ -119,7 +119,7 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
             // specified by your GUID.
             PDEV_BROADCAST_DEVICEINTERFACE b             = (PDEV_BROADCAST_DEVICEINTERFACE)lParam;
             auto                           makeClassGuid = [](PDEV_BROADCAST_DEVICEINTERFACE b) -> std::wstring {
-                std::string guid = fmt::format("{:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+                std::string guid = std::format("{:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
                                                b->dbcc_classguid.Data1,
                                                b->dbcc_classguid.Data2,
                                                b->dbcc_classguid.Data3,

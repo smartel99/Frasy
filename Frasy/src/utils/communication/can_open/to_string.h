@@ -289,7 +289,4 @@ concept Formattable = requires(T t) {
 template<Frasy::CanOpen::Formattable T>
 struct std::formatter<T> : Frasy::CanOpen::Formatter<T> {};
 
-template<Frasy::CanOpen::Formattable T>
-struct fmt::formatter<T> : Frasy::CanOpen::Formatter<T> {};
-
 #endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_TO_STRING_H

@@ -15,7 +15,7 @@
 
 /*****************************************************************************/
 /* Includes */
-#    include "ImGui/imgui.h"
+#    include "imgui.h"
 
 #    include <string_view>
 

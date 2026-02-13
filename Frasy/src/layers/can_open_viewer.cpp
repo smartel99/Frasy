@@ -179,7 +179,7 @@ void Layer::renderErrorGenerator()
                 }
             }
             else {
-                BR_LOG_ERROR("CANopen", "Unable to convert '{}' to uint32_t!", fmt::join(m_selectedErrorInfo, ""));
+                BR_LOG_ERROR("CANopen", "Unable to convert '{}' to uint32_t!", m_selectedErrorInfo);
             }
         }
     }

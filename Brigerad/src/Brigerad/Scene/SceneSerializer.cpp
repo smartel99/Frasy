@@ -121,7 +121,7 @@ void SceneSerializer::Serialize(const std::string& filepath)
     fout << out.c_str();
 }
 
-void SceneSerializer::SerializeRuntime(const std::string& filepath)
+void SceneSerializer::SerializeRuntime([[maybe_unused]] const std::string& filepath)
 {
     BR_CORE_ASSERT(false, "Not Implemented");
 }
@@ -208,7 +208,7 @@ bool SceneSerializer::Deserialize(const std::string& filepath)
     return true;
 }
 
-bool SceneSerializer::DeserializeRuntime(const std::string& filepath)
+bool SceneSerializer::DeserializeRuntime([[maybe_unused]] const std::string& filepath)
 {
     BR_CORE_ASSERT(false, "Not Implemented");
     return false;
@@ -381,7 +381,7 @@ static void SerializeChildEntityComponent(YAML::Emitter& out, Entity entity)
     out << YAML::EndMap;    // ChildEntityComponent.
 }
 
-static void DeserializeChildEntityComponent(const YAML::Node& node, Entity entity)
+static void DeserializeChildEntityComponent([[maybe_unused]] const YAML::Node& node,[[maybe_unused]] Entity entity)
 {
     // We don't have to do anything here since the child is already created.
 }
@@ -505,7 +505,7 @@ static void SerializeNativeScriptComponent(YAML::Emitter& out, Entity entity)
     out << YAML::Key << "NativeScriptComponent";
     out << YAML::BeginMap;    // NativeScriptComponent.
 
-    auto& nsc = entity.GetComponent<NativeScriptComponent>();
+    [[maybe_unused]] auto& nsc = entity.GetComponent<NativeScriptComponent>();
     out << YAML::Key << "Placeholder" << YAML::Value << "Value";
 
     out << YAML::EndMap;    // NativeScriptComponent.

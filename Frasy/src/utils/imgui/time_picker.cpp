@@ -32,7 +32,7 @@ struct Time {
         std::chrono::hh_mm_ss hhmmss {seconds};
         hour   = hhmmss.hours().count();
         minute = hhmmss.minutes().count();
-        second = hhmmss.seconds().count();
+        second = static_cast<int>(hhmmss.seconds().count());
     }
     int hour   = 0;
     int minute = 0;

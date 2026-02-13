@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <format>
 
 namespace Brigerad
 {
@@ -22,7 +23,7 @@ spdlog::file_event_handlers Log::s_eventHandlers = []()
     {
         spdlog::source_loc loc =
           Brigerad::Log::FormatSourceLocation(std::source_location::current());
-        std::string header = fmt::format(
+        std::string header = std::format(
           "[{{"
           "\"timestamp\": \"{:%Y-%m-%dT%T.000Z}\","
           "\"level\": \"trace\","

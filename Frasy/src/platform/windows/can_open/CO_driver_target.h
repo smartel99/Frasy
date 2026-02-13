@@ -137,7 +137,7 @@ extern "C" {
 
 /* Print debug info from some internal parts of the stack */
 #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_COMMON
-#    include "utils/communication/can_open/CO_error.h"
+#    include "CO_error.h"
 #    define CO_DEBUG_COMMON(msg) log_printf(LOG_DEBUG, DBG_CO_DEBUG, msg);
 #endif
 

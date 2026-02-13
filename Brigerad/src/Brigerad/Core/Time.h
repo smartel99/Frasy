@@ -5,7 +5,7 @@
 
 namespace Brigerad
 {
-static double GetTime()
+inline double GetTime()
 {
 #if BR_PLATFORM_WINDOWS
     return WindowsGetTime();

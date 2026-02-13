@@ -29,6 +29,7 @@
 #include <chrono>
 #include <utility>
 
+#include <Windows.h>
 #include <processthreadsapi.h>
 
 #define EARLY_EXIT(msg, ...)                                                                                           \

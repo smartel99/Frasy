@@ -18,6 +18,8 @@
 #ifndef FRASY_UTILS_LOG_WINDOW_OPTIONS_H
 #define FRASY_UTILS_LOG_WINDOW_OPTIONS_H
 
+#include "Brigerad/Core/Core.h"
+
 #include "imgui.h"
 #include "log_entry.h"
 #include "spdlog/common.h"
@@ -64,7 +66,8 @@ struct LogWindowOptions {
                 Brigerad::Log::SetLoggerLevel(name, level);
             }
             catch (...) {
-                DebugBreak();
+                // Move to cpptrace
+                DEBUG_BREAK();
             }
         }
         return options;

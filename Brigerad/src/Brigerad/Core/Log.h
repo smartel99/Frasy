@@ -64,64 +64,64 @@ private:
 }    // namespace Brigerad
 
 
-template<typename T, size_t N>
-struct fmt::formatter<std::span<T, N>>
-{
-    constexpr auto parse(fmt::format_parse_context& ctx) -> decltype(ctx.begin())
-    {
-        auto it  = ctx.begin();
-        auto end = ctx.end();
-        if (it == nullptr) { return it; }
-        if (it != end || *it != '}') { throw fmt::format_error("No format supported"); }
-        return it;
-    }
-
-    template<typename FormatContext>
-    auto format(std::span<T, N> data, FormatContext& ctx) const -> decltype(ctx.out())
-    {
-        fmt::format_to(ctx.out(), "[");
-        for (size_t i = 0; i < data.size(); i++)
-        {
-            bool isLast = i == data.size() - 1;
-            if (std::isprint(data[i]))
-            {
-                fmt::format_to(ctx.out(), "{}{}", static_cast<char>(data[i]), isLast ? "" : ", ");
-            }
-            else { fmt::format_to(ctx.out(), "\\x{:02X}{}", data[i], isLast ? "]" : ", "); }
-        }
-        return ctx.out();
-    }
-};
-
-template<std::integral T>
-struct fmt::formatter<std::vector<T>> : formatter<std::span<T>>
-{
-    template<typename FormatContext>
-    auto format(const std::vector<T>& data, FormatContext& ctx) const -> decltype(ctx.out())
-    {
-        return fmt::formatter<std::span<T>>::format(std::span {data.begin(), data.end()}, ctx);
-    }
-};
-
-template<>
-struct fmt::formatter<std::basic_string<uint8_t>> : formatter<std::span<uint8_t>>
-{
-    template<typename FormatContext>
-    auto format(const std::basic_string<uint8_t>& data, FormatContext& ctx) const -> decltype(ctx.out())
-    {
-        return fmt::formatter<std::span<uint8_t>>::format(std::span {data.begin(), data.end()}, ctx);
-    }
-};
-
-template<>
-struct fmt::formatter<std::basic_string_view<uint8_t>> : formatter<std::span<uint8_t>>
-{
-    template<typename FormatContext>
-    auto format(std::basic_string_view<uint8_t> data, FormatContext& ctx) const -> decltype(ctx.out())
-    {
-        return fmt::formatter<std::span<uint8_t>>::format(std::span {data.begin(), data.end()}, ctx);
-    }
-};
+// template<typename T, size_t N>
+// struct fmt::formatter<std::span<T, N>>
+// {
+//     constexpr auto parse(fmt::format_parse_context& ctx) -> decltype(ctx.begin())
+//     {
+//         auto it  = ctx.begin();
+//         auto end = ctx.end();
+//         if (it == nullptr) { return it; }
+//         if (it != end || *it != '}') { throw fmt::format_error("No format supported"); }
+//         return it;
+//     }
+//
+//     template<typename FormatContext>
+//     auto format(std::span<T, N> data, FormatContext& ctx) const -> decltype(ctx.out())
+//     {
+//         fmt::format_to(ctx.out(), "[");
+//         for (size_t i = 0; i < data.size(); i++)
+//         {
+//             bool isLast = i == data.size() - 1;
+//             if (std::isprint(data[i]))
+//             {
+//                 fmt::format_to(ctx.out(), "{}{}", static_cast<char>(data[i]), isLast ? "" : ", ");
+//             }
+//             else { fmt::format_to(ctx.out(), "\\x{:02X}{}", data[i], isLast ? "]" : ", "); }
+//         }
+//         return ctx.out();
+//     }
+// };
+//
+// template<std::integral T>
+// struct fmt::formatter<std::vector<T>> : formatter<std::span<T>>
+// {
+//     template<typename FormatContext>
+//     auto format(const std::vector<T>& data, FormatContext& ctx) const -> decltype(ctx.out())
+//     {
+//         return fmt::formatter<std::span<T>>::format(std::span {data.begin(), data.end()}, ctx);
+//     }
+// };
+//
+// template<>
+// struct fmt::formatter<std::basic_string<uint8_t>> : formatter<std::span<uint8_t>>
+// {
+//     template<typename FormatContext>
+//     auto format(const std::basic_string<uint8_t>& data, FormatContext& ctx) const -> decltype(ctx.out())
+//     {
+//         return fmt::formatter<std::span<uint8_t>>::format(std::span {data.begin(), data.end()}, ctx);
+//     }
+// };
+//
+// template<>
+// struct fmt::formatter<std::basic_string_view<uint8_t>> : formatter<std::span<uint8_t>>
+// {
+//     template<typename FormatContext>
+//     auto format(std::basic_string_view<uint8_t> data, FormatContext& ctx) const -> decltype(ctx.out())
+//     {
+//         return fmt::formatter<std::span<uint8_t>>::format(std::span {data.begin(), data.end()}, ctx);
+//     }
+// };
 
 
 #define BR_LOG(logger, level, msg, ...)      \

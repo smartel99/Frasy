@@ -20,13 +20,13 @@
 
 #include "log_entry.h"
 #include "spdlog/details/circular_q.h"
-#include "spdlog/fmt/chrono.h"
 #include "spdlog/sinks/base_sink.h"
 
 #include <array>
 #include <map>
 #include <mutex>
 #include <string>
+#include <string_view>
 
 namespace Frasy {
 
@@ -34,7 +34,7 @@ class LogWindowSink : public spdlog::sinks::base_sink<std::mutex> {};
 
 class LogWindowMultiSink : public LogWindowSink {
 public:
-    using LoggerMap = std::map<fmt::basic_string_view<char>, spdlog::details::circular_q<LogEntry>>;
+    using LoggerMap = std::map<std::string_view, spdlog::details::circular_q<LogEntry>>;
 
     explicit LogWindowMultiSink(size_t max) noexcept : m_maxLen {max} {}
 
@@ -48,12 +48,12 @@ protected:
             m_loggers[msg.logger_name] = spdlog::details::circular_q<LogEntry>(m_maxLen);
         }
         m_loggers[msg.logger_name].push_back({msg.level,
-                                              fmt::to_string(msg.logger_name),
+                                              std::string(msg.logger_name),
                                               msg.source.filename,
                                               msg.source.funcname,
                                               msg.source.line,
-                                              std::move(SPDLOG_BUF_TO_STRING(msg.payload)),
-                                              fmt::format("{}", msg.time)});
+                                              std::string(msg.payload),
+                                              std::format("{}", msg.time)});
     }
 
     void flush_() override {}
@@ -75,12 +75,12 @@ protected:
     void sink_it_(const spdlog::details::log_msg& msg) override
     {
         m_entries.push_back({msg.level,
-                             fmt::to_string(msg.logger_name),
+                             std::string(msg.logger_name),
                              msg.source.filename,
                              msg.source.funcname,
                              msg.source.line,
-                             std::move(SPDLOG_BUF_TO_STRING(msg.payload)),
-                             fmt::format("{}", msg.time)});
+                             std::string(msg.payload),
+                             std::format("{}", msg.time)});
     }
 
     void flush_() override {}

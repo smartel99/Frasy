@@ -21,7 +21,7 @@ namespace Brigerad
 {
 // ID of the shader currently bound in the GPU.
 // Init to an ID that is for sure non-existant.
-static uint32_t pActiveShader = -1;
+static uint32_t pActiveShader = static_cast<uint32_t>(-1);
 
 /**
  * @brief Get the OpenGL enum value from the passed string.

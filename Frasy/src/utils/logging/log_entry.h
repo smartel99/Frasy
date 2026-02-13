@@ -21,14 +21,12 @@
 #include "spdlog/common.h"
 
 #include <array>
+#include <format>
 #include <string>
 
-namespace Frasy
-{
-struct LogEntry
-{
-    enum SourceLocationRenderStyles
-    {
+namespace Frasy {
+struct LogEntry {
+    enum SourceLocationRenderStyles {
         SourceLocationRenderStyle_Function        = 0,
         SourceLocationRenderStyle_FunctionAndLine = 1,
         SourceLocationRenderStyle_File            = 2,
@@ -47,21 +45,23 @@ struct LogEntry
 
     [[nodiscard]] std::string FormatSourceLocation(SourceLocationRenderStyles style) const
     {
-        using namespace fmt::literals;
-        try
-        {
-            return fmt::format(fmt::runtime(SourceLocationRenderStyleLabels.at(style)),
-                               "function"_a = Funcname,
-                               "line"_a     = Line,
-                               "file"_a     = Filename);
+        try {
+            switch (style) {
+                case SourceLocationRenderStyle_Function: return std::format("{}", Funcname);
+                case SourceLocationRenderStyle_FunctionAndLine: return std::format("{}:{}", Funcname, Line);
+                case SourceLocationRenderStyle_File: return std::format("{}", Filename);
+                case SourceLocationRenderStyle_FileAndLine: return std::format("{}:{}", Filename, Line);
+                case SourceLocationRenderStyle_All:
+                case SourceLocationRenderStyle_Count:
+                default: return std::format("{}:{} ({})", Funcname, Line, Filename);
+            }
+
         }
-        catch (std::out_of_range& e)
-        {
-            return fmt::format("Invalid Style ({}) requested: {}", style, e.what());
+        catch (std::out_of_range& e) {
+            return std::format("Invalid Style ({}) requested: {}", std::to_underlying(style), e.what());
         }
-        catch (fmt::format_error& e)
-        {
-            return fmt::format("A format error occurred: {}", e.what());
+        catch (std::format_error& e) {
+            return std::format("A format error occurred: {}", e.what());
         }
     }
 

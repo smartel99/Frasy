@@ -24,13 +24,14 @@
 #include <span>
 #include <string_view>
 #include <vector>
+#include <format>
 
 namespace Frasy::Serial {
 class BasePacketException : public std::exception
 {
 public:
     explicit BasePacketException(const uint8_t* data, size_t len, std::string_view msg) noexcept
-    : m_data(fmt::format("{}, Data: {}", msg, std::span {data, len}))
+    : m_data(std::format("{}, Data: {}", msg, std::span {data, len}))
     {
     }
 
@@ -44,7 +45,7 @@ class MissingDataException : public BasePacketException
 {
 public:
     MissingDataException(const uint8_t* data, size_t len, const char* from)
-    : BasePacketException(data, len, fmt::format("Missing data for {}", from))
+    : BasePacketException(data, len, std::format("Missing data for {}", from))
     {
     }
 };
@@ -54,7 +55,7 @@ class BadDelimiterException : public BasePacketException
 public:
     BadDelimiterException(const uint8_t* data, size_t len, const char* from, uint8_t expected)
     : BasePacketException(
-        data, len, fmt::format("Bad delimiter for {}, expected '{:#02x}', got '{:#02x}'", from, expected, data[0]))
+        data, len, std::format("Bad delimiter for {}, expected '{:#02x}', got '{:#02x}'", from, expected, data[0]))
     {
     }
 };
@@ -65,7 +66,7 @@ public:
     BadPayloadException(const uint8_t* data, size_t len, size_t expectedIdx)
     : BasePacketException(data,
                           len,
-                          fmt::format("Expected to find payload end at index {}, found '{:02X}' instead",
+                          std::format("Expected to find payload end at index {}, found '{:02X}' instead",
                                       expectedIdx,
                                       expectedIdx >= len ? '\xFF' : data[expectedIdx]))
     {
@@ -76,7 +77,7 @@ class BadCrcException : public BasePacketException
 {
 public:
     BadCrcException(const uint8_t* data, size_t len, uint32_t expected, uint32_t computed)
-    : BasePacketException(data, len, fmt::format("Bad CRC, expected {}, got {}", expected, computed))
+    : BasePacketException(data, len, std::format("Bad CRC, expected {}, got {}", expected, computed))
     {
     }
 };

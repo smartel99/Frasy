@@ -144,7 +144,4 @@ struct EmergencyMessageFormatter {
 template<>
 struct std::formatter<Frasy::CanOpen::EmergencyMessage> : Frasy::CanOpen::EmergencyMessageFormatter {};
 
-template<>
-struct fmt::formatter<Frasy::CanOpen::EmergencyMessage> : Frasy::CanOpen::EmergencyMessageFormatter {};
-
 #endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_EM_H

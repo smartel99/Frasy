@@ -143,9 +143,9 @@ void LogWindow::RenderSeparateLoggers(LogWindowOptions& options, const std::shar
 }
 
 
-void LogWindow::RenderLoggerEntries(LogWindowOptions&    options,
-                                    const LoggerName&    loggerName,
-                                    const LoggerEntries& loggerEntries)
+void LogWindow::RenderLoggerEntries(LogWindowOptions&                  options,
+                                    [[maybe_unused]] const LoggerName& loggerName,
+                                    const LoggerEntries&               loggerEntries)
 {
     static ImGuiTableFlags tableFlags =
       ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |

@@ -20,11 +20,14 @@
 #include "utils/commands/built_in/status/reply.h"
 
 #include <barrier>
+#include <format>
+
+#include <Windows.h>
 
 namespace Frasy::Serial {
 
 Device::Device(const std::string& port, bool open)
-: m_label(fmt::format("UART {}", port)),
+: m_label(std::format("UART {}", port)),
   m_device(port,
            460800,
            serial::Timeout::simpleTimeout(10),
