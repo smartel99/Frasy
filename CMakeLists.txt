@@ -19,7 +19,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         frasy_build_options
         Brigerad
         CanOpen
-        hashdir
+        libhashdir
         json
         wkhtmltox
         Ws2_32.lib
