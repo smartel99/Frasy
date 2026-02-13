@@ -4,8 +4,6 @@
 bin
 bin-int
 cmake-build*
-*.cmake
-CMakeLists.txt
 Brigerad/vendor/glm/doc
 *.vcxproj*
 *.sln
