@@ -25,6 +25,9 @@ set(SPDLOG_USE_STD_FORMAT ON CACHE BOOL "")
 add_subdirectory(vendor/spdlog)
 include(vendor/cmake/stb_image.cmake)
 include(vendor/cmake/tinyfiledialogs.cmake)
+
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "")
+set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "")
 add_subdirectory(vendor/yaml-cpp)
 
 add_library(${PROJECT_NAME} STATIC
