@@ -121,6 +121,9 @@ sol::table jsonArrayToTable(sol::state& lua, const nlohmann::json& array)
                 break;
             case nlohmann::detail::value_t::discarded: table.add(sol::nil);
                 break;
+            case nlohmann::detail::value_t::binary: // TODO Maybe do something with binary data??
+                break;
+            default: break;
         }
     }
     return table;
@@ -149,6 +152,9 @@ sol::table jsonObjectToTable(sol::state& lua, const nlohmann::json& object)
                 break;
             case nlohmann::detail::value_t::discarded: table[key] = sol::nil;
                 break;
+            case nlohmann::detail::value_t::binary: // TODO Maybe do something with binary data??
+                break;
+            default: break;
         }
 
     }

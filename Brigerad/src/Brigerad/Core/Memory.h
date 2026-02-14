@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace Brigerad
 {
 namespace Memory
@@ -14,7 +16,7 @@ namespace Memory
     // disabled exceptions.
     //-----------------------------------------------------------------------------
 
-    void* MemAlloc(size_t size);
+    void* MemAlloc(std::size_t size);
     void MemFree(void* ptr);
 
 
@@ -39,7 +41,7 @@ struct BrNewDummy
 {
 };
 
-inline void* operator new(size_t, BrNewDummy, void* ptr) { return ptr; }
+inline void* operator new(std::size_t, BrNewDummy, void* ptr) { return ptr; }
 /**
  * This is only required so we can use the symmetrical new().
  */

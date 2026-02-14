@@ -23,6 +23,9 @@ if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 else ()
     target_compile_options(frasy_build_options INTERFACE -Wall -Wextra -pedantic-errors)
+    target_compile_options(frasy_build_options INTERFACE
+        -Wa,-mbig-obj
+    )
 endif ()
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
@@ -48,9 +51,11 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
     else ()
         target_compile_options(frasy_dep_build_options INTERFACE
                 -Ofast
+                -g
         )
         target_link_options(frasy_dep_build_options INTERFACE
                 -Ofast
+                -g
         )
     endif ()
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
@@ -80,9 +85,11 @@ else ()
     else ()
         target_compile_options(frasy_dep_build_options INTERFACE
                 -O0
+                -g
         )
         target_link_options(frasy_dep_build_options INTERFACE
                 -O0
+                -g
         )
     endif ()
 endif ()

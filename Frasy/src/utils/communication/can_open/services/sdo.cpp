@@ -19,6 +19,8 @@
 
 #include "../can_open.h"
 #include "../to_string.h"
+#include "Brigerad/Core/Thread.h"
+
 #include <tuple>
 
 #include <Brigerad/Core/Log.h>
@@ -125,18 +127,18 @@ void SdoManager::startWorkers()
 
     m_uploadWorkerThread =
       std::jthread([this](std::stop_source source) { uploadWorkerThread(source.get_token()); }, m_stopSource);
-    if (FAILED(SetThreadDescription(m_uploadWorkerThread.native_handle(), L"SDO Upload Worker"))) {
+    if (!Brigerad::SetThreadName(m_uploadWorkerThread.native_handle(), "SDO Upload Worker")) {
         BR_LOG_ERROR("SDO", "Unable to set thread description");
     }
-    if (!SetThreadPriority(m_uploadWorkerThread.native_handle(), THREAD_PRIORITY_ABOVE_NORMAL)) {
+    if (!Brigerad::SetThreadPriority(m_uploadWorkerThread.native_handle(), THREAD_PRIORITY_ABOVE_NORMAL)) {
         BR_LOG_ERROR("SDO", "Unable to set thread priority!");
     }
     m_downloadWorkerThread =
       std::jthread([this](std::stop_source source) { downloadWorkerThread(source.get_token()); }, m_stopSource);
-    if (FAILED(SetThreadDescription(m_downloadWorkerThread.native_handle(), L"SDO Download Worker"))) {
+    if (!Brigerad::SetThreadName(m_downloadWorkerThread.native_handle(), "SDO Download Worker")) {
         BR_LOG_ERROR("SDO", "Unable to set thread description");
     }
-    if (!SetThreadPriority(m_downloadWorkerThread.native_handle(), THREAD_PRIORITY_ABOVE_NORMAL)) {
+    if (!Brigerad::SetThreadPriority(m_downloadWorkerThread.native_handle(), THREAD_PRIORITY_ABOVE_NORMAL)) {
         BR_LOG_ERROR("SDO", "Unable to set thread priority!");
     }
 }

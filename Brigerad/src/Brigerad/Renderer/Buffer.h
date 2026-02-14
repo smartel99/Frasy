@@ -98,9 +98,9 @@ public:
 
     BufferLayout() {}
 
-    inline const std::vector<BufferElements>& GetElements() const { return m_elements; }
+    const std::vector<BufferElements>& GetElements() const { return m_elements; }
 
-    inline const uint32_t GetStride() const { return m_stride; }
+    uint32_t GetStride() const { return m_stride; }
 
     std::vector<BufferElements>::iterator begin() { return m_elements.begin(); }
     std::vector<BufferElements>::iterator end() { return m_elements.end(); }
@@ -140,7 +140,7 @@ public:
 
     virtual void SetData(const void* data, uint32_t size) = 0;
 
-    virtual const uint32_t GetId() const = 0;
+    virtual uint32_t GetId() const = 0;
 
     static Ref<VertexBuffer> Create(uint32_t size);
     static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
@@ -154,13 +154,13 @@ public:
 class IndexBuffer
 {
 public:
-    virtual ~IndexBuffer() {}
+    virtual ~IndexBuffer() = default;
 
     virtual void Bind() const   = 0;
     virtual void Unbind() const = 0;
 
     virtual uint32_t       GetCount() const = 0;
-    virtual const uint32_t GetId() const    = 0;
+    virtual uint32_t GetId() const    = 0;
 
     static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
 };

@@ -29,6 +29,8 @@ add_subdirectory(vendor/yaml-cpp)
 
 add_library(${PROJECT_NAME} STATIC
         ${SOURCES}
+        src/Brigerad/Core/Thread.h
+        src/Brigerad/Core/Thread.cpp
 )
 
 include(FetchContent)
@@ -51,7 +53,7 @@ if (WIN32)
 endif ()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-        frasy_build_options
+        frasy_dep_build_options
         entt
         GLAD
         glfw
@@ -84,5 +86,10 @@ if (MSVC)
             /wd4100
             /wd4611 #interaction between '_setjmp' and C++ object destruction is non-portable
             /wd4702 #unreachable code
+    )
+else ()
+    target_compile_options(${PROJECT_NAME} PUBLIC
+            $<$<COMPILE_LANGUAGE:CXX>:-Wno-template-body>
+            -Wno-unknown-pragmas
     )
 endif ()

@@ -24,8 +24,7 @@
 
 #include <Brigerad/Core/Log.h>
 
-namespace Frasy::Lua
-{
+namespace Frasy::Lua {
 using Type::Manager;
 using Type::Struct;
 
@@ -35,30 +34,40 @@ void ArgsToTable(sol::table&                       table,
                  const sol::variadic_args&         args)
 {
     decltype(auto) f = []<typename T>(const sol::variadic_args& args, int index) { return args.get<T>(index); };
-    for (int i = 0; i < args.size(); ++i)
-    {
+    for (int i = 0; i < static_cast<int>(args.size()); ++i) {
         const auto& field = fields[i];
         if (field.Count != Type::SINGLE) { table[field.Name] = f.operator()<sol::table>(args, i); }
-        else if (typeManager.IsFundamental(field.Type))
-        {
-            switch (static_cast<Type::Fundamental::E>(field.Type))
-            {
-                case Type::Fundamental::E::Bool: table[field.Name] = f.operator()<bool>(args, i); break;
-                case Type::Fundamental::E::Int8: table[field.Name] = f.operator()<int8_t>(args, i); break;
-                case Type::Fundamental::E::UInt8: table[field.Name] = f.operator()<uint8_t>(args, i); break;
-                case Type::Fundamental::E::Int16: table[field.Name] = f.operator()<int16_t>(args, i); break;
-                case Type::Fundamental::E::UInt16: table[field.Name] = f.operator()<uint16_t>(args, i); break;
-                case Type::Fundamental::E::Int32: table[field.Name] = f.operator()<int32_t>(args, i); break;
-                case Type::Fundamental::E::UInt32: table[field.Name] = f.operator()<uint32_t>(args, i); break;
-                case Type::Fundamental::E::Int64: table[field.Name] = f.operator()<int64_t>(args, i); break;
-                case Type::Fundamental::E::UInt64: table[field.Name] = f.operator()<uint64_t>(args, i); break;
-                case Type::Fundamental::E::Float: table[field.Name] = f.operator()<float>(args, i); break;
-                case Type::Fundamental::E::Double: table[field.Name] = f.operator()<double>(args, i); break;
-                case Type::Fundamental::E::String: table[field.Name] = f.operator()<std::string>(args, i); break;
+        else if (typeManager.IsFundamental(field.Type)) {
+            switch (static_cast<Type::Fundamental::E>(field.Type)) {
+                case Type::Fundamental::E::Bool: table[field.Name] = f.operator()<bool>(args, i);
+                    break;
+                case Type::Fundamental::E::Int8: table[field.Name] = f.operator()<int8_t>(args, i);
+                    break;
+                case Type::Fundamental::E::UInt8: table[field.Name] = f.operator()<uint8_t>(args, i);
+                    break;
+                case Type::Fundamental::E::Int16: table[field.Name] = f.operator()<int16_t>(args, i);
+                    break;
+                case Type::Fundamental::E::UInt16: table[field.Name] = f.operator()<uint16_t>(args, i);
+                    break;
+                case Type::Fundamental::E::Int32: table[field.Name] = f.operator()<int32_t>(args, i);
+                    break;
+                case Type::Fundamental::E::UInt32: table[field.Name] = f.operator()<uint32_t>(args, i);
+                    break;
+                case Type::Fundamental::E::Int64: table[field.Name] = f.operator()<int64_t>(args, i);
+                    break;
+                case Type::Fundamental::E::UInt64: table[field.Name] = f.operator()<uint64_t>(args, i);
+                    break;
+                case Type::Fundamental::E::Float: table[field.Name] = f.operator()<float>(args, i);
+                    break;
+                case Type::Fundamental::E::Double: table[field.Name] = f.operator()<double>(args, i);
+                    break;
+                case Type::Fundamental::E::String: table[field.Name] = f.operator()<std::string>(args, i);
+                    break;
 
                 case Type::Fundamental::E::Void:
                 case Type::Fundamental::E::Size:
-                default: BR_LOG_ERROR(s_tag.data(), "Invalid type"); throw std::exception();
+                default: BR_LOG_ERROR(s_tag.data(), "Invalid type");
+                    throw std::exception();
             }
         }
         else if (typeManager.IsEnum(field.Type)) { table[field.Name] = f.operator()<uint32_t>(args, i); }
@@ -71,44 +80,56 @@ void ParseTable(const sol::table&                 table,
                 const std::vector<Struct::Field>& fields,
                 std::vector<uint8_t>&             output)
 {
-    for (const auto& field : fields)
-    {
+    for (const auto& field : fields) {
         if (field.Count != Type::SINGLE) { ParseContainer(table, typeManager, field, output); }
         else if (typeManager.IsFundamental(field.Type)) { ParseFundamental(table, field, output); }
         else if (typeManager.IsEnum(field.Type)) { ParseEnum(table, typeManager, field, output); }
-        else
-        {
+        else {
             ParseTable(
-              table.get<sol::table>(field.Name), typeManager, typeManager.GetStruct(field.Type).Fields, output);
+                table.get<sol::table>(field.Name),
+                typeManager,
+                typeManager.GetStruct(field.Type).Fields,
+                output);
         }
     }
 }
 
 void ParseFundamental(const sol::table& table, const Struct::Field& field, std::vector<uint8_t>& output)
 {
-    auto f = [&]<typename T>()
-    {
+    auto f = [&]<typename T>() {
         auto input = Serialize<T>(table.get<T>(field.Name));
         output.insert(output.end(), input.begin(), input.end());
     };
 
-    switch (static_cast<Type::Fundamental::E>(field.Type))
-    {
-        case Type::Fundamental::E::Bool: f.operator()<bool>(); break;
-        case Type::Fundamental::E::Int8: f.operator()<int8_t>(); break;
-        case Type::Fundamental::E::UInt8: f.operator()<uint8_t>(); break;
-        case Type::Fundamental::E::Int16: f.operator()<int16_t>(); break;
-        case Type::Fundamental::E::UInt16: f.operator()<uint16_t>(); break;
-        case Type::Fundamental::E::Int32: f.operator()<int32_t>(); break;
-        case Type::Fundamental::E::UInt32: f.operator()<uint32_t>(); break;
-        case Type::Fundamental::E::Int64: f.operator()<int64_t>(); break;
-        case Type::Fundamental::E::UInt64: f.operator()<uint64_t>(); break;
-        case Type::Fundamental::E::Float: f.operator()<float>(); break;
-        case Type::Fundamental::E::Double: f.operator()<double>(); break;
-        case Type::Fundamental::E::String: f.operator()<std::string>(); break;
+    switch (static_cast<Type::Fundamental::E>(field.Type)) {
+        case Type::Fundamental::E::Bool: f.operator()<bool>();
+            break;
+        case Type::Fundamental::E::Int8: f.operator()<int8_t>();
+            break;
+        case Type::Fundamental::E::UInt8: f.operator()<uint8_t>();
+            break;
+        case Type::Fundamental::E::Int16: f.operator()<int16_t>();
+            break;
+        case Type::Fundamental::E::UInt16: f.operator()<uint16_t>();
+            break;
+        case Type::Fundamental::E::Int32: f.operator()<int32_t>();
+            break;
+        case Type::Fundamental::E::UInt32: f.operator()<uint32_t>();
+            break;
+        case Type::Fundamental::E::Int64: f.operator()<int64_t>();
+            break;
+        case Type::Fundamental::E::UInt64: f.operator()<uint64_t>();
+            break;
+        case Type::Fundamental::E::Float: f.operator()<float>();
+            break;
+        case Type::Fundamental::E::Double: f.operator()<double>();
+            break;
+        case Type::Fundamental::E::String: f.operator()<std::string>();
+            break;
         case Type::Fundamental::E::Void:
         case Type::Fundamental::E::Size:
-        default: BR_LOG_ERROR(s_tag.data(), "Type is not a fundamental"); throw std::exception();
+        default: BR_LOG_ERROR(s_tag.data(), "Type is not a fundamental");
+            throw std::exception();
     }
 }
 
@@ -118,12 +139,10 @@ void ParseEnum(const sol::table&     table,
                std::vector<uint8_t>& output)
 {
     using Type::Fundamental;
-    auto to_underlying = [&typeManager](const Struct::Field& f)
-    {
+    auto to_underlying = [&typeManager](const Struct::Field& f) {
         // Get the information of the field's type.
         auto typeInfo = typeManager.GetEnum(f.Type);
-        switch (typeInfo.UnderlyingSize)
-        {
+        switch (typeInfo.UnderlyingSize) {
             case 1: return Fundamental::E::UInt8;
             case 2: return Fundamental::E::UInt16;
             case 4: return Fundamental::E::UInt32;
@@ -131,7 +150,7 @@ void ParseEnum(const sol::table&     table,
         }
     };
     type_id_t underlying_type = static_cast<type_id_t>(to_underlying(field));
-    ParseFundamental(table, Struct::Field {.Name = field.Name, .Type = underlying_type}, output);
+    ParseFundamental(table, Struct::Field{.Name = field.Name, .Type = underlying_type}, output);
 }
 
 void ParseContainer(const sol::table&     table,
@@ -141,8 +160,7 @@ void ParseContainer(const sol::table&     table,
 {
     if (typeManager.IsFundamental(field.Type)) { ParseFundamentalContainer(table, field, output); }
     else if (typeManager.IsEnum(field.Type)) { ParseEnumContainer(table, typeManager, field, output); }
-    else
-    {
+    else {
         ParseTableContainer(table.get<std::vector<sol::table>>(field.Name),
                             typeManager,
                             typeManager.GetStruct(field.Type).Fields,
@@ -152,30 +170,41 @@ void ParseContainer(const sol::table&     table,
 
 void ParseFundamentalContainer(const sol::table& table, const Struct::Field& field, std::vector<uint8_t>& output)
 {
-    auto f = [&]<typename T>()
-    {
+    auto f = [&]<typename T>() {
         std::vector<T> v     = table.get<std::vector<T>>(field.Name);
         auto           input = Serialize<std::vector<T>>(v);
         output.insert(output.end(), input.begin(), input.end());
     };
     using Type::Fundamental;
-    switch (static_cast<Type::Fundamental::E>(field.Type))
-    {
-        case Type::Fundamental::E::Bool: f.operator()<bool>(); break;
-        case Type::Fundamental::E::Int8: f.operator()<int8_t>(); break;
-        case Type::Fundamental::E::UInt8: f.operator()<uint8_t>(); break;
-        case Type::Fundamental::E::Int16: f.operator()<int16_t>(); break;
-        case Type::Fundamental::E::UInt16: f.operator()<uint16_t>(); break;
-        case Type::Fundamental::E::Int32: f.operator()<int32_t>(); break;
-        case Type::Fundamental::E::UInt32: f.operator()<uint32_t>(); break;
-        case Type::Fundamental::E::Int64: f.operator()<int64_t>(); break;
-        case Type::Fundamental::E::UInt64: f.operator()<uint64_t>(); break;
-        case Type::Fundamental::E::Float: f.operator()<float>(); break;
-        case Type::Fundamental::E::Double: f.operator()<double>(); break;
-        case Type::Fundamental::E::String: f.operator()<std::string>(); break;
+    switch (static_cast<Type::Fundamental::E>(field.Type)) {
+        case Type::Fundamental::E::Bool: f.operator()<bool>();
+            break;
+        case Type::Fundamental::E::Int8: f.operator()<int8_t>();
+            break;
+        case Type::Fundamental::E::UInt8: f.operator()<uint8_t>();
+            break;
+        case Type::Fundamental::E::Int16: f.operator()<int16_t>();
+            break;
+        case Type::Fundamental::E::UInt16: f.operator()<uint16_t>();
+            break;
+        case Type::Fundamental::E::Int32: f.operator()<int32_t>();
+            break;
+        case Type::Fundamental::E::UInt32: f.operator()<uint32_t>();
+            break;
+        case Type::Fundamental::E::Int64: f.operator()<int64_t>();
+            break;
+        case Type::Fundamental::E::UInt64: f.operator()<uint64_t>();
+            break;
+        case Type::Fundamental::E::Float: f.operator()<float>();
+            break;
+        case Type::Fundamental::E::Double: f.operator()<double>();
+            break;
+        case Type::Fundamental::E::String: f.operator()<std::string>();
+            break;
         case Type::Fundamental::E::Void:
         case Type::Fundamental::E::Size:
-        default: BR_LOG_ERROR(s_tag.data(), "Type is not a fundamental"); throw std::exception();
+        default: BR_LOG_ERROR(s_tag.data(), "Type is not a fundamental");
+            throw std::exception();
     }
 }
 
@@ -185,12 +214,10 @@ void ParseEnumContainer(const sol::table&     table,
                         std::vector<uint8_t>& output)
 {
     using Type::Fundamental;
-    auto to_underlying = [&typeManager](const Struct::Field& f)
-    {
+    auto to_underlying = [&typeManager](const Struct::Field& f) {
         // Get the information of the field's type.
         auto typeInfo = typeManager.GetEnum(f.Type);
-        switch (typeInfo.UnderlyingSize)
-        {
+        switch (typeInfo.UnderlyingSize) {
             case 1: return Fundamental::E::UInt8;
             case 2: return Fundamental::E::UInt16;
             case 4: return Fundamental::E::UInt32;
@@ -198,7 +225,7 @@ void ParseEnumContainer(const sol::table&     table,
         }
     };
     type_id_t underlying_type = static_cast<type_id_t>(to_underlying(field));
-    ParseFundamentalContainer(table, Struct::Field {.Name = field.Name, .Type = underlying_type}, output);
+    ParseFundamentalContainer(table, Struct::Field{.Name = field.Name, .Type = underlying_type}, output);
 }
 
 void ParseTableContainer(const std::vector<sol::table>&    tables,
@@ -210,4 +237,4 @@ void ParseTableContainer(const std::vector<sol::table>&    tables,
     output.insert(output.end(), input.begin(), input.end());
     for (const auto& table : tables) { ParseTable(table, typeManager, fields, output); }
 }
-}    // namespace Frasy::Lua
+} // namespace Frasy::Lua

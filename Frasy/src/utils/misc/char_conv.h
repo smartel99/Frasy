@@ -70,7 +70,7 @@ template<std::integral T, size_t CharsForT = sizeof(T) * 2>
 
     for (int i = CharsForT - 1; i >= 0; i--) {
         uint8_t v = static_cast<uint8_t>(t) & 0xF;
-        if ((v >= 0) && (v <= 9)) { v += '0'; }
+        if (v <= 9) { v += '0'; }
         else if ((v >= 0xA) && (v <= 0xF)) {
             v = (v - 0xA) + 'A';
         }

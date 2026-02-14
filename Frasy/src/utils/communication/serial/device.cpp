@@ -22,19 +22,21 @@
 #include <barrier>
 #include <format>
 
+#include <Brigerad/Core/Thread.h>
+
 #include <Windows.h>
 
 namespace Frasy::Serial {
 
 Device::Device(const std::string& port, bool open)
-: m_label(std::format("UART {}", port)),
-  m_device(port,
-           460800,
-           serial::Timeout::simpleTimeout(10),
-           serial::eightbits,
-           serial::parity_none,
-           serial::stopbits_one,
-           serial::flowcontrol_software)
+    : m_label(std::format("UART {}", port)),
+      m_device(port,
+               460800,
+               serial::Timeout::simpleTimeout(10),
+               serial::eightbits,
+               serial::parity_none,
+               serial::stopbits_one,
+               serial::flowcontrol_software)
 {
     if (open) { this->open(); }
 }
@@ -70,10 +72,10 @@ ResponsePromise& Device::transmit(Packet pkt)
 
     BR_LOG_DEBUG(m_label, "Sending packet '{:08X}'", pkt.Header.TransactionId);
     std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);
-    std::lock_guard      promiseLock {m_promiseLock};
+    std::lock_guard      promiseLock{m_promiseLock};
     m_device.write(data);
     m_device.flushOutput();
-    auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise {}));
+    auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise{}));
     return it->second;
 }
 
@@ -81,7 +83,7 @@ ResponsePromise& Device::transmit(Packet pkt)
 {
     std::vector<trs_id_t> ids;
     ids.reserve(m_pending.size());
-    std::lock_guard lock {m_promiseLock};
+    std::lock_guard lock{m_promiseLock};
     for (auto&& [id, p] : m_pending) {
         ids.push_back(id);
     }
@@ -110,11 +112,11 @@ void Device::checkForPackets()
                 m_rxBuff.erase(0, eofPos + 1);
                 // TODO This should now handle SlCan packets.
                 try {
-                    Packet packet = Packet {{raw.begin(), raw.end()}};
+                    Packet packet = Packet{{raw.begin(), raw.end()}};
 
                     if (packet.Header.Modifiers.IsResponse) {
                         try {
-                            std::lock_guard lock {m_promiseLock};
+                            std::lock_guard lock{m_promiseLock};
                             auto&           promise = m_pending.at(packet.Header.TransactionId);
                             promise.Promise.set_value(packet);
                             BR_LOG_DEBUG(m_label, "Received response for '{:08X}'", packet.Header.TransactionId);
@@ -130,7 +132,8 @@ void Device::checkForPackets()
                     }
                     else {
                         auto dispatcher = Commands::CommandManager::Get().MakeDispatcher(
-                          Commands::CommandEvent {[this](const Packet& pkt) { transmit(pkt); }, this->m_label, packet});
+                            Commands::CommandEvent{[this](const Packet& pkt) { transmit(pkt); }, this->m_label,
+                                                   packet});
                         dispatcher.Dispatch();
                     }
                 }
@@ -158,7 +161,7 @@ void Device::open()
     m_cleanerThread = std::thread([this] { cleanerTask(); });
 
     m_shouldRun = true;
-    std::barrier rxReady {2};
+    std::barrier rxReady{2};
     m_rxThread = std::thread([&]() {
         BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
         std::string endOfPacket = std::string(1, Packet::s_packetEndFlag);
@@ -188,7 +191,7 @@ void Device::close()
         m_shouldRun = false;
 
         // Forcefully terminate *any* I/O operation done by the thread.
-        if (CancelSynchronousIo(m_rxThread.native_handle()) == 0) {
+        if (Brigerad::CancelSynchronousIo(m_rxThread.native_handle()) == 0) {
             BR_LOG_WARN(m_label, "CancelSynchronousIo returned {}", GetLastError());
         }
         if (m_rxThread.joinable()) { m_rxThread.join(); }
@@ -205,7 +208,8 @@ void Device::close()
 
 void Device::reset()
 {
-    transmit(Packet::Request(Actions::CommandId::Reset)).OnTimeout([]() {}).Async();
+    transmit(Packet::Request(Actions::CommandId::Reset)).OnTimeout([]() {
+    }).Async();
 }
 
 void Device::cleanerTask()
@@ -215,7 +219,7 @@ void Device::cleanerTask()
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(1s);
         std::vector<uint32_t> consumed;
-        std::lock_guard       lock {m_promiseLock};
+        std::lock_guard       lock{m_promiseLock};
         consumed.reserve(m_pending.size());
         for (const auto& [id, response] : m_pending) {
             if (response.IsConsumed()) { consumed.push_back(id); }
@@ -225,4 +229,4 @@ void Device::cleanerTask()
         }
     }
 }
-}    // namespace Frasy::Serial
+} // namespace Frasy::Serial

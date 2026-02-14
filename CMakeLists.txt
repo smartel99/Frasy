@@ -45,6 +45,13 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "$<TARGET_FILE_DIR:${APP_NAME}>/wkhtmltox.dll"
 )
 
-set_source_files_properties(${CANOPEN_OD_DIR}/OD.c PROPERTIES
-    COMPILE_OPTIONS "/wd4305"
-)
+if (MSVC)
+    set_source_files_properties(${CANOPEN_OD_DIR}/OD.c PROPERTIES
+            COMPILE_OPTIONS "/wd4305;/wd4310"
+    )
+else ()
+    target_compile_options(${PROJECT_NAME} PRIVATE
+            -Wno-unknown-pragmas
+            $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
+    )
+endif ()

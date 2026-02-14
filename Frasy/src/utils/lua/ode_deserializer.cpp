@@ -25,7 +25,7 @@ static float deserializeFloat(const std::span<uint8_t>& value)
 {
     float result = 0;
     auto* ptr    = reinterpret_cast<uint8_t*>(&result);
-    for (int i = 0; i < value.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(value.size()); ++i) {
         // ReSharper disable once CppDFAUnreachableCode
         if constexpr (std::endian::native == std::endian::big) { ptr[value.size() - i - 1] = value[i]; }
         else {
@@ -34,11 +34,12 @@ static float deserializeFloat(const std::span<uint8_t>& value)
     }
     return result;
 }
+
 static double deserializeDouble(const std::span<uint8_t>& value)
 {
     double result = 0;
     auto*  ptr    = reinterpret_cast<uint8_t*>(&result);
-    for (int i = 0; i < value.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(value.size()); ++i) {
         // ReSharper disable once CppDFAUnreachableCode
         if constexpr (std::endian::native == std::endian::big) { ptr[value.size() - i - 1] = value[i]; }
         else {
@@ -52,7 +53,7 @@ static int64_t deserializeInteger(const std::span<uint8_t>& value)
 {
     int64_t result = 0;
     auto*   ptr    = reinterpret_cast<uint8_t*>(&result);
-    for (int i = 0; i < value.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(value.size()); ++i) {
         // ReSharper disable once CppDFAUnreachableCode
         if constexpr (std::endian::native == std::endian::big) { ptr[value.size() - i - 1] = value[i]; }
         else {
@@ -68,7 +69,7 @@ static uint64_t deserializeUnsigned(const std::span<uint8_t>& value)
 {
     uint64_t result = 0;
     auto*    ptr    = reinterpret_cast<uint8_t*>(&result);
-    for (int i = 0; i < value.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(value.size()); ++i) {
         // ReSharper disable once CppDFAUnreachableCode
         if constexpr (std::endian::native == std::endian::big) { ptr[value.size() - i - 1] = value[i]; }
         else {
@@ -82,7 +83,7 @@ static sol::object deserializeTimeStruct(sol::state_view& lua, const std::span<u
 {
     auto     table = lua.create_table();
     uint32_t ms    = static_cast<uint32_t>(deserializeUnsigned(value.subspan(0, 4)));
-    table["ms"]    = 0x0F'FF'FF'FF & ms;    // u28, not u24
+    table["ms"]    = 0x0F'FF'FF'FF & ms; // u28, not u24
     table["days"]  = deserializeUnsigned(value.subspan(4, 2));
     return table;
 }
@@ -118,10 +119,9 @@ sol::object deserializeOdeValue(sol::state_view& lua, const sol::table& ode, con
 
         // PFR eligible
         case DataType::timeOfDay: return deserializeTimeStruct(lua, value);
-        case DataType::timeDifference:
-            return deserializeTimeStruct(lua, value);
+        case DataType::timeDifference: return deserializeTimeStruct(lua, value);
 
-            // not implemented
+        // not implemented
         case DataType::pdoCommunicationParameter:
         case DataType::pdoMapping:
         case DataType::sdoParameter:

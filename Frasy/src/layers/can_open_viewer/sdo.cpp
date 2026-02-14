@@ -27,6 +27,7 @@
 namespace Frasy::CanOpenViewer {
 
 using VarType = CanOpen::VarType;
+
 CanOpen::VarType operator++(CanOpen::VarType& var, int)
 {
     VarType old = var;
@@ -55,7 +56,8 @@ constexpr std::string_view toString(CanOpen::VarType type)
     }
 }
 
-Sdo::Sdo(uint8_t nodeId) : m_tabBarName(std::format("Node {} SDO tab bar", nodeId))
+Sdo::Sdo(uint8_t nodeId)
+    : m_tabBarName(std::format("Node {} SDO tab bar", nodeId))
 {
 }
 
@@ -97,19 +99,22 @@ auto _resultArrayToString(const std::span<uint8_t>& result) -> std::string
 {
     return std::format("{::02x}", result);
 }
+
 auto _resultArrayAsString(const std::span<uint8_t>& result) -> std::string
 {
     return std::string(result.begin(), result.end());
 }
+
 template<typename T>
 auto _resultToString(const std::span<uint8_t>& result) -> std::string
 {
     if (result.size() != sizeof(T)) { return std::format("Invalid size ({})", result.size()); }
-    std::array<uint8_t, sizeof(T)> a {};
+    std::array<uint8_t, sizeof(T)> a{};
     std::copy_n(result.data(), sizeof(T), a.data());
     T v = std::bit_cast<T, std::array<uint8_t, sizeof(T)>>(a);
     return std::format("{}", v);
 }
+
 auto resultToString(const auto& request, const auto& result) -> std::string
 {
     const std::span<uint8_t> resultSpan = result.value();
@@ -129,20 +134,21 @@ auto resultToString(const auto& request, const auto& result) -> std::string
         default: return _resultArrayToString(resultSpan);
     }
 }
-};    // namespace
+}; // namespace
 
 void Sdo::purgeCompletedUploadRequests()
 {
     BR_PROFILE_FUNCTION();
     for (auto&& request : m_uploadRequestQueue | std::views::filter([](const auto& r) {
-                              return r.status() == CanOpen::SdoRequestStatus::Complete;
-                          })) {
+        return r.status() == CanOpen::SdoRequestStatus::Complete;
+    })) {
         auto                result = request.future.get();
-        FulfilledSdoRequest requestResult {
-          .index     = request.index(),
-          .subIndex  = request.subIndex(),
-          .hasFailed = !result.has_value(),
-          .abortCode = std::format("{}", request.abortCode()),
+        FulfilledSdoRequest requestResult{
+            .index = request.index(),
+            .subIndex = request.subIndex(),
+            .hasFailed = !result.has_value(),
+            .abortCode = std::format("{}", request.abortCode()),
+            .result = {}
         };
 
         if (result.has_value()) { requestResult.result = resultToString(request, result); }
@@ -183,27 +189,27 @@ void Sdo::renderActiveUploadRequests()
 {
     BR_PROFILE_FUNCTION();
     ImGui::Text("Active Requests");
-    Widget::Table("active upload requests table", 6, ImVec2 {0.0f, ImGui::GetContentRegionAvail().y / 3})
-      .ColumnHeader("Status")
-      .ColumnHeader("Index")
-      .ColumnHeader("Sub Index")
-      .ColumnHeader("Indicated Size")
-      .ColumnHeader("Transferred Size")
-      .ColumnHeader("Cancel")
-      .ScrollFreeze()
-      .FinishHeader()
-      .Content(m_uploadRequestQueue | std::views::reverse,
-               [](Widget::Table& table, CanOpen::SdoUploadDataResult& request) {
-                   if (request.status() == CanOpen::SdoRequestStatus::OnGoing) {
-                       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_onGoingRequestColor);
-                   }
-                   table.CellContentTextWrapped(request.status());
-                   table.CellContentTextWrapped("0x{:04x}", request.index());
-                   table.CellContentTextWrapped("0x{:02x}", request.subIndex());
-                   table.CellContentTextWrapped(request.sizeIndicated());
-                   table.CellContentTextWrapped(request.sizeTransferred());
-                   if (table.CellContent([] { return ImGui::Button("Cancel"); })) { request.cancel(); }
-               });
+    Widget::Table("active upload requests table", 6, ImVec2{0.0f, ImGui::GetContentRegionAvail().y / 3})
+        .ColumnHeader("Status")
+        .ColumnHeader("Index")
+        .ColumnHeader("Sub Index")
+        .ColumnHeader("Indicated Size")
+        .ColumnHeader("Transferred Size")
+        .ColumnHeader("Cancel")
+        .ScrollFreeze()
+        .FinishHeader()
+        .Content(m_uploadRequestQueue | std::views::reverse,
+                 [](Widget::Table& table, CanOpen::SdoUploadDataResult& request) {
+                     if (request.status() == CanOpen::SdoRequestStatus::OnGoing) {
+                         ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_onGoingRequestColor);
+                     }
+                     table.CellContentTextWrapped(request.status());
+                     table.CellContentTextWrapped("0x{:04x}", request.index());
+                     table.CellContentTextWrapped("0x{:02x}", request.subIndex());
+                     table.CellContentTextWrapped(request.sizeIndicated());
+                     table.CellContentTextWrapped(request.sizeTransferred());
+                     if (table.CellContent([] { return ImGui::Button("Cancel"); })) { request.cancel(); }
+                 });
 }
 
 void Sdo::renderUploadRequestHistory()
@@ -213,20 +219,20 @@ void Sdo::renderUploadRequestHistory()
     ImGui::SameLine();
     if (ImGui::Button("Clear")) { m_uploadRequestHistory.clear(); }
     Widget::Table("upload request history", 4)
-      .ColumnHeader("Index")
-      .ColumnHeader("Sub Index")
-      .ColumnHeader("Abort Code")
-      .ColumnHeader("Result")
-      .ScrollFreeze()
-      .FinishHeader()
-      .Content(m_uploadRequestHistory | std::views::reverse,
-               [](Widget::Table& table, const FulfilledSdoRequest& request) {
-                   if (request.hasFailed) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_requestFailedColor); }
-                   table.CellContentTextWrapped("0x{:04x}", request.index);
-                   table.CellContentTextWrapped("0x{:02x}", request.subIndex);
-                   table.CellContentTextWrapped(request.abortCode);
-                   table.CellContentTextWrapped(request.result);
-               });
+        .ColumnHeader("Index")
+        .ColumnHeader("Sub Index")
+        .ColumnHeader("Abort Code")
+        .ColumnHeader("Result")
+        .ScrollFreeze()
+        .FinishHeader()
+        .Content(m_uploadRequestHistory | std::views::reverse,
+                 [](Widget::Table& table, const FulfilledSdoRequest& request) {
+                     if (request.hasFailed) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_requestFailedColor); }
+                     table.CellContentTextWrapped("0x{:04x}", request.index);
+                     table.CellContentTextWrapped("0x{:02x}", request.subIndex);
+                     table.CellContentTextWrapped(request.abortCode);
+                     table.CellContentTextWrapped(request.result);
+                 });
 }
 
 void Sdo::renderDownloadTab(CanOpen::Node& node)
@@ -248,16 +254,16 @@ void Sdo::purgeCompletedDownloadRequests()
 {
     BR_PROFILE_FUNCTION();
     for (auto&& request : m_downloadRequestQueue | std::views::filter([](const auto& r) {
-                              return r.status() == CanOpen::SdoRequestStatus::Complete;
-                          })) {
+        return r.status() == CanOpen::SdoRequestStatus::Complete;
+    })) {
         BR_ASSERT(request.future.valid(), "Future isn't valid!");
         auto                result = request.future.get();
-        FulfilledSdoRequest requestResult {
-          .index     = request.index(),
-          .subIndex  = request.subIndex(),
-          .hasFailed = result != CO_SDO_RT_ok_communicationEnd,
-          .abortCode = std::format("{}", request.abortCode()),
-          .result    = std::format("{}", result),
+        FulfilledSdoRequest requestResult{
+            .index = request.index(),
+            .subIndex = request.subIndex(),
+            .hasFailed = result != CO_SDO_RT_ok_communicationEnd,
+            .abortCode = std::format("{}", request.abortCode()),
+            .result = std::format("{}", result),
         };
 
         m_downloadRequestHistory.push_back(requestResult);
@@ -279,25 +285,37 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
             if (ImGui::Selectable(toString(type).data())) {
                 m_downloadRequestType = type;
                 switch (type) {
-                    case VarType::Boolean: m_downloadRequestData = false; break;
-                    case VarType::Signed8: m_downloadRequestData = static_cast<int8_t>(0); break;
-                    case VarType::Signed16: m_downloadRequestData = static_cast<int16_t>(0); break;
-                    case VarType::Signed32: m_downloadRequestData = static_cast<int32_t>(0); break;
-                    case VarType::Signed64: m_downloadRequestData = static_cast<int64_t>(0); break;
-                    case VarType::Unsigned8: m_downloadRequestData = static_cast<uint8_t>(0); break;
-                    case VarType::Unsigned16: m_downloadRequestData = static_cast<uint16_t>(0); break;
-                    case VarType::Unsigned32: m_downloadRequestData = static_cast<uint32_t>(0); break;
-                    case VarType::Unsigned64: m_downloadRequestData = static_cast<uint64_t>(0); break;
-                    case VarType::Real32: m_downloadRequestData = 0.0f; break;
-                    case VarType::Real64: m_downloadRequestData = 0.0; break;
-                    case VarType::String:
-                        m_downloadRequestData = [] {
-                            std::array<char, 128> a {};
+                    case VarType::Boolean: m_downloadRequestData = false;
+                        break;
+                    case VarType::Signed8: m_downloadRequestData = static_cast<int8_t>(0);
+                        break;
+                    case VarType::Signed16: m_downloadRequestData = static_cast<int16_t>(0);
+                        break;
+                    case VarType::Signed32: m_downloadRequestData = static_cast<int32_t>(0);
+                        break;
+                    case VarType::Signed64: m_downloadRequestData = static_cast<int64_t>(0);
+                        break;
+                    case VarType::Unsigned8: m_downloadRequestData = static_cast<uint8_t>(0);
+                        break;
+                    case VarType::Unsigned16: m_downloadRequestData = static_cast<uint16_t>(0);
+                        break;
+                    case VarType::Unsigned32: m_downloadRequestData = static_cast<uint32_t>(0);
+                        break;
+                    case VarType::Unsigned64: m_downloadRequestData = static_cast<uint64_t>(0);
+                        break;
+                    case VarType::Real32: m_downloadRequestData = 0.0f;
+                        break;
+                    case VarType::Real64: m_downloadRequestData = 0.0;
+                        break;
+                    case VarType::String: m_downloadRequestData = [] {
+                            std::array<char, 128> a{};
                             std::ranges::fill(a, 0);
                             return a;
                         }();
                         break;
-                    case VarType::Max: m_downloadRequestData = false; break;
+                    case VarType::Undefined:
+                    case VarType::Max: m_downloadRequestData = false;
+                        break;
                 }
             }
         }
@@ -308,12 +326,12 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
         auto handle = [this, &node]<typename TT>(const TT& data) {
             if (ImGui::Button("Send##download")) {
                 m_downloadRequestQueue.push_back(
-                  node.sdoInterface()->downloadData(static_cast<uint16_t>(m_downloadRequestIndex),
-                                                    static_cast<uint8_t>(m_downloadRequestSubIndex),
-                                                    data,
-                                                    static_cast<uint16_t>(m_downloadRequestTimeout),
-                                                    static_cast<uint8_t>(m_downloadRequestTries),
-                                                    m_downloadRequestIsBlock));
+                    node.sdoInterface()->downloadData(static_cast<uint16_t>(m_downloadRequestIndex),
+                                                      static_cast<uint8_t>(m_downloadRequestSubIndex),
+                                                      data,
+                                                      static_cast<uint16_t>(m_downloadRequestTimeout),
+                                                      static_cast<uint8_t>(m_downloadRequestTries),
+                                                      m_downloadRequestIsBlock));
             }
         };
 
@@ -336,75 +354,79 @@ void Sdo::renderDownloadRequestMaker(CanOpen::Node& node)
     };
 
     Frasy::visit(
-      m_downloadRequestData,
-      [this, &send](bool& b) {
-          ImGui::Checkbox("Flag", &b);
-          send.operator()<bool>();
-      },
-      [this, &send]<typename T>(T& v) {
-          auto vs = std::to_string(v);
-          std::copy_n(vs.data(), (std::min)(s_downloadVariableBufferSize, vs.size()), m_downloadVariableBuffer.data());
-          if (vs.size() < s_downloadVariableBufferSize) { m_downloadVariableBuffer[vs.size()] = 0; }
-          else {
-              m_downloadVariableBuffer.back() = 0;
-          }
-          if (std::is_integral_v<T>) { ImGui::Checkbox("Hex", &m_downloadVariableHex); }
-          if (ImGui::InputText("Value", m_downloadVariableBuffer.data(), s_downloadVariableBufferSize)) {
-              auto base = m_downloadVariableHex ? 16 : 10;
-              try {
-                  if constexpr (std::is_integral_v<T>) {
-                      if (std::is_signed_v<T>) { v = static_cast<T>(std::stoll(m_downloadVariableBuffer.data(), nullptr, base)); }
-                      else if (std::is_unsigned_v<T>) {
-                          v = static_cast<T>(std::stoull(m_downloadVariableBuffer.data(), nullptr, base));
-                      }
-                  }
-                  else if (std::is_floating_point_v<T>) {
-                      v = static_cast<T>(std::stod(m_downloadVariableBuffer.data()));
-                  }
-                  else {
-                      BR_APP_ERROR("Cannot parse value");
-                  }
-              }
-              catch (const std::exception& e) {
-                  BR_APP_WARN("Failed to parse value: {}", e.what());
-              }
-          }
-          send.operator()<T>();
-      },
-      [&send](std::array<char, 128>& v) {
-          ImGui::InputText("Value", v.data(), v.size());
-          send.operator()<std::array<char, 128>>();
-      });
+        m_downloadRequestData,
+        [this, &send](bool& b) {
+            ImGui::Checkbox("Flag", &b);
+            send.operator()<bool>();
+        },
+        [this, &send]<typename T>(T& v) {
+            auto vs = std::to_string(v);
+            std::copy_n(vs.data(),
+                        (std::min)(s_downloadVariableBufferSize, vs.size()),
+                        m_downloadVariableBuffer.data());
+            if (vs.size() < s_downloadVariableBufferSize) { m_downloadVariableBuffer[vs.size()] = 0; }
+            else {
+                m_downloadVariableBuffer.back() = 0;
+            }
+            if (std::is_integral_v<T>) { ImGui::Checkbox("Hex", &m_downloadVariableHex); }
+            if (ImGui::InputText("Value", m_downloadVariableBuffer.data(), s_downloadVariableBufferSize)) {
+                auto base = m_downloadVariableHex ? 16 : 10;
+                try {
+                    if constexpr (std::is_integral_v<T>) {
+                        if (std::is_signed_v<T>) {
+                            v = static_cast<T>(std::stoll(m_downloadVariableBuffer.data(), nullptr, base));
+                        }
+                        else if (std::is_unsigned_v<T>) {
+                            v = static_cast<T>(std::stoull(m_downloadVariableBuffer.data(), nullptr, base));
+                        }
+                    }
+                    else if (std::is_floating_point_v<T>) {
+                        v = static_cast<T>(std::stod(m_downloadVariableBuffer.data()));
+                    }
+                    else {
+                        BR_APP_ERROR("Cannot parse value");
+                    }
+                }
+                catch (const std::exception& e) {
+                    BR_APP_WARN("Failed to parse value: {}", e.what());
+                }
+            }
+            send.operator()<T>();
+        },
+        [&send](std::array<char, 128>& v) {
+            ImGui::InputText("Value", v.data(), v.size());
+            send.operator()<std::array<char, 128>>();
+        });
 }
 
 void Sdo::renderActiveDownloadRequests()
 {
     BR_PROFILE_FUNCTION();
     ImGui::Text("Active Requests");
-    Widget::Table("active download requests table", 7, ImVec2 {0.0f, ImGui::GetContentRegionAvail().y / 3})
-      .ColumnHeader("Status")
-      .ColumnHeader("Index")
-      .ColumnHeader("Sub Index")
-      .ColumnHeader("Indicated Size")
-      .ColumnHeader("Transferred Size")
-      .ColumnHeader("Data")
-      .ColumnHeader("Cancel")
-      .ScrollFreeze()
-      .FinishHeader()
-      .Content(m_downloadRequestQueue | std::views::reverse,
-               [](Widget::Table& table, CanOpen::SdoDownloadDataResult& request) {
-                   if (request.status() == CanOpen::SdoRequestStatus::OnGoing) {
-                       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_onGoingRequestColor);
-                   }
+    Widget::Table("active download requests table", 7, ImVec2{0.0f, ImGui::GetContentRegionAvail().y / 3})
+        .ColumnHeader("Status")
+        .ColumnHeader("Index")
+        .ColumnHeader("Sub Index")
+        .ColumnHeader("Indicated Size")
+        .ColumnHeader("Transferred Size")
+        .ColumnHeader("Data")
+        .ColumnHeader("Cancel")
+        .ScrollFreeze()
+        .FinishHeader()
+        .Content(m_downloadRequestQueue | std::views::reverse,
+                 [](Widget::Table& table, CanOpen::SdoDownloadDataResult& request) {
+                     if (request.status() == CanOpen::SdoRequestStatus::OnGoing) {
+                         ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_onGoingRequestColor);
+                     }
 
-                   table.CellContentTextWrapped(request.status());
-                   table.CellContentTextWrapped("0x{:04x}", request.index());
-                   table.CellContentTextWrapped("0x{:02x}", request.subIndex());
-                   table.CellContentTextWrapped(request.data().size());
-                   table.CellContentTextWrapped(request.sizeTransferred());
-                   table.CellContentTextWrapped(std::format("{::02x}", request.data()));
-                   if (table.CellContent([] { return ImGui::Button("Cancel"); })) { request.cancel(); }
-               });
+                     table.CellContentTextWrapped(request.status());
+                     table.CellContentTextWrapped("0x{:04x}", request.index());
+                     table.CellContentTextWrapped("0x{:02x}", request.subIndex());
+                     table.CellContentTextWrapped(request.data().size());
+                     table.CellContentTextWrapped(request.sizeTransferred());
+                     table.CellContentTextWrapped(std::format("{::02x}", request.data()));
+                     if (table.CellContent([] { return ImGui::Button("Cancel"); })) { request.cancel(); }
+                 });
 }
 
 void Sdo::renderDownloadRequestHistory()
@@ -414,20 +436,20 @@ void Sdo::renderDownloadRequestHistory()
     ImGui::SameLine();
     if (ImGui::Button("Clear")) { m_downloadRequestHistory.clear(); }
     Widget::Table("download request history", 4)
-      .ColumnHeader("Index")
-      .ColumnHeader("Sub Index")
-      .ColumnHeader("Abort Code")
-      .ColumnHeader("Result")
-      .ScrollFreeze()
-      .FinishHeader()
-      .Content(m_downloadRequestHistory | std::views::reverse,
-               [](Widget::Table& table, const FulfilledSdoRequest& request) {
-                   if (request.hasFailed) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_requestFailedColor); }
+        .ColumnHeader("Index")
+        .ColumnHeader("Sub Index")
+        .ColumnHeader("Abort Code")
+        .ColumnHeader("Result")
+        .ScrollFreeze()
+        .FinishHeader()
+        .Content(m_downloadRequestHistory | std::views::reverse,
+                 [](Widget::Table& table, const FulfilledSdoRequest& request) {
+                     if (request.hasFailed) { ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, s_requestFailedColor); }
 
-                   table.CellContentTextWrapped("0x{:04x}", request.index);
-                   table.CellContentTextWrapped("0x{:02x}", request.subIndex);
-                   table.CellContentTextWrapped(request.abortCode);
-                   table.CellContentTextWrapped(request.result);
-               });
+                     table.CellContentTextWrapped("0x{:04x}", request.index);
+                     table.CellContentTextWrapped("0x{:02x}", request.subIndex);
+                     table.CellContentTextWrapped(request.abortCode);
+                     table.CellContentTextWrapped(request.result);
+                 });
 }
-}    // namespace Frasy::CanOpenViewer
+} // namespace Frasy::CanOpenViewer

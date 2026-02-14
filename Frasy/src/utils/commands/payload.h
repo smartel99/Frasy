@@ -81,11 +81,11 @@ template<typename T>
 concept CommandPayload = SerializableCommandPayload<T> && DeserializableCommandPayload<T>;
 
 template<typename T>
-concept CommandConstructibleFromArray = requires { std::constructible_from<T, std::array<uint8_t, T::payload_size>>; };
+concept CommandConstructibleFromArray = requires { requires std::constructible_from<T, std::array<uint8_t, T::payload_size>>; };
 
 template<typename T>
 concept CommandPayloadConstructibleFromArray =
-  requires { std::constructible_from<typename T::payload_type, std::array<uint8_t, T::payload_size>>; };
+  requires { requires std::constructible_from<typename T::payload_type, std::array<uint8_t, T::payload_size>>; };
 
 template<typename T>
 concept ValidCommandPayload =

@@ -85,7 +85,7 @@ void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
                               ShaderDataTypeToOpenGLBaseType(element.type),
                               element.normalized ? GL_TRUE : GL_FALSE,
                               layout.GetStride(),
-                              (const void*)element.offset);
+                              (const void*)static_cast<size_t>(element.offset));
 #pragma warning(default : 4312)
         index++;
     }

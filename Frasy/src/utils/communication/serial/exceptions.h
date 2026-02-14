@@ -27,18 +27,13 @@
 #include <format>
 
 namespace Frasy::Serial {
-class BasePacketException : public std::exception
+class BasePacketException : public std::runtime_error
 {
 public:
     explicit BasePacketException(const uint8_t* data, size_t len, std::string_view msg) noexcept
-    : m_data(std::format("{}, Data: {}", msg, std::span {data, len}))
+    : std::runtime_error(std::format("{}, Data: {}", msg, std::span {data, len}))
     {
     }
-
-    [[nodiscard]] const char* what() const override { return m_data.c_str(); }
-
-protected:
-    std::string m_data;
 };
 
 class MissingDataException : public BasePacketException

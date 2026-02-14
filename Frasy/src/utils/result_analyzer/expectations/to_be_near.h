@@ -17,7 +17,6 @@
 
 #ifndef FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_NEAR_H
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_NEAR_H
-#include "expectations/to_be_value_base.h"
 #include "to_be_value_base.h"
 
 namespace Frasy::Analyzers

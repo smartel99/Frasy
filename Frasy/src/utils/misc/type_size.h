@@ -19,17 +19,16 @@
 #define FRASY_UTILS_MISC_ARRAY_SIZE_H
 
 #include <array>
+#include <cstddef>
 
-namespace Frasy
-{
+namespace Frasy {
 template<typename>
 struct ArraySize;
 
 template<typename T, size_t N>
-struct ArraySize<std::array<T, N>>
-{
+struct ArraySize<std::array<T, N>> {
     static constexpr size_t value = N;
 };
-}    // namespace Frasy
+} // namespace Frasy
 
 #endif    // FRASY_UTILS_MISC_ARRAY_SIZE_H

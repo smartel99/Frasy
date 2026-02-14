@@ -24,17 +24,7 @@
 
 namespace Frasy::Type
 {
-static const char* s_tag = "Type::Manager";
-
-const char* Manager::InvalidIdException::what() const
-{
-    return "Invalid Type ID";
-}
-
-const char* Manager::TypeNotFoundException::what() const
-{
-    return "Type not found";
-}
+[[maybe_unused]] static const char* s_tag = "Type::Manager";
 
 type_id_t Manager::AddStruct(const Struct& obj)
 {

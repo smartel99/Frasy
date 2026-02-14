@@ -7,6 +7,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <cstring>
+
 namespace Brigerad
 {
 /**
@@ -273,11 +275,11 @@ void main()
     // This array contains all of the possible texture slots that the shader
     // can use.
     int32_t samplers[s_data.maxTextureSlots] = {0};
-    for (int32_t i = 0; i < s_data.maxTextureSlots; i++)
+    for (int32_t i = 0; i < static_cast<int32_t>(s_data.maxTextureSlots); i++)
     {
         samplers[i] = i;
     }
-    s_data.textureShader->SetIntArray("u_Textures", samplers, s_data.maxTextureSlots);
+    s_data.textureShader->SetIntArray("u_Textures", &samplers[0], s_data.maxTextureSlots);
 
     // Set the first texture slot to be the 1x1 white texture.
     s_data.textureSlots[0] = s_data.whiteTexture;
@@ -557,7 +559,7 @@ void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
 
     const float texIndex = 0.0f;    // White Texture.
 
-    for (int i = 0; i < quadVertexCount; i++)
+    for (int i = 0; i < static_cast<int>(quadVertexCount); i++)
     {
         // Setup the vertex of the quad.
         s_data.quadVertexBufferPtr->position     = transform * s_data.quadVertexPosition[i];
@@ -613,7 +615,7 @@ void Renderer2D::DrawQuad(const glm::mat4&      transform,
         s_data.textureSlotIndex++;
     }
 
-    for (int i = 0; i < quadVertexCount; i++)
+    for (int i = 0; i < static_cast<int>(quadVertexCount); i++)
     {
         // Setup the vertex of the quad.
         s_data.quadVertexBufferPtr->position     = transform * s_data.quadVertexPosition[i];
@@ -668,7 +670,7 @@ void Renderer2D::DrawQuad(const glm::mat4&         transform,
         s_data.textureSlotIndex++;
     }
 
-    for (int i = 0; i < quadVertexCount; i++)
+    for (int i = 0; i < static_cast<int>(quadVertexCount); i++)
     {
         // Setup the vertex of the quad.
         s_data.quadVertexBufferPtr->position     = transform * s_data.quadVertexPosition[i];
@@ -735,7 +737,7 @@ void Renderer2D::DrawRotatedQuad(const glm::vec3& pos,
                           glm::rotate(glm::mat4(1.0f), rotation, {0, 0, 1}) *
                           glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
-    for (int i = 0; i < quadVertexCount; i++)
+    for (int i = 0; i < static_cast<int>(quadVertexCount); i++)
     {
         // Setup the vertex of the quad.
         s_data.quadVertexBufferPtr->position     = transform * s_data.quadVertexPosition[i];
@@ -827,7 +829,7 @@ void Renderer2D::DrawRotatedQuad(const glm::vec3&      pos,
                           glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
 
-    for (int i = 0; i < quadVertexCount; i++)
+    for (int i = 0; i < static_cast<int>(quadVertexCount); i++)
     {
         // Setup the vertex of the quad.
         s_data.quadVertexBufferPtr->position     = transform * s_data.quadVertexPosition[i];
@@ -900,7 +902,7 @@ void Renderer2D::DrawRotatedQuad(const glm::vec3&         pos,
                           glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
 
-    for (int i = 0; i < quadVertexCount; i++)
+    for (int i = 0; i < static_cast<int>(quadVertexCount); i++)
     {
         // Setup the vertex of the quad.
         s_data.quadVertexBufferPtr->position     = transform * s_data.quadVertexPosition[i];
@@ -926,7 +928,7 @@ Renderer2D::Statistics Renderer2D::GetStats()
 
 void Renderer2D::ResetStats()
 {
-    memset(&s_data.stats, 0, sizeof(Statistics));
+    std::memset(&s_data.stats, 0, sizeof(Statistics));
 }
 
 }    // namespace Brigerad

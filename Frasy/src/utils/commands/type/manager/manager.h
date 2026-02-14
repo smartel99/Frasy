@@ -25,6 +25,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <exception>
 
 
 namespace Frasy::Type
@@ -37,18 +38,16 @@ private:
     std::unordered_map<type_id_t, Enum>   m_enums   = {};
 
 public:
-    class InvalidIdException : public std::exception
+    class InvalidIdException : public std::runtime_error
     {
     public:
-        InvalidIdException() : std::exception("Invalid ID") {}
-        [[nodiscard]] const char* what() const final;
+        InvalidIdException() : std::runtime_error("Invalid ID") {}
     };
 
-    class TypeNotFoundException : public std::exception
+    class TypeNotFoundException : public std::runtime_error
     {
     public:
-        TypeNotFoundException() : std::exception("Type not found") {}
-        [[nodiscard]] const char* what() const final;
+        TypeNotFoundException() : std::runtime_error("Type not found") {}
     };
 
 public:

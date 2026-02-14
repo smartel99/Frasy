@@ -35,6 +35,7 @@
 #include <span>
 #include <string>
 #include <thread>
+#include <cstring>
 #include <utils/lua/profile_events.h>
 
 namespace Frasy::CanOpen {

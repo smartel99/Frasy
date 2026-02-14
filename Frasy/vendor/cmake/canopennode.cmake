@@ -14,7 +14,6 @@ file(GLOB_RECURSE CANOPEN_APP_SOURCES
         "${CANOPEN_APP_DIR}/*.c"
         "${CANOPEN_APP_DIR}/*.cpp"
 )
-message(STATUS "CANOPEN_APP_SOURCES: ${CANOPEN_APP_SOURCES}")
 
 add_library(CanOpen STATIC
         ${CANOPEN_SOURCES}
@@ -39,3 +38,10 @@ target_include_directories(CanOpen PUBLIC
         "${CANOPEN_DIR}/storage"
 )
 target_compile_definitions(CanOpen PUBLIC -DCO_MULTIPLE_OD)
+
+if (MSVC)
+else ()
+    target_compile_options(CanOpen PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
+    )
+endif ()

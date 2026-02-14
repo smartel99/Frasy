@@ -21,7 +21,7 @@ namespace Frasy
     public:
         explicit Interpreter(const std::string& name) : Application(name), m_config(loadConfig())
         {
-            if (s_instance != nullptr) { throw std::exception("Interpreter instance already created!"); }
+            if (s_instance != nullptr) { throw std::runtime_error("Interpreter instance already created!"); }
             s_instance = this;
         }
 

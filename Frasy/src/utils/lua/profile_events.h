@@ -32,6 +32,12 @@
 #include <numeric>
 #include <string>
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <Windows.h>
 
 #include "processthreadsapi.h"
@@ -61,10 +67,10 @@ struct ProfileEvent {
     std::chrono::microseconds       minTime   = std::chrono::microseconds((std::numeric_limits<int64_t>::max)());
     std::chrono::microseconds       maxTime   = std::chrono::microseconds((std::numeric_limits<int64_t>::min)());
     std::chrono::microseconds       avgTime   = std::chrono::microseconds(0);
-    std::deque<ProfileEventMarkers> history;    //! Need fast insert/erase on front and back + pointer stability.
+    std::deque<ProfileEventMarkers> history; //! Need fast insert/erase on front and back + pointer stability.
 
     ProfileEvent*           parent = nullptr;
-    std::list<ProfileEvent> childs;    //! List because of constant insertion at end + pointer stability.
+    std::list<ProfileEvent> childs; //! List because of constant insertion at end + pointer stability.
 };
 
 class ProfilerDetails {
@@ -72,13 +78,14 @@ public:
     const std::string&             label() const { return m_label; }
     const std::thread::id&         threadId() const { return m_threadId; }
     const std::list<ProfileEvent>& getEvents() const { return m_events; }
-    std::chrono::microseconds      getTotalTime() const
+
+    std::chrono::microseconds getTotalTime() const
     {
         return std::accumulate(
-          m_events.begin(),
-          m_events.end(),
-          std::chrono::microseconds(0),
-          [](std::chrono::microseconds tot, const ProfileEvent& event) { return tot + event.totalTime; });
+            m_events.begin(),
+            m_events.end(),
+            std::chrono::microseconds(0),
+            [](std::chrono::microseconds tot, const ProfileEvent& event) { return tot + event.totalTime; });
     }
 
     void reset() { m_events.clear(); }
@@ -86,7 +93,7 @@ public:
 private:
     friend class Profiler;
     ProfileEvent*           m_activeEvent = nullptr;
-    std::list<ProfileEvent> m_events;    //! List because of constant insertion at end + pointer stability.
+    std::list<ProfileEvent> m_events; //! List because of constant insertion at end + pointer stability.
     std::thread::id         m_threadId = std::this_thread::get_id();
 
 #if defined(__cpp_lib_formatters) && __cpp_lib_formatters >= 202302L
@@ -171,7 +178,7 @@ public:
 
         ++event.m_activeEvent->hitCount;
         auto& marker = event.m_activeEvent->history.back();
-        marker.end   = std::chrono::steady_clock::now();
+        marker.end = std::chrono::steady_clock::now();
         marker.delta = std::chrono::duration_cast<std::chrono::microseconds>(marker.end - marker.start);
         event.m_activeEvent->totalTime += marker.delta;
         event.m_activeEvent->minTime = (std::min)(event.m_activeEvent->minTime, marker.delta);
@@ -199,7 +206,7 @@ public:
     static bool sortByTotalTimeDesc(const ProfileEvent& a, const ProfileEvent& b) { return a.totalTime > b.totalTime; }
 
     void setSortFunction(
-      const std::function<bool(const ProfileEvent&, const ProfileEvent&)>& func = sortByTotalTimeDesc)
+        const std::function<bool(const ProfileEvent&, const ProfileEvent&)>& func = sortByTotalTimeDesc)
     {
         BR_ASSERT(func, "Function is not callable");
         m_sortFunction = func;
@@ -217,16 +224,17 @@ private:
 class ProfileEventMarker {
 public:
     ProfileEventMarker(std::string name, std::string source, int line)
-    : m_header {std::move(name), std::move(source), line}
+        : m_header{std::move(name), std::move(source), line}
     {
         Profiler::get().reportCallEvent(m_header);
     }
+
     ~ProfileEventMarker() { Profiler::get().reportReturnEvent(m_header); }
 
 private:
     ProfileEventHeader m_header;
 };
-}    // namespace Frasy
+} // namespace Frasy
 
 #define FRASY_PROFILE 1
 

@@ -95,7 +95,7 @@ void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& optio
 
 DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOpen)
 {
-    for (auto&& [port, device] : m_canOpen.m_devices) {
+    for (auto& device : m_canOpen.m_devices | std::views::values) {
         device.m_rxMonitorFunc = [this](const SlCan::Packet& pkt) {
             FRASY_PROFILE_FUNCTION();
             m_pktRxCount++;
@@ -271,13 +271,13 @@ void DeviceViewer::onImGuiRender()
     if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
         if (m_canOpen.isOpen()) {
             ImGui::Text("Connected to: ");
-            for (auto&& [port, device] : m_canOpen.m_devices) {
+            for (const auto& port : m_canOpen.m_devices | std::views::keys) {
                 ImGui::SameLine();
                 ImGui::Text("%s, ", port.c_str());
             }
             ImGui::SameLine();
             if (ImGui::Button("Close")) {
-                for (auto&& [port, device] : m_canOpen.m_devices) {
+                for (auto& device : m_canOpen.m_devices | std::views::values) {
                     device.close();
                 }
                 m_selectedPort = "";
@@ -319,7 +319,7 @@ void DeviceViewer::onImGuiRender()
           m_networkState.size(),
           [&devices = m_canOpen.m_devices]() -> size_t {
               size_t tot = 0;
-              for (auto&& [port, device] : devices) {
+              for (auto& device : devices | std::views::values) {
                   tot += device.m_queue.size();
               }
               return tot;

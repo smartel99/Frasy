@@ -24,7 +24,7 @@
 
 namespace Frasy::Report::Formatter {
 template<typename T>
-    requires !std::is_same_v<T, std::string>
+    requires (!std::is_same_v<T, std::string>)
              static std::string getFieldAsStr(const sol::object& field)
 {
     if (field == sol::nil) { return "Not provided"; }

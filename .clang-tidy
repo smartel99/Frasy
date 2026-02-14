@@ -25,6 +25,7 @@ cppcoreguidelines-*,
 -performance-no-int-to-ptr,
 -*-include-cleaner,
 -*-const-correctness,
+*-use-nodiscard,
 
 hicpp-avoid-goto,
 hicpp-braces-around-statements,

@@ -46,10 +46,11 @@
 
 namespace Frasy {
 class DeviceViewer;
+
 namespace CanOpenViewer {
 class Layer;
 }
-}    // namespace Frasy
+} // namespace Frasy
 
 namespace Frasy::CanOpen {
 static constexpr uint16_t s_sdoClientBaseAddress = 0x1280;
@@ -65,8 +66,8 @@ public:
     using Interfaces_t             = std::map<std::string, SlCan::Device>;
 
 public:
-             CanOpen();
-             CanOpen(const CanOpen&)   = delete;
+    CanOpen();
+    CanOpen(const CanOpen&)            = delete;
     CanOpen& operator=(const CanOpen&) = delete;
     //          CanOpen(CanOpen&& o) noexcept;
     // CanOpen& operator=(CanOpen&&) = default;
@@ -84,16 +85,16 @@ public:
     void start();
     void stop();
 
-    std::vector<Node>& getNodes();
+    std::vector<Node>&   getNodes();
     std::optional<Node*> getNode(uint8_t nodeId);
-    Node*              addNode(uint8_t nodeId, std::string_view name = "", std::string_view edsPath = "");
-    void               removeNode(uint8_t nodeId);
-    void               removeNode(const Node& node);
-    void               clearNodes();
-    void               resetNodes() const;
-    void               resetNode(uint8_t nodeId) const;
-    bool               isNodeRegistered(uint8_t nodeId);
-    bool               isNodeOnNetwork(uint8_t nodeId);
+    Node*                addNode(uint8_t nodeId, std::string_view name = "", std::string_view edsPath = "");
+    void                 removeNode(uint8_t nodeId);
+    void                 removeNode(const Node& node);
+    void                 clearNodes();
+    void                 resetNodes() const;
+    void                 resetNode(uint8_t nodeId) const;
+    bool                 isNodeRegistered(uint8_t nodeId);
+    bool                 isNodeOnNetwork(uint8_t nodeId);
 
     void addEmergencyMessageCallback(const EmergencyMessageCallback& callback);
     void reportError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code, uint32_t infoCode);
@@ -266,7 +267,7 @@ private:
     Interfaces_t m_devices;
 
     static constexpr auto s_nmtControlFlags = static_cast<CO_NMT_control_t>(
-      CO_NMT_STARTUP_TO_OPERATIONAL | CO_NMT_ERR_ON_ERR_REG | CO_ERR_REG_GENERIC_ERR | CO_ERR_REG_COMMUNICATION);
+        CO_NMT_STARTUP_TO_OPERATIONAL | CO_NMT_ERR_ON_ERR_REG | CO_ERR_REG_GENERIC_ERR | CO_ERR_REG_COMMUNICATION);
     static constexpr uint16_t s_firstHeartbeatTime     = 500;
     static constexpr uint16_t s_sdoServerTimeoutTime   = 1000;
     static constexpr uint16_t s_sdoClientTimeoutTime   = 500;
@@ -278,18 +279,20 @@ private:
     static constexpr uint16_t s_cobLssMasterId = 0x6E2;
 
     CO_t*                             m_co = nullptr;
-    CO_config_t                       m_canOpenConfig {};
+    CO_config_t                       m_canOpenConfig{};
     uint32_t                          m_coHeapMemoryUsed = 0;
     bool                              m_hasBeenInitOnce  = false;
     CO_storage_t                      m_storage          = {};
     std::array<CO_storage_entry_t, 1> m_storageEntries   = {
-      CO_storage_entry_t {
-          .addr       = &OD_PERSIST_COMM,
-          .len        = sizeof(OD_PERSIST_COMM),
-          .subIndexOD = 2,
-          .attr       = CO_storage_cmd | CO_storage_restore,
-          .filename   = {'o', 'd', '_', 'c', 'o', 'm', 'm', '.', 'p', 'e', 'r', 's', 'i', 's', 't', '\0'},
-      },
+        CO_storage_entry_t{
+            .addr = &OD_PERSIST_COMM,
+            .len = sizeof(OD_PERSIST_COMM),
+            .subIndexOD = 2,
+            .attr = CO_storage_cmd | CO_storage_restore,
+            .filename = {'o', 'd', '_', 'c', 'o', 'm', 'm', '.', 'p', 'e', 'r', 's', 'i', 's', 't', '\0'},
+            .crc = {},
+            .fp = nullptr,
+        },
     };
 
     std::stop_source            m_stopSource;
@@ -299,7 +302,7 @@ private:
     bool                        m_isRunning = false;
 
     std::chrono::time_point<std::chrono::steady_clock> m_lastTimePoint;
-    static constexpr auto                              s_autoSavePeriod = std::chrono::minutes {1};
+    static constexpr auto                              s_autoSavePeriod = std::chrono::minutes{1};
     std::chrono::time_point<std::chrono::steady_clock> m_lastSaveTime;
     uint32_t                                           m_sleepForUs = 0;
 
@@ -311,6 +314,6 @@ private:
 
     std::vector<EmergencyMessageCallback> m_emCallbacks;
 };
-}    // namespace Frasy::CanOpen
+} // namespace Frasy::CanOpen
 
 #endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_CAN_OPEN_H

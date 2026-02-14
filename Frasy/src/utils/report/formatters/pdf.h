@@ -96,7 +96,7 @@ private:
 
     void reportLine(std::string_view fieldName, auto field, auto defaultVal)
     {
-        reportLine(fieldName, (field.valid() ? field.get_or<decltype(defaultVal)>(defaultVal) : defaultVal));
+        reportLine(fieldName, (field.valid() ? field.template get_or<decltype(defaultVal)>(defaultVal) : defaultVal));
     }
 
 private:
