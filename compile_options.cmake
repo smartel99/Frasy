@@ -8,10 +8,11 @@ if (MSVC)
             /W4
     )
     target_compile_options(frasy_dep_build_options INTERFACE
-#            /EHa # might not need to have it, depends on CPPTRACE
+            /EHa # might not need to have it, depends on CPPTRACE
             /Zc:preprocessor
             /openmp:experimental
             /wd4505 # unreferenced local function has been removed
+            /bigobj
     )
     target_compile_definitions(frasy_dep_build_options INTERFACE
             WINVER=0x0A00
