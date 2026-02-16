@@ -7,8 +7,11 @@ if (MSVC)
     target_compile_options(frasy_build_options INTERFACE
             /W4
     )
+    # cmake adds /EHsc automatically to the build flags, we however want /EHa instead.
+    #
+    string(REPLACE "/EHsc" "/EHa" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
     target_compile_options(frasy_dep_build_options INTERFACE
-            /EHa # might not need to have it, depends on CPPTRACE
+            #            /EHa # might not need to have it, depends on CPPTRACE
             /Zc:preprocessor
             /openmp:experimental
             /wd4505 # unreferenced local function has been removed
@@ -25,7 +28,7 @@ if (MSVC)
 else ()
     target_compile_options(frasy_build_options INTERFACE -Wall -Wextra -pedantic-errors)
     target_compile_options(frasy_build_options INTERFACE
-        -Wa,-mbig-obj
+            -Wa,-mbig-obj
     )
 endif ()
 
