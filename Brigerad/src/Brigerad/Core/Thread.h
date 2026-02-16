@@ -48,6 +48,29 @@ using ThreadHandle_t = HANDLE;
 bool SetThreadName(HANDLE thread, std::string_view name);
 bool SetThreadPriority(HANDLE thread, int priority);
 bool CancelSynchronousIo(ThreadHandle_t thread);
+
+class Thread {
+public:
+    Thread() = default;
+
+    Thread(auto&& F, auto&&... args)
+        : m_thread(std::forward<decltype(F)>(F), std::forward<decltype(args)>(args)...)
+    {
+    }
+
+    Thread(Thread&&) noexcept            = default;
+    Thread& operator=(Thread&&) noexcept = default;
+    Thread(const Thread&)                = delete;
+    Thread& operator=(const Thread&)     = delete;
+    ~Thread()                            = default;
+
+    bool setName(std::string_view name) { return SetThreadName(m_thread.native_handle(), name); }
+    bool setPriority(int priority) { return SetThreadPriority(m_thread.native_handle(), priority); }
+
+private:
+    std::jthread m_thread;
+};
+
 #if __has_include(<pthread.h>)
 bool SetThreadName(pthread_t thread, std::string_view name);
 bool SetThreadPriority(pthread_t thread, int priority);
