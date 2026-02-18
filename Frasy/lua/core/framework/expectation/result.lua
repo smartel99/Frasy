@@ -47,8 +47,14 @@ ExpectationResult.__index = ExpectationResult
 --- @param opt ExpectationResultOpt?
 function ExpectationResult:New(value, name, opt)
     local note = name
-    if type(opt) == "table" and type(opt.note) == "string" then
-        note = opt.note
+    local extra = nil
+    if type(opt) == "table" then
+        if type(opt.note) == "string" then
+            note = opt.note
+        end
+        if type(opt.extra) ~= "nil" then
+            extra = opt.extra
+        end
     end
     return setmetatable({
         value    = value,
@@ -56,7 +62,7 @@ function ExpectationResult:New(value, name, opt)
         note     = note,
         pass     = false,
         inverted = false,
-        extra    = opt.extra
+        extra    = extra
     }, ExpectationResult)
 end
 
