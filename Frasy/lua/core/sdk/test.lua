@@ -139,6 +139,5 @@ end
 function Once(func)
     local line = debug.getinfo(func, "S").linedefined
     local hash = Hash(debug.traceback())
-    Log.D("Once: " .. hash)
     __once(hash, func)
 end
