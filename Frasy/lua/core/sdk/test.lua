@@ -90,9 +90,9 @@ end
 ---     end)
 --- end)
 --- ```
----@param name string? Name of the test. This will appear in the log
----@param func function? Body of the test
----@return ScopeRequirement? test when using function as getter
+--- @param name string? Name of the test. This will appear in the log
+--- @param func function? Body of the test
+--- @return ScopeRequirement? test when using function as getter
 function Test(name, func)
     if func == nil then
         return Orchestrator.GetTestScopeRequirement(name)
@@ -118,15 +118,18 @@ function RequirementSpecifier(func)
     return RuntimeRequirement:New(func)
 end
 
----Expect
----@param value any
----@param name string
----@param extra any?
----@return Expectation
+--- Expect
+--- @param value any
+--- @param name string
+--- @param extra any?
+--- @return Expectation
 function Expect(value, name, extra)
     return Expectation:New(value, name, extra)
 end
 
+--- Ensures that only one uut can access the code protected by the mutex at a time. If another uut tries to access it, it will wait until the mutex is released.
+--- @param value integer ID of the mutex
+--- @param func function Function to run
 function Exclusive(value, func)
     __exclusive(value, func)
 end
