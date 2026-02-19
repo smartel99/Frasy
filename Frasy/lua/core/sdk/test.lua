@@ -139,7 +139,5 @@ end
 function Once(func)
     local line = debug.getinfo(func, "S").linedefined
     local hash = Hash(Context.orchestrator.scope:ToString() .. line)
-    Log.D("Once on ID " .. hash)
-    -- Context.orchestrator.scope.
     __once(hash, func)
 end
