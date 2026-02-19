@@ -179,6 +179,8 @@ bool DeviceViewer::DeviceViewerOptions::WhitelistItem::operator==(const std::str
 void DeviceViewer::onAttach()
 {
     m_options = Interpreter::Get().getConfig().value("communication", DeviceViewerOptions {});
+    // Always accept SMarTest devices.
+    m_options.usbWhitelist.push_back(DeviceViewerOptions::WhitelistItem {.vid = 1155, .pid = 42180, .mi = 0});
     m_ports   = serial::list_ports();
 
     auto isValidUsb = [&usbWhitelist = m_options.usbWhitelist](const serial::PortInfo& info) -> bool {
