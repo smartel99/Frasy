@@ -986,32 +986,14 @@ void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_v
 void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 {
     if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
-    switch (stage) {
-        case Stage::execution: lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
-                FRASY_PROFILE_FUNCTION();
-                m_exclusiveLock->lock();
-                auto& mutex = m_exclusiveLockMap[index];
-                m_exclusiveLock->unlock();
-                std::lock_guard lock{mutex};
-                if (auto result = func(); !result.valid()) {
-                    sol::error err = result;
-                    throw std::runtime_error(err.what());
-                }
-            };
-            break;
-
-        case Stage::idle:
-        case Stage::generation:
-        case Stage::validation:
-        default: lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
-                FRASY_PROFILE_FUNCTION();
-                if (auto result = func(); !result.valid()) {
-                    sol::error err = result;
-                    throw std::runtime_error(err.what());
-                }
-            };
-            break;
-    }
+    lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
+        FRASY_PROFILE_FUNCTION();
+        m_exclusiveLock->lock();
+        auto& mutex = m_exclusiveLockMap[index];
+        m_exclusiveLock->unlock();
+        std::lock_guard lock{mutex};
+        (void)func();
+    };
 }
 #pragma endregion
 
@@ -1019,32 +1001,11 @@ void Orchestrator::importOnce(sol::state_view lua, Stage stage)
 {
     // Reset all the flags.
     m_onceFlagMap.clear();
-    switch (stage) {
-        case Stage::execution: lua["__once"] = [&](std::size_t index, sol::unsafe_function func) {
-                FRASY_PROFILE_FUNCTION();
-                std::lock_guard lock{m_onceLock};
-                std::call_once(m_onceFlagMap[index],
-                               [&] {
-                                   if (auto result = func(); !result.valid()) {
-                                       sol::error err = result;
-                                       throw std::runtime_error(err.what());
-                                   }
-                               });
-            };
-            break;
-
-        case Stage::idle:
-        case Stage::generation:
-        case Stage::validation:
-        default: lua["__once"] = [&]([[maybe_unused]] std::size_t index, sol::unsafe_function func) {
-                FRASY_PROFILE_FUNCTION();
-                if (auto result = func(); !result.valid()) {
-                    sol::error err = result;
-                    throw std::runtime_error(err.what());
-                }
-            };
-            break;
-    }
+    lua["__once"] = [&](std::size_t index, sol::unsafe_function func) {
+        FRASY_PROFILE_FUNCTION();
+        std::lock_guard lock{m_onceLock};
+        std::call_once(m_onceFlagMap[index], [&] { (void)func(); });
+    };
 }
 
 #pragma region Log
