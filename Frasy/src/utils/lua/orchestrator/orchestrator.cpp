@@ -329,7 +329,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             FRASY_PROFILE_FUNCTION();
             SaveAsJson(std::move(table), file);
         };
-        lua["Hash"] = [](std::string_view str) -> std::size_t {
+        lua["Hash"] = [](std::string_view str) -> std::int64_t {
             FRASY_PROFILE_FUNCTION();
             return std::hash<std::string_view>{}(str);
         };
