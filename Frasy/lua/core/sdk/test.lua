@@ -137,7 +137,6 @@ end
 ---Calls a function exactly once, even if called concurrently from several UUTs
 ---@param func function()
 function Once(func)
-    local line = debug.getinfo(func, "S").linedefined
     local hash = Hash(debug.traceback())
     __once(hash, func)
 end
