@@ -133,3 +133,13 @@ end
 function Exclusive(value, func)
     __exclusive(value, func)
 end
+
+---Calls a function exactly once, even if called concurrently from several UUTs
+---@param func function()
+function Once(func)
+    local line = debug.getinfo(func, "S").linedefined
+    local hash = Hash(Context.orchestrator.scope:ToString() .. line)
+    Log.D("Once on ID " .. hash)
+    -- Context.orchestrator.scope.
+    __once(hash, func)
+end
