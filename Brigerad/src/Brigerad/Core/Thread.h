@@ -24,6 +24,8 @@
 #include <string_view>
 #include <thread>
 
+#include <cpptrace/from_current.hpp>
+
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -33,6 +35,24 @@
 #if __has_include(<pthread.h>)
 #include <pthread.h>
 #endif
+
+#define BR_BEGIN_GUARDED_SCOPE(scope)       \
+    CPPTRACE_SEH_TRY {\
+        [&] {\
+            CPPTRACE_TRY { scope
+#define BR_END_GUARDED_SCOPE \
+            } CPPTRACE_CATCH(std::exception& e) {\
+                std::format_to_n(crashReportContent.begin(),\
+                                 s_crashReportContentSize,\
+                                 "Unhandled exception: {}",\
+                                 e.what());\
+printException(cpptrace::from_current_exception());\
+            }\
+        }();\
+    }\
+CPPTRACE_SEH_EXCEPT(parse_filter(GetExceptionCode())) {\
+                    printException(cpptrace::from_current_exception());\
+                }
 
 namespace Brigerad {
 constexpr bool IsPthread()
@@ -49,27 +69,11 @@ bool SetThreadName(HANDLE thread, std::string_view name);
 bool SetThreadPriority(HANDLE thread, int priority);
 bool CancelSynchronousIo(ThreadHandle_t thread);
 
-class Thread {
-public:
-    Thread() = default;
-
-    Thread(auto&& F, auto&&... args)
-        : m_thread(std::forward<decltype(F)>(F), std::forward<decltype(args)>(args)...)
-    {
-    }
-
-    Thread(Thread&&) noexcept            = default;
-    Thread& operator=(Thread&&) noexcept = default;
-    Thread(const Thread&)                = delete;
-    Thread& operator=(const Thread&)     = delete;
-    ~Thread()                            = default;
-
-    bool setName(std::string_view name) { return SetThreadName(m_thread.native_handle(), name); }
-    bool setPriority(int priority) { return SetThreadPriority(m_thread.native_handle(), priority); }
-
-private:
-    std::jthread m_thread;
-};
+std::jthread MakeThread(auto&& f, auto&&... args)
+{
+    return std::jthread([&] {
+    })
+}
 
 #if __has_include(<pthread.h>)
 bool SetThreadName(pthread_t thread, std::string_view name);
