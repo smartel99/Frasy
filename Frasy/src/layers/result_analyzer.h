@@ -22,11 +22,12 @@
 #include "utils/result_analyzer/analyzer.h"
 #include "utils/result_analyzer/options.h"
 
+#include <Brigerad/Core/Thread.h>
+
 #include <array>
 #include <Brigerad.h>
 #include <functional>
 #include <map>
-#include <thread>
 #include <vector>
 
 namespace Frasy {
@@ -44,13 +45,13 @@ private:
     static void renderStringList(std::string_view                   name,
                                  std::string_view                   tooltip,
                                  std::vector<std::array<char, 32>>& strings);
-    void        renderAnalysisResults();
-    void        renderSingleAnalysisResults();
-    void        renderMultipleAnalysisResults();
-    void        renderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results);
-    void        renderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location);
-    void        renderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence);
-    void        renderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test);
+    void renderAnalysisResults();
+    void renderSingleAnalysisResults();
+    void renderMultipleAnalysisResults();
+    void renderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results);
+    void renderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location);
+    void renderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence);
+    void renderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test);
 
     bool                         m_isVisible  = false;
     static constexpr const char* s_windowName = "Result Analyzer Options";
@@ -64,9 +65,9 @@ private:
     bool                         m_generating     = false;
     bool                         m_doneGenerating = false;
     bool                         m_hasGenerated   = false;
-    std::thread                  m_generatorThread;
-    std::function<std::string()> m_getTitle = []() { return "untitled"; };
+    std::jthread                 m_generatorThread;
+    std::function<std::string()> m_getTitle = [] { return "untitled"; };
 };
-}    // namespace Frasy
+} // namespace Frasy
 
 #endif    // FRASY_SRC_LAYERS_RESULT_ANALYZER_H

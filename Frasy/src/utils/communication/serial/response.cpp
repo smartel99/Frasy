@@ -17,6 +17,8 @@
 
 #include "response.h"
 
+#include "Brigerad/Core/Thread.h"
+
 #include <utility>
 
 namespace Frasy::Serial {
@@ -80,7 +82,7 @@ void ResponsePromise::run()
 {
     using namespace std::chrono_literals;
     auto s_future = Promise.get_future();
-    m_thread      = std::thread(
+    m_thread      = Brigerad::MakeThread(
       [this](std::future<Packet> future)
       {
           try

@@ -45,7 +45,7 @@ void Layer::onImGuiRender()
     BR_PROFILE_FUNCTION();
 
     if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
-        ImGui::Text("%s", m_canOpen.isOpen() ? "Active" : "Innactive");
+        ImGui::Text("%s", m_canOpen.isOpen() ? "Active" : "Inactive");
         ImGui::SameLine();
         if (ImGui::Button("Restart")) { m_canOpen.reset(); }
         if (ImGui::Button("Error Generator")) { m_shouldRenderErrorGenerator = true; }

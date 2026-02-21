@@ -113,10 +113,10 @@ void Device::open()
         return;
     }
 
-    m_rxThread = std::jthread([&](std::stop_token stopToken) {
-        if (FAILED(SetThreadDescription(
-            GetCurrentThread(),
-            std::format(L"SlCAN RX {}", StringUtils::StringToWString(m_device.getPort())).c_str()))) {
+    m_rxThread = Brigerad::MakeThread([&](std::stop_token stopToken) {
+        if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(),
+                                    std::format("SlCAN RX {}",
+                                                m_device.getPort()))) {
             BR_LOG_ERROR("SlCAN", "Unable to set thread description");
         }
         BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
@@ -153,7 +153,8 @@ void Device::open()
                                                   &buff[0],
                                                   sizeof(buff),
                                                   nullptr);
-                        return std::string{&buff[0], &buff[len]};
+                        return std::string{&buff[0],
+                                           &buff[len]};
                     };
                     BR_LOG_ERROR(
                         m_label,

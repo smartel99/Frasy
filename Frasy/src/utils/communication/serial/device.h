@@ -68,7 +68,7 @@ private:
     std::string    m_label;
     serial::Serial m_device;    //!< The physical communication interface.
 
-    std::thread   m_cleanerThread;
+    std::jthread   m_cleanerThread;
     volatile bool m_cleanerRun = false;
 
     bool m_ready   = false;
@@ -76,7 +76,7 @@ private:
 
     std::mutex    m_promiseLock;
     volatile bool m_shouldRun = true;
-    std::thread   m_rxThread;
+    std::jthread   m_rxThread;
     std::string   m_rxBuff;    //!< Buffer where the received data go.
 
     std::unordered_map<trs_id_t, ResponsePromise> m_pending;

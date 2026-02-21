@@ -23,6 +23,8 @@
 
 #include <string_view>
 #include <thread>
+#include <fstream>
+#include <utility>
 
 #include <cpptrace/from_current.hpp>
 
@@ -36,23 +38,23 @@
 #include <pthread.h>
 #endif
 
-#define BR_BEGIN_GUARDED_SCOPE(scope)       \
+#define BR_BEGIN_GUARDED_SCOPE \
+[&]{      \
     CPPTRACE_SEH_TRY {\
         [&] {\
-            CPPTRACE_TRY { scope
+            CPPTRACE_TRY
+
 #define BR_END_GUARDED_SCOPE \
-            } CPPTRACE_CATCH(std::exception& e) {\
-                std::format_to_n(crashReportContent.begin(),\
-                                 s_crashReportContentSize,\
-                                 "Unhandled exception: {}",\
-                                 e.what());\
-printException(cpptrace::from_current_exception());\
+             CPPTRACE_CATCH(std::exception& e) {\
+                ::Brigerad::_internalDoNotUse::addExceptionMessage(e);\
+                ::Brigerad::_internalDoNotUse::printException(cpptrace::from_current_exception());\
             }\
         }();\
     }\
-CPPTRACE_SEH_EXCEPT(parse_filter(GetExceptionCode())) {\
-                    printException(cpptrace::from_current_exception());\
-                }
+CPPTRACE_SEH_EXCEPT(::Brigerad::_internalDoNotUse::parseFilter(GetExceptionCode())) {\
+                    ::Brigerad::_internalDoNotUse::printException(cpptrace::from_current_exception());\
+    } \
+}();
 
 namespace Brigerad {
 constexpr bool IsPthread()
@@ -69,10 +71,41 @@ bool SetThreadName(HANDLE thread, std::string_view name);
 bool SetThreadPriority(HANDLE thread, int priority);
 bool CancelSynchronousIo(ThreadHandle_t thread);
 
-std::jthread MakeThread(auto&& f, auto&&... args)
+ThreadHandle_t GetCurrentThread();
+
+namespace _internalDoNotUse {
+bool initExceptionHandling();
+void addExceptionMessage(const std::exception& e);
+
+int  parseFilter(unsigned long code);
+void printException(const cpptrace::stacktrace& trace);
+}
+
+template<typename... Args>
+std::jthread MakeThread(auto&& f, Args&&... args)
 {
-    return std::jthread([&] {
-    })
+    // If f takes a stop_token:
+    if constexpr (std::is_invocable_v<decltype(f), std::stop_token, Args...>) {
+        return std::jthread([&](std::stop_token st) {
+            BR_BEGIN_GUARDED_SCOPE
+                {
+                    std::invoke(std::forward<decltype(f)>(f),
+                                st,
+                                std::forward<Args>(args)...);
+                }
+            BR_END_GUARDED_SCOPE
+        });
+    }
+    else {
+        return std::jthread([&] {
+            BR_BEGIN_GUARDED_SCOPE
+                {
+                    std::invoke(std::forward<decltype(f)>(f),
+                                std::forward<Args>(args)...);
+                }
+            BR_END_GUARDED_SCOPE
+        });
+    }
 }
 
 #if __has_include(<pthread.h>)

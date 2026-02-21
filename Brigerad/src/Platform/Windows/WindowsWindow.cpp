@@ -10,8 +10,10 @@
 
 
 // Device handling code from: https://learn.microsoft.com/en-us/windows/win32/devio/registering-for-device-notification
+#include "Brigerad/Core/Thread.h"
 #include "Brigerad/Core/Application.h"
 #include "Brigerad/Events/usb_event.h"
+
 
 #include <format>
 
@@ -62,10 +64,12 @@ bool doRegisterDeviceInterfaceToHwnd(IN GUID interfaceClassGuid, IN HWND hWnd, O
     NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
     NotificationFilter.dbcc_classguid  = interfaceClassGuid;
 
-    *hDeviceNotify = RegisterDeviceNotification(hWnd,                          // events recipient
-                                                &NotificationFilter,           // type of device
-                                                DEVICE_NOTIFY_WINDOW_HANDLE    // type of recipient handle
-    );
+    *hDeviceNotify = RegisterDeviceNotification(hWnd,
+                                                // events recipient
+                                                &NotificationFilter,
+                                                // type of device
+                                                DEVICE_NOTIFY_WINDOW_HANDLE // type of recipient handle
+        );
 
     if (*hDeviceNotify == nullptr) {
         BR_CORE_ERROR("RegisterDeviceNotification failed");
@@ -86,11 +90,11 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
         HDEVNOTIFY       hDevice;
     };
     static std::array devices = {
-      Device {.name = "COM", .guid = GUID_DEVINTERFACE_COMPORT, .hDevice = {}},
-      Device {.name = "HID",
-              // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/guid-devinterface-hid
-              .guid    = GUID {0x4D1E55B2, 0xF16F, 0x11CF, {0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30}},
-              .hDevice = {}},
+        Device{.name = "COM", .guid = GUID_DEVINTERFACE_COMPORT, .hDevice = {}},
+        Device{.name = "HID",
+               // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/guid-devinterface-hid
+               .guid = GUID{0x4D1E55B2, 0xF16F, 0x11CF, {0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30}},
+               .hDevice = {}},
     };
 
     switch (message) {
@@ -131,7 +135,7 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
                                                b->dbcc_classguid.Data4[5],
                                                b->dbcc_classguid.Data4[6],
                                                b->dbcc_classguid.Data4[7]);
-                return std::wstring(guid.begin(), guid.end());    // OK because ASCII only
+                return std::wstring(guid.begin(), guid.end()); // OK because ASCII only
             };
             auto makeName = [](PDEV_BROADCAST_DEVICEINTERFACE b) -> std::wstring {
 #ifdef UNICODE
@@ -143,50 +147,52 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
 #endif
             };
 
-            auto deviceIt = std::ranges::find_if(devices, [&guid = b->dbcc_classguid](const Device& device) -> bool {
-                return device.guid.Data1 == guid.Data1 && device.guid.Data2 == guid.Data2 &&
-                       device.guid.Data3 == guid.Data3 && device.guid.Data4[0] == guid.Data4[0] &&
-                       device.guid.Data4[1] == guid.Data4[1] && device.guid.Data4[2] == guid.Data4[2] &&
-                       device.guid.Data4[3] == guid.Data4[3] && device.guid.Data4[4] == guid.Data4[4] &&
-                       device.guid.Data4[5] == guid.Data4[5] && device.guid.Data4[6] == guid.Data4[6] &&
-                       device.guid.Data4[7] == guid.Data4[7];
-            });
+            auto deviceIt = std::ranges::find_if(devices,
+                                                 [&guid = b->dbcc_classguid](const Device& device) -> bool {
+                                                     return device.guid.Data1 == guid.Data1 && device.guid.Data2 == guid
+                                                            .Data2 &&
+                                                            device.guid.Data3 == guid.Data3 && device.guid.Data4[0] ==
+                                                            guid.Data4[0] &&
+                                                            device.guid.Data4[1] == guid.Data4[1] && device.guid.Data4[
+                                                                2] == guid.Data4[2] &&
+                                                            device.guid.Data4[3] == guid.Data4[3] && device.guid.Data4[
+                                                                4] == guid.Data4[4] &&
+                                                            device.guid.Data4[5] == guid.Data4[5] && device.guid.Data4[
+                                                                6] == guid.Data4[6] &&
+                                                            device.guid.Data4[7] == guid.Data4[7];
+                                                 });
             BR_ASSERT(deviceIt != devices.end(), "Device not found");
 
             // Output some messages to the window.
             switch (wParam) {
-                    // TODO dispatch Brigerad events.
-                case DBT_DEVICEARRIVAL:
-                    msgCount++;
+                // TODO dispatch Brigerad events.
+                case DBT_DEVICEARRIVAL: msgCount++;
                     BR_CORE_DEBUG("Message {}: {} DBT_DEVICEARRIVAL", msgCount, deviceIt->name);
                     {
                         auto event = UsbConnectedEvent(makeClassGuid(b), makeName(b));
                         Application::Get().onEvent(event);
                     }
                     break;
-                case DBT_DEVICEREMOVECOMPLETE:
-                    msgCount++;
+                case DBT_DEVICEREMOVECOMPLETE: msgCount++;
                     BR_CORE_DEBUG("Message {}, {} DBT_DEVICEREMOVECOMPLETE", msgCount, deviceIt->name);
                     {
                         auto event = UsbDisconnectedEvent(makeClassGuid(b), makeName(b));
                         Application::Get().onEvent(event);
                     }
                     break;
-                case DBT_DEVNODES_CHANGED:
-                    msgCount++;
+                case DBT_DEVNODES_CHANGED: msgCount++;
                     BR_CORE_DEBUG("Message {}, {} DBT_DEVNODES_CHANGED", msgCount, deviceIt->name);
                     break;
-                default:
-                    msgCount++;
+                default: msgCount++;
                     BR_CORE_DEBUG("Message {}: {} WM_DEVICECHANGE message received, value {} unhandled.",
                                   msgCount,
                                   deviceIt->name,
                                   wParam);
                     break;
             }
-        } break;
-        case WM_CLOSE:
-            for (auto&& [name, guid, hdev] : devices) {
+        }
+        break;
+        case WM_CLOSE: for (auto&& [name, guid, hdev] : devices) {
                 if (!UnregisterDeviceNotification(hdev)) {
                     BR_CORE_ERROR("UnregisterDeviceNotification failed for {}", name);
                 }
@@ -194,7 +200,8 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
             DestroyWindow(hWnd);
             break;
 
-        case WM_DESTROY: PostQuitMessage(0); break;
+        case WM_DESTROY: PostQuitMessage(0);
+            break;
 
         default:
             // Send all other messages on to the default windows handler.
@@ -207,7 +214,7 @@ INT_PTR WINAPI messageHandlerCallback(HWND hWnd, UINT message, WPARAM wParam, LP
 
 bool initWindowClass()
 {
-    WNDCLASSEX wndClass {};
+    WNDCLASSEX wndClass{};
     wndClass.cbSize        = sizeof(WNDCLASSEX);
     wndClass.style         = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
     wndClass.hInstance     = reinterpret_cast<HINSTANCE>(GetModuleHandle(nullptr));
@@ -228,7 +235,7 @@ bool initWindowClass()
     }
     return true;
 }
-}    // namespace
+} // namespace
 
 Window* Window::Create(const WindowProps& props)
 {
@@ -288,95 +295,103 @@ void WindowsWindow::Init(const WindowProps& props)
     SetVSync(true);
 
     // Set GLFW callbacks
-    glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
-        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-        data.width       = width;
-        data.height      = height;
+    glfwSetWindowSizeCallback(m_window,
+                              [](GLFWwindow* window, int width, int height) {
+                                  WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+                                  data.width       = width;
+                                  data.height      = height;
 
-        WindowResizeEvent event(width, height);
-        data.eventCallback(event);
-    });
+                                  WindowResizeEvent event(width, height);
+                                  data.eventCallback(event);
+                              });
 
-    glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
-        WindowData&      data = *(WindowData*)glfwGetWindowUserPointer(window);
-        WindowCloseEvent event;
-        data.eventCallback(event);
-    });
+    glfwSetWindowCloseCallback(m_window,
+                               [](GLFWwindow* window) {
+                                   WindowData&      data = *(WindowData*)glfwGetWindowUserPointer(window);
+                                   WindowCloseEvent event;
+                                   data.eventCallback(event);
+                               });
 
-    glfwSetWindowMaximizeCallback(m_window, [](GLFWwindow* window, int maximized) {
-        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-        if (maximized == 1) {
-            WindowMaximizedEvent event;
-            data.eventCallback(event);
-        }
-        else {
-            WindowRestoredEvent event;
-            data.eventCallback(event);
-        }
-    });
+    glfwSetWindowMaximizeCallback(m_window,
+                                  [](GLFWwindow* window, int maximized) {
+                                      WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+                                      if (maximized == 1) {
+                                          WindowMaximizedEvent event;
+                                          data.eventCallback(event);
+                                      }
+                                      else {
+                                          WindowRestoredEvent event;
+                                          data.eventCallback(event);
+                                      }
+                                  });
 
-    glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    glfwSetKeyCallback(m_window,
+                       [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+                           WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-        switch (action) {
-            case GLFW_PRESS: {
-                KeyPressedEvent event(static_cast<KeyCode>(key), 0);
-                data.eventCallback(event);
-                break;
-            }
-            case GLFW_RELEASE: {
-                KeyReleasedEvent event(static_cast<KeyCode>(key));
-                data.eventCallback(event);
-                break;
-            }
-            case GLFW_REPEAT: {
-                KeyPressedEvent event(static_cast<KeyCode>(key), 1);
-                data.eventCallback(event);
-                break;
-            }
-        }
-    });
+                           switch (action) {
+                               case GLFW_PRESS: {
+                                   KeyPressedEvent event(static_cast<KeyCode>(key), 0);
+                                   data.eventCallback(event);
+                                   break;
+                               }
+                               case GLFW_RELEASE: {
+                                   KeyReleasedEvent event(static_cast<KeyCode>(key));
+                                   data.eventCallback(event);
+                                   break;
+                               }
+                               case GLFW_REPEAT: {
+                                   KeyPressedEvent event(static_cast<KeyCode>(key), 1);
+                                   data.eventCallback(event);
+                                   break;
+                               }
+                           }
+                       });
 
-    glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keycode) {
-        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    glfwSetCharCallback(m_window,
+                        [](GLFWwindow* window, unsigned int keycode) {
+                            WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-        KeyTypedEvent event(static_cast<KeyCode>(keycode));
-        data.eventCallback(event);
-    });
+                            KeyTypedEvent event(static_cast<KeyCode>(keycode));
+                            data.eventCallback(event);
+                        });
 
-    glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
-        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    glfwSetMouseButtonCallback(m_window,
+                               [](GLFWwindow* window, int button, int action, int mods) {
+                                   WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-        switch (action) {
-            case GLFW_PRESS: {
-                MouseButtonPressedEvent event(static_cast<MouseCode>(button));
-                data.eventCallback(event);
-                break;
-            }
-            case GLFW_RELEASE: {
-                MouseButtonReleasedEvent event(static_cast<MouseCode>(button));
-                data.eventCallback(event);
-                break;
-            }
-        }
-    });
+                                   switch (action) {
+                                       case GLFW_PRESS: {
+                                           MouseButtonPressedEvent event(static_cast<MouseCode>(button));
+                                           data.eventCallback(event);
+                                           break;
+                                       }
+                                       case GLFW_RELEASE: {
+                                           MouseButtonReleasedEvent event(static_cast<MouseCode>(button));
+                                           data.eventCallback(event);
+                                           break;
+                                       }
+                                   }
+                               });
 
-    glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset) {
-        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    glfwSetScrollCallback(m_window,
+                          [](GLFWwindow* window, double xOffset, double yOffset) {
+                              WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-        MouseScrolledEvent event((float)xOffset, (float)yOffset);
-        data.eventCallback(event);
-    });
+                              MouseScrolledEvent event((float)xOffset, (float)yOffset);
+                              data.eventCallback(event);
+                          });
 
-    glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos) {
-        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    glfwSetCursorPosCallback(m_window,
+                             [](GLFWwindow* window, double xPos, double yPos) {
+                                 WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-        MouseMovedEvent event((float)xPos, (float)yPos);
-        data.eventCallback(event);
-    });
+                                 MouseMovedEvent event((float)xPos, (float)yPos);
+                                 data.eventCallback(event);
+                             });
 
 
-    m_messageThread = std::jthread([this](std::stop_token stoken) {
+    m_messageThread = Brigerad::MakeThread([this](std::stop_token stoken) {
         if (!initWindowClass()) { return; }
 
         m_messageWindow = CreateWindowEx(WS_EX_APPWINDOW,
@@ -474,4 +489,4 @@ void WindowsWindow::Restore()
     glfwRestoreWindow(m_window);
 }
 
-}    // namespace Brigerad
+} // namespace Brigerad

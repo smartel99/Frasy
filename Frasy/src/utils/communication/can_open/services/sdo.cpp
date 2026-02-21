@@ -35,44 +35,45 @@
 
 namespace Frasy::CanOpen {
 
-SdoManager::SdoManager() : SdoManager(s_noNodeId)
+SdoManager::SdoManager()
+    : SdoManager(s_noNodeId)
 {
 }
 
 SdoManager::SdoManager(uint8_t nodeId)
-: m_nodeId(nodeId),
-  m_clientInfo {
-    .cobIdClientToServer = static_cast<uint32_t>(CO_CAN_ID_SDO_CLI + m_nodeId),
-    .cobIdServerToClient = static_cast<uint32_t>(CO_CAN_ID_SDO_SRV + m_nodeId),
-    .serverNodId         = nodeId,
-    .highestSubIndex     = 3,
-  },
-  m_odObjRecord(new OD_obj_record_t[4] {
-    OD_obj_record_t {
-      .dataOrig   = &m_clientInfo.highestSubIndex,
-      .subIndex   = 0,
-      .attribute  = ODA_SDO_R,
-      .dataLength = 1,
-    },
-    OD_obj_record_t {
-      .dataOrig   = &m_clientInfo.cobIdClientToServer,
-      .subIndex   = 1,
-      .attribute  = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
-      .dataLength = 4,
-    },
-    OD_obj_record_t {
-      .dataOrig   = &m_clientInfo.cobIdServerToClient,
-      .subIndex   = 2,
-      .attribute  = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
-      .dataLength = 4,
-    },
-    OD_obj_record_t {
-      .dataOrig   = &m_clientInfo.serverNodId,
-      .subIndex   = 3,
-      .attribute  = ODA_SDO_RW,
-      .dataLength = 1,
-    },
-  })
+    : m_nodeId(nodeId),
+      m_clientInfo{
+          .cobIdClientToServer = static_cast<uint32_t>(CO_CAN_ID_SDO_CLI + m_nodeId),
+          .cobIdServerToClient = static_cast<uint32_t>(CO_CAN_ID_SDO_SRV + m_nodeId),
+          .serverNodId = nodeId,
+          .highestSubIndex = 3,
+      },
+      m_odObjRecord(new OD_obj_record_t[4]{
+          OD_obj_record_t{
+              .dataOrig = &m_clientInfo.highestSubIndex,
+              .subIndex = 0,
+              .attribute = ODA_SDO_R,
+              .dataLength = 1,
+          },
+          OD_obj_record_t{
+              .dataOrig = &m_clientInfo.cobIdClientToServer,
+              .subIndex = 1,
+              .attribute = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+              .dataLength = 4,
+          },
+          OD_obj_record_t{
+              .dataOrig = &m_clientInfo.cobIdServerToClient,
+              .subIndex = 2,
+              .attribute = ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+              .dataLength = 4,
+          },
+          OD_obj_record_t{
+              .dataOrig = &m_clientInfo.serverNodId,
+              .subIndex = 3,
+              .attribute = ODA_SDO_RW,
+              .dataLength = 1,
+          },
+      })
 {
     startWorkers();
 }
@@ -93,12 +94,24 @@ OD_entry_t SdoManager::makeSdoClientOdEntry() const
 }
 
 SdoUploadDataResult SdoManager::uploadData(
-  uint16_t index, uint8_t subIndex, uint16_t sdoTimeoutTimeMs, uint8_t retries, bool isBlock, VarType type)
+    uint16_t index,
+    uint8_t  subIndex,
+    uint16_t sdoTimeoutTimeMs,
+    uint8_t  retries,
+    bool     isBlock,
+    VarType  type)
 {
     FRASY_PROFILE_FUNCTION();
     SdoUploadDataResult result;
     result.m_request = std::make_shared<SdoUploadRequest>(
-      SdoRequestStatus::Queued, m_nodeId, index, subIndex, isBlock, type, sdoTimeoutTimeMs, retries);
+        SdoRequestStatus::Queued,
+        m_nodeId,
+        index,
+        subIndex,
+        isBlock,
+        type,
+        sdoTimeoutTimeMs,
+        retries);
 
     result.future = result.m_request->promise.get_future();
 
@@ -110,7 +123,7 @@ SdoUploadDataResult SdoManager::uploadData(
 
     {
         // Queue the message.
-        std::unique_lock lock {m_uploadLock};
+        std::unique_lock lock{m_uploadLock};
         m_pendingUploadRequests.emplace(result.m_request);
         m_uploadCv.notify_all();
     }
@@ -121,12 +134,12 @@ SdoUploadDataResult SdoManager::uploadData(
 void SdoManager::startWorkers()
 {
     m_stopSource = {};
-    auto ret =
-      CO_SDOclient_setup(m_sdoClient, m_clientInfo.cobIdClientToServer, m_clientInfo.cobIdServerToClient, m_nodeId);
+    auto ret     =
+        CO_SDOclient_setup(m_sdoClient, m_clientInfo.cobIdClientToServer, m_clientInfo.cobIdServerToClient, m_nodeId);
     if (ret != CO_SDO_RT_ok_communicationEnd) { return; }
 
     m_uploadWorkerThread =
-      std::jthread([this](std::stop_source source) { uploadWorkerThread(source.get_token()); }, m_stopSource);
+        Brigerad::MakeThread([this](std::stop_source source) { uploadWorkerThread(source.get_token()); }, m_stopSource);
     if (!Brigerad::SetThreadName(m_uploadWorkerThread.native_handle(), "SDO Upload Worker")) {
         BR_LOG_ERROR("SDO", "Unable to set thread description");
     }
@@ -134,7 +147,8 @@ void SdoManager::startWorkers()
         BR_LOG_ERROR("SDO", "Unable to set thread priority!");
     }
     m_downloadWorkerThread =
-      std::jthread([this](std::stop_source source) { downloadWorkerThread(source.get_token()); }, m_stopSource);
+        Brigerad::MakeThread([this](std::stop_source source) { downloadWorkerThread(source.get_token()); },
+                             m_stopSource);
     if (!Brigerad::SetThreadName(m_downloadWorkerThread.native_handle(), "SDO Download Worker")) {
         BR_LOG_ERROR("SDO", "Unable to set thread description");
     }
@@ -152,12 +166,13 @@ void SdoManager::stopWorkers()
 void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
 {
     m_isUploadWorkerActive = true;
+    // throw std::runtime_error("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA!");
 
     while (!stopToken.stop_requested()) {
         std::shared_ptr<SdoUploadRequest> request;
         // Get the first pending request in the queue.
         {
-            std::unique_lock lock {m_uploadLock};
+            std::unique_lock lock{m_uploadLock};
             m_uploadCv.wait(lock, stopToken, [this] { return !m_pendingUploadRequests.empty(); });
             if (m_pendingUploadRequests.empty()) { continue; }
             request = m_pendingUploadRequests.front();
@@ -177,8 +192,8 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
         for (int i = 0; i <= request->retries; ++i) {
             FRASY_PROFILE_SCOPE("Upload Request Retries");
 
-            m_isWorkerWorking.wait(true);         // Wait until it's false lol
-            m_isWorkerWorking          = true;    // "Lock" the workers.
+            m_isWorkerWorking.wait(true);      // Wait until it's false lol
+            m_isWorkerWorking          = true; // "Lock" the workers.
             auto [handlerCode, coCode] = handleUploadRequest(*request);
             m_isWorkerWorking          = false;
             m_isWorkerWorking.notify_one();
@@ -212,7 +227,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
     FRASY_PROFILE_FUNCTION();
     // Initiate the upload.
     auto ret =
-      CO_SDOclientUploadInitiate(m_sdoClient, request.index, request.subIndex, request.sdoTimeoutMs, request.isBlock);
+        CO_SDOclientUploadInitiate(m_sdoClient, request.index, request.subIndex, request.sdoTimeoutMs, request.isBlock);
     if (ret != CO_SDO_RT_ok_communicationEnd) { return std::make_tuple(HandlerReturnCode::error, ret); }
 
     using std::chrono::duration_cast;
@@ -227,7 +242,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
         if (request.status == SdoRequestStatus::CancelRequested) {
             return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_RT_ok_communicationEnd);
         }
-        uint32_t timeToSleep = 1'000;    // 1ms
+        uint32_t timeToSleep = 1'000; // 1ms
 
         // Check and update the status of the upload.
         {
@@ -287,7 +302,7 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
         std::shared_ptr<SdoDownloadRequest> request;
         // Get the first pending request in the queue.
         {
-            std::unique_lock lock {m_downloadLock};
+            std::unique_lock lock{m_downloadLock};
             m_downloadCv.wait(lock, stopToken, [this] { return !m_pendingDownloadRequests.empty(); });
             // If we got out of the wait because of the stopToken, we don't want to handle an empty object.
             if (m_pendingDownloadRequests.empty()) { continue; }
@@ -304,8 +319,8 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
 
         request->status = SdoRequestStatus::OnGoing;
         for (uint8_t i = 0; i <= request->retries; ++i) {
-            m_isWorkerWorking.wait(true);         // Wait until it's false lol
-            m_isWorkerWorking          = true;    // "Lock" the workers.
+            m_isWorkerWorking.wait(true);      // Wait until it's false lol
+            m_isWorkerWorking          = true; // "Lock" the workers.
             auto [handlerCode, coCode] = handleDownloadRequest(*request);
             m_isWorkerWorking          = false;
             m_isWorkerWorking.notify_one();
@@ -334,12 +349,17 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
 }
 
 std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDownloadRequest(
-  SdoDownloadRequest& request)
+    SdoDownloadRequest& request)
 {
     FRASY_PROFILE_FUNCTION();
     // Initiate the download.
     auto ret = CO_SDOclientDownloadInitiate(
-      m_sdoClient, request.index, request.subIndex, request.data.size(), request.sdoTimeoutMs, request.isBlock);
+        m_sdoClient,
+        request.index,
+        request.subIndex,
+        request.data.size(),
+        request.sdoTimeoutMs,
+        request.isBlock);
     if (ret != CO_SDO_RT_ok_communicationEnd) {
         return std::make_tuple(HandlerReturnCode::error, ret);
         // request.markAsComplete(ret);
@@ -356,38 +376,42 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
     size_t lastTransSize = static_cast<size_t>(-1);
     // Write a first bunch of data into the buffer.
     size_t totalBytesWritten =
-      CO_SDOclientDownloadBufWrite(m_sdoClient,
-                                   request.data.data() + request.sizeTransferred,
-                                   request.data.size() - std::min(request.sizeTransferred, request.data.size()));
+        CO_SDOclientDownloadBufWrite(m_sdoClient,
+                                     request.data.data() + request.sizeTransferred,
+                                     request.data.size() - std::min(request.sizeTransferred, request.data.size()));
     do {
         FRASY_PROFILE_SCOPE("SDO Download Loop");
         if (request.status == SdoRequestStatus::CancelRequested) {
             return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_RT_ok_communicationEnd);
         }
-        uint32_t timeToSleep = 1000;    // 1ms
+        uint32_t timeToSleep = 1000; // 1ms
 
         // Fill data if we need to send the next packet.
         if (request.sizeTransferred == totalBytesWritten && totalBytesWritten < request.data.size()) {
             size_t written = CO_SDOclientDownloadBufWrite(m_sdoClient,
                                                           request.data.data() + request.sizeTransferred,
                                                           request.data.size() -
-                                                            std::min(request.sizeTransferred, request.data.size()));
+                                                          std::min(request.sizeTransferred, request.data.size()));
             totalBytesWritten += written;
             BR_LOG_DEBUG(
-              s_cliTag, "Written {} more bytes to buffer. ({}/{})", written, totalBytesWritten, request.data.size());
+                s_cliTag,
+                "Written {} more bytes to buffer. ({}/{})",
+                written,
+                totalBytesWritten,
+                request.data.size());
         }
 
         {
             FRASY_PROFILE_SCOPE("CO_SDOclientDownload");
             bool bufferPartial = totalBytesWritten < request.data.size();
-            ret =
-              CO_SDOclientDownload(m_sdoClient,
-                                   delta,
-                                   request.abortCode != CO_SDO_AB_NONE && request.status != SdoRequestStatus::OnGoing,
-                                   bufferPartial,
-                                   &request.abortCode,
-                                   &request.sizeTransferred,
-                                   &timeToSleep);
+            ret                =
+                CO_SDOclientDownload(m_sdoClient,
+                                     delta,
+                                     request.abortCode != CO_SDO_AB_NONE && request.status != SdoRequestStatus::OnGoing,
+                                     bufferPartial,
+                                     &request.abortCode,
+                                     &request.sizeTransferred,
+                                     &timeToSleep);
         }
         if (ret < 0) {
             // < 0 = error code, we gotta stop.
@@ -429,4 +453,4 @@ void SdoManager::removeSdoClient()
     m_stopSource.request_stop();
     m_sdoClient = nullptr;
 }
-}    // namespace Frasy::CanOpen
+} // namespace Frasy::CanOpen

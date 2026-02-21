@@ -27,6 +27,8 @@
 #include "utils/lua/save_as_json.h"
 
 #include <Brigerad/Utils/dialogs/warning.h>
+#include "Brigerad/Core/Thread.h"
+
 #include <chrono>
 #include <exception>
 #include <filesystem>
@@ -90,7 +92,7 @@ int OnPanic(lua_State* lua)
 
 bool Orchestrator::loadUserFiles(const std::string& environment, const std::string& testsDir)
 {
-    if (FAILED(SetThreadDescription(GetCurrentThread(), L"Lua File Loader"))) {
+    if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), "Lua File Loader")) {
         BR_LOG_ERROR(s_tag, "Unable to set thread name");
     }
     FRASY_PROFILE_FUNCTION();
@@ -187,11 +189,15 @@ void Orchestrator::runSolution(const std::string&              operatorName,
     }
     m_running = std::async(std::launch::async,
                            [this, &serials, regenerate, skipVerification] {
-                               if (FAILED(SetThreadDescription(GetCurrentThread(), L"Solution Runner"))) {
-                                   BR_LOG_ERROR(s_tag, "Unable to set thread name");
-                               }
-                               FRASY_PROFILE_FUNCTION();
-                               runTests(serials, regenerate, skipVerification);
+                               BR_BEGIN_GUARDED_SCOPE
+                                   {
+                                       if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), "Solution Runner")) {
+                                           BR_LOG_ERROR(s_tag, "Unable to set thread name");
+                                       }
+                                       FRASY_PROFILE_FUNCTION();
+                                       runTests(serials, regenerate, skipVerification);
+                                   }
+                               BR_END_GUARDED_SCOPE
                            });
 }
 
@@ -643,12 +649,14 @@ bool Orchestrator::runStageVerify(sol::state_view team)
                     if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
                 }
             }
-            std::vector<std::thread>    threads;
+            std::vector<std::jthread>   threads;
             std::mutex                  mutex;
             std::map<std::size_t, bool> results;
             for (auto& uut : devices) {
                 if (m_uutStates[uut] == UutState::Disabled) { continue; }
-                threads.emplace_back([&, uut, team] {
+                threads.emplace_back(Brigerad::MakeThread([&,
+                    uut,
+                    team] {
                     sol::state lua;
                     if (!initLua(sol::state_view(lua), uut, Stage::validation)) { return; }
                     loadEnvironment(sol::state_view(lua), m_environment);
@@ -657,11 +665,16 @@ bool Orchestrator::runStageVerify(sol::state_view team)
                         std::lock_guard lock{mutex};
                         size_t          leader   = team["Context"]["team"]["players"][uut]["leader"];
                         size_t          position = team["Context"]["team"]["players"][uut]["position"];
-                        teams[leader].InitializeState(sol::state_view(lua), uut, position, uut == leader);
+                        teams[leader].InitializeState(
+                            sol::state_view(lua),
+                            uut,
+                            position,
+                            uut == leader);
                     }
                     sol::protected_function load_solution =
                         lua.script("return function(fp) Orchestrator.LoadSolution(fp) end");
-                    load_solution.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+                    load_solution.set_error_handler(
+                        lua.script_file("lua/core/framework/error_handler.lua"));
                     auto rls = load_solution(solutionFile);
                     if (!rls.valid()) {
                         sol::error err = rls;
@@ -672,7 +685,8 @@ bool Orchestrator::runStageVerify(sol::state_view team)
                     }
 
                     sol::protected_function verify = lua.script("return function() Orchestrator.Validate() end");
-                    verify.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+                    verify.set_error_handler(
+                        lua.script_file("lua/core/framework/error_handler.lua"));
                     auto rv = verify();
                     if (!rv.valid()) {
                         sol::error err = rv;
@@ -684,7 +698,7 @@ bool Orchestrator::runStageVerify(sol::state_view team)
 
                     std::lock_guard lock{mutex};
                     results[uut] = true;
-                });
+                }));
             }
             for (auto& thread : threads) {
                 thread.join();
@@ -752,11 +766,11 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                         if (leader == uut) { teams[leader] = Team(teamPlayers.size()); }
                     }
                 }
-                std::vector<std::thread> threads;
+                std::vector<std::jthread> threads;
                 threads.reserve(devices.size());
                 for (auto& uut : devices) {
-                    threads.emplace_back([&, uut, team] {
-                        if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                    threads.emplace_back(Brigerad::MakeThread([&, uut, team] {
+                        if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), std::format("UUT {}", uut))) {
                             BR_LOG_ERROR(s_tag, "Unable to set thread name");
                         }
                         if (m_uutStates[uut] == UutState::Disabled) { return; }
@@ -788,7 +802,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                             lua["Log"]["E"](err.what());
                         }
                         results[uut] = result.valid();
-                    });
+                    }));
                 }
                 for (auto& thread : threads) {
                     thread.join();
@@ -803,11 +817,11 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                 for (sol::object& stage : stages) {
                     auto devices = stage.as<std::vector<std::size_t>>();
                     updateUutState(UutState::Running, devices);
-                    std::vector<std::thread> threads;
+                    std::vector<std::jthread> threads;
                     threads.reserve(devices.size());
                     for (auto& uut : devices) {
-                        threads.emplace_back([&, uut] {
-                            if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                        threads.emplace_back(Brigerad::MakeThread([&, uut] {
+                            if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), std::format("UUT {}", uut))) {
                                 BR_LOG_ERROR(s_tag, "Unable to set thread name");
                             }
                             if (m_uutStates[uut] == UutState::Disabled) { return; }
@@ -824,7 +838,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                                 lua["Log"]["e"](err.what());
                             }
                             results[uut] = result.valid();
-                        });
+                        }));
                     }
                     for (auto& thread : threads) {
                         thread.join();
@@ -838,11 +852,11 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
             for (sol::object& stage : stages) {
                 auto devices = stage.as<std::vector<std::size_t>>();
                 updateUutState(UutState::Running, devices);
-                std::vector<std::thread> threads;
+                std::vector<std::jthread> threads;
                 threads.reserve(devices.size());
                 for (auto& uut : devices) {
-                    threads.emplace_back([&, uut] {
-                        if (FAILED(SetThreadDescription(GetCurrentThread(), std::format(L"UUT {}", uut).c_str()))) {
+                    threads.emplace_back(Brigerad::MakeThread([&, uut] {
+                        if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), std::format("UUT {}", uut))) {
                             BR_LOG_ERROR(s_tag, "Unable to set thread name");
                         }
                         if (m_uutStates[uut] == UutState::Disabled) { return; }
@@ -864,7 +878,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                             }
                         }
                         results[uut] = result.valid();
-                    });
+                    }));
                 }
                 for (auto& thread : threads) {
                     thread.join();
@@ -946,7 +960,14 @@ void Orchestrator::generate()
         return;
     }
 
-    m_running = std::async(std::launch::async, [this] { runStageGenerate(true); });
+    m_running = std::async(std::launch::async,
+                           [this] {
+                               BR_BEGIN_GUARDED_SCOPE
+                                   {
+                                       runStageGenerate(true);
+                                   }
+                               BR_END_GUARDED_SCOPE
+                           });
 }
 
 void Orchestrator::setTestEnable(const std::string& sequence, const std::string& test, bool enable)

@@ -24,6 +24,7 @@
 #include "../../lua/profile_events.h"
 
 #include <Brigerad.h>
+#include <Brigerad/Core/Thread.h>
 
 #include <array>
 #include <chrono>
@@ -122,11 +123,11 @@ void CanOpen::start()
         return;
     }
     m_stopSource = {};
-    m_coThread   = std::jthread([this] {
-        if (FAILED(SetThreadDescription(GetCurrentThread(), L"CANOpen"))) {
+    m_coThread   = Brigerad::MakeThread([this] {
+        if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), "CANOpen")) {
             BR_LOG_ERROR("CANOpen", "Unable to set thread description");
         }
-        if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST)) {
+        if (!Brigerad::SetThreadPriority(Brigerad::GetCurrentThread(), THREAD_PRIORITY_HIGHEST)) {
             BR_LOG_ERROR("CANOpen", "Unable to set thread priority!");
         }
         addNode(0x01, "Frasy", "frasy.eds"); // TODO set the right path for the EDS.
@@ -425,12 +426,12 @@ bool CanOpen::initialInit()
 
     uint32_t         storageInitError = 0;
     CO_ReturnError_t err              = CO_storageWindows_init(&m_storage,
-                                                               m_co->CANmodule,
-                                                               OD_ENTRY_H1010_storeParameters,
-                                                               OD_ENTRY_H1011_restoreDefaultParameters,
-                                                               m_storageEntries.data(),
-                                                               static_cast<uint8_t>(m_storageEntries.size()),
-                                                               &storageInitError);
+                                                  m_co->CANmodule,
+                                                  OD_ENTRY_H1010_storeParameters,
+                                                  OD_ENTRY_H1011_restoreDefaultParameters,
+                                                  m_storageEntries.data(),
+                                                  static_cast<uint8_t>(m_storageEntries.size()),
+                                                  &storageInitError);
     if (err == CO_ERROR_DATA_CORRUPT) { BR_LOG_WARN(m_tag, "Persistence data corrupted!"); }
     else if (err != CO_ERROR_NO) {
         const char* filename =
@@ -465,22 +466,22 @@ bool CanOpen::runtimeInit()
 
     uint32_t errInfo = 0;
     err              = CO_CANopenInit(m_co,
-                                      // CANopen object.
-                                      nullptr,
-                                      // alternate NMT handle.
-                                      nullptr,
-                                      // alternate emergency handle, might be required.
-                                      OD,
-                                      // TODO: Object dictionary must be dynamically built from the loaded environment.
-                                      nullptr,
-                                      // Optional OD_statusBits.
-                                      s_nmtControlFlags,
-                                      s_firstHeartbeatTime,
-                                      s_sdoServerTimeoutTime,
-                                      s_sdoClientTimeoutTime,
-                                      s_sdoClientBlockTransfer,
-                                      s_defaultNodeId,
-                                      &errInfo);
+                         // CANopen object.
+                         nullptr,
+                         // alternate NMT handle.
+                         nullptr,
+                         // alternate emergency handle, might be required.
+                         OD,
+                         // TODO: Object dictionary must be dynamically built from the loaded environment.
+                         nullptr,
+                         // Optional OD_statusBits.
+                         s_nmtControlFlags,
+                         s_firstHeartbeatTime,
+                         s_sdoServerTimeoutTime,
+                         s_sdoClientTimeoutTime,
+                         s_sdoClientBlockTransfer,
+                         s_defaultNodeId,
+                         &errInfo);
     if (err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
         if (err == CO_ERROR_OD_PARAMETERS) { BR_LOG_ERROR(m_tag, "Error in Object Dictionary entry {:#08x}", errInfo); }
         else {

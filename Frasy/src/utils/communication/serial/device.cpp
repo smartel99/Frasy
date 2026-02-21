@@ -24,7 +24,7 @@
 
 #include <Brigerad/Core/Thread.h>
 
-#include <Windows.h>
+#include <windows.h>
 
 namespace Frasy::Serial {
 
@@ -158,11 +158,11 @@ void Device::open()
         return;
     }
 
-    m_cleanerThread = std::thread([this] { cleanerTask(); });
+    m_cleanerThread = Brigerad::MakeThread([this] { cleanerTask(); });
 
     m_shouldRun = true;
     std::barrier rxReady{2};
-    m_rxThread = std::thread([&]() {
+    m_rxThread = Brigerad::MakeThread([&] {
         BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
         std::string endOfPacket = std::string(1, Packet::s_packetEndFlag);
         rxReady.arrive_and_wait();
@@ -208,7 +208,7 @@ void Device::close()
 
 void Device::reset()
 {
-    transmit(Packet::Request(Actions::CommandId::Reset)).OnTimeout([]() {
+    transmit(Packet::Request(Actions::CommandId::Reset)).OnTimeout([] {
     }).Async();
 }
 

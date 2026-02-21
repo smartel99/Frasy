@@ -38,25 +38,29 @@ void ResultAnalyzer::onImGuiRender()
                          "List of the serial numbers to analyze. When empty, analyze all reports found.",
                          m_options.SerialNumbers);
         renderStringList(
-          "Locations", "List of the locations to analyze. When empty, analyze all locations found.", m_options.Uuts);
+            "Locations",
+            "List of the locations to analyze. When empty, analyze all locations found.",
+            m_options.Uuts);
         renderStringList("Sequences",
                          "List of the sequences to analyze. When empty, analyze all sequences found.",
                          m_options.Sequences);
         renderStringList(
-          "Tests", "List of the tests to analyze. When empty, analyze all tests found.", m_options.Tests);
+            "Tests",
+            "List of the tests to analyze. When empty, analyze all tests found.",
+            m_options.Tests);
 
         ImGui::Checkbox("Combine all locations", &m_options.Ganged);
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(
-              "Combine all locations into the statistic report. When false, the statistics will be on a per-location "
-              "basis.");
+                "Combine all locations into the statistic report. When false, the statistics will be on a per-location "
+                "basis.");
         }
 
         if (!m_generating) {
             if (ImGui::Button("generate")) {
-                m_analyzer        = Analyzers::ResultAnalyzer {m_options};
+                m_analyzer        = Analyzers::ResultAnalyzer{m_options};
                 m_doneGenerating  = false;
-                m_generatorThread = std::thread([this]() {
+                m_generatorThread = Brigerad::MakeThread([this] {
                     m_generating     = true;
                     m_lastResults    = m_analyzer.Analyze(m_getTitle());
                     m_doneGenerating = true;
@@ -71,7 +75,7 @@ void ResultAnalyzer::onImGuiRender()
             if (ImGui::Button("load Reports")) {
                 BR_PROFILE_SCOPE("Loading Analysis Reports");
                 auto pathsOpt =
-                  Brigerad::Dialogs::OpenFiles("load Reports", {}, {"*.json"}, "Log Analysis Result Files");
+                    Brigerad::Dialogs::OpenFiles("load Reports", {}, {"*.json"}, "Log Analysis Result Files");
                 if (pathsOpt) {
                     for (auto&& path : *pathsOpt) {
                         try {
@@ -90,9 +94,12 @@ void ResultAnalyzer::onImGuiRender()
             if (m_hasGenerated && ImGui::Button("save Report")) {
                 BR_PROFILE_SCOPE("Saving Analysis Report");
                 auto suggestedPath = std::filesystem::current_path();
-                suggestedPath /= "report.json";
-                auto pathOpt =
-                  Brigerad::Dialogs::SaveFile("save File", suggestedPath.string(), {"*.json"}, "Log Analysis Results");
+                suggestedPath      /= "report.json";
+                auto pathOpt       =
+                    Brigerad::Dialogs::SaveFile("save File",
+                                                suggestedPath.string(),
+                                                {"*.json"},
+                                                "Log Analysis Results");
                 if (pathOpt) { Frasy::Analyzers::Save(m_lastResults, *pathOpt); }
             }
         }
@@ -123,7 +130,10 @@ void ResultAnalyzer::renderStringList(std::string_view                   name,
         size_t at = 1;
         for (auto&& str : strings) {
             ImGui::InputTextWithHint(
-              std::format("{}", at).c_str(), "Partial matches are supported.", str.data(), str.size());
+                std::format("{}", at).c_str(),
+                "Partial matches are supported.",
+                str.data(),
+                str.size());
             at++;
         }
 
@@ -184,7 +194,7 @@ void ResultAnalyzer::renderAnalysisResultsFile(const Analyzers::ResultAnalysisRe
 {
     for (auto&& [locationName, locationResults] : results.Locations) {
         if (ImGui::BeginTabItem(locationName.c_str())) {
-            ImGui::BeginChild(locationName.c_str(), ImVec2 {0.0f, 0.0f}, false);
+            ImGui::BeginChild(locationName.c_str(), ImVec2{0.0f, 0.0f}, false);
             renderLocationAnalysisResults(locationResults);
 
             ImGui::EndChild();
@@ -197,11 +207,17 @@ void ResultAnalyzer::renderLocationAnalysisResults(const Analyzers::ResultAnalys
 {
     ImGui::BulletText("Version: %s", location.Version.c_str());
     ImGui::BulletText(
-      "Logs Analyzed: %zu, Passed:%zu (%0.2f%%)", location.Total, location.Passed, location.PassedPercent);
+        "Logs Analyzed: %zu, Passed:%zu (%0.2f%%)",
+        location.Total,
+        location.Passed,
+        location.PassedPercent);
 
     const auto [min, max] = std::minmax_element(location.Durations.begin(), location.Durations.end());
     ImGui::BulletText(
-      "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)", location.AverageDuration, *min, *max);
+        "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)",
+        location.AverageDuration,
+        *min,
+        *max);
 
     ImGui::Separator();
 
@@ -209,7 +225,7 @@ void ResultAnalyzer::renderLocationAnalysisResults(const Analyzers::ResultAnalys
 
     for (auto&& [name, sequence] : location.Sequences) {
         if (ImGui::BeginTabItem(name.c_str())) {
-            ImGui::BeginChild(name.c_str(), ImVec2 {0.0f, 0.0f}, false);
+            ImGui::BeginChild(name.c_str(), ImVec2{0.0f, 0.0f}, false);
             renderSequenceAnalysisResults(sequence);
             ImGui::EndChild();
             ImGui::EndTabItem();
@@ -231,7 +247,10 @@ void ResultAnalyzer::renderSequenceAnalysisResults(const Analyzers::ResultAnalys
 
     const auto [min, max] = std::minmax_element(sequence.Durations.begin(), sequence.Durations.end());
     ImGui::BulletText(
-      "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)", sequence.AverageDuration, *min, *max);
+        "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)",
+        sequence.AverageDuration,
+        *min,
+        *max);
 
     ImGui::Separator();
 
@@ -239,7 +258,7 @@ void ResultAnalyzer::renderSequenceAnalysisResults(const Analyzers::ResultAnalys
 
     for (auto&& [name, test] : sequence.Tests) {
         if (ImGui::BeginTabItem(name.c_str())) {
-            ImGui::BeginChild(name.c_str(), ImVec2 {0.0f, 0.0f}, false);
+            ImGui::BeginChild(name.c_str(), ImVec2{0.0f, 0.0f}, false);
             renderTestAnalysisResults(test);
             ImGui::EndChild();
             ImGui::EndTabItem();
@@ -263,7 +282,10 @@ void ResultAnalyzer::renderTestAnalysisResults(const Analyzers::ResultAnalysisRe
 
     const auto [min, max] = std::minmax_element(test.Durations.begin(), test.Durations.end());
     ImGui::BulletText(
-      "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)", test.AverageDuration, *min, *max);
+        "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)",
+        test.AverageDuration,
+        *min,
+        *max);
 
     ImGui::Separator();
 
@@ -271,7 +293,7 @@ void ResultAnalyzer::renderTestAnalysisResults(const Analyzers::ResultAnalysisRe
 
     for (auto&& [name, expectation] : test.Expectations) {
         if (ImGui::BeginTabItem(name.c_str())) {
-            ImGui::BeginChild(name.c_str(), ImVec2 {0.0f, 0.0f}, false);
+            ImGui::BeginChild(name.c_str(), ImVec2{0.0f, 0.0f}, false);
             expectation->Render();
             ImGui::EndChild();
             ImGui::EndTabItem();
@@ -281,4 +303,4 @@ void ResultAnalyzer::renderTestAnalysisResults(const Analyzers::ResultAnalysisRe
     ImGui::EndTabBar();
 }
 
-}    // namespace Frasy
+} // namespace Frasy

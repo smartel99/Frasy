@@ -37,6 +37,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     if (MSVC)
         target_compile_options(frasy_dep_build_options INTERFACE
                 /O2
+                /Zi
         )
     else ()
         target_compile_options(frasy_dep_build_options INTERFACE
@@ -51,6 +52,7 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
     if (MSVC)
         target_compile_options(frasy_dep_build_options INTERFACE
                 /O2
+                /Zi
         )
     else ()
         target_compile_options(frasy_dep_build_options INTERFACE
