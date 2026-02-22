@@ -30,7 +30,6 @@ int main(int argc, char** argv)
 
             BR_PROFILE_END_SESSION();
             auto app = Brigerad::CreateApplication(argc, argv);
-            throw "AAAA";
             app->run();
 
             BR_PROFILE_BEGIN_SESSION("Shutdown", "BrigeradProfile-Shutdown.json");

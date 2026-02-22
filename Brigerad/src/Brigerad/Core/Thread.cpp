@@ -17,6 +17,7 @@
 #include "Thread.h"
 
 #include <Brigerad/Core/Log.h>
+#include <Brigerad/Utils/dialogs/error.h>
 
 #include <cpptrace/formatting.hpp>
 
@@ -172,7 +173,7 @@ void printException(const cpptrace::stacktrace& trace)
     auto res = std::format_to_n(crashReportHeader.begin(),
                                 s_crashReportHeaderMaxSize,
                                 "{}{}",
-                                crashReportContent.c_str(),
+                                crashReportContent.c_str(), //  NOLINT(*-redundant-string-cstr)
                                 s_stacktraceHeader);
     crashReportHeader.resize(res.size);
     auto formatter = cpptrace::formatter{}
@@ -184,13 +185,14 @@ void printException(const cpptrace::stacktrace& trace)
     // TODO Print to file and to console
     formatter.print(trace);
     formatter.print(crashReportFile, trace);
-    crashReportFile.flush();
+    crashReportFile.close();
+    FatalErrorDialog("A crash occurred!", "{}", formatter.format(trace));
 }
-}
+}  // namespace _internalDoNotUse
 
 bool SetThreadName(HANDLE thread, std::string_view name)
 {
-    if (!thread) { return false; }
+    if (thread == nullptr) { return false; }
 
     const std::wstring wname = utf8_to_wstring(name);
     if (wname.empty() && !name.empty()) { return false; }

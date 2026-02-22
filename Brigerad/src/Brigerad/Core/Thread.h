@@ -81,28 +81,38 @@ int  parseFilter(unsigned long code);
 void printException(const cpptrace::stacktrace& trace);
 }
 
-template<typename... Args>
-std::jthread MakeThread(auto&& f, Args&&... args)
+/**
+ * Creates a guarded thread that (should) catch all exceptions, including SEH exceptions.
+ *
+ * Demo code and explanation: https://rald.godbolt.org/z/sbWjPhqv7
+ *
+ * @tparam F Thread function
+ * @tparam Args Arguments to pass to the thread function
+ * @param f Thread function
+ * @param args Arguments to pass to the thread function
+ * @return The created thread object
+ */
+template<typename F, typename... Args>
+std::jthread MakeThread(F&& f, Args&&... args)
 {
     // If f takes a stop_token:
-    if constexpr (std::is_invocable_v<decltype(f), std::stop_token, Args...>) {
-        return std::jthread([&](std::stop_token st) {
-            BR_BEGIN_GUARDED_SCOPE
-                {
-                    std::invoke(std::forward<decltype(f)>(f),
-                                st,
-                                std::forward<Args>(args)...);
+    if constexpr (std::is_invocable_v<F, std::stop_token, Args...>) {
+        return std::jthread(
+            [func = std::forward<F>(f),
+             ... fargs = std::forward<Args>(args)](std::stop_token st) mutable {
+                BR_BEGIN_GUARDED_SCOPE {
+                    std::invoke(std::forward<F>(func), st,
+                                std::forward<Args>(fargs)...);
                 }
-            BR_END_GUARDED_SCOPE
-        });
-    }
-    else {
-        return std::jthread([&] {
-            BR_BEGIN_GUARDED_SCOPE
-                {
-                    std::invoke(std::forward<decltype(f)>(f),
-                                std::forward<Args>(args)...);
-                }
+                BR_END_GUARDED_SCOPE
+            });
+    } else {
+        return std::jthread([func = std::forward<F>(f),
+                             ... fargs = std::forward<Args>(args)]() mutable {
+            BR_BEGIN_GUARDED_SCOPE {
+                std::invoke(std::forward<F>(func),
+                            std::forward<Args>(fargs)...);
+            }
             BR_END_GUARDED_SCOPE
         });
     }
