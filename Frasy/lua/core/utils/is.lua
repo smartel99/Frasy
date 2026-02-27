@@ -12,6 +12,7 @@ return {
     IntegerInEnum = require("lua/core/utils/is_integer/is_integer_in_enum"),
     IntegerInEx = require("lua/core/utils/is_integer/is_integer_in_ex"),
     IntegerInOd = require("lua/core/utils/is_integer/is_integer_in_od"),
+    IntegerIn = require("lua/core/utils/is_integer/is_integer_in"),
     Integer = require("lua/core/utils/is_integer/is_integer"),
     Unsigned8 = require("lua/core/utils/is_unsigned/is_unsigned_8"),
     Unsigned16 = require("lua/core/utils/is_unsigned/is_unsigned_16"),
