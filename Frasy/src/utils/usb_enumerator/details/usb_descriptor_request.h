@@ -18,8 +18,10 @@
 
 #ifndef STRATO_USB_DESCRIPTOR_REQUEST_H
 #define STRATO_USB_DESCRIPTOR_REQUEST_H
-#include <string>
+#include <Brigerad/Core/Core.h>
+
 #include <cstdint>
+#include <vector>
 
 #include <usbioctl.h>
 
@@ -44,6 +46,12 @@ struct UsbDescriptorRequest {
         Data.assign(pO->Data, pO->Data + pO->SetupPacket.wLength);
     }
 
+    PUSB_CONFIGURATION_DESCRIPTOR ConfigDesc()
+    {
+        BR_ASSERT(Data.size() < sizeof(USB_CONFIGURATION_DESCRIPTOR), "Not a config descriptor!");
+        return reinterpret_cast<PUSB_CONFIGURATION_DESCRIPTOR>(Data.data());
+    }
+
     uint32_t ConnectionIndex = 0;
 
     struct {
@@ -54,7 +62,7 @@ struct UsbDescriptorRequest {
         uint16_t wLength   = 0;
     } SetupPacket;
 
-    std::string Data;
+    std::vector<uint8_t> Data;
 };
-}
-#endif //STRATO_USB_DESCRIPTOR_REQUEST_H
+}    // namespace Frasy::Usb
+#endif    // STRATO_USB_DESCRIPTOR_REQUEST_H
