@@ -25,6 +25,9 @@
 #include "get_config_descriptor.h"
 #include "get_bos_descriptor.h"
 #include "are_there_string_descriptors.h"
+#include "get_all_string_descriptors.h"
+#include "get_external_hub_name.h"
+#include "format/format.h"
 
 #include "Brigerad/Core/Log.h"
 
@@ -33,6 +36,16 @@
 #include <vector>
 
 namespace Frasy::Usb::Details {
+std::variant<RootHubInfo, ExternalHubInfo> EnumerateHub(
+    const std::string&                       hubName,
+    PUSB_NODE_CONNECTION_INFORMATION_EX      connectionInfo,
+    PUSB_NODE_CONNECTION_INFORMATION_EX_V2   connectionInfoV2,
+    PUSB_PORT_CONNECTOR_PROPERTIES           portConnectorProperties,
+    std::optional<UsbDescriptorRequest>      configDesc,
+    std::optional<UsbDescriptorRequest>      bosDesc,
+    const std::vector<StringDescriptorNode>& stringDescriptors,
+    std::optional<DevicePnpStrings>          devicePnpStrings);
+
 inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
 {
     ULONG nBytesEx = 0;
@@ -45,14 +58,14 @@ inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
     // Descriptor.  There can be an IN endpoint and an OUT endpoint at
     // endpoint numbers 1-15 so there can be a maximum of 30 endpoints
     // per device configuration.
-    static constexpr size_t pipeCount = 32;
+    static constexpr size_t pipeCount         = 32;
     static constexpr size_t conInfoExBuffSize =
-      sizeof(USB_NODE_CONNECTION_INFORMATION_EX) + (sizeof(USB_PIPE_INFO) * pipeCount);
+        sizeof(USB_NODE_CONNECTION_INFORMATION_EX) + (sizeof(USB_PIPE_INFO) * pipeCount);
     alignas(USB_NODE_CONNECTION_INFORMATION_EX) char conInfoExBuff[conInfoExBuffSize];
     auto connectionInfoEx = reinterpret_cast<USB_NODE_CONNECTION_INFORMATION_EX*>(conInfoExBuff);
     USB_NODE_CONNECTION_INFORMATION_EX_V2 connectionInfoV2 = {
-      .ConnectionIndex = port,
-      .Length          = sizeof(USB_NODE_CONNECTION_INFORMATION_EX_V2),
+        .ConnectionIndex = port,
+        .Length = sizeof(USB_NODE_CONNECTION_INFORMATION_EX_V2),
     };
     connectionInfoV2.SupportedUsbProtocols.Usb110 = 1;
     connectionInfoV2.SupportedUsbProtocols.Usb200 = 1;
@@ -75,9 +88,10 @@ inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
     if (success == TRUE && nBytes == sizeof(USB_PORT_CONNECTOR_PROPERTIES)) {
         // TODO make this not UB lmao
         pcpBuff = std::unique_ptr<char[]>(
-          new /*(static_cast<std::align_val_t>(alignof(USB_PORT_CONNECTOR_PROPERTIES)))*/ char[pcpSizeGetter
-                                                                                                 .ActualLength]);
+            new /*(static_cast<std::align_val_t>(alignof(USB_PORT_CONNECTOR_PROPERTIES)))*/ char[pcpSizeGetter
+                .ActualLength]);
         portConnectorProperties = reinterpret_cast<USB_PORT_CONNECTOR_PROPERTIES*>(pcpBuff.get());
+        portConnectorProperties->ConnectionIndex = port;
         success                 = DeviceIoControl(device,
                                   IOCTL_USB_GET_PORT_CONNECTOR_PROPERTIES,
                                   portConnectorProperties,
@@ -129,9 +143,9 @@ inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
     else {
         // Try to use IOCTL_USB_GET_NODE_CONNECTION_INFORMATION instead of _EX
         alignas(USB_NODE_CONNECTION_INFORMATION_EX) char conInfoBuff[conInfoExBuffSize];
-        auto connectionInfo             = reinterpret_cast<USB_NODE_CONNECTION_INFORMATION*>(conInfoBuff);
+        auto connectionInfo = reinterpret_cast<USB_NODE_CONNECTION_INFORMATION*>(conInfoBuff);
         connectionInfo->ConnectionIndex = port;
-        success                         = DeviceIoControl(device,
+        success = DeviceIoControl(device,
                                   IOCTL_USB_GET_NODE_CONNECTION_INFORMATION,
                                   connectionInfo,
                                   conInfoExBuffSize,
@@ -159,8 +173,9 @@ inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
 
     // If there is a device connected, get the Device Description.
     DevicePnpStrings devProps;
+    std::optional<std::string> maybeDriverKeyName;
     if (connectionInfoEx->ConnectionStatus != NoDeviceConnected) {
-        auto maybeDriverKeyName = GetDriverKeyName(device, port);
+        maybeDriverKeyName = GetDriverKeyName(device, port);
         if (maybeDriverKeyName.has_value()) {
             auto maybeDeviceProps = DriverNameToDeviceProperties(maybeDriverKeyName.value());
             if (maybeDeviceProps.has_value()) {
@@ -169,15 +184,50 @@ inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
         }
     }
 
-    auto configDesc = GetConfigDescriptor(device, port, 0);
+    auto                                configDesc = GetConfigDescriptor(device, port, 0);
     std::optional<UsbDescriptorRequest> bosDesc;
     if (configDesc.has_value() && connectionInfoEx->DeviceDescriptor.bcdUSB > 0x0200) {
         bosDesc = GetBosDescriptor(device, port);
     }
 
-    if (configDesc.has_value() && AreThereStringDescriptors(&connectionInfoEx->DeviceDescriptor, configDesc->ConfigDesc())) {}
+    std::optional<std::vector<StringDescriptorNode>> stringDescriptors;
+    if (configDesc.has_value() && AreThereStringDescriptors(&connectionInfoEx->DeviceDescriptor,
+                                                            configDesc->ConfigDesc())) {
+        stringDescriptors = GetAllStringDescriptors(device,
+                                                    port,
+                                                    &connectionInfoEx->DeviceDescriptor,
+                                                    configDesc->ConfigDesc());
+    }
 
-    return std::nullopt;
+    // If the device connected to the port is an external hub, get the name of the external hub and recursively enumerate it.
+    if (connectionInfoEx->DeviceIsHub) {
+        std::optional<std::string> hubName = GetExternalHubName(device, port);
+        if (hubName.has_value()) {
+            BR_LOG_TRACE("UsbEnum", "Enumerating External hub: {}", hubName.value());
+            return std::get<1>(EnumerateHub(hubName.value(),
+                                            connectionInfoEx,
+                                            &connectionInfoV2,
+                                            portConnectorProperties,
+                                            configDesc,
+                                            bosDesc,
+                                            stringDescriptors.value_or({}),
+                                            devProps));
+        }
+    }
+    else {
+        auto devInfo = DeviceInfo{
+            .leafName = std::format("[Port{}] {}: {}", port, connectionInfoEx->ConnectionStatus, devProps.deviceDesc),
+            .connectionInfo = connectionInfoEx,
+            .portConnectorProps = portConnectorProperties,
+            .configDesc = configDesc.value_or({}),
+            .bosDesc = bosDesc.value_or({}),
+            .stringDescriptors = stringDescriptors.value_or({}),
+            .connectionInfoV2 = connectionInfoV2,
+        };
+        devInfo.setDevicePnpStrings(devProps);
+
+        return devInfo;
+    }
 }
 
 inline std::vector<Node> EnumerateHubPorts(HANDLE hub, uint8_t numPorts)
@@ -197,6 +247,6 @@ inline std::vector<Node> EnumerateHubPorts(HANDLE hub, uint8_t numPorts)
 
     return ports;
 }
-}    // namespace Frasy::Usb::Details
+} // namespace Frasy::Usb::Details
 
 #endif    // FRASY_UTILS_USB_ENUMERATOR_DETAILS_ENUMERATE_HUB_PORTS_H

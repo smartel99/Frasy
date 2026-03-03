@@ -35,14 +35,14 @@
 
 namespace Frasy::Usb::Details {
 inline std::variant<RootHubInfo, ExternalHubInfo> EnumerateHub(
-    const std::string&                     hubName,
-    PUSB_NODE_CONNECTION_INFORMATION_EX    connectionInfo          = nullptr,
-    PUSB_NODE_CONNECTION_INFORMATION_EX_V2 connectionInfoV2        = nullptr,
-    PUSB_PORT_CONNECTOR_PROPERTIES         portConnectorProperties = nullptr,
-    PUSB_DESCRIPTOR_REQUEST                configDesc              = nullptr,
-    PUSB_DESCRIPTOR_REQUEST                bosDesc                 = nullptr,
-    const std::vector<StringDescriptor>&   stringDescriptors       = {},
-    std::optional<DevicePnpStrings>        devicePnpStrings        = std::nullopt)
+    const std::string&                       hubName,
+    PUSB_NODE_CONNECTION_INFORMATION_EX      connectionInfo          = nullptr,
+    PUSB_NODE_CONNECTION_INFORMATION_EX_V2   connectionInfoV2        = nullptr,
+    PUSB_PORT_CONNECTOR_PROPERTIES           portConnectorProperties = nullptr,
+    std::optional<UsbDescriptorRequest>      configDesc              = std::nullopt,
+    std::optional<UsbDescriptorRequest>      bosDesc                 = std::nullopt,
+    const std::vector<StringDescriptorNode>& stringDescriptors       = {},
+    std::optional<DevicePnpStrings>          devicePnpStrings        = std::nullopt)
 {
     std::variant<RootHubInfo, ExternalHubInfo> devInfo;
     USB_NODE_INFORMATION                       hubInfo;
@@ -55,12 +55,12 @@ inline std::variant<RootHubInfo, ExternalHubInfo> EnumerateHub(
                  [&](ExternalHubInfo& info) {
                      info.hubName            = hubName;
                      info.connectionInfo     = connectionInfo;
-                     info.configDesc         = configDesc;
+                     info.configDesc         = configDesc.value_or(UsbDescriptorRequest{});
                      info.stringDescriptors  = stringDescriptors;
                      info.portConnectorProps = portConnectorProperties;
                      info.hubInfoEx          = hubInfoEx;
                      info.hubCapabilitiesEx  = hubCapabilitiesEx;
-                     info.bosDesc            = bosDesc;
+                     info.bosDesc            = bosDesc.value_or(UsbDescriptorRequest{});
                      info.connectionInfoV2   = *connectionInfoV2;
                      if (devicePnpStrings.has_value()) { info.setDevicePnpStrings(*devicePnpStrings); }
                  },
@@ -148,8 +148,7 @@ inline std::variant<RootHubInfo, ExternalHubInfo> EnumerateHub(
                      [&](ExternalHubInfo&) { leafName += hubName; });
     }
 
-    // TODO is this where this goes? lol
-    Frasy::visit(devInfo, [&](auto&& info) { info.deviceDescName = leafName; });
+    Frasy::visit(devInfo, [&](auto&& info) { info.leafName = leafName; });
 
     // Recursively list the ports of this hub.
     Frasy::visit(devInfo,
@@ -161,5 +160,5 @@ inline std::variant<RootHubInfo, ExternalHubInfo> EnumerateHub(
 
     return devInfo;
 }
-}  // namespace Frasy::Usb::Details
+} // namespace Frasy::Usb::Details
 #endif //FRASY_UTILS_USB_ENUMERATOR_DETAILS_ENUMERATE_HUB_H

@@ -22,6 +22,8 @@
 #include "oops.h"
 #include "usb_interface_descriptor2.h"
 
+#include <usbspec.h>
+
 namespace Frasy::Usb::Details {
 inline bool AreThereStringDescriptors(const USB_DEVICE_DESCRIPTOR*        deviceDesc,
                                       const USB_CONFIGURATION_DESCRIPTOR* configDesc)

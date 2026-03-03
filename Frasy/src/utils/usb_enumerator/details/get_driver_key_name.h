@@ -53,6 +53,7 @@ inline std::optional<std::string> GetDriverKeyName(HANDLE device, uint8_t index)
     }
     PUSB_NODE_CONNECTION_DRIVERKEY_NAME driverKeyNameW = (PUSB_NODE_CONNECTION_DRIVERKEY_NAME)malloc(nBytes);
     driverKeyNameW->ActualLength                       = nBytes;
+    driverKeyNameW->ConnectionIndex                    = index;
     success                                            = DeviceIoControl(device,
                               IOCTL_USB_GET_NODE_CONNECTION_DRIVERKEY_NAME,
                               driverKeyNameW,

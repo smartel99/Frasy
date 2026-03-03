@@ -48,7 +48,7 @@ struct UsbDescriptorRequest {
 
     PUSB_CONFIGURATION_DESCRIPTOR ConfigDesc()
     {
-        BR_ASSERT(Data.size() < sizeof(USB_CONFIGURATION_DESCRIPTOR), "Not a config descriptor!");
+        BR_ASSERT(Data.size() >= sizeof(USB_CONFIGURATION_DESCRIPTOR), "Not a config descriptor!");
         return reinterpret_cast<PUSB_CONFIGURATION_DESCRIPTOR>(Data.data());
     }
 
