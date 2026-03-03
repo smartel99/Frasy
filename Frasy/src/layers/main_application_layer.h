@@ -21,6 +21,7 @@
 #    include "result_analyzer.h"
 #    include "result_viewer.h"
 #    include "test_viewer.h"
+#    include "usb_tree_viewer.h"
 #    include "utils/communication/can_open/can_open.h"
 #    include "utils/lua/orchestrator/orchestrator.h"
 
@@ -93,6 +94,7 @@ protected:
     std::unique_ptr<ResultViewer>         m_resultViewer   = nullptr;
     std::unique_ptr<ResultAnalyzer>       m_resultAnalyzer = nullptr;
     std::unique_ptr<TestViewer>           m_testViewer     = nullptr;
+    std::unique_ptr<UsbTreeViewer>        m_usbTreeViewer  = nullptr;
 
     Brigerad::Ref<Brigerad::Texture2D> m_run;
     Brigerad::Ref<Brigerad::Texture2D> m_runWarn;
