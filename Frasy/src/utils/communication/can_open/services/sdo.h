@@ -170,7 +170,7 @@ private:
     CO_SDOclient_t*          m_sdoClient = nullptr;
 
     SdoClientInfo                    m_clientInfo;
-    std::unique_ptr<OD_obj_record_t> m_odObjRecord;
+    std::unique_ptr<OD_obj_record_t[]> m_odObjRecord;
 
     //! Used to atomize SDO transactions.
     std::atomic_bool                                m_isWorkerWorking = false;
