@@ -129,9 +129,9 @@ end
 
 --- Ensures that only one uut can access the code protected by the mutex at a time. If another uut tries to access it, it will wait until the mutex is released.
 --- @param value integer ID of the mutex
---- @param func fun() Function to run
+--- @param func fun(): any Function to run
 function Exclusive(value, func)
-    __exclusive(value, func)
+    return __exclusive(value, func)
 end
 
 ---Calls a function exactly once, even if called concurrently from several UUTs

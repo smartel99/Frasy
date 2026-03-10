@@ -992,7 +992,7 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
         auto& mutex = m_exclusiveLockMap[index];
         m_exclusiveLock->unlock();
         std::lock_guard lock{mutex};
-        (void)func();
+        return func();
     };
 }
 #pragma endregion
