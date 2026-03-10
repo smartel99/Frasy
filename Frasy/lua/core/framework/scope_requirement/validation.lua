@@ -15,10 +15,7 @@
 
 local RuntimeRequirement = require("lua/core/framework/runtime_requirement")
 
-local ScopeRequirement = {
-    orchestrator = nil,
-    scope        = nil,
-}
+local ScopeRequirement = { orchestrator = nil, scope = nil, }
 ScopeRequirement.__index = ScopeRequirement
 
 function ScopeRequirement:New(orchestrator, scope)
@@ -65,9 +62,17 @@ function ScopeRequirement:ToBeRightAfter(other)
     return RuntimeRequirement:New(function() return true end)
 end
 
+function ScopeRequirement:HasPassed()
+    return true
+end
+
 function ScopeRequirement:ToPass()
     -- Order requirement are ignore when validating
     return RuntimeRequirement:New(function() return true end)
+end
+
+function ScopeRequirement:HasFailed()
+    return true
 end
 
 function ScopeRequirement:ToFail()
