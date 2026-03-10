@@ -21,5 +21,6 @@ return {
     UnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in"),
     Boolean = require("lua/core/utils/is_boolean"),
     Table = require("lua/core/utils/is_table"),
-    Nil = require("lua/core/utils/is_nil")
+    Nil = require("lua/core/utils/is_nil"),
+    String = function(v) return type(v) == "string" end
 } 
