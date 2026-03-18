@@ -19,8 +19,9 @@ return {
     Unsigned32 = require("lua/core/utils/is_unsigned/is_unsigned_32"),
     UnsignedInOd = require("lua/core/utils/is_unsigned/is_unsigned_in_od"),
     UnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in"),
+    Unsigned = require("lua/core/utils/is_unsigned/is_unsigned"),
     Boolean = require("lua/core/utils/is_boolean"),
     Table = require("lua/core/utils/is_table"),
     Nil = require("lua/core/utils/is_nil"),
     String = function(v) return type(v) == "string" end
-} 
+}
