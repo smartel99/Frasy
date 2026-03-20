@@ -1000,10 +1000,13 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 void Orchestrator::importOnce(sol::state_view lua, Stage stage)
 {
     // Reset all the flags.
-    m_onceFlagMap.clear();
+    {
+        std::lock_guard lock {m_onceLock};
+        m_onceFlagMap.clear();
+    }
     lua["__once"] = [&](std::size_t index, sol::unsafe_function func) {
         FRASY_PROFILE_FUNCTION();
-        std::lock_guard lock{m_onceLock};
+        std::lock_guard lock {m_onceLock};
         std::call_once(m_onceFlagMap[index], [&] { (void)func(); });
     };
 }
