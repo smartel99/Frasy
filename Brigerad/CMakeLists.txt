@@ -12,7 +12,6 @@ add_subdirectory(vendor/entt)
 add_subdirectory(vendor/Glad)
 include(vendor/cmake/glfw.cmake)
 include(vendor/glm/cmake/glm/glmConfig.cmake)
-include(vendor/cmake/gtest.cmake)
 include(vendor/cmake/imgui.cmake)
 include(vendor/cmake/implot.cmake)
 include(vendor/cmake/imspinner.cmake)
@@ -61,7 +60,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         GLAD
         glfw
         glm::glm
-        gtest
         ImGui
         ImPlot
         imspinner
