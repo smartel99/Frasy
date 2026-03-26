@@ -100,7 +100,6 @@ function CommonFlags()
         "%{IncludeDir.sol}/include",
         "%{IncludeDir.yaml_cpp}",
         "%{IncludeDir.pfr}",
-        "%{IncludeDir.gtest}",
     }
 
     externalincludedirs {
@@ -118,7 +117,6 @@ function CommonFlags()
         "%{IncludeDir.sol}/include",
         "%{IncludeDir.yaml_cpp}",
         "%{IncludeDir.pfr}",
-        "%{IncludeDir.gtest}",
     }
 
     CANopenIncludes()
@@ -165,7 +163,6 @@ function DefineSolution()
     IncludeDir["lua"] = "Brigerad/vendor/lua"
     IncludeDir["sol"] = "Brigerad/vendor/sol"
     IncludeDir["yaml_cpp"] = "Brigerad/vendor/yaml-cpp/include"
-    IncludeDir["gtest"] =  "Brigerad/vendor/googletest/googletest/include"
     IncludeDir["pfr"] =  "Brigerad/vendor/pfr/include"
     IncludeDir["CANopen"] = "Frasy/vendor/"
 
@@ -309,7 +306,6 @@ function DefineFrasy()
         "ImGui",
         "ImPlot",
         "serial",
-        "gtest",
         "opengl32.lib",
         "Ws2_32.lib"
     }
