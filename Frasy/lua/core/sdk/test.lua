@@ -121,10 +121,10 @@ end
 --- Expect
 --- @param value any
 --- @param name string
---- @param extra any?
+--- @param opt ExpectationResultOpt?
 --- @return Expectation
-function Expect(value, name, extra)
-    return Expectation:New(value, name, extra)
+function Expect(value, name, opt)
+    return Expectation:New(value, name, opt)
 end
 
 --- Ensures that only one uut can access the code protected by the mutex at a time. If another uut tries to access it, it will wait until the mutex is released.

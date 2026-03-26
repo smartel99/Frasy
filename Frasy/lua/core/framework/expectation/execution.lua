@@ -30,11 +30,11 @@ end
 
 ---@param value any
 ---@param name string
----@param extra any?
-function Expectation:New(value, name, extra)
+---@param opt ExpectationResultOpt?
+function Expectation:New(value, name, opt)
     return setmetatable({
         mandatory = false,
-        result = ExpectationResult:New(value, name, extra)
+        result = ExpectationResult:New(value, name, opt)
     }, Expectation)
 end
 
