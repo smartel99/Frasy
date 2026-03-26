@@ -175,9 +175,6 @@ function DefineSolution()
     include "Brigerad/vendor/yaml-cpp"
     include "Brigerad/vendor/serial"
 
-    group "Tests"
-    include "Brigerad/vendor/googletest"
-
     group ""
     DefineBrigerad()
     DefineFrasy()

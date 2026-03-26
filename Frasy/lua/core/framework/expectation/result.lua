@@ -21,7 +21,7 @@
 --- @field value any
 --- @field name string
 --- @field note string?
---- @field pass boolean tell if the value fulfilled requirement
+--- @field pass boolean? tell if the value fulfilled requirement
 --- @field inverted boolean tell if the result should be interpreted with invert logic
 --- @field extra any? additional data that could be useful for developer
 --- @field method string
@@ -35,7 +35,7 @@ local ExpectationResult   = {
     value    = nil,
     name     = "",
     note     = nil,
-    pass     = false,
+    pass     = nil,
     inverted = false,
     extra    = nil,
 }
@@ -60,7 +60,7 @@ function ExpectationResult:New(value, name, opt)
         value    = value,
         name     = name,
         note     = note,
-        pass     = false,
+        pass     = nil,
         inverted = false,
         extra    = extra
     }, ExpectationResult)

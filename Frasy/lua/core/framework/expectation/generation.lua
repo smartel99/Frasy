@@ -35,5 +35,6 @@ function Expectation:ToBeLesserOrEqual(max) return self end
 function Expectation:ToBeType(expected) return self end
 function Expectation:ToMatch(pattern) return self end
 function Expectation:ExportAs(name) Orchestrator.SetValue(Orchestrator.GetScope(), name, self.result.value) end
+function Expectation:OnErrorExtra(extra) return self end
 function Expectation:Show() end
 return Expectation
