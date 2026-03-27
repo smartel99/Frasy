@@ -18,7 +18,8 @@
 
 #ifndef FRASY_UTILS_USB_ENUMERATOR_DETAILS_GET_HCD_DRIVER_KEY_NAME_H
 #define FRASY_UTILS_USB_ENUMERATOR_DETAILS_GET_HCD_DRIVER_KEY_NAME_H
-
+#include <windows.h>
+#include <winioctl.h>
 #include "oops.h"
 
 #include <Brigerad/Utils/types/wstring_to_utf8.h>
