@@ -19,7 +19,7 @@ local ExpectationResult = require("lua/core/framework/expectation/result")
 ---@field Mandatory function
 ---@field result ExpectationResult?
 ---
-local Expectation = { mandatory = false, result = nil }
+local Expectation = { mandatory = false, result = nil, onErrorExtra = nil }
 Expectation.__index = Expectation
 
 local function resultToSelfTable(result, self)
@@ -30,18 +30,33 @@ end
 
 ---@param value any
 ---@param name string
----@param extra any?
-function Expectation:New(value, name, extra)
+---@param opt ExpectationResultOpt?
+function Expectation:New(value, name, opt)
     return setmetatable({
         mandatory = false,
-        result = ExpectationResult:New(value, name, extra)
+        result = ExpectationResult:New(value, name, opt),
+        onErrorExtra = nil
     }, Expectation)
 end
 
+---@param expectation  Expectation
 local function enforce(expectation)
     if not expectation.mandatory then return end
     if expectation.result.pass == expectation.result.inverted then
         error(UnmetExpectation())
+    end
+end
+
+---@param expectation Expectation
+local function onErrorExtra(expectation)
+    Log.I(ToString(expectation))
+    if expectation.onErrorExtra == nil then return end
+    if expectation.result == nil then return end
+    if expectation.result.pass == nil then return end
+    if expectation.result.pass then return end
+    if expectation.result.extra == nil then expectation.result.extra = {} end
+    for k, v in pairs(expectation.onErrorExtra) do
+        expectation.result.extra[k] = v
     end
 end
 
@@ -60,6 +75,7 @@ function Expectation:ToBeTrue()
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -68,6 +84,7 @@ function Expectation:ToBeFalse()
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -76,6 +93,7 @@ function Expectation:ToBeEqual(expected)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -84,6 +102,7 @@ function Expectation:ToBeNear(expected, deviation)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -92,6 +111,7 @@ function Expectation:ToBeInRange(min, max)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -100,6 +120,7 @@ function Expectation:ToBeInPercentage(expected, percentage)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -108,6 +129,7 @@ function Expectation:ToBeGreater(min)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -116,6 +138,7 @@ function Expectation:ToBeGreaterOrEqual(min)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -124,6 +147,7 @@ function Expectation:ToBeLesser(max)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -132,6 +156,7 @@ function Expectation:ToBeLesserOrEqual(max)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -140,6 +165,7 @@ function Expectation:ToBeType(expected)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
@@ -148,11 +174,20 @@ function Expectation:ToMatch(pattern)
     resultToSelfTable(result, self)
     Orchestrator.AddExpectationResult(self.result)
     enforce(self)
+    onErrorExtra(self)
     return self
 end
 
 function Expectation:ExportAs(name)
     Orchestrator.SetValue(Orchestrator.GetScope(), name, self.result.value)
+end
+
+---@param extra table
+---@return Expectation
+function Expectation:OnErrorExtra(extra)
+    self.onErrorExtra = extra
+    onErrorExtra(self)
+    return self
 end
 
 function Expectation:Show()

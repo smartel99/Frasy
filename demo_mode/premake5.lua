@@ -63,7 +63,6 @@ includedirs {
     FrasyAbsoluteDir .. "/%{IncludeDir.sol}/include",
     FrasyAbsoluteDir .. "/%{IncludeDir.yaml_cpp}",
     FrasyAbsoluteDir .. "/%{IncludeDir.pfr}",
-    FrasyAbsoluteDir .. "/%{IncludeDir.gtest}",
     FrasyAbsoluteDir .. "/Frasy/vendor/CANopenNode",
     FrasyAbsoluteDir .. "/Frasy/vendor/CANopenNode/301",
     FrasyAbsoluteDir .. "/Frasy/vendor/CANopenNode/303",
@@ -93,7 +92,6 @@ externalincludedirs {
     FrasyAbsoluteDir .. "/%{IncludeDir.sol}/include",
     FrasyAbsoluteDir .. "/%{IncludeDir.yaml_cpp}",
     FrasyAbsoluteDir .. "/%{IncludeDir.pfr}",
-    FrasyAbsoluteDir .. "/%{IncludeDir.gtest}",
     FrasyAbsoluteDir .. "/Frasy/vendor/CANopenNode",
     FrasyAbsoluteDir .. "/Frasy/vendor/CANopenNode/301",
     FrasyAbsoluteDir .. "/Frasy/vendor/CANopenNode/303",
@@ -171,7 +169,6 @@ links {
     "Glad",
     "ImGui",
     "serial",
-    "gtest",
     "opengl32.lib",
     "Ws2_32.lib"
 }

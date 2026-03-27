@@ -17,7 +17,7 @@ local ExpectationResult = require("lua/core/framework/expectation/result")
 --Expectation does nothing on generation
 local Expectation   = {}
 Expectation.__index = Expectation
-function Expectation:New(value, name, extra) return setmetatable({ result = ExpectationResult:New(value, name, extra) }, Expectation) end
+function Expectation:New(value, name, opt) return setmetatable({ result = ExpectationResult:New(value, name, opt) }, Expectation) end
 function Expectation:Mandatory() return self end
 function Expectation:Not() return self end
 function Expectation:ToBeTrue() return self end
@@ -35,5 +35,6 @@ function Expectation:ToBeLesserOrEqual(max) return self end
 function Expectation:ToBeType(expected) return self end
 function Expectation:ToMatch(pattern) return self end
 function Expectation:ExportAs(name) Orchestrator.SetValue(Orchestrator.GetScope(), name, self.result.value) end
+function Expectation:OnErrorExtra(extra) return self end
 function Expectation:Show() end
 return Expectation

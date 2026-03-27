@@ -45,7 +45,6 @@
 #include <processthreadsapi.h>
 
 namespace Frasy::Lua {
-
 #pragma region Orchestrator
 
 const std::vector<HashDir::Filter> Orchestrator::s_coreFilters = {
@@ -342,6 +341,10 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             FRASY_PROFILE_FUNCTION();
             SaveAsJson(std::move(table), file);
         };
+        lua["Hash"] = [](std::string_view str) -> std::int64_t {
+            FRASY_PROFILE_FUNCTION();
+            return std::hash<std::string_view> {}(str);
+        };
         lua["ShowExpectation"] = [this](const sol::table& expectation) {
             FRASY_PROFILE_FUNCTION();
             auto            lua = sol::state_view(expectation.lua_state());
@@ -353,6 +356,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         importLog(lua, uut, stage);
         importPopup(lua, uut, stage);
         importExclusive(lua, stage);
+        importOnce(lua, stage);
         lua.script_file("lua/core/framework/exception.lua");
 
         // Framework
@@ -934,7 +938,7 @@ void Orchestrator::checkResults(const std::vector<std::size_t>& devices)
 void Orchestrator::toggleUut(std::size_t index)
 {
     if (isRunning()) { return; }
-    auto state   = m_uutStates[index] == UutState::Disabled ? UutState::Idle : UutState::Disabled;
+    auto state   = m_uutStates.at(index) == UutState::Disabled ? UutState::Idle : UutState::Disabled;
     bool hasTeam = (*m_state)["Context"]["team"]["hasTeam"].get<bool>();
     if (hasTeam) {
         std::size_t leader = (*m_state)["Context"]["team"]["players"][index]["leader"];
@@ -942,14 +946,14 @@ void Orchestrator::toggleUut(std::size_t index)
         updateUutState(state, team, true);
     }
     else {
-        m_uutStates[index] = state;
+        m_uutStates.at(index) = state;
     }
 }
 
 void Orchestrator::setUutState(std::size_t index, UutState state)
 {
     if (isRunning()) { return; }
-    m_uutStates[index] = state;
+    m_uutStates.at(index) = state;
 }
 
 
@@ -1011,34 +1015,30 @@ void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_v
 void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 {
     if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
-    switch (stage) {
-        case Stage::execution: lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
-                FRASY_PROFILE_FUNCTION();
-                m_exclusiveLock->lock();
-                auto& mutex = m_exclusiveLockMap[index];
-                m_exclusiveLock->unlock();
-                std::lock_guard lock{mutex};
-                if (auto result = func(); !result.valid()) {
-                    sol::error err = result;
-                    throw std::runtime_error(err.what());
-                }
-            };
-            break;
-
-        case Stage::idle:
-        case Stage::generation:
-        case Stage::validation:
-        default: lua["__exclusive"] = [&]([[maybe_unused]] std::size_t index, sol::unsafe_function func) {
-                FRASY_PROFILE_FUNCTION();
-                if (auto result = func(); !result.valid()) {
-                    sol::error err = result;
-                    throw std::runtime_error(err.what());
-                }
-            };
-            break;
-    }
+    lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
+        FRASY_PROFILE_FUNCTION();
+        m_exclusiveLock->lock();
+        auto& mutex = m_exclusiveLockMap[index];
+        m_exclusiveLock->unlock();
+        std::lock_guard lock {mutex};
+        return func();
+    };
 }
 #pragma endregion
+
+void Orchestrator::importOnce(sol::state_view lua, Stage stage)
+{
+    // Reset all the flags.
+    {
+        std::lock_guard lock {m_onceLock};
+        m_onceFlagMap.clear();
+    }
+    lua["__once"] = [&](std::size_t index, sol::unsafe_function func) {
+        FRASY_PROFILE_FUNCTION();
+        std::lock_guard lock {m_onceLock};
+        std::call_once(m_onceFlagMap[index], [&] { (void)func(); });
+    };
+}
 
 #pragma region Log
 void Orchestrator::importLog(sol::state_view lua, std::size_t uut, [[maybe_unused]] Stage stage)

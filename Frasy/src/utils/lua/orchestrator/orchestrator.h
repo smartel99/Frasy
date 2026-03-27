@@ -42,11 +42,12 @@ public:
     class Interface;
 
     enum class Stage {
-        idle       = 0,
+        idle = 0,
         generation = 1,
         validation = 2,
-        execution  = 3,
+        execution = 3,
     };
+
     static std::string stage2str(Stage stage);
 
     static constexpr std::string_view passSubdirectory = "pass";
@@ -140,11 +141,11 @@ public:
 
     [[nodiscard]] const Map& getMap() const { return m_map; }
 
-    [[nodiscard]] bool        isRunning() const;
-    [[nodiscard]] UutState    getUutState(std::size_t uut) const;
-    void                      setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
-    void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
-    void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
+    [[nodiscard]] bool isRunning() const;
+    [[nodiscard]] UutState getUutState(std::size_t uut) const;
+    void setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
+    void setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
+    void setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
     [[nodiscard]] std::string getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
@@ -153,6 +154,7 @@ public:
         if (m_expectationsMutexes.size() <= uut) { throw std::runtime_error("Invalid uut"); }
         return m_expectationsMutexes[uut].get();
     }
+
     [[nodiscard]] const std::vector<Expectation>& getExpectationsVector(std::size_t uut)
     {
         if (m_expectationsVectors.size() <= uut) { throw std::runtime_error("Invalid uut"); }
@@ -163,6 +165,7 @@ private:
     bool        createOutputDirs();
     bool        initLua(sol::state_view lua, std::size_t uut = 0, Stage stage = Stage::generation);
     void        importExclusive(sol::state_view lua, Stage stage);
+    void        importOnce(sol::state_view lua, Stage stage);
     static void importLog(sol::state_view lua, std::size_t uut, Stage stage);
     void        importPopup(sol::state_view lua, std::size_t uut, Stage stage);
     static bool loadEnvironment(sol::state_view lua, const std::string& filename);
@@ -197,8 +200,10 @@ private:
     std::map<std::string, Popup*> m_popups;
     std::unique_ptr<std::mutex>   m_popupMutex = nullptr;
 
-    std::unique_ptr<std::mutex>       m_exclusiveLock = nullptr;
-    std::map<std::size_t, std::mutex> m_exclusiveLockMap;
+    std::unique_ptr<std::mutex>                 m_exclusiveLock = nullptr;
+    std::map<std::size_t, std::recursive_mutex> m_exclusiveLockMap;
+    std::mutex                                  m_onceLock;
+    std::map<std::size_t, std::once_flag>       m_onceFlagMap;
 
     std::function<void(sol::state_view lua)>       m_loadUserFunctions = []([[maybe_unused]] sol::state_view lua) {};
     std::function<sol::table(sol::state_view lua)> m_loadUserBoards    = [](sol::state_view lua) {
@@ -210,7 +215,7 @@ private:
     };
     Models::Solution                         m_solution = {};
     std::vector<std::vector<Expectation>>    m_expectationsVectors;
-    std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes = {};
+    std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes;
 
     static const std::vector<HashDir::Filter> s_coreFilters;
     std::vector<HashDir::Filter>              m_filters;
@@ -221,7 +226,6 @@ private:
 
     static constexpr auto s_tag = "Orchestrator";
 };
-
-}    // namespace Frasy::Lua
+} // namespace Frasy::Lua
 
 #endif    // BRIGERAD_FRASY_LUA_INTERPRETER_H

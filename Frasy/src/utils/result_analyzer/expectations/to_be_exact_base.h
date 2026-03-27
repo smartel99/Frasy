@@ -59,23 +59,24 @@ public:
                           Total,
                           Passed,
                           (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
-        ImGui::BeginTable("ToBeType", 4);
-        ImGui::TableSetupColumn("Value");
-        ImGui::TableSetupColumn("Type");
-        ImGui::TableSetupColumn("Passed");
-        ImGui::TableSetupColumn("Occurrences");
-        ImGui::TableHeadersRow();
-        for (auto&& [name, info] : Values) {
-            ImGui::TableNextColumn();
-            ImGui::TextWrapped("%s", name.c_str());
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", info.Type.c_str());
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", info.Passed ? "True" : "False");
-            ImGui::TableNextColumn();
-            ImGui::Text("%zu", info.Seen);
+        if (ImGui::BeginTable("ToBeType", 4)) {
+            ImGui::TableSetupColumn("Value");
+            ImGui::TableSetupColumn("Type");
+            ImGui::TableSetupColumn("Passed");
+            ImGui::TableSetupColumn("Occurrences");
+            ImGui::TableHeadersRow();
+            for (auto&& [name, info] : Values) {
+                ImGui::TableNextColumn();
+                ImGui::TextWrapped("%s", name.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", info.Type.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", info.Passed ? "True" : "False");
+                ImGui::TableNextColumn();
+                ImGui::Text("%zu", info.Seen);
+            }
+            ImGui::EndTable();
         }
-        ImGui::EndTable();
     }
 
     nlohmann::json serialize() override

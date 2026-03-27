@@ -1155,7 +1155,7 @@ function DAQ:MeasureVoltage(points, opt)
     if opt.gain == nil then opt.gain = DAQ.MeasureVoltageDefault.gain end
     if opt.sampleRate == nil then opt.sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
 
-    local route = self:RequestRouting({ table.unpack(points), DAQ.AdcChannelToTestPoint(opt.channel) })
+    local route = self:RequestRouting({ DAQ.AdcChannelToTestPoint(opt.channel), table.unpack(points) })
 
     if route == -1 then
         error("Unable to connect points to ADC!")
@@ -1219,13 +1219,13 @@ function DAQ:MeasureResistor(impP, impN, opt)
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
 
-    local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
+    local rimpp = self:RequestRouting({ DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1, table.unpack(impP) })
     SleepFor(10)
-    local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
+    local rimpn = self:RequestRouting({ DAQ.RoutingPointsEnum.IMP_N, table.unpack(impN) })
     local rguards = nil
     if opt.guards ~= nil then
         opt.guards = PointToPoints(opt.guards)
-        rguards = self:RequestRouting({ table.unpack(opt.guards), DAQ.RoutingPointsEnum.GUARD })
+        rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
     end
 
     local result = self:Impedances(
@@ -1269,13 +1269,13 @@ function DAQ:MeasureCapacitor(impP, impN, opt)
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
 
-    local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
+    local rimpp = self:RequestRouting({ DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1, table.unpack(impP) })
     SleepFor(10)
-    local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
+    local rimpn = self:RequestRouting({ DAQ.RoutingPointsEnum.IMP_N, table.unpack(impN) })
     local rguards = nil
     if opt.guards ~= nil then
         opt.guards = PointToPoints(opt.guards)
-        rguards = self:RequestRouting({ table.unpack(opt.guards), DAQ.RoutingPointsEnum.GUARD })
+        rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
     end
 
     local result = self:Impedances(
@@ -1319,13 +1319,13 @@ function DAQ:MeasureInductor(impP, impN, opt)
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
 
-    local rimpp = self:RequestRouting({ table.unpack(impP), DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1 })
+    local rimpp = self:RequestRouting({ DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1, table.unpack(impP) })
     SleepFor(10)
-    local rimpn = self:RequestRouting({ table.unpack(impN), DAQ.RoutingPointsEnum.IMP_N })
+    local rimpn = self:RequestRouting({ DAQ.RoutingPointsEnum.IMP_N, table.unpack(impN) })
     local rguards = nil
     if opt.guards ~= nil then
         opt.guards = PointToPoints(opt.guards)
-        rguards = self:RequestRouting({ table.unpack(opt.guards), DAQ.RoutingPointsEnum.GUARD })
+        rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
     end
 
     local result = self:Impedances(

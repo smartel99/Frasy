@@ -172,3 +172,8 @@ function CombineAndBitcast(data) return 0 end -- C++ call
 --- @param table table Table to save
 --- @param filepath string filepath where to save the json
 function SaveAsJson(table, filepath) end -- C++ call
+
+--- Hashes a string.
+--- @param str string   String to hash
+--- @return integer hash
+function Hash(str) return 0 end -- C++ call

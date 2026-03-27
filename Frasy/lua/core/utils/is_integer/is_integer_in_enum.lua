@@ -2,6 +2,7 @@ local IsInteger = require("lua/core/utils/is_integer/is_integer")
 --- Validates that a number is within the bounds dictated by the enum
 --- @param value integer
 --- @param enum table
+--- @return boolean
 return function(value, enum)
     if type(enum) ~= "table" then error("enum parameter is not a table") end
     if enum.__enum == nil then
@@ -17,5 +18,5 @@ return function(value, enum)
         end
         enum.__enum = { count = count, min = min, max = max }
     end
-    return type(value) == "number" and (value // 1) == value and enum.__enum.min <= value and value <= enum.__enum.max
+    return IsInteger(value) and enum.__enum.min <= value and value <= enum.__enum.max
 end

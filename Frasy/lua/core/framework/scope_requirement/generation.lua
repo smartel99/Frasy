@@ -72,12 +72,20 @@ function ScopeRequirement:ToBeRightAfter()
     return RuntimeRequirement:New(function() return true end)
 end
 
+function ScopeRequirement:HasPassed()
+    return true
+end
+
 function ScopeRequirement:ToPass()
     -- Cannot perform multiple tests for same board for now
     -- Thus, the current test must always be after the requested scope
     self.orchestrator.AddOrderRequirement(OrderRequirement:New(self.orchestrator.GetScope(), self.scope,
                                                                OrderRequirement.Kind.after))
     return RuntimeRequirement:New(function() return true end)
+end
+
+function ScopeRequirement:HasFailed()
+    return true
 end
 
 function ScopeRequirement:ToFail()

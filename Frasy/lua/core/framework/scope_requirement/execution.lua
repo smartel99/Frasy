@@ -15,9 +15,9 @@
 
 local RuntimeRequirement = require("lua/core/framework/runtime_requirement")
 
----@class ScopeRequirement
----@field orchestrator Orchestrator
----@field scope Scope
+--- @class ScopeRequirement
+--- @field orchestrator Orchestrator
+--- @field scope Scope
 local ScopeRequirement   = {}
 ScopeRequirement.__index = ScopeRequirement
 
@@ -65,9 +65,17 @@ function ScopeRequirement:ToBeRightAfter(other)
     return RuntimeRequirement:New(function() return true end)
 end
 
+function ScopeRequirement:HasPassed()
+    return self.orchestrator.HasPassed(self.scope)
+end
+
 function ScopeRequirement:ToPass()
     return RuntimeRequirement:New(function() return self.orchestrator.HasPassed(self.scope) end,
         string.format("Scope %s has not passed", self.scope:ToString()))
+end
+
+function ScopeRequirement:HasFailed()
+    return not self.orchestrator.HasPassed(self.scope)
 end
 
 function ScopeRequirement:ToFail()
