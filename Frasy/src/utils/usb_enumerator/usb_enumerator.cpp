@@ -90,12 +90,12 @@ std::optional<Node> EnumerateUsbHostController(HANDLE           deviceHandle,
     // Get bus, device and function
     hcInfo.busDeviceFunctionValid = false;
     BOOL success                  = SetupDiGetDeviceRegistryPropertyA(deviceInfo,
-                                                     deviceInfoData,
-                                                     SPDRP_BUSNUMBER,
-                                                     nullptr,
-                                                     (PBYTE)&hcInfo.busNumber,
-                                                     sizeof(hcInfo.busNumber),
-                                                     nullptr);
+                                                                      deviceInfoData,
+                                                                      SPDRP_BUSNUMBER,
+                                                                      nullptr,
+                                                                      (PBYTE)&hcInfo.busNumber,
+                                                                      sizeof(hcInfo.busNumber),
+                                                                      nullptr);
     ULONG deviceAndFunction = 0;
     if (success == TRUE) {
         success = SetupDiGetDeviceRegistryPropertyA(deviceInfo,
@@ -131,14 +131,16 @@ std::optional<Node> EnumerateUsbHostController(HANDLE           deviceHandle,
 
 std::vector<Node> EnumerateUsbHostControllers()
 {
+    using namespace std::chrono;
+    auto              start = steady_clock::now();
     std::vector<Node> controllers;
 
     // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/guid-devinterface-usb-host-controller
     GUID     usbHostControllerGuid = GUID{0x3ABF6F2D, 0x71C4, 0x462A, {0x8A, 0x92, 0x1E, 0x68, 0x61, 0xE6, 0xAF, 0x27}};
     HDEVINFO deviceInfo            = SetupDiGetClassDevs(&usbHostControllerGuid,
-                                              nullptr,
-                                              nullptr,
-                                              (DIGCF_PRESENT | DIGCF_DEVICEINTERFACE));
+                                                         nullptr,
+                                                         nullptr,
+                                                         (DIGCF_PRESENT | DIGCF_DEVICEINTERFACE));
     SP_DEVINFO_DATA deviceInfoData;
 
     deviceInfoData.cbSize = sizeof(deviceInfoData);
@@ -154,11 +156,11 @@ std::vector<Node> EnumerateUsbHostControllers()
                                                                     &deviceInterfaceData) != 0; ++devInterfaceIndex) {
             ULONG requiredLength = 0;
             BOOL  success        = SetupDiGetDeviceInterfaceDetail(deviceInfo,
-                                                           &deviceInterfaceData,
-                                                           nullptr,
-                                                           0,
-                                                           &requiredLength,
-                                                           nullptr);
+                                                                   &deviceInterfaceData,
+                                                                   nullptr,
+                                                                   0,
+                                                                   &requiredLength,
+                                                                   nullptr);
             if (!success && GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
                 FRASY_USB_OOPS();
                 break;
@@ -172,11 +174,11 @@ std::vector<Node> EnumerateUsbHostControllers()
             }
             deviceDetailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
             success                  = SetupDiGetDeviceInterfaceDetail(deviceInfo,
-                                                      &deviceInterfaceData,
-                                                      deviceDetailData,
-                                                      requiredLength,
-                                                      &requiredLength,
-                                                      nullptr);
+                                                                       &deviceInterfaceData,
+                                                                       deviceDetailData,
+                                                                       requiredLength,
+                                                                       &requiredLength,
+                                                                       nullptr);
             if (!success) {
                 FRASY_USB_OOPS();
             }
@@ -205,7 +207,9 @@ std::vector<Node> EnumerateUsbHostControllers()
 
     SetupDiDestroyDeviceInfoList(deviceInfo);
 
-    BR_CORE_DEBUG("Enumerated {} USB Host Controllers", controllers.size());
+    BR_CORE_DEBUG("Enumerated {} USB Host Controllers in {}ms",
+                  controllers.size(),
+                  duration_cast<milliseconds>(steady_clock::now() - start).count());
     return controllers;
 }
 }

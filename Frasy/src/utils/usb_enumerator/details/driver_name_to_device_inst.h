@@ -18,6 +18,7 @@
 
 #ifndef FRASY_UTILS_USB_ENUMERATOR_DETAILS_DRIVER_NAME_TO_DEVICE_INST_H
 #define FRASY_UTILS_USB_ENUMERATOR_DETAILS_DRIVER_NAME_TO_DEVICE_INST_H
+#include "get_device_property.h"
 
 namespace Frasy::Usb::Details {
 struct DeviceProps {
@@ -37,95 +38,97 @@ inline std::optional<DeviceProps> DriverNameToDeviceInst(const std::string& driv
     // would force us to retry. Instead, we use Setup API to snapshot all
     // devices.
     // TODO have a way to refresh the cache.
-    // struct DeviceCacheEntry {
-    //     HDEVINFO        deviceInfo;
-    //     SP_DEVINFO_DATA deviceInfoData;
-    //     std::string     driverName;
-    // };
-    // static std::vector<DeviceCacheEntry> deviceCache;
-    // if (gRefreshCache) {
-    //     BR_LOG_DEBUG("UsbEnum", "Refreshing device cache");
-    //     gRefreshCache = false;
-    //     deviceCache.clear();
-    //
-    //     // Examine all present devices to see if any match the given DriverName
-    //     HDEVINFO deviceInfo = SetupDiGetClassDevsA(nullptr, nullptr, nullptr, DIGCF_ALLCLASSES | DIGCF_PRESENT);
-    //     if (deviceInfo == INVALID_HANDLE_VALUE) {
-    //         FRASY_USB_OOPS();
-    //         return std::nullopt;
-    //     }
-    //
-    //     ULONG           deviceIndex = 0;
-    //     SP_DEVINFO_DATA deviceInfoData;
-    //     memset(&deviceInfoData, 0, sizeof(SP_DEVINFO_DATA));
-    //     deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
-    //
-    //     BOOL done             = FALSE;
-    //     while (done == FALSE) {
-    //         // Get devinst of the next device.
-    //         BOOL status = SetupDiEnumDeviceInfo(deviceInfo, deviceIndex, &deviceInfoData);
-    //         deviceIndex++;
-    //         if (status == FALSE) {
-    //             // Could be an error, or indication that all devices have been processed. Either way, the desired device was not found.
-    //             if (GetLastError() != ERROR_NO_MORE_ITEMS) { FRASY_USB_OOPS(); }
-    //             done = TRUE;
-    //             break;
-    //         }
-    //
-    //         // Get the DriverName value
-    //         auto maybeName = GetDeviceProperty(deviceInfo, &deviceInfoData, SPDRP_DRIVER);
-    //         if (maybeName.has_value()) {
-    //             deviceCache.emplace_back(deviceInfo, deviceInfoData, maybeName.value());
-    //         }
-    //     }
-    //     std::ranges::sort(deviceCache, [](const auto& a, const auto& b) { return a.driverName < b.driverName; });
-    // }
-    //
-    // auto it = std::ranges::find_if(deviceCache,
-    //                                [&driverName](const DeviceCacheEntry& dce) { return dce.driverName == driverName; });
-    // if (it != deviceCache.end()) {
-    //     return DeviceProps{
-    //         .deviceInfo = it->deviceInfo,
-    //         .deviceInfoData = it->deviceInfoData};
-    // }
+    struct DeviceCacheEntry {
+        HDEVINFO        deviceInfo;
+        SP_DEVINFO_DATA deviceInfoData;
+        std::string     driverName;
+    };
+    static std::vector<DeviceCacheEntry> deviceCache;
+    if (gRefreshCache) {
+        BR_LOG_DEBUG("UsbEnum", "Refreshing device cache");
+        gRefreshCache = false;
+        deviceCache.clear();
 
-
-    // Examine all present devices to see if any match the given DriverName
-    HDEVINFO deviceInfo = SetupDiGetClassDevsA(nullptr, nullptr, nullptr, DIGCF_ALLCLASSES | DIGCF_PRESENT);
-    if (deviceInfo == INVALID_HANDLE_VALUE) {
-        FRASY_USB_OOPS();
-        return std::nullopt;
-    }
-
-    ULONG           deviceIndex = 0;
-    SP_DEVINFO_DATA deviceInfoData;
-    memset(&deviceInfoData, 0, sizeof(SP_DEVINFO_DATA));
-    deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
-
-    BOOL done = FALSE;
-    while (done == FALSE) {
-        // Get devinst of the next device.
-        BOOL status = SetupDiEnumDeviceInfo(deviceInfo, deviceIndex, &deviceInfoData);
-        deviceIndex++;
-        if (status == FALSE) {
-            // Could be an error, or indication that all devices have been processed. Either way, the desired device was not found.
-            if (GetLastError() != ERROR_NO_MORE_ITEMS) { FRASY_USB_OOPS(); }
-            done = TRUE;
-            break;
+        // Examine all present devices to see if any match the given DriverName
+        HDEVINFO deviceInfo = SetupDiGetClassDevsA(nullptr, nullptr, nullptr, DIGCF_ALLCLASSES | DIGCF_PRESENT);
+        if (deviceInfo == INVALID_HANDLE_VALUE) {
+            FRASY_USB_OOPS();
+            return std::nullopt;
         }
 
-        // Get the DriverName value
-        auto maybeName = GetDeviceProperty(deviceInfo, &deviceInfoData, SPDRP_DRIVER);
-        if (maybeName.has_value() && maybeName.value() == driverName) {
-            return DeviceProps{deviceInfo, deviceInfoData};
+        ULONG           deviceIndex = 0;
+        SP_DEVINFO_DATA deviceInfoData;
+        memset(&deviceInfoData, 0, sizeof(SP_DEVINFO_DATA));
+        deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+
+        BOOL done             = FALSE;
+        while (done == FALSE) {
+            // Get devinst of the next device.
+            BOOL status = SetupDiEnumDeviceInfo(deviceInfo, deviceIndex, &deviceInfoData);
+            deviceIndex++;
+            if (status == FALSE) {
+                // Could be an error, or indication that all devices have been processed. Either way, the desired device was not found.
+                if (GetLastError() != ERROR_NO_MORE_ITEMS) { FRASY_USB_OOPS(); }
+                done = TRUE;
+                break;
+            }
+
+            // Get the DriverName value
+            auto maybeName = GetDeviceProperty(deviceInfo, &deviceInfoData, SPDRP_DRIVER);
+            if (maybeName.has_value()) {
+                deviceCache.emplace_back(deviceInfo, deviceInfoData, maybeName.value());
+            }
         }
+        std::ranges::sort(deviceCache, [](const auto& a, const auto& b) { return a.driverName < b.driverName; });
     }
 
-    if (deviceInfo != INVALID_HANDLE_VALUE) {
-        SetupDiDestroyDeviceInfoList(deviceInfo);
+    auto it = std::ranges::find_if(deviceCache,
+                                   [&driverName](const DeviceCacheEntry& dce) { return dce.driverName == driverName; });
+    if (it != deviceCache.end()) {
+        return DeviceProps{
+            .deviceInfo = it->deviceInfo,
+            .deviceInfoData = it->deviceInfoData};
     }
     BR_LOG_ERROR("UsbEnum", "Could not find device with driver name: {}", driverName);
     return std::nullopt;
+
+
+    // Examine all present devices to see if any match the given DriverName
+    // HDEVINFO deviceInfo = SetupDiGetClassDevsA(nullptr, nullptr, nullptr, DIGCF_ALLCLASSES | DIGCF_PRESENT);
+    // if (deviceInfo == INVALID_HANDLE_VALUE) {
+    //     FRASY_USB_OOPS();
+    //     return std::nullopt;
+    // }
+    //
+    // ULONG           deviceIndex = 0;
+    // SP_DEVINFO_DATA deviceInfoData;
+    // memset(&deviceInfoData, 0, sizeof(SP_DEVINFO_DATA));
+    // deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+    //
+    // BOOL done = FALSE;
+    // while (done == FALSE) {
+    //     // Get devinst of the next device.
+    //     BOOL status = SetupDiEnumDeviceInfo(deviceInfo, deviceIndex, &deviceInfoData);
+    //     deviceIndex++;
+    //     if (status == FALSE) {
+    //         // Could be an error, or indication that all devices have been processed. Either way, the desired device was not found.
+    //         if (GetLastError() != ERROR_NO_MORE_ITEMS) { FRASY_USB_OOPS(); }
+    //         done = TRUE;
+    //         break;
+    //     }
+    //
+    //     // Get the DriverName value
+    //     auto maybeName = GetDeviceProperty(deviceInfo, &deviceInfoData, SPDRP_DRIVER);
+    //     if (maybeName.has_value() && maybeName.value() == driverName) {
+    //         return DeviceProps{deviceInfo, deviceInfoData};
+    //     }
+    // }
+    //
+    // if (deviceInfo != INVALID_HANDLE_VALUE) {
+    //     SetupDiDestroyDeviceInfoList(deviceInfo);
+    // }
+    // BR_LOG_ERROR("UsbEnum", "Could not find device with driver name: {}", driverName);
+    // return std::nullopt;
 }
 }
 #endif //FRASY_UTILS_USB_ENUMERATOR_DETAILS_DRIVER_NAME_TO_DEVICE_INST_H

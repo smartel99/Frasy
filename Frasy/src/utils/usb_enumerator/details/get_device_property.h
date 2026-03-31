@@ -24,6 +24,8 @@
 #include <optional>
 #include <string>
 
+#include <SetupAPI.h>
+
 namespace Frasy::Usb::Details {
 inline std::optional<std::string> GetDeviceProperty(HDEVINFO         deviceInfoSet,
                                                     PSP_DEVINFO_DATA deviceInfoData,

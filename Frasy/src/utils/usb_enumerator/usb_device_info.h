@@ -31,16 +31,14 @@
 
 namespace Frasy::Usb {
 struct DeviceInfo : DeviceInfoNode, DevicePnpStrings {
-    std::optional<USB_NODE_INFORMATION> hubInfo; // Only if HUB
-    std::optional<USB_HUB_INFORMATION_EX> hubInfoEx; // Only if HUB
-    std::optional<std::string> hubName; // Only if HUB
-    std::optional<UsbNodeConnectionInformationEx> connectionInfo;  // Not present if root hub
+    std::string leafName;
+    UsbNodeConnectionInformationEx connectionInfo;
     UsbPortConnectorProperties portConnectorProps;
-    std::optional<UsbDescriptorRequest> configDesc;  // Not present if root hub
-    std::optional<UsbDescriptorRequest> bosDesc; // Not present if root hub
-    std::vector<StringDescriptor> stringDescriptors;
-    USB_NODE_CONNECTION_INFORMATION_EX_V2 connectionInfoV2; // Not present if root hub
-    std::optional<USB_HUB_CAPABILITIES_EX> hubCapabilitiesEx; // Only if not a hub.
+    UsbDescriptorRequest configDesc;
+    UsbDescriptorRequest bosDesc;
+    std::vector<StringDescriptorNode> stringDescriptors;
+    USB_NODE_CONNECTION_INFORMATION_EX_V2 connectionInfoV2;
+    std::optional<USB_HUB_CAPABILITIES_EX> hubCapabilitiesEx;
 };
 }
 

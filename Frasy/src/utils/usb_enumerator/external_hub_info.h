@@ -30,18 +30,19 @@
 #include <vector>
 #include <optional>
 
-namespace Frasy::Usb  {
-struct ExternalHubInfo: public DevicePnpStrings, DeviceInfoNode {
-    USB_NODE_INFORMATION hubInfo;
-    USB_HUB_INFORMATION_EX hubInfoEx;
-    std::string hubName;
-    UsbNodeConnectionInformationEx connectionInfo;
-    UsbPortConnectorProperties portConnectorProps;
-    UsbDescriptorRequest configDesc;
-    UsbDescriptorRequest bosDesc;
-    std::vector<StringDescriptor> stringDescriptors;
+namespace Frasy::Usb {
+struct ExternalHubInfo : public DevicePnpStrings, DeviceInfoNode {
+    std::string                                          leafName;
+    USB_NODE_INFORMATION                                 hubInfo;
+    USB_HUB_INFORMATION_EX                               hubInfoEx;
+    std::string                                          hubName;
+    UsbNodeConnectionInformationEx                       connectionInfo;
+    UsbPortConnectorProperties                           portConnectorProps;
+    UsbDescriptorRequest                                 configDesc;
+    UsbDescriptorRequest                                 bosDesc;
+    std::vector<StringDescriptorNode>                    stringDescriptors;
     std::optional<USB_NODE_CONNECTION_INFORMATION_EX_V2> connectionInfoV2; // Not present if root HUB.
-    USB_HUB_CAPABILITIES_EX hubCapabilitiesEx;
+    USB_HUB_CAPABILITIES_EX                              hubCapabilitiesEx;
 };
 }
 

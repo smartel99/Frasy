@@ -47,6 +47,7 @@ void MainApplicationLayer::onAttach()
     m_resultViewer   = std::make_unique<ResultViewer>();
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
     m_testViewer     = std::make_unique<TestViewer>();
+    m_usbTreeViewer  = std::make_unique<UsbTreeViewer>();
     m_testViewer->SetInterface(this);
 
     bool  maximized = Interpreter::Get().getConfig().value("maximized", true);
@@ -62,6 +63,7 @@ void MainApplicationLayer::onAttach()
     m_resultViewer->onAttach();
     m_resultAnalyzer->onAttach();
     m_testViewer->onAttach();
+    m_usbTreeViewer->onAttach();
     m_resultAnalyzer->setGetTitle([this] { return m_orchestrator.getTitle(); });
 
     m_orchestrator.setCanOpen(&m_canOpen);
@@ -80,6 +82,7 @@ void MainApplicationLayer::onDetach()
     m_resultViewer->onDetach();
     m_testViewer->onDetach();
     m_resultAnalyzer->onDetach();
+    m_usbTreeViewer->onDetach();
 }
 
 
@@ -100,6 +103,7 @@ void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
     m_resultViewer->onUpdate(ts);
     m_testViewer->onUpdate(ts);
     m_resultAnalyzer->onUpdate(ts);
+    m_usbTreeViewer->onUpdate(ts);
 }
 
 
@@ -122,6 +126,7 @@ void MainApplicationLayer::onImGuiRender()
             if (ImGui::MenuItem("Test Viewer", "F6")) { makeTestViewerVisible(); }
             if (ImGui::MenuItem("CANopen Viewer", "F7")) { makeCanOpenViewerVisible(); }
             if (ImGui::MenuItem("Lua Profiler", "F8")) { m_renderProfiler = true; }
+            if (ImGui::MenuItem("USB Tree Viewer")) { m_usbTreeViewer->SetVisibility(true); }
             ImGui::Separator();
             if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
             if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }
@@ -151,6 +156,7 @@ void MainApplicationLayer::onImGuiRender()
     m_resultViewer->onImGuiRender();
     m_resultAnalyzer->onImGuiRender();
     m_testViewer->onImGuiRender();
+    m_usbTreeViewer->onImGuiRender();
 
     m_orchestrator.renderPopups();
     handleResultAnalyserPopup();
@@ -180,34 +186,22 @@ void MainApplicationLayer::onEvent(Brigerad::Event& e)
 }
 
 void MainApplicationLayer::makeLogWindowVisible()
-{
-    m_logWindow->SetVisibility(true);
-}
+{ m_logWindow->SetVisibility(true); }
 
 void MainApplicationLayer::makeDeviceViewerVisible()
-{
-    m_deviceViewer->setVisibility(true);
-}
+{ m_deviceViewer->setVisibility(true); }
 
 void MainApplicationLayer::makeCanOpenViewerVisible()
-{
-    m_canOpenViewer->setVisibility(true);
-}
+{ m_canOpenViewer->setVisibility(true); }
 
 void MainApplicationLayer::makeResultViewerVisible()
-{
-    m_resultViewer->setVisibility(true);
-}
+{ m_resultViewer->setVisibility(true); }
 
 void MainApplicationLayer::makeResultAnalyzerVisible()
-{
-    m_resultAnalyzer->setVisibility(true);
-}
+{ m_resultAnalyzer->setVisibility(true); }
 
 void MainApplicationLayer::makeTestViewerVisible()
-{
-    m_testViewer->SetVisibility(true);
-}
+{ m_testViewer->SetVisibility(true); }
 
 void MainApplicationLayer::renderAbout()
 {
@@ -539,12 +533,8 @@ void MainApplicationLayer::generate()
     //    m_orchestrator->Generate();
 }
 void MainApplicationLayer::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
-{
-    m_orchestrator.setTestEnable(sequence, test, enable);
-}
+{ m_orchestrator.setTestEnable(sequence, test, enable); }
 void MainApplicationLayer::setSequenceEnable(const std::string& sequence, bool enable)
-{
-    m_orchestrator.setSequenceEnable(sequence, enable);
-}
+{ m_orchestrator.setSequenceEnable(sequence, enable); }
 
 }    // namespace Frasy

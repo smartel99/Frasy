@@ -31,6 +31,7 @@
 
 namespace Frasy::Usb {
 struct RootHubInfo : public DevicePnpStrings, DeviceInfoNode {
+    std::string                leafName;
     USB_NODE_INFORMATION       hubInfo;
     USB_HUB_INFORMATION_EX     hubInfoEx;
     std::string                hubName;

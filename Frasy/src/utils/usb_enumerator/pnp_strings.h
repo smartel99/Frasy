@@ -29,6 +29,7 @@ struct DevicePnpStrings {
     std::string service;
     std::string deviceClass;
     std::string powerState;
+    std::string friendlyName;
 
     void setDevicePnpStrings(const DevicePnpStrings& other)
     {
@@ -38,6 +39,7 @@ struct DevicePnpStrings {
         service = other.service;
         deviceClass = other.deviceClass;
         powerState = other.powerState;
+        friendlyName = other.friendlyName;
     }
 };
 }

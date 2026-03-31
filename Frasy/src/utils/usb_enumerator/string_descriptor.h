@@ -19,16 +19,53 @@
 #ifndef FRASY_UTILS_USB_ENUMERATOR_STRING_DESCRIPTOR_H
 #define FRASY_UTILS_USB_ENUMERATOR_STRING_DESCRIPTOR_H
 
+#include <Brigerad/Utils/types/wstring_to_utf8.h>
+
 #include <cstdint>
+#include <string>
 
 #include <windows.h>
 #include <usbspec.h>
 
 namespace Frasy::Usb {
 struct StringDescriptor {
-    uint8_t descriptorIndex;
-    USHORT languageId;
-    USB_STRING_DESCRIPTOR stringDescriptor[1];
+    StringDescriptor()                                   = default;
+    StringDescriptor(const StringDescriptor&)            = default;
+    StringDescriptor(StringDescriptor&&)                 = default;
+    StringDescriptor& operator=(const StringDescriptor&) = default;
+    StringDescriptor& operator=(StringDescriptor&&)      = default;
+    ~StringDescriptor()                                  = default;
+
+    StringDescriptor(const USB_STRING_DESCRIPTOR* desc)
+        : length(desc->bLength),
+          descriptorType(desc->bDescriptorType),
+          string(desc->bString)
+    {
+        toUtf8();
+    }
+
+    const std::string& toUtf8() const { return utf8; }
+
+    const std::string& toUtf8()
+    {
+        if (utf8.empty() && !string.empty()) {
+            utf8 = wstring_to_utf8(string);
+        }
+        return utf8;
+    }
+
+    uint8_t      length         = 0;
+    uint8_t      descriptorType = 0;
+    std::wstring string;
+
+private:
+    std::string utf8;
+};
+
+struct StringDescriptorNode {
+    uint8_t          descriptorIndex = 0;
+    USHORT           languageId      = 0;
+    StringDescriptor stringDescriptor;
 };
 }
 
