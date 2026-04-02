@@ -474,7 +474,6 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         // User content
         lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
-        lua.script("Print(Context.values.gui)");
         m_loadUserFunctions(lua);
         auto userIbs = m_loadUserBoards(lua);
         for (auto& [k, v] : userIbs) {
