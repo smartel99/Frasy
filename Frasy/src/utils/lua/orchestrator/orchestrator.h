@@ -30,11 +30,11 @@
 #include <future>
 #include <hashdir/hashdir.h>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <sol/sol.hpp>
 #include <string>
 #include <vector>
-#include <mutex>
-#include <memory>
 
 namespace Frasy::Lua {
 class Orchestrator {
@@ -42,10 +42,10 @@ public:
     class Interface;
 
     enum class Stage {
-        idle = 0,
+        idle       = 0,
         generation = 1,
         validation = 2,
-        execution = 3,
+        execution  = 3,
     };
 
     static std::string stage2str(Stage stage);
@@ -141,11 +141,11 @@ public:
 
     [[nodiscard]] const Map& getMap() const { return m_map; }
 
-    [[nodiscard]] bool isRunning() const;
-    [[nodiscard]] UutState getUutState(std::size_t uut) const;
-    void setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
-    void setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
-    void setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
+    [[nodiscard]] bool        isRunning() const;
+    [[nodiscard]] UutState    getUutState(std::size_t uut) const;
+    void                      setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
+    void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
+    void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
     [[nodiscard]] std::string getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
@@ -226,6 +226,6 @@ private:
 
     static constexpr auto s_tag = "Orchestrator";
 };
-} // namespace Frasy::Lua
+}    // namespace Frasy::Lua
 
 #endif    // BRIGERAD_FRASY_LUA_INTERPRETER_H
