@@ -195,6 +195,7 @@ private:
     std::string                 m_testsDir;
     std::string                 m_outputDirectory = "logs";
     std::string                 m_operator;
+    bool                        m_parallel  = true;
     bool                        m_ibEnabled = true;
 
     std::map<std::string, Popup*> m_popups;

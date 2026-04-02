@@ -302,6 +302,9 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         std::atomic_thread_fence(std::memory_order_release);
 
         // Utils
+        lua["__setExecutionPolicy"] = [&](bool parallel) { m_parallel = parallel; };
+        lua["__getExecutionPolicy"] = [&] { return m_parallel; };
+
         lua.script_file("lua/core/utils/global.lua");
         lua["DirList"] = [](const std::string& path) {
             FRASY_PROFILE_FUNCTION();
@@ -618,6 +621,15 @@ bool Orchestrator::runStageGenerate(bool regenerate)
                 }
             }
         }
+        if (!m_parallel) {
+            if (m_solution.sections.size() != 1) {
+                throw std::runtime_error(
+                  "Cannot have multiple sections (Sync) when using Sequential Execution Policy.");
+            }
+            if (lua["Context"]["team"]["hasTeam"].get<bool>()) {
+                throw std::runtime_error("Cannot have a team when using Sequential Execution Policy.");
+            }
+        }
 
         m_generated = result.valid();
         return m_generated;
@@ -800,8 +812,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
             for (std::size_t is = 1; is <= m_solution.sections.size(); ++is) {
                 if (hasAnyUutCrashed()) { return; }
                 for (sol::object& stage : stages) {
-                    auto devices = stage.as<std::vector<std::size_t>>();
-                    updateUutState(UutState::Running, devices);
+                    auto                      devices = stage.as<std::vector<std::size_t>>();
                     std::vector<std::jthread> threads;
                     threads.reserve(devices.size());
                     for (auto& uut : devices) {
@@ -812,6 +823,7 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                             if (m_uutStates[uut] == UutState::Disabled) { return; }
                             mutex.lock();
                             sol::state_view lua = states[uut];
+                            updateUutState(UutState::Running, std::vector {uut});
                             mutex.unlock();
                             sol::protected_function run =
                               lua.script("return function(is) Orchestrator.ExecuteSection(is) end");
@@ -824,9 +836,15 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                             }
                             results[uut] = result.valid();
                         }));
+                        if (!m_parallel) {
+                            threads.back().join();
+                            updateUutState(UutState::Waiting, std::vector {uut});
+                        }
                     }
-                    for (auto& thread : threads) {
-                        thread.join();
+                    if (m_parallel) {
+                        for (auto& thread : threads) {
+                            thread.join();
+                        }
                     }
                     updateUutState(UutState::Waiting, devices);
                 }

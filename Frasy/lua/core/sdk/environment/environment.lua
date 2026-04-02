@@ -106,6 +106,18 @@ local function ScriptVersion(version)
     end
 end
 
+---@enum ExecutionPolicyEnum
+ExecutionPolicy = {
+    parallel = 0,
+    sequential = 1,
+}
+
+---@param policy ExecutionPolicyEnum
+local function setExecutionPolicy(policy)
+    if policy ~= ExecutionPolicy.parallel and policy ~= ExecutionPolicy.sequential then error("Invalid execution policy") end
+    __setExecutionPolicy(policy == ExecutionPolicy.parallel)
+end
+
 Environment = {
     Make = MakeEnvironment,
     ScriptVersion = ScriptVersion,
@@ -114,6 +126,7 @@ Environment = {
     UutValue = { Add = AddUutValue },
     Team = { Add = AddTeam },
     Worker = { Limit = _worker.Limit },
+    SetExecutionPolicy = setExecutionPolicy,
     SetOnReport = SetOnReport,
     SetOnReportInfo = SetOnReportInfo,
 }
