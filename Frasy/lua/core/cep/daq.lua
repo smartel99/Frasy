@@ -259,11 +259,10 @@ end
 
 local function _checkRouting(daq, points, bus)
     if bus == nil or bus < 1 or bus > 4 then return false end
-    if #points < 2 then error("Invalid null-terminated string of points") end
     local state = daq:GetBusState(bus)
     if #state < #points then return false end
     for i = 1, #points - 1 do
-        if state:byte(i, i) ~= points:byte(i, i) then
+        if state[i] ~= points[i] then
             return false
         end
     end
@@ -283,12 +282,11 @@ function DAQ:RequestRouting(points)
     end
     table.insert(sPoints, 0)
     if Context.info.stage ~= Stage.execution then return 0 end
-    local sPointsAsStr = StringizeValues(table.unpack(sPoints))
     local route = nil
     TryFunction(function()
-        route = _requestRouting(self, sPointsAsStr)
+        route = _requestRouting(self, points)
         -- SleepFor(1)
-        return _checkRouting(self, sPointsAsStr, route)
+        return _checkRouting(self, points, route)
     end, 5)
     return route --[[@as DAQ_RoutingBusEnum]]
 end

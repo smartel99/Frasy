@@ -83,7 +83,7 @@ static sol::object deserializeTimeStruct(sol::state_view& lua, const std::span<u
 {
     auto     table = lua.create_table();
     uint32_t ms    = static_cast<uint32_t>(deserializeUnsigned(value.subspan(0, 4)));
-    table["ms"]    = 0x0F'FF'FF'FF & ms; // u28, not u24
+    table["ms"]    = 0x0F'FF'FF'FF & ms;    // u28, not u24
     table["days"]  = deserializeUnsigned(value.subspan(4, 2));
     return table;
 }
@@ -113,7 +113,8 @@ sol::object deserializeOdeValue(sol::state_view& lua, const sol::table& ode, con
         case DataType::unsigned56: return make_object(lua, deserializeUnsigned(value));
 
         case DataType::visibleString: return make_object(lua, std::string(value.begin(), value.end()));
-        case DataType::octetString: return make_object(lua, std::string(value.begin(), value.end()));
+        case DataType::octetString:
+            return make_object(lua, sol::as_table(std::vector<uint8_t>(value.begin(), value.end())));
         case DataType::unicodeString: return make_object(lua, std::wstring(value.begin(), value.end()));
         case DataType::domain: return make_object(lua, value);
 

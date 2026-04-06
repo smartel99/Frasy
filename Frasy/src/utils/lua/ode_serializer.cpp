@@ -117,19 +117,19 @@ std::vector<uint8_t> serializeOdeValue(const sol::table& ode, const sol::object&
         case DataType::unsigned64: return serializeUnsigned(value.as<uint64_t>(), 8);
 
         case DataType::visibleString: {
-            auto str = value.as<std::string>();
+            auto str      = value.as<std::string>();
             auto fieldLen = ode["stringLengthMin"].get<uint32_t>();
             if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
             return std::vector<uint8_t>(str.begin(), str.end());
         }
         case DataType::octetString: {
-            auto str = value.as<std::string>();
+            auto arr      = value.as<std::vector<uint8_t>>();
             auto fieldLen = ode["stringLengthMin"].get<uint32_t>();
-            if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
-            return std::vector<uint8_t>(str.begin(), str.end());
+            if (arr.size() < fieldLen) { arr.insert(arr.end(), fieldLen - arr.size(), 0); }
+            return std::vector(arr.begin(), arr.end());
         }
         case DataType::unicodeString: {
-            auto str = value.as<std::string>();
+            auto str      = value.as<std::string>();
             auto fieldLen = ode["stringLengthMin"].get<uint32_t>();
             if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
             return std::vector<uint8_t>(str.begin(), str.end());
