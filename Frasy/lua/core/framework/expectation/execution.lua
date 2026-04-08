@@ -49,7 +49,6 @@ end
 
 ---@param expectation Expectation
 local function onErrorExtra(expectation)
-    Log.I(ToString(expectation))
     if expectation.onErrorExtra == nil then return end
     if expectation.result == nil then return end
     if expectation.result.pass == nil then return end
