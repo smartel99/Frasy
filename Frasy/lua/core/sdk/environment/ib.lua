@@ -49,14 +49,14 @@ end
 --- @param value OdEntryType|OdEntryArrayType
 function Ib:Download(ode, value)
     if (Context.info.stage ~= Stage.execution) then return end
-    assert(value ~= nil,  "Value is nil")
+    assert(value ~= nil, "Value is nil")
     assert(type(ode) == "table", "Ib download, invalid ode")
     assert(ode.__kind == "Object Dictionary Entry",
         "Ib download, not an Object Dictionary Entry")
     if (ode.objectType == CanOpen.objectType.var) then
         CanOpen.__download(self.nodeId, ode, value)
     elseif (ode.objectType == CanOpen.objectType.array) then
-        for k, v in ipairs(value --[[@as OdEntryArrayType]]) do Ib:Download(ode.data[k], v) end
+        for k, v in ipairs(value --[[@as OdEntryArrayType]]) do self:Download(ode.data[k], v) end
     elseif (ode.objectType == CanOpen.objectType.record) then
         for k, v in pairs(ode.__fields) do
             Ib:Download(ode[v], value[v])
