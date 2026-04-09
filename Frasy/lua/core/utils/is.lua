@@ -25,4 +25,5 @@ return {
     Nil = require("lua/core/utils/is_nil"),
     String = function(v) return type(v) == "string" end,
     Number = function(v) return type(v) == "number" end,
+    Function = function(v) return type(v) == "function" end,
 }
