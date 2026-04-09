@@ -23,5 +23,6 @@ return {
     Boolean = require("lua/core/utils/is_boolean"),
     Table = require("lua/core/utils/is_table"),
     Nil = require("lua/core/utils/is_nil"),
-    String = function(v) return type(v) == "string" end
+    String = function(v) return type(v) == "string" end,
+    Number = function(v) return type(v) == "number" end,
 }
