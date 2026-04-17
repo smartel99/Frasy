@@ -399,7 +399,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
             auto [index, subIndex] = getIndexAndSubIndex(ode);
 
             auto tryRequest = [&] {
-                auto request = interface->uploadData(static_cast<uint16_t>(index), static_cast<uint8_t>(subIndex), 100);
+                auto request = interface->uploadData(static_cast<uint16_t>(index), static_cast<uint8_t>(subIndex), 200);
                 request.future.wait();
                 if (request.status() != CanOpen::SdoRequestStatus::Complete &&
                     request.status() != CanOpen::SdoRequestStatus::Cancelled) {
@@ -436,7 +436,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
             auto tryRequest = [&] {
                 auto request =
-                  interface->downloadData(static_cast<uint16_t>(index), static_cast<uint8_t>(subIndex), sValue, 100);
+                  interface->downloadData(static_cast<uint16_t>(index), static_cast<uint8_t>(subIndex), sValue, 200);
                 request.future.wait();
                 if (request.status() != CanOpen::SdoRequestStatus::Complete &&
                     request.status() != CanOpen::SdoRequestStatus::Cancelled) {

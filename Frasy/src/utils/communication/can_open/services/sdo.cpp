@@ -215,6 +215,7 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
                         i + 1,
                         request->abortCode,
                         coCode);
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
         if (request->status == SdoRequestStatus::OnGoing) { request->markAsComplete(std::unexpected(lastReturn)); }
     }
@@ -341,6 +342,7 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
                         i + 1,
                         request->abortCode,
                         coCode);
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
             if (i == request->retries) { request->markAsComplete(coCode); }
         }
     }
