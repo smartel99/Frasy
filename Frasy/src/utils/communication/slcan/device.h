@@ -27,7 +27,6 @@
 #include <functional>
 #include <mutex>
 #include <queue>
-#include <thread>
 #include <string_view>
 
 namespace Frasy {
@@ -36,14 +35,12 @@ class DeviceViewer;
 
 namespace Frasy::SlCan {
 class Device {
-    friend class ::Frasy::DeviceViewer;
-
 public:
     Device() noexcept = default;
     Device(Device&& o) noexcept { *this = std::move(o); }
     Device(const Device&) = delete;
     explicit Device(std::string_view port, bool open = true);
-    ~ Device() { close(); }
+    ~Device() { close(); }
 
     Device& operator=(Device&& o) noexcept;
     Device& operator=(const Device&) = delete;
@@ -51,8 +48,8 @@ public:
     void open();
     void close();
 
-    [[nodiscard]] bool        isOpen() const noexcept { return m_device.isOpen(); }
-    [[nodiscard]] std::string getPort() const noexcept { return m_device.getPort(); }
+    [[nodiscard]] bool        isOpen() const noexcept { return m_device == nullptr ? false : m_device->isOpen(); }
+    [[nodiscard]] std::string getPort() const noexcept { return m_port; }
 
     /**
      * Effectively mutes the reception of CAN messages on the port.
@@ -78,8 +75,9 @@ public:
     }
 
 private:
-    std::string    m_label;
-    serial::Serial m_device; //!< The physical communication interface.
+    std::string                     m_port;
+    std::string                     m_label;
+    std::unique_ptr<serial::Serial> m_device;    //!< The physical communication interface.
 
     std::jthread m_rxThread;
 
@@ -90,13 +88,11 @@ private:
     std::atomic_bool m_muted = false;
 
     // Things used by the device viewer for monitoring purposes.
-    std::function<void(const Packet&)> m_rxMonitorFunc = [](const Packet&) {
-    };
-    std::function<void(const Packet&)> m_txMonitorFunc = [](const Packet&) {
-    };
-    std::function<void()> m_rxCallbackFunc = [] {
-    };
+    friend class DeviceViewer;
+    std::function<void(const Packet&)> m_rxMonitorFunc  = [](const Packet&) {};
+    std::function<void(const Packet&)> m_txMonitorFunc  = [](const Packet&) {};
+    std::function<void()>              m_rxCallbackFunc = [] {};
 };
-} // namespace Frasy::SlCan
+}    // namespace Frasy::SlCan
 
 #endif    // FRASY_SRC_UTILS_COMMUNICATION_SLCAN_DEVICE_H

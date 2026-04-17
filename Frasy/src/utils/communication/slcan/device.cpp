@@ -16,22 +16,12 @@
  */
 #include "device.h"
 
-#include "Brigerad/Core/Thread.h"
-
 #include <Brigerad.h>
 #include <utils/lua/profile_events.h>
 #include <utils/string_utils.h>
 
 namespace Frasy::SlCan {
-Device::Device(std::string_view port, bool open)
-    : m_label("SlCan"),
-      m_device(std::string{port},
-               921600,
-               serial::Timeout::simpleTimeout(1),
-               serial::eightbits,
-               serial::parity_none,
-               serial::stopbits_one,
-               serial::flowcontrol_software)
+Device::Device(std::string_view port, bool open) : m_port(std::move(port)), m_label("SlCan")
 {
     if (open) { this->open(); }
 }
@@ -39,11 +29,12 @@ Device::Device(std::string_view port, bool open)
 Device& Device::operator=(Device&& o) noexcept
 {
     bool reopen = false;
-    if (o.m_device.isOpen()) {
+    if (o.isOpen()) {
         reopen = true;
         o.close();
     }
 
+    m_port           = std::move(o.m_port);
     m_label          = std::move(o.m_label);
     m_queue          = std::move(o.m_queue);
     m_muted          = o.m_muted.load();
@@ -52,14 +43,10 @@ Device& Device::operator=(Device&& o) noexcept
     m_rxCallbackFunc = std::move(o.m_rxCallbackFunc);
 
     try {
-        serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
-        m_device.setTimeout(timeout);
-        m_device.setBaudrate(921'600);
-        m_device.setPort(o.m_device.getPort());
         if (reopen) { open(); }
     }
     catch (std::exception& e) {
-        BR_LOG_ERROR(m_label, "Unable to configure port '{}': {}", o.m_device.getPort(), e.what());
+        BR_LOG_ERROR(m_label, "Unable to configure port '{}': {}", o.m_device->getPort(), e.what());
     }
     return *this;
 }
@@ -76,13 +63,18 @@ size_t Device::transmit(const Packet& pkt)
             size_t written = 0;
             {
                 FRASY_PROFILE_SCOPE("Write");
-                written = m_device.write(&buff[0], size);
+                written = m_device->write(&buff[0], size);
             }
             m_txMonitorFunc(pkt);
             return written;
         }
+        catch (serial::PortNotOpenedException e) {
+            open();
+            BR_LOG_ERROR(m_label, "Device '{}' not open, reopening", m_device->getPort());
+            return 0;
+        }
         catch (std::exception& e) {
-            BR_LOG_ERROR(m_label, "While transmitting on '{}': {}", m_device.getPort(), e.what());
+            BR_LOG_ERROR(m_label, "While transmitting on '{}': {}", m_device->getPort(), e.what());
             return 0;
         }
     }
@@ -92,7 +84,7 @@ size_t Device::transmit(const Packet& pkt)
 Packet Device::receive()
 {
     FRASY_PROFILE_FUNCTION();
-    std::unique_lock lk{m_lock};
+    std::unique_lock lk {m_lock};
     m_cv.wait(lk, [this] { return !m_muted && !m_queue.empty(); });
 
     auto front = m_queue.front();
@@ -103,37 +95,44 @@ Packet Device::receive()
 void Device::open()
 {
     // If already open, re-open.
-    if (m_device.isOpen()) { close(); }
+    if (isOpen()) { close(); }
 
     try {
-        m_device.open();
+        m_device = std::make_unique<serial::Serial>(m_port,
+                                                    921600,
+                                                    serial::Timeout::simpleTimeout(1),
+                                                    serial::eightbits,
+                                                    serial::parity_none,
+                                                    serial::stopbits_one,
+                                                    serial::flowcontrol_software);
     }
     catch (std::exception& e) {
-        BR_LOG_ERROR(m_label, "While opening '{}': {}", m_device.getPort(), e.what());
+        BR_LOG_ERROR(m_label, "While opening '{}': {}", m_device->getPort(), e.what());
         return;
     }
 
-    m_rxThread = Brigerad::MakeThread([&](std::stop_token stopToken) {
-        if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(),
-                                    std::format("SlCAN RX {}",
-                                                m_device.getPort()))) {
+    m_rxThread = std::jthread([&](std::stop_token stopToken) {
+        if (FAILED(SetThreadDescription(
+              GetCurrentThread(),
+              std::format(L"SlCAN RX {}", StringUtils::StringToWString(m_device->getPort())).c_str()))) {
             BR_LOG_ERROR("SlCAN", "Unable to set thread description");
         }
-        BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
+        BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device->getPort());
         std::string read;
         while (!stopToken.stop_requested()) {
             try {
                 FRASY_PROFILE_SCOPE("RX Loop");
-                if (m_device.available() == 0) {
+                if (m_device == nullptr) { return; }
+                if (m_device->available() == 0) {
                     Sleep(1);
                     continue;
                 }
                 read.clear();
                 // TODO this might cause problems if we don't receive a complete packet.
-                m_device.readline(read, Packet::s_mtu, "\r");
+                m_device->readline(read, Packet::s_mtu, "\r");
                 if (m_muted || read.empty()) { continue; }
                 BR_LOG_TRACE(m_label, "RX: {}", read);
-                std::unique_lock lock{m_lock};
+                std::unique_lock lock {m_lock};
                 const auto&      packet = m_queue.emplace(reinterpret_cast<const uint8_t*>(read.data()), read.size());
                 m_rxMonitorFunc(packet);
                 // manual unlocking is done before notifying, to avoid waking up
@@ -153,31 +152,30 @@ void Device::open()
                                                   &buff[0],
                                                   sizeof(buff),
                                                   nullptr);
-                        return std::string{&buff[0],
-                                           &buff[len]};
+                        return std::string {&buff[0], &buff[len]};
                     };
                     BR_LOG_ERROR(
-                        m_label,
-                        "An error occurred in the listener thread: {}\n\r\t{}",
-                        e.what(),
-                        getLastError());
+                      m_label, "An error occurred in the listener thread: {}\n\r\t{}", e.what(), getLastError());
                 }
                 break;
             }
         }
-        BR_LOG_INFO(m_label, "RX listener terminated on '{}'", m_device.getPort());
+        BR_LOG_INFO(m_label, "RX listener terminated on '{}'", m_port);
     });
 }
 
 void Device::close()
 {
     // If already closed, don't do anything.
-    if (m_device.isOpen()) {
-        // Forcefully terminate *any* I/O operation done by the thread.
-        if (Brigerad::CancelSynchronousIo(m_rxThread.native_handle()) == 0) {
-            BR_LOG_WARN(m_label, "CancelSynchronousIo returned {}", GetLastError());
-        }
-        m_device.close();
+    if (!isOpen()) { return; }
+
+    // Forcefully terminate *any* I/O operation done by the thread.
+    if (CancelSynchronousIo(m_rxThread.native_handle()) == 0) {
+        BR_LOG_WARN(m_label, "CancelSynchronousIo returned {}", GetLastError());
     }
+    m_rxThread.request_stop();
+    if (m_rxThread.joinable()) { m_rxThread.join(); }
+    m_device->close();
+    m_device.reset();
 }
-} // namespace Frasy::SlCan
+}    // namespace Frasy::SlCan

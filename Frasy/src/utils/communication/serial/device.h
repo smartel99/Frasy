@@ -42,7 +42,7 @@ class Device {
 public:
     Device() noexcept = default;
     Device(Device&& o) noexcept { *this = std::move(o); }
-    explicit Device(const std::string& port, bool open = true);
+    explicit Device(const std::string& port);
     ~Device() { close(); }
 
     Device& operator=(Device&& o) noexcept;
@@ -51,8 +51,8 @@ public:
     void close();
     void reset();
 
-    [[nodiscard]] bool        isOpen() const noexcept { return m_device.isOpen(); }
-    [[nodiscard]] std::string getPort() const noexcept { return m_device.getPort(); }
+    [[nodiscard]] bool        isOpen() const noexcept { return m_device == nullptr ? false : m_device->isOpen(); }
+    [[nodiscard]] std::string getPort() const noexcept { return m_port; }
     [[nodiscard]] bool        ready() const noexcept { return m_ready; }
     [[nodiscard]] bool        enabled() const noexcept { return m_enabled; }
 
@@ -65,10 +65,11 @@ private:
     void cleanerTask();
 
 private:
-    std::string    m_label;
-    serial::Serial m_device;    //!< The physical communication interface.
+    std::string                     m_port;
+    std::string                     m_label;
+    std::unique_ptr<serial::Serial> m_device;    //!< The physical communication interface.
 
-    std::jthread   m_cleanerThread;
+    std::thread   m_cleanerThread;
     volatile bool m_cleanerRun = false;
 
     bool m_ready   = false;
@@ -76,13 +77,13 @@ private:
 
     std::mutex    m_promiseLock;
     volatile bool m_shouldRun = true;
-    std::jthread   m_rxThread;
+    std::jthread  m_rxThread;
     std::string   m_rxBuff;    //!< Buffer where the received data go.
 
     std::unordered_map<trs_id_t, ResponsePromise> m_pending;
 
     static constexpr size_t s_maxAttempts = 5;
 };
-}  // namespace Frasy::Serial
+}    // namespace Frasy::Serial
 
 #endif    // FRASY_UTILS_COMM_SERIAL_DEVICE_H

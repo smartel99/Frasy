@@ -16,49 +16,34 @@
  */
 #include "device.h"
 
+#include "Brigerad/Core/Thread.h"
 #include "utils/commands/built_in/id.h"
 #include "utils/commands/built_in/status/reply.h"
 
 #include <barrier>
-#include <format>
-
-#include <Brigerad/Core/Thread.h>
-
-#include <windows.h>
 
 namespace Frasy::Serial {
 
-Device::Device(const std::string& port, bool open)
-    : m_label(std::format("UART {}", port)),
-      m_device(port,
-               460800,
-               serial::Timeout::simpleTimeout(10),
-               serial::eightbits,
-               serial::parity_none,
-               serial::stopbits_one,
-               serial::flowcontrol_software)
+Device::Device(const std::string& port) : m_port(port), m_label(std::format("UART {}", port))
 {
-    if (open) { this->open(); }
 }
 
 Device& Device::operator=(Device&& o) noexcept
 {
-    bool reopen = false;
-    if (o.m_device.isOpen()) {
-        reopen = true;
-        o.close();
-    }
-
     m_label   = std::move(o.m_label);
     m_rxBuff  = std::move(o.m_rxBuff);
     m_pending = std::move(o.m_pending);
     m_ready   = o.m_ready;
-
-    serial::Timeout timeout = serial::Timeout::simpleTimeout(10);
-    m_device.setTimeout(timeout);
-    m_device.setBaudrate(921600);
-    m_device.setPort(o.m_device.getPort());
-    if (reopen) { open(); }
+    m_port    = std::move(o.m_port);
+    o.m_device->close();
+    o.m_device.reset();
+    m_device = std::make_unique<serial::Serial>(m_port,
+                                                460800,
+                                                serial::Timeout::simpleTimeout(10),
+                                                serial::eightbits,
+                                                serial::parity_none,
+                                                serial::stopbits_one,
+                                                serial::flowcontrol_software);
     return *this;
 }
 
@@ -72,10 +57,10 @@ ResponsePromise& Device::transmit(Packet pkt)
 
     BR_LOG_DEBUG(m_label, "Sending packet '{:08X}'", pkt.Header.TransactionId);
     std::vector<uint8_t> data = static_cast<std::vector<uint8_t>>(pkt);
-    std::lock_guard      promiseLock{m_promiseLock};
-    m_device.write(data);
-    m_device.flushOutput();
-    auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise{}));
+    std::lock_guard      promiseLock {m_promiseLock};
+    m_device->write(data);
+    m_device->flushOutput();
+    auto&& [it, success] = m_pending.insert_or_assign(pkt.Header.TransactionId, std::move(ResponsePromise {}));
     return it->second;
 }
 
@@ -83,7 +68,7 @@ ResponsePromise& Device::transmit(Packet pkt)
 {
     std::vector<trs_id_t> ids;
     ids.reserve(m_pending.size());
-    std::lock_guard lock{m_promiseLock};
+    std::lock_guard lock {m_promiseLock};
     for (auto&& [id, p] : m_pending) {
         ids.push_back(id);
     }
@@ -112,11 +97,11 @@ void Device::checkForPackets()
                 m_rxBuff.erase(0, eofPos + 1);
                 // TODO This should now handle SlCan packets.
                 try {
-                    Packet packet = Packet{{raw.begin(), raw.end()}};
+                    Packet packet = Packet {{raw.begin(), raw.end()}};
 
                     if (packet.Header.Modifiers.IsResponse) {
                         try {
-                            std::lock_guard lock{m_promiseLock};
+                            std::lock_guard lock {m_promiseLock};
                             auto&           promise = m_pending.at(packet.Header.TransactionId);
                             promise.Promise.set_value(packet);
                             BR_LOG_DEBUG(m_label, "Received response for '{:08X}'", packet.Header.TransactionId);
@@ -132,8 +117,7 @@ void Device::checkForPackets()
                     }
                     else {
                         auto dispatcher = Commands::CommandManager::Get().MakeDispatcher(
-                            Commands::CommandEvent{[this](const Packet& pkt) { transmit(pkt); }, this->m_label,
-                                                   packet});
+                          Commands::CommandEvent {[this](const Packet& pkt) { transmit(pkt); }, this->m_label, packet});
                         dispatcher.Dispatch();
                     }
                 }
@@ -148,28 +132,28 @@ void Device::checkForPackets()
 void Device::open()
 {
     // If already open, re-open.
-    if (m_device.isOpen()) { close(); }
+    if (m_device->isOpen()) { close(); }
 
     try {
-        m_device.open();
+        m_device->open();
     }
     catch (std::exception& e) {
-        BR_LOG_ERROR(m_label, "While opening '{}': {}", m_device.getPort(), e.what());
+        BR_LOG_ERROR(m_label, "While opening '{}': {}", m_device->getPort(), e.what());
         return;
     }
 
-    m_cleanerThread = Brigerad::MakeThread([this] { cleanerTask(); });
+    m_cleanerThread = std::thread([this] { cleanerTask(); });
 
     m_shouldRun = true;
-    std::barrier rxReady{2};
-    m_rxThread = Brigerad::MakeThread([&] {
-        BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device.getPort());
+    std::barrier rxReady {2};
+    m_rxThread = std::jthread([&](std::stop_token stopToken) {
+        BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device->getPort());
         std::string endOfPacket = std::string(1, Packet::s_packetEndFlag);
         rxReady.arrive_and_wait();
-        while (m_shouldRun) {
+        while (!stopToken.stop_requested()) {
             std::string read;
             try {
-                read = m_device.readline(Packet::s_maximumPacketSize, endOfPacket);
+                read = m_device->readline(Packet::s_maximumPacketSize, endOfPacket);
                 if (!read.empty()) { BR_LOG_TRACE(m_label, "RX: {}", read); }
                 m_rxBuff += read;
             }
@@ -179,7 +163,7 @@ void Device::open()
             }
             if (!read.empty() && read.back() == Packet::s_packetEndFlag) { checkForPackets(); }
         }
-        BR_LOG_INFO(m_label, "RX listener terminated on '{}'", m_device.getPort());
+        BR_LOG_INFO(m_label, "RX listener terminated on '{}'", m_port);
     });
     rxReady.arrive_and_wait();
 }
@@ -187,29 +171,29 @@ void Device::open()
 void Device::close()
 {
     // If already closed, don't do anything.
-    if (m_device.isOpen()) {
-        m_shouldRun = false;
+    if (!isOpen()) { return; }
+    m_shouldRun = false;
 
-        // Forcefully terminate *any* I/O operation done by the thread.
-        if (Brigerad::CancelSynchronousIo(m_rxThread.native_handle()) == 0) {
-            BR_LOG_WARN(m_label, "CancelSynchronousIo returned {}", GetLastError());
-        }
-        if (m_rxThread.joinable()) { m_rxThread.join(); }
-        m_device.close();
-
-        using namespace std::chrono_literals;
-        while (!m_pending.empty()) {
-            std::this_thread::sleep_for(10ms);
-        }
-        m_cleanerRun = false;
-        if (m_cleanerThread.joinable()) { m_cleanerThread.join(); }
+    // Forcefully terminate *any* I/O operation done by the thread.
+    if (Brigerad::CancelSynchronousIo(m_rxThread.native_handle()) == 0) {
+        BR_LOG_WARN(m_label, "CancelSynchronousIo returned {}", GetLastError());
     }
+    m_rxThread.request_stop();
+    if (m_rxThread.joinable()) { m_rxThread.join(); }
+    m_device->close();
+    m_device.reset();
+
+    using namespace std::chrono_literals;
+    while (!m_pending.empty()) {
+        std::this_thread::sleep_for(10ms);
+    }
+    m_cleanerRun = false;
+    if (m_cleanerThread.joinable()) { m_cleanerThread.join(); }
 }
 
 void Device::reset()
 {
-    transmit(Packet::Request(Actions::CommandId::Reset)).OnTimeout([] {
-    }).Async();
+    transmit(Packet::Request(Actions::CommandId::Reset)).OnTimeout([]() {}).Async();
 }
 
 void Device::cleanerTask()
@@ -219,7 +203,7 @@ void Device::cleanerTask()
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(1s);
         std::vector<uint32_t> consumed;
-        std::lock_guard       lock{m_promiseLock};
+        std::lock_guard       lock {m_promiseLock};
         consumed.reserve(m_pending.size());
         for (const auto& [id, response] : m_pending) {
             if (response.IsConsumed()) { consumed.push_back(id); }
@@ -229,4 +213,4 @@ void Device::cleanerTask()
         }
     }
 }
-} // namespace Frasy::Serial
+}    // namespace Frasy::Serial
