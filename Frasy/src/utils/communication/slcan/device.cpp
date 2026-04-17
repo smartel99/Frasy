@@ -16,6 +16,8 @@
  */
 #include "device.h"
 
+#include "Brigerad/Core/Thread.h"
+
 #include <Brigerad.h>
 #include <utils/lua/profile_events.h>
 #include <utils/string_utils.h>
@@ -111,7 +113,7 @@ void Device::open()
         return;
     }
 
-    m_rxThread = std::jthread([&](std::stop_token stopToken) {
+    m_rxThread = Brigerad::MakeThread([&](std::stop_token stopToken) {
         if (FAILED(SetThreadDescription(
               GetCurrentThread(),
               std::format(L"SlCAN RX {}", StringUtils::StringToWString(m_device->getPort())).c_str()))) {

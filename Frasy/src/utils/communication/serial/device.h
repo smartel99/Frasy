@@ -69,7 +69,7 @@ private:
     std::string                     m_label;
     std::unique_ptr<serial::Serial> m_device;    //!< The physical communication interface.
 
-    std::thread   m_cleanerThread;
+    std::jthread  m_cleanerThread;
     volatile bool m_cleanerRun = false;
 
     bool m_ready   = false;
