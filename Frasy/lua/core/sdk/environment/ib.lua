@@ -35,7 +35,7 @@ function Ib:Upload(ode)
         -- I feel like this should be done by the user who's
         -- manipulating the entry
         -- FIXME wtf is going on?
-        for i = 1, ode.data[0].value do self:Upload(ode.data[i].value) end
+        for i = 1, ode.data[0].value do self:Upload(ode.data[i] --[[@as OdEntry]]) end
     elseif (ode.objectType == CanOpen.objectType.record) then
         for k, v in ipairs(ode.__fields) do self:Upload(ode[v]) end
     else
