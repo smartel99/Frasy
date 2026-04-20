@@ -30,7 +30,7 @@
 namespace Frasy::Usb::Details {
 inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
 {
-    ULONG nBytesEx = 0;
+    [[maybe_unused]] ULONG nBytesEx = 0;
     ULONG nBytes   = 0;
     // Allocate space to hold the connection info for this port.
     // For now, allocate it big enough to hold info for 30 pipes.
@@ -44,7 +44,7 @@ inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
     static constexpr size_t conInfoExBuffSize = sizeof(USB_NODE_CONNECTION_INFORMATION_EX) + (
                                                     sizeof(USB_PIPE_INFO) * pipeCount);
     alignas(USB_NODE_CONNECTION_INFORMATION_EX) char conInfoExBuff[conInfoExBuffSize];
-    auto connectionInfoEx = reinterpret_cast<USB_NODE_CONNECTION_INFORMATION_EX*>(conInfoExBuff);
+    [[maybe_unused]] auto connectionInfoEx = reinterpret_cast<USB_NODE_CONNECTION_INFORMATION_EX*>(conInfoExBuff);
     USB_NODE_CONNECTION_INFORMATION_EX_V2 connectionInfoV2 = {
         .ConnectionIndex = port,
         .Length = sizeof(USB_NODE_CONNECTION_INFORMATION_EX_V2),
@@ -57,8 +57,8 @@ inline std::optional<Node> EnumerateHubPort(HANDLE device, uint8_t port)
     // port, among other things. The fault tolerant code is executed first.
     USB_PORT_CONNECTOR_PROPERTIES  pcpSizeGetter = {.ConnectionIndex = port};
     std::unique_ptr<char[]>        pcpBuff;
-    USB_PORT_CONNECTOR_PROPERTIES* portConnectorProperties = nullptr;
-    BOOL                           success                 = DeviceIoControl(device,
+    [[maybe_unused]] USB_PORT_CONNECTOR_PROPERTIES* portConnectorProperties = nullptr;
+    [[maybe_unused]] BOOL                           success                 = DeviceIoControl(device,
                                    IOCTL_USB_GET_PORT_CONNECTOR_PROPERTIES,
                                    &pcpSizeGetter,
                                    sizeof(USB_PORT_CONNECTOR_PROPERTIES),

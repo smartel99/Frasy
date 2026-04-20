@@ -58,7 +58,7 @@ namespace {
 
 
 std::optional<Node> EnumerateUsbHostController(HANDLE           deviceHandle,
-                                               const char*      deviceName,
+                                               [[maybe_unused]] const char*      deviceName,
                                                const HDEVINFO&  deviceInfo,
                                                SP_DEVINFO_DATA* deviceInfoData)
 {
@@ -143,7 +143,7 @@ std::vector<Node> EnumerateUsbHostControllers()
 
     deviceInfoData.cbSize = sizeof(deviceInfoData);
 
-    for (size_t index = 0; SetupDiEnumDeviceInfo(deviceInfo, index, &deviceInfoData) != 0; ++index) {
+    for (size_t index = 0; SetupDiEnumDeviceInfo(deviceInfo, static_cast<DWORD>(index), &deviceInfoData) != 0; ++index) {
         SP_DEVICE_INTERFACE_DATA deviceInterfaceData;
         deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
 

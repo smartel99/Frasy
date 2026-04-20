@@ -996,7 +996,7 @@ void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_v
 #pragma endregion
 
 #pragma region Exclusive
-void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
+void Orchestrator::importExclusive(sol::state_view lua, [[maybe_unused]] Stage stage)
 {
     if (!m_exclusiveLock) { m_exclusiveLock = std::make_unique<std::mutex>(); }
     lua["__exclusive"] = [&](std::size_t index, sol::unsafe_function func) {
@@ -1010,7 +1010,7 @@ void Orchestrator::importExclusive(sol::state_view lua, Stage stage)
 }
 #pragma endregion
 
-void Orchestrator::importOnce(sol::state_view lua, Stage stage)
+void Orchestrator::importOnce(sol::state_view lua, [[maybe_unused]] Stage stage)
 {
     // Reset all the flags.
     {
