@@ -186,7 +186,7 @@ void printException(const cpptrace::stacktrace& trace)
     formatter.print(trace);
     formatter.print(crashReportFile, trace);
     crashReportFile.close();
-    FatalErrorDialog("A crash occurred!", "{}", formatter.format(trace));
+    FatalErrorDialog("A crash occurred!", "{}, Please send the crash_report.txt file to the developers.", crashReportContent);
 }
 }  // namespace _internalDoNotUse
 
