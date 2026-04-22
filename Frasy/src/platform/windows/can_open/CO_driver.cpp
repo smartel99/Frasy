@@ -52,7 +52,7 @@ int CO_LOCK_CAN_SEND([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
     FRASY_PROFILE_FUNCTION();
     CO_SEND_mutex.lock();
-    return 0; // Always assume success.
+    return 0;    // Always assume success.
 }
 
 void CO_UNLOCK_CAN_SEND([[maybe_unused]] CO_CANmodule_t* CANmodule)
@@ -65,7 +65,7 @@ int CO_LOCK_EMCY([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
     FRASY_PROFILE_FUNCTION();
     CO_EMCY_mutex.lock();
-    return 0; // Always assume success.
+    return 0;    // Always assume success.
 }
 
 void CO_UNLOCK_EMCY([[maybe_unused]] CO_CANmodule_t* CANmodule)
@@ -78,7 +78,7 @@ int CO_LOCK_OD([[maybe_unused]] CO_CANmodule_t* CANmodule)
 {
     FRASY_PROFILE_FUNCTION();
     CO_OD_mutex.lock();
-    return 0; // Always assume success.
+    return 0;    // Always assume success.
 }
 
 void CO_UNLOCK_OD([[maybe_unused]] CO_CANmodule_t* CANmodule)
@@ -93,8 +93,9 @@ void CO_UNLOCK_OD([[maybe_unused]] CO_CANmodule_t* CANmodule)
 [[maybe_unused]] static CO_ReturnError_t disableRx(CO_CANmodule_t* CANmodule)
 {
     /* insert a filter that doesn't match any messages */
-    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
-    for (auto& interface : *interfaces | std::views::values) {
+    auto*           interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    std::lock_guard l {interfaces->mutex};
+    for (auto& interface : interfaces->devices | std::views::values) {
         interface.mute();
     }
 
@@ -106,8 +107,9 @@ void CO_UNLOCK_OD([[maybe_unused]] CO_CANmodule_t* CANmodule)
 static CO_ReturnError_t setRxFilters(CO_CANmodule_t* CANmodule)
 {
     // Effectively allow everything, since we do not have filtering capabilities.
-    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
-    for (auto& interface : *interfaces | std::views::values) {
+    auto*           interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    std::lock_guard l {interfaces->mutex};
+    for (auto& interface : interfaces->devices | std::views::values) {
         interface.unmute();
     }
 
@@ -117,9 +119,7 @@ static CO_ReturnError_t setRxFilters(CO_CANmodule_t* CANmodule)
 
 /******************************************************************************/
 void CO_CANsetConfigurationMode([[maybe_unused]] void* CANptr)
-{
-    /* Can't do anything because no reference to CANmodule_t is provided */
-}
+{ /* Can't do anything because no reference to CANmodule_t is provided */ }
 
 
 /******************************************************************************/
@@ -170,8 +170,9 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t*           CANmodule,
         rxArray[i].CANrx_callback = nullptr;
     }
 
-    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
-    for (auto&& [port, interface] : *interfaces) {
+    auto*           interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    std::lock_guard l {interfaces->mutex};
+    for (auto& interface : interfaces->devices | std::views::values) {
         interface.open();
     }
 
@@ -183,9 +184,10 @@ void CO_CANmodule_disable(CO_CANmodule_t* CANmodule)
 {
     if (CANmodule == nullptr || CANmodule->interface == nullptr) { return; }
 
-    CANmodule->CANnormal = false;
-    auto* interfaces     = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
-    for (auto&& [port, interface] : *interfaces) {
+    CANmodule->CANnormal       = false;
+    auto*           interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+    std::lock_guard l {interfaces->mutex};
+    for (auto& interface : interfaces->devices | std::views::values) {
         interface.close();
     }
 }
@@ -198,7 +200,7 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule,
                                     uint16_t        mask,
                                     bool_t          rtr,
                                     void*           object,
-                                    void (*         CANrx_callback)(void* object, void* message))
+                                    void (*CANrx_callback)(void* object, void* message))
 {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
@@ -229,12 +231,7 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule,
 
 /******************************************************************************/
 CO_CANtx_t* CO_CANtxBufferInit(
-    CO_CANmodule_t* CANmodule,
-    uint16_t        index,
-    uint16_t        ident,
-    bool_t          rtr,
-    uint8_t         noOfBytes,
-    bool_t          syncFlag)
+  CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, bool_t rtr, uint8_t noOfBytes, bool_t syncFlag)
 {
     CO_CANtx_t* buffer = nullptr;
 
@@ -272,13 +269,20 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
         err = CO_ERROR_TX_OVERFLOW;
     }
 
-    auto packet = Frasy::SlCan::Packet{*buffer};
+    auto packet = Frasy::SlCan::Packet {*buffer};
     {
         CO_LOCK_CAN_SEND(CANmodule);
-        bool allSuccess = true;
-        for (auto&& [port, interface] : *interfaces) {
-            size_t written = interface.transmit(packet);
-            if (written != packet.sizeOfSerialPacket()) { allSuccess = false; }
+        std::lock_guard l {interfaces->mutex};
+        bool            allSuccess = true;
+        for (auto& interface : interfaces->devices | std::views::values) {
+            try {
+                size_t written = interface.transmit(packet);
+                if (written != packet.sizeOfSerialPacket()) { allSuccess = false; }
+            }
+            catch (std::exception& e) {
+                log_printf(LOG_WARNING, DBG_CAN_TX_FAILED, buffer->ident, e.what());
+                allSuccess = false;
+            }
         }
         if (allSuccess) {
             if (buffer->bufferFull) {
@@ -303,9 +307,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer)
 
 /******************************************************************************/
 void CO_CANclearPendingSyncPDOs([[maybe_unused]] CO_CANmodule_t* CANmodule)
-{
-    /* Messages are either written to the socket queue or dropped */
-}
+{ /* Messages are either written to the socket queue or dropped */ }
 
 
 /******************************************************************************/
@@ -341,7 +343,8 @@ void CO_CANpollReceive(CO_CANmodule_t* canModule)
 
     auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(canModule->interface);
 
-    for (auto&& [port, interface] : *interfaces) {
+    std::lock_guard l {interfaces->mutex};
+    for (auto& interface : interfaces->devices | std::views::values) {
         while (interface.available() != 0) {
             auto packetOpt = interface.receive().toCOCanRxMsg();
             if (!packetOpt.has_value()) {

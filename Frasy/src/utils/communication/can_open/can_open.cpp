@@ -115,16 +115,17 @@ CanOpen::~CanOpen()
 
 bool CanOpen::addDevice(const std::string& port)
 {
-    if (m_devices.contains(port)) {
+    if (m_devices.devices.contains(port)) {
         BR_LOG_WARN(m_tag, "Device on port '{}' already open!", port);
         return false;
     }
 
     try {
+        std::lock_guard l{m_devices.mutex};
         SlCan::Device dev = SlCan::Device{port};
         dev.setRxCallbackFunc([this] { rxReadyCallback(); });
         if (dev.isOpen()) {
-            m_devices[port] = std::move(dev);
+            m_devices.devices[port] = std::move(dev);
             return true;
         }
     }
@@ -136,7 +137,8 @@ bool CanOpen::addDevice(const std::string& port)
 
 bool CanOpen::removeDevice(const std::string& port)
 {
-    return m_devices.erase(port) == 1;
+    std::lock_guard l{m_devices.mutex};
+    return m_devices.devices.erase(port) == 1;
 }
 
 // void CanOpen::open(std::string_view port)
@@ -160,7 +162,8 @@ bool CanOpen::removeDevice(const std::string& port)
 
 void CanOpen::reopen()
 {
-    for (auto&& [port, dev] : m_devices) {
+    std::lock_guard l{m_devices.mutex};
+    for (auto&& [port, dev] : m_devices.devices) {
         try {
             if (dev.isOpen()) { dev.close(); }
             dev.open();
@@ -185,7 +188,7 @@ void CanOpen::reset()
 
 void CanOpen::start()
 {
-    if (m_devices.empty()) {
+    if (m_devices.devices.empty()) {
         BR_LOG_WARN(m_tag, "Ignoring CanOpen Start with no associated devices");
         return;
     }
@@ -408,7 +411,8 @@ void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
 void CanOpen::canOpenTask(std::stop_token stopToken)
 {
     if (!initialInit()) {
-        for (auto&& [port, dev] : m_devices) {
+        std::lock_guard l{m_devices.mutex};
+        for (auto&& [port, dev] : m_devices.devices) {
             dev.close();
         }
         return;

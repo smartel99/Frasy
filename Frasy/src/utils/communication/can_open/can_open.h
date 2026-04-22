@@ -38,11 +38,12 @@
 #include <format>
 #include <functional>
 #include <map>
+#include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
 #include <vector>
-#include <optional>
 
 namespace Frasy {
 class DeviceViewer;
@@ -50,7 +51,7 @@ class DeviceViewer;
 namespace CanOpenViewer {
 class Layer;
 }
-} // namespace Frasy
+}    // namespace Frasy
 
 namespace Frasy::CanOpen {
 static constexpr uint16_t s_sdoClientBaseAddress = 0x1280;
@@ -62,8 +63,17 @@ static constexpr uint16_t s_sdoClientBaseAddress = 0x1280;
  */
 class CanOpen {
 public:
+    // TODO: This is a patchy interface, devices should ideally be added and removed via a queue.
+    // This however makes implementing CO_CANSend hard, because there isn't really a way for it to communicate to this
+    // class that it is accessing the devices, making it hard for us to know when we can and can't perform the additions
+    // and deletions...
+    struct Interfaces {
+        // Mutex needs to be acquired before accessing devices.
+        std::mutex                           mutex;
+        std::map<std::string, SlCan::Device> devices;
+    };
     using EmergencyMessageCallback = std::function<void(const EmergencyMessage&)>;
-    using Interfaces_t             = std::map<std::string, SlCan::Device>;
+    using Interfaces_t             = Interfaces;
 
 public:
     CanOpen();
@@ -79,7 +89,7 @@ public:
     // void open(std::string_view port);
     void reopen();
     // void close();
-    bool isOpen() const { return !m_devices.empty() && m_isRunning; }
+    bool isOpen() const { return !m_devices.devices.empty() && m_isRunning; }
 
     void reset();
     void start();
@@ -267,7 +277,7 @@ private:
     Interfaces_t m_devices;
 
     static constexpr auto s_nmtControlFlags = static_cast<CO_NMT_control_t>(
-        CO_NMT_STARTUP_TO_OPERATIONAL | CO_NMT_ERR_ON_ERR_REG | CO_ERR_REG_GENERIC_ERR | CO_ERR_REG_COMMUNICATION);
+      CO_NMT_STARTUP_TO_OPERATIONAL | CO_NMT_ERR_ON_ERR_REG | CO_ERR_REG_GENERIC_ERR | CO_ERR_REG_COMMUNICATION);
     static constexpr uint16_t s_firstHeartbeatTime     = 500;
     static constexpr uint16_t s_sdoServerTimeoutTime   = 1000;
     static constexpr uint16_t s_sdoClientTimeoutTime   = 500;
@@ -279,20 +289,20 @@ private:
     static constexpr uint16_t s_cobLssMasterId = 0x6E2;
 
     CO_t*                             m_co = nullptr;
-    CO_config_t                       m_canOpenConfig{};
+    CO_config_t                       m_canOpenConfig {};
     uint32_t                          m_coHeapMemoryUsed = 0;
     bool                              m_hasBeenInitOnce  = false;
     CO_storage_t                      m_storage          = {};
     std::array<CO_storage_entry_t, 1> m_storageEntries   = {
-        CO_storage_entry_t{
-            .addr = &OD_PERSIST_COMM,
-            .len = sizeof(OD_PERSIST_COMM),
-            .subIndexOD = 2,
-            .attr = CO_storage_cmd | CO_storage_restore,
-            .filename = {'o', 'd', '_', 'c', 'o', 'm', 'm', '.', 'p', 'e', 'r', 's', 'i', 's', 't', '\0'},
-            .crc = {},
-            .fp = nullptr,
-        },
+      CO_storage_entry_t {
+          .addr       = &OD_PERSIST_COMM,
+          .len        = sizeof(OD_PERSIST_COMM),
+          .subIndexOD = 2,
+          .attr       = CO_storage_cmd | CO_storage_restore,
+          .filename   = {'o', 'd', '_', 'c', 'o', 'm', 'm', '.', 'p', 'e', 'r', 's', 'i', 's', 't', '\0'},
+          .crc        = {},
+          .fp         = nullptr,
+      },
     };
 
     std::stop_source            m_stopSource;
@@ -302,7 +312,7 @@ private:
     bool                        m_isRunning = false;
 
     std::chrono::time_point<std::chrono::steady_clock> m_lastTimePoint;
-    static constexpr auto                              s_autoSavePeriod = std::chrono::minutes{1};
+    static constexpr auto                              s_autoSavePeriod = std::chrono::minutes {1};
     std::chrono::time_point<std::chrono::steady_clock> m_lastSaveTime;
     uint32_t                                           m_sleepForUs = 0;
 
@@ -314,6 +324,6 @@ private:
 
     std::vector<EmergencyMessageCallback> m_emCallbacks;
 };
-} // namespace Frasy::CanOpen
+}    // namespace Frasy::CanOpen
 
 #endif    // FRASY_UTILS_COMMUNICATION_CAN_OPEN_CAN_OPEN_H
