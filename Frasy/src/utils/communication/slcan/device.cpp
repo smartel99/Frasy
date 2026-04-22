@@ -109,7 +109,7 @@ void Device::open()
                                                     serial::flowcontrol_software);
     }
     catch (std::exception& e) {
-        BR_LOG_ERROR(m_label, "While opening '{}': {}", m_device->getPort(), e.what());
+        BR_LOG_ERROR(m_label, "While opening '{}': {}", m_port, e.what());
         return;
     }
 
