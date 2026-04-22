@@ -72,11 +72,11 @@ size_t Device::transmit(const Packet& pkt)
         }
         catch (serial::PortNotOpenedException e) {
             open();
-            BR_LOG_ERROR(m_label, "Device '{}' not open, reopening", m_device->getPort());
+            BR_LOG_ERROR(m_label, "Device '{}' not open, reopening", m_port);
             return 0;
         }
         catch (std::exception& e) {
-            BR_LOG_ERROR(m_label, "While transmitting on '{}': {}", m_device->getPort(), e.what());
+            BR_LOG_ERROR(m_label, "While transmitting on '{}': {}", m_port, e.what());
             return 0;
         }
     }
