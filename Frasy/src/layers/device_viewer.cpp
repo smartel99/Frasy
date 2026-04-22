@@ -20,8 +20,8 @@
 #include "utils/communication/serial/enumerator.h"
 
 #include "Brigerad/Events/usb_event.h"
-#include <Brigerad/Core/Thread.h>
 #include "frasy_interpreter.h"
+#include <Brigerad/Core/Thread.h>
 
 #include <algorithm>
 #include <charconv>
@@ -35,9 +35,9 @@ namespace Frasy {
 
 
 std::optional<DeviceViewer::DeviceViewerOptions::WhitelistItem> DeviceViewer::DeviceViewerOptions::WhitelistItem::parse(
-    const std::string& name)
+  const std::string& name)
 {
-    WhitelistItem info{};
+    WhitelistItem info {};
     std::regex    pVid("VID_([A-F0-9]+)");
     std::regex    pPid("PID_([A-F0-9]+)");
     std::regex    pMi("MI_([A-F0-9]+)");
@@ -64,15 +64,13 @@ std::optional<DeviceViewer::DeviceViewerOptions::WhitelistItem> DeviceViewer::De
 
 
 std::optional<DeviceViewer::DeviceViewerOptions::WhitelistItem> DeviceViewer::DeviceViewerOptions::WhitelistItem::parse(
-    const std::wstring& name)
-{
-    return parse(wstring_to_utf8(name));
-}
+  const std::wstring& name)
+{ return parse(wstring_to_utf8(name)); }
 
 
 void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions::WhitelistItem& item)
 {
-    j = nlohmann::json{{"vid", item.vid}, {"pid", item.pid}};
+    j = nlohmann::json {{"vid", item.vid}, {"pid", item.pid}};
     if (item.rev.has_value()) { j["rev"] = *item.rev; }
     if (item.mi.has_value()) { j["mi"] = *item.mi; }
 }
@@ -86,9 +84,7 @@ void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions::White
 }
 
 void to_json(nlohmann::json& j, const DeviceViewer::DeviceViewerOptions& options)
-{
-    j = nlohmann::json{{"lastDevices", options.lastDevices}, {"usbWhitelist", options.usbWhitelist}};
-}
+{ j = nlohmann::json {{"lastDevices", options.lastDevices}, {"usbWhitelist", options.usbWhitelist}}; }
 
 void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& options)
 {
@@ -96,10 +92,10 @@ void from_json(const nlohmann::json& j, DeviceViewer::DeviceViewerOptions& optio
     if (j.contains("usbWhitelist")) { j["usbWhitelist"].get_to(options.usbWhitelist); }
 }
 
-DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept
-    : m_canOpen(canOpen)
+DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept : m_canOpen(canOpen)
 {
-    for (auto& device : m_canOpen.m_devices | std::views::values) {
+    std::lock_guard l {m_canOpen.m_devices.mutex};
+    for (auto& device : m_canOpen.m_devices.devices | std::views::values) {
         device.m_rxMonitorFunc = [this](const SlCan::Packet& pkt) {
             FRASY_PROFILE_FUNCTION();
             m_pktRxCount++;
@@ -133,14 +129,14 @@ DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept
             m_packetsRxInCurrentSecond = 0;
 
             m_kilobytesRxInLastSecond =
-                (m_kilobytesRxInLastSecond + static_cast<float>(m_bytesRxInCurrentSecond) / 1024.0f) / 2.0f;
+              (m_kilobytesRxInLastSecond + static_cast<float>(m_bytesRxInCurrentSecond) / 1024.0f) / 2.0f;
             m_bytesRxInCurrentSecond = 0;
 
             m_packetsTxInLastSecond    = (m_packetsTxInLastSecond + m_packetsTxInCurrentSecond) / 2;
             m_packetsTxInCurrentSecond = 0;
 
             m_kilobytesTxInLastSecond =
-                (m_kilobytesTxInLastSecond + static_cast<float>(m_bytesTxInCurrentSecond) / 1024.0f) / 2.0f;
+              (m_kilobytesTxInLastSecond + static_cast<float>(m_bytesTxInCurrentSecond) / 1024.0f) / 2.0f;
             m_bytesTxInCurrentSecond = 0;
             std::this_thread::sleep_for(1s);
         }
@@ -149,7 +145,7 @@ DeviceViewer::DeviceViewer(CanOpen::CanOpen& canOpen) noexcept
 
 bool DeviceViewer::DeviceViewerOptions::WhitelistItem::operator==(const std::string& rhs) const
 {
-    WhitelistItem other{};
+    WhitelistItem other {};
     std::regex    search("(VID_|PID_|REV_|MI_)([a-f]|[A-F]|[0-9])\\w+");
 
     auto matchBegin = std::sregex_iterator(rhs.begin(), rhs.end(), search);
@@ -186,19 +182,19 @@ void DeviceViewer::onAttach()
     m_options = Interpreter::Get().getConfig().value("communication", DeviceViewerOptions {});
     // Always accept SMarTest devices.
     m_options.usbWhitelist.push_back(DeviceViewerOptions::WhitelistItem {.vid = 1155, .pid = 42180, .mi = 0});
-    m_ports   = serial::list_ports();
+    m_ports = serial::list_ports();
 
     auto isValidUsb = [&usbWhitelist = m_options.usbWhitelist](const serial::PortInfo& info) -> bool {
         return std::ranges::any_of(
-            usbWhitelist,
-            [&vidPid = info.hardware_id](const DeviceViewerOptions::WhitelistItem& item) -> bool {
-                return item == vidPid;
-            });
+          usbWhitelist, [&vidPid = info.hardware_id](const DeviceViewerOptions::WhitelistItem& item) -> bool {
+              return item == vidPid;
+          });
     };
 
+    // std::lock_guard l {m_canOpen.m_devices.mutex};   // Lock not required; m_canOpen.addDevice does the locking
     for (auto& port : m_ports | std::views::filter(isValidUsb)) {
         if (m_canOpen.addDevice(port.port)) {
-            auto& device = m_canOpen.m_devices[port.port];
+            auto& device = m_canOpen.m_devices.devices[port.port];
 
             device.m_rxMonitorFunc = [this](const SlCan::Packet& pkt) {
                 FRASY_PROFILE_FUNCTION();
@@ -275,14 +271,15 @@ void DeviceViewer::onImGuiRender()
 
     if (ImGui::Begin(s_windowName, &m_isVisible, ImGuiWindowFlags_NoDocking)) {
         if (m_canOpen.isOpen()) {
+            std::lock_guard l {m_canOpen.m_devices.mutex};
             ImGui::Text("Connected to: ");
-            for (const auto& port : m_canOpen.m_devices | std::views::keys) {
+            for (const auto& port : m_canOpen.m_devices.devices | std::views::keys) {
                 ImGui::SameLine();
                 ImGui::Text("%s, ", port.c_str());
             }
             ImGui::SameLine();
             if (ImGui::Button("Close")) {
-                for (auto& device : m_canOpen.m_devices | std::views::values) {
+                for (auto& device : m_canOpen.m_devices.devices | std::views::values) {
                     device.close();
                 }
                 m_selectedPort = "";
@@ -303,8 +300,7 @@ void DeviceViewer::onImGuiRender()
                 refreshPorts();
                 if (!m_selectedPort.empty()) {
                     auto it = std::ranges::find_if(
-                        m_ports,
-                        [&selectedPort](const auto& port) { return port.port == selectedPort; });
+                      m_ports, [&selectedPort](const auto& port) { return port.port == selectedPort; });
                     if (it != m_ports.end()) { m_selectedPort = it->port; }
                 }
             }
@@ -321,18 +317,19 @@ void DeviceViewer::onImGuiRender()
         }
         ImGui::Separator();
         ImGui::Text(
-            "Network State: %zu addresses, %zu pending packets (%zu total), %zu pkt/s, %0.3f kB/s",
-            m_networkState.size(),
-            [&devices = m_canOpen.m_devices]() -> size_t {
-                size_t tot = 0;
-                for (auto& device : devices | std::views::values) {
-                    tot += device.m_queue.size();
-                }
-                return tot;
-            }(),
-            m_pktRxCount,
-            m_packetsRxInLastSecond,
-            m_kilobytesRxInLastSecond);
+          "Network State: %zu addresses, %zu pending packets (%zu total), %zu pkt/s, %0.3f kB/s",
+          m_networkState.size(),
+          [&devices = m_canOpen.m_devices]() -> size_t {
+              size_t          tot = 0;
+              std::lock_guard l {devices.mutex};
+              for (auto& device : devices.devices | std::views::values) {
+                  tot += device.m_queue.size();
+              }
+              return tot;
+          }(),
+          m_pktRxCount,
+          m_packetsRxInLastSecond,
+          m_kilobytesRxInLastSecond);
         ImGui::SameLine();
         if (ImGui::Button("Clear")) {
             m_networkState.clear();
@@ -350,9 +347,7 @@ void DeviceViewer::setVisibility(bool visibility)
 }
 
 void DeviceViewer::refreshPorts()
-{
-    m_ports = serial::list_ports();
-}
+{ m_ports = serial::list_ports(); }
 
 void DeviceViewer::renderNetworkState()
 {
@@ -363,7 +358,7 @@ void DeviceViewer::renderNetworkState()
                                         ImGuiTableFlags_SortTristate;
 
     float maxY = ImGui::GetContentRegionAvail().y;
-    if (ImGui::BeginTable("entries", 5, tableFlags, ImVec2{0.0f, maxY})) {
+    if (ImGui::BeginTable("entries", 5, tableFlags, ImVec2 {0.0f, maxY})) {
         ImGui::TableSetupColumn("Id", ImGuiTableColumnFlags_DefaultSort);
         ImGui::TableSetupColumn("IsExt");
         ImGui::TableSetupColumn("IsRTR");
@@ -392,7 +387,7 @@ void DeviceViewer::renderNetworkPacket(const SlCan::CanPacket& packet)
         }
     };
     auto formatData = [](const uint8_t* data, size_t len) -> std::string {
-        return std::format("{::#02x}", std::span{data, len});
+        return std::format("{::#02x}", std::span {data, len});
     };
 
     ImGui::BeginGroup();
@@ -412,7 +407,7 @@ void DeviceViewer::renderNetworkPacket(const SlCan::CanPacket& packet)
 void DeviceViewer::renderMenuBar()
 {
     if (ImGui::BeginMainMenuBar()) {
-        ImGui::BeginHorizontal("deviceViewerMenuBarSpan", ImVec2{ImGui::GetContentRegionAvail().x, 0.0f});
+        ImGui::BeginHorizontal("deviceViewerMenuBarSpan", ImVec2 {ImGui::GetContentRegionAvail().x, 0.0f});
         ImGui::Spring(0.1f);
         ImGui::Separator();
 
@@ -441,7 +436,9 @@ void DeviceViewer::renderMenuBar()
         static constexpr ImVec4 s_disconnectedColor = {255, 0, 0, 255};
         ImVec4                  color               = m_canOpen.isOpen() ? s_connectedColor : s_disconnectedColor;
         ImGui::PushStyleColor(ImGuiCol_Text, color);
-        if (m_canOpen.isOpen()) { ImGui::Text("Connected (%d)  ", static_cast<int>(m_canOpen.m_devices.size())); }
+        if (m_canOpen.isOpen()) {
+            ImGui::Text("Connected (%d)  ", static_cast<int>(m_canOpen.m_devices.devices.size()));
+        }
         else {
             ImGui::Text("Disconnected  ");
         }
@@ -449,7 +446,7 @@ void DeviceViewer::renderMenuBar()
         if (ImGui::IsItemClicked()) { setVisibility(true); }
 
         auto renderNetworkUsage = [](float usage) {
-            auto progressColor = ImVec4{1.0f, 1.0f, 0, 1.0f};
+            auto progressColor = ImVec4 {1.0f, 1.0f, 0, 1.0f};
 
             // Under 50% usage, remove red to make it greener.
             // Above 50% usage, remove green to make it more red.
@@ -462,7 +459,7 @@ void DeviceViewer::renderMenuBar()
             // Make at least a tiny bit of color show up if there's some activity.
             if (usage > 0.0001f) { usage = std::max(usage, 0.02f); }
             ImGui::PushStyleColor(ImGuiCol_PlotHistogram, progressColor);
-            ImGui::ProgressBar(usage, ImVec2{50.0f, 0.0f}, "");
+            ImGui::ProgressBar(usage, ImVec2 {50.0f, 0.0f}, "");
             ImGui::PopStyleColor();
         };
 
@@ -472,14 +469,14 @@ void DeviceViewer::renderMenuBar()
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::Text("Addresses: %zu", m_networkState.size());
-            ImGui::Text("Packets Pending: %zu",
-                        [&devices = m_canOpen.m_devices]() -> size_t {
-                            size_t tot = 0;
-                            for (auto&& [port, device] : devices) {
-                                tot += device.m_queue.size();
-                            }
-                            return tot;
-                        }());
+            ImGui::Text("Packets Pending: %zu", [&devices = m_canOpen.m_devices]() -> size_t {
+                size_t tot = 0;
+                std::lock_guard l {devices.mutex};
+                for (auto& device : devices.devices | std::views::values) {
+                    tot += device.m_queue.size();
+                }
+                return tot;
+            }());
             ImGui::Text("Packets Received: %zu", m_pktRxCount);
             ImGui::Text("Packets Sent: %zu", m_pktTxCount);
             ImGui::Text("Rx: %zu pkt/s (%0.3f kB/s)", m_packetsRxInLastSecond, m_kilobytesRxInLastSecond);
@@ -509,8 +506,9 @@ void DeviceViewer::handleSerialConnection(const DeviceViewerOptions::WhitelistIt
     BR_APP_INFO("Connecting to {}", port);
     if (m_canOpen.addDevice(port)) {
         BR_APP_INFO("Connected");
+        std::lock_guard l {m_canOpen.m_devices.mutex};
         // add monitoring hooks.
-        auto& device           = m_canOpen.m_devices[port];
+        auto& device           = m_canOpen.m_devices.devices[port];
         device.m_rxMonitorFunc = [this](const SlCan::Packet& pkt) {
             FRASY_PROFILE_FUNCTION();
             m_pktRxCount++;
@@ -550,4 +548,4 @@ void DeviceViewer::handleSerialDisconnection(const std::string& port)
 }
 
 
-} // namespace Frasy
+}    // namespace Frasy

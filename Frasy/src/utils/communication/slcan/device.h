@@ -45,7 +45,7 @@ public:
     Device& operator=(Device&& o) noexcept;
     Device& operator=(const Device&) = delete;
 
-    void open();
+    bool open();
     void close();
 
     [[nodiscard]] bool        isOpen() const noexcept { return m_device == nullptr ? false : m_device->isOpen(); }

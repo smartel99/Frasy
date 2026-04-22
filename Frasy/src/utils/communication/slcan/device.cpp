@@ -58,6 +58,13 @@ size_t Device::transmit(const Packet& pkt)
     FRASY_PROFILE_FUNCTION();
     BR_LOG_DEBUG(m_label, "Sending {} packet", commandToStr(pkt.command));
 
+    if (!isOpen()) {
+        if (!open()) {
+            BR_LOG_ERROR(m_label, "Unable to open '{}'", m_port);
+            return 0;
+        }
+    }
+
     uint8_t buff[Packet::s_mtu] = {};
     auto    size                = pkt.toSerial(&buff[0], sizeof(buff));
     if (size != -1) {
@@ -94,7 +101,7 @@ Packet Device::receive()
     return front;
 }
 
-void Device::open()
+bool Device::open()
 {
     // If already open, re-open.
     if (isOpen()) { close(); }
@@ -110,7 +117,7 @@ void Device::open()
     }
     catch (std::exception& e) {
         BR_LOG_ERROR(m_label, "While opening '{}': {}", m_port, e.what());
-        return;
+        return false;
     }
 
     m_rxThread = Brigerad::MakeThread([&](std::stop_token stopToken) {
@@ -124,7 +131,7 @@ void Device::open()
         while (!stopToken.stop_requested()) {
             try {
                 FRASY_PROFILE_SCOPE("RX Loop");
-                if (m_device == nullptr) { return; }
+                if (m_device == nullptr) { break; }
                 if (m_device->available() == 0) {
                     Sleep(1);
                     continue;
@@ -164,6 +171,8 @@ void Device::open()
         }
         BR_LOG_INFO(m_label, "RX listener terminated on '{}'", m_port);
     });
+
+    return true;
 }
 
 void Device::close()
