@@ -198,7 +198,7 @@ private:
     bool                        m_parallel  = true;
     bool                        m_ibEnabled = true;
 
-    std::map<std::string, Popup*> m_popups;
+    std::map<std::string, Popup> m_popups;
     std::unique_ptr<std::mutex>   m_popupMutex = nullptr;
 
     std::unique_ptr<std::mutex>                 m_exclusiveLock = nullptr;

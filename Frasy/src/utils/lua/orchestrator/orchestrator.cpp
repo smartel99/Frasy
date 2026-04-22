@@ -1069,7 +1069,7 @@ void Orchestrator::renderPopups()
 {
     std::lock_guard lock {(*m_popupMutex)};
     for (auto& [name, popup] : m_popups) {
-        popup->Render();
+        popup.Render();
     }
 }
 
@@ -1077,31 +1077,33 @@ void Orchestrator::importPopup(sol::state_view lua, std::size_t uut, Stage stage
 {
     lua.script_file("lua/core/sdk/popup.lua");
     lua["__popup"]            = lua.create_table();
-    lua["__popup"]["Consume"] = [&, uut](sol::table builder) { m_popups[Popup::GetName(uut, builder)]->Consume(); };
+    lua["__popup"]["Consume"] = [&, uut](sol::table builder) { m_popups[Popup::GetName(uut, builder)].Consume(); };
     if (stage == Stage::execution) {
         lua["__popup"]["Show"] = [&, uut](sol::table builder) {
-            Popup popup = Popup(uut, builder);
             m_popupMutex->lock();
-            m_popups[popup.GetName()] = &popup;
+            auto [popup, success] = m_popups.try_emplace(builder["name"].get<std::string>(), uut, builder);
             m_popupMutex->unlock();
-            popup.Routine();
+            popup->second.Routine();
             m_popupMutex->lock();
-            m_popups.erase(popup.GetName());
+            auto inputs = popup->second.GetInputs();
+            m_popups.erase(popup->first);
             m_popupMutex->unlock();
-            return popup.GetInputs();
+            return inputs;
         };
     }
     else if (stage == Stage::validation) {
         lua["__popup"]["Show"] = [&, uut](sol::table builder) {
             Popup popup = Popup(uut, builder);
             popup.Routine();
-            return popup.GetInputs();
+            auto inputs = popup.GetInputs();
+            return inputs;
         };
     }
     else {
         lua["__popup"]["Show"] = [&, uut](sol::table builder) {
-            Popup popup = Popup(uut, builder);
-            return popup.GetInputs();
+            Popup popup  = Popup(uut, builder);
+            auto  inputs = popup.GetInputs();
+            return inputs;
         };
     }
 }
