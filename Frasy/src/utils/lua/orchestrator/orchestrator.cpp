@@ -900,6 +900,9 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
         runSections();
         compileResults();
         checkAllResults();
+
+        // Clear all popups in case some somehow got stuck?
+        m_popups.clear();
     }
     catch (const std::exception& e) {
         BR_LOG_ERROR(s_tag, "Exception during Execute stage: {}", e.what());
