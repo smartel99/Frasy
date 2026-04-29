@@ -1,33 +1,33 @@
+local Is = require("lua/core/utils/is")
+local CheckField = require("lua/core/utils/check_field")
+
 ---@class TryFunctionOptParam
----@field delay_ms integer duration in ms between each tries, default to 0
----@field raiseError boolean will raise an error if reach max tries, default to false
+---@field maxTryCount integer? default to 3
+---@field delay integer? delay between each tries in ms, default to 0
+---@field raiseError boolean? will raise an error if reach max tries, default to false
 
----@param fun function
----@param maxTries integer max number of tries allowed
+---@param fun fun(integer?): boolean
 ---@param opt TryFunctionOptParam?
-local function tryFunction(fun, maxTries, opt)
-    local defaultDelayMs = 10
-    local defaultRaiseError = false
-    if type(fun) ~= "function" then error("fun must be function taking no parameter and returning a boolean") end
-    if type(maxTries) ~= "number" or maxTries < 1 then error("maxTries must be an integer greater or equal to 1") end
-    if opt == nil then opt = { delay_ms = defaultDelayMs, raiseError = defaultRaiseError } end
-    if type(opt) ~= "table" then error("opt is not a table") end
-    if opt.delay_ms == nil then opt.delay_ms = defaultDelayMs end
-    if opt.raiseError == nil then opt.raiseError = defaultRaiseError end
-    if type(opt.delay_ms) ~= "number" then error("opt.delay_ms is not an integer") end
-    if type(opt.raiseError) ~= "boolean" then error("opt.raiseError is not a boolean") end
+---@return boolean, any?
+local function tryFunction(fun, opt)
+    CheckField(fun, "fun", Is.Function(fun))
+    opt = opt or {}
+    CheckField(opt, "opt", Is.Table(opt))
+    local maxTryCount = opt.maxTryCount or 3
+    local delay = opt.delay or 10
+    local raiseError = opt.raiseError or false
+    Print(type(raiseError))
+    CheckField(maxTryCount, "opt.maxTryCount", Is.Unsigned(maxTryCount))
+    CheckField(delay, "opt.delay", Is.Unsigned(delay))
+    CheckField(raiseError, "opt.raiseError", Is.Boolean(raiseError))
+    for try = 1, maxTryCount do
+        if try ~= 1 and delay ~= 0 then SleepFor(delay) end
 
-    local tries = 0
-    local result = false
-    while not result do
-        if tries ~= 0 and opt.delay_ms ~= 0 then SleepFor(opt.delay_ms) end
-        if tries >= maxTries then
-            if opt.raiseError then error("Reached tries limit") end
-            return
-        end
-        tries = tries + 1
-        result = fun()
+        local result, o = fun(try)
+        if result then return result, o end
     end
+    if raiseError then error("Reached tries limit") end
+    return false
 end
 
 return tryFunction

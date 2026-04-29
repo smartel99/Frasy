@@ -287,7 +287,7 @@ function DAQ:RequestRouting(points)
         route = _requestRouting(self, points)
         -- SleepFor(1)
         return _checkRouting(self, points, route)
-    end, 5)
+    end, { maxTryCount = 5 })
     return route --[[@as DAQ_RoutingBusEnum]]
 end
 
@@ -1162,6 +1162,10 @@ function DAQ:MeasureVoltage(points, opt)
     self:AdcChannelGain(opt.channel, opt.gain)
     self:AdcSampleRate(opt.sampleRate)
     self:AdcSamplesToTake(opt.samplesToTake)
+
+    -- if points[1] == Context.values.route.tp51.daq then
+    --     BreakPopup("do your stuff")
+    -- end
 
     while opt.samplesToTake ~= 0 do
         local previous = opt.samplesToTake
