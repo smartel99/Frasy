@@ -181,13 +181,13 @@ private:
     std::string                           m_consumeButtonText = "Cancel";
 
 public:
-    Popup() = default;
+    Popup() { throw std::runtime_error("Popup cannot be default constructed, name will be empty"); };
     explicit Popup(std::size_t uut, sol::table builder);
-    Popup(const Popup&) = delete;
+    Popup(const Popup&)            = delete;
     Popup& operator=(const Popup&) = delete;
-    Popup(Popup&&) = default;
-    Popup& operator=(Popup&&) = default;
-    ~Popup() = default;
+    Popup(Popup&&)                 = default;
+    Popup& operator=(Popup&&)      = default;
+    ~Popup()                       = default;
     static std::string              GetName(std::size_t uut, sol::table builder);
     const std::string&              GetName() { return m_name; }
     const std::vector<std::string>& GetInputs() { return m_inputs; }

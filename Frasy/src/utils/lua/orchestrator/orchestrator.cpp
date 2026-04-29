@@ -1084,7 +1084,7 @@ void Orchestrator::importPopup(sol::state_view lua, std::size_t uut, Stage stage
     if (stage == Stage::execution) {
         lua["__popup"]["Show"] = [&, uut](sol::table builder) {
             m_popupMutex->lock();
-            auto [popup, success] = m_popups.try_emplace(builder["name"].get<std::string>(), uut, builder);
+            auto [popup, success] = m_popups.try_emplace(Popup::GetName(uut, builder), uut, builder);
             m_popupMutex->unlock();
             popup->second.Routine();
             m_popupMutex->lock();
