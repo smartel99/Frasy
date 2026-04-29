@@ -76,6 +76,7 @@ void KeyValue::reportIb(const std::string& name)
     for (const auto& c : serial) {
         *m_output << std::format("{:02x}", c);
     }
+    *m_output << endline;
     *m_output << prefix << "Hardware: " << getFieldAsStr<std::string>(ib["hardware"]) << endline;
     *m_output << prefix << "Software: " << getFieldAsStr<std::string>(ib["software"]) << endline;
 }
