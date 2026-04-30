@@ -16,7 +16,6 @@ local function tryFunction(fun, opt)
     local maxTryCount = opt.maxTryCount or 3
     local delay = opt.delay or 10
     local raiseError = opt.raiseError or false
-    Print(type(raiseError))
     CheckField(maxTryCount, "opt.maxTryCount", Is.Unsigned(maxTryCount))
     CheckField(delay, "opt.delay", Is.Unsigned(delay))
     CheckField(raiseError, "opt.raiseError", Is.Boolean(raiseError))
