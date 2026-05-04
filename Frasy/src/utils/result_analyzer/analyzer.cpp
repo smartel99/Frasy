@@ -166,7 +166,7 @@ void ResultAnalyzer::AnalyzeFile(const std::string& path)
         if (info.at("pass").get<bool>()) { locationResults.Passed++; }
         locationResults.PassedPercent = Percent(locationResults.Passed, locationResults.Total);
 
-        locationResults.Durations.push_back(info.at("time").at("elapsed").get<double>());
+        locationResults.Durations.push_back(info.at("time").at("process").get<double>());
         locationResults.AverageDuration =
           std::accumulate(locationResults.Durations.begin(), locationResults.Durations.end(), 0.0);
         locationResults.AverageDuration /= static_cast<double>(locationResults.Durations.size());
@@ -197,7 +197,7 @@ void ResultAnalyzer::AnalyzeSequence(const nlohmann::json& sequence, ResultAnaly
     if (sequence.at("pass").get<bool>()) { results.Passed++; }
     results.PassedPercent = Percent(results.Passed, results.Total - results.Skipped);
 
-    results.Durations.push_back(sequence.at("time").at("elapsed").get<double>());
+    results.Durations.push_back(sequence.at("time").at("process").get<double>());
     results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
     results.AverageDuration /= static_cast<double>(results.Durations.size());
 
@@ -225,7 +225,7 @@ void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResul
     if (test.at("pass").get<bool>()) { results.Passed++; }
     results.PassedPercent = Percent(results.Passed, results.Total - results.Skipped);
 
-    results.Durations.push_back(test.at("time").at("elapsed").get<double>());
+    results.Durations.push_back(test.at("time").at("process").get<double>());
     results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
     results.AverageDuration /= static_cast<double>(results.Durations.size());
 
