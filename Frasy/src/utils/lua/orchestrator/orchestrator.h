@@ -121,11 +121,14 @@ public:
      * @param serials list of UUT serial, must match the number of UUTs
      * @param regenerate if true, will force the generation of the solution
      * @param skipVerification if true, will skip the validation step
+     * @param onDoneCallback void callback invoked when done
      */
-    void runSolution(const std::string&              operatorName,
-                     const std::vector<std::string>& serials,
-                     bool                            regenerate,
-                     bool                            skipVerification);
+    void runSolution(
+      const std::string&              operatorName,
+      const std::vector<std::string>& serials,
+      bool                            regenerate,
+      bool                            skipVerification,
+      std::function<void()>           onDoneCallback = [] {});
 
     /**
      * Return the calculated solution
@@ -199,7 +202,7 @@ private:
     bool                        m_ibEnabled = true;
 
     std::map<std::string, Popup> m_popups;
-    std::unique_ptr<std::mutex>   m_popupMutex = nullptr;
+    std::unique_ptr<std::mutex>  m_popupMutex = nullptr;
 
     std::unique_ptr<std::mutex>                 m_exclusiveLock = nullptr;
     std::map<std::size_t, std::recursive_mutex> m_exclusiveLockMap;

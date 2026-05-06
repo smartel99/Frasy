@@ -161,7 +161,8 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
 void Orchestrator::runSolution(const std::string&              operatorName,
                                const std::vector<std::string>& serials,
                                bool                            regenerate,
-                               bool                            skipVerification)
+                               bool                            skipVerification,
+                               std::function<void()>           onDoneCallback)
 {
     m_operator = operatorName;
     if (isRunning()) {
@@ -176,7 +177,7 @@ void Orchestrator::runSolution(const std::string&              operatorName,
         std::lock_guard lock(*m_expectationsMutexes[uut]);
         m_expectationsVectors[uut].clear();
     }
-    m_running = std::async(std::launch::async, [this, &serials, regenerate, skipVerification] {
+    m_running = std::async(std::launch::async, [this, &serials, regenerate, skipVerification, onDoneCallback] {
         BR_BEGIN_GUARDED_SCOPE
         {
             if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), "Solution Runner")) {
@@ -186,6 +187,7 @@ void Orchestrator::runSolution(const std::string&              operatorName,
             runTests(serials, regenerate, skipVerification);
         }
         BR_END_GUARDED_SCOPE
+        onDoneCallback();
     });
 }
 
