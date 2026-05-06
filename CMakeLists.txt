@@ -30,21 +30,27 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/Frasy/src
 )
 
-add_custom_target(refresh_frasy_dependencies
-        # Frasy files
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_LIST_DIR}/Frasy/lua"
-        "$<TARGET_FILE_DIR:${APP_NAME}>/lua"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_LIST_DIR}/Frasy/assets"
-        "$<TARGET_FILE_DIR:${APP_NAME}>/assets"
-)
 
 add_custom_target(generate_hashes
         COMMAND ${CMAKE_CURRENT_LIST_DIR}/scripts/Windows/generate_hashes.bat
 )
-add_dependencies(refresh_frasy_dependencies
+add_custom_target(make_lua_dir COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${APP_NAME}>/lua"
+)
+include(sync_assets.cmake)
+target_sync_assets(
+        refresh_lua_core
+        "${CMAKE_CURRENT_LIST_DIR}/Frasy/lua/core"
+        "$<TARGET_FILE_DIR:${APP_NAME}>/lua/core"
+)
+target_sync_assets(
+        refresh_frasy_assets
+        "${CMAKE_CURRENT_LIST_DIR}/Frasy/assets"
+        "$<TARGET_FILE_DIR:${APP_NAME}>/assets"
+)
+add_dependencies(refresh_lua_core
         generate_hashes
+        make_lua_dir
+        refresh_frasy_assets
 )
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

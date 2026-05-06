@@ -183,7 +183,7 @@ private:
 
     static bool verifyHash(const std::filesystem::path&        folder,
                            const std::filesystem::path&        hashfile,
-                           const std::vector<HashDir::Filter>& filters);
+                           const std::vector<HashDir::Filter>& filters = std::vector<HashDir::Filter>());
 
     std::unique_ptr<sol::state> m_state = nullptr;
     std::vector<UutState>       m_uutStates;

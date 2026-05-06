@@ -16,25 +16,25 @@ if not exist "%DEST_DIR%" (
 
 echo Copying dependencies to %DEST_DIR%...
 
-if exist ".\vendor\frasy\Frasy\lua" (
-    echo Copying .\vendor\frasy\Frasy\lua...
-    xcopy /E /I /Y ".\vendor\frasy\Frasy\lua" "%DEST_DIR%\lua"
+if exist ".\vendor\frasy\Frasy\lua\core" (
+    echo Copying .\vendor\frasy\Frasy\lua\core...
+    robocopy /MIR /NFL /NDL /NJH /NJS /NC /NS ".\vendor\frasy\Frasy\lua\core" "%DEST_DIR%\lua\core"
 ) else (
-    echo Warning: .\vendor\frasy\Frasy\lua not found
+    echo Warning: .\vendor\frasy\Frasy\lua\core not found
 )
 
 if exist ".\vendor\frasy\Frasy\assets" (
     echo Copying .\vendor\frasy\Frasy\assets...
-    xcopy /E /I /Y ".\vendor\frasy\Frasy\assets" "%DEST_DIR%\assets"
+    robocopy /MIR /NFL /NDL /NJH /NJS /NC /NS ".\vendor\frasy\Frasy\assets" "%DEST_DIR%\assets"
 ) else (
     echo Warning: .\vendor\frasy\Frasy\assets not found
 )
 
-if exist ".\src\lua" (
+if exist ".\src\lua\user" (
     echo Copying .\src\lua...
-    xcopy /E /I /Y ".\src\lua" "%DEST_DIR%\lua"
+    robocopy /MIR /NFL /NDL /NJH /NJS /NC /NS ".\src\lua\user" "%DEST_DIR%\lua\user"
 ) else (
-    echo Warning: .\src\lua not found
+    echo Warning: .\src\lua\user not found
 )
 
 echo Done.

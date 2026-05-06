@@ -146,17 +146,7 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
     }
 
     if (const auto hash = hashDir(folder, filters); hash != expectedHash) {
-#    ifdef DEBUG
-        BR_LOG_ERROR(s_tag,
-                     "{} hash mismatch.\n"
-                     "E: {}\n"
-                     "C: {}",
-                     folder.string(),
-                     expectedHash,
-                     hash);
-#    else
         BR_LOG_ERROR(s_tag, "{} hash mismatch", folder.string());
-#    endif
         return false;
     }
 #else
@@ -472,8 +462,8 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         // Validation of hashes must happen after everything is loaded, in case code that is executed anyways uses our
         // stuff.
-        if (!verifyHash("lua/core", "lua/core/hash", s_coreFilters)) { return false; }
-        if (!verifyHash("lua/user", "lua/hash", m_filters)) { return false; }
+        if (!verifyHash("lua/core", "lua/core/hash")) { return false; }
+        if (!verifyHash("lua/user", "lua/user/hash", m_filters)) { return false; }
 
         // User content
         lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
