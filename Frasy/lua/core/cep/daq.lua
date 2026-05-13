@@ -1076,7 +1076,7 @@ function DAQ:Impedances(mode, opt)
 
     if Context.info.stage == Stage.execution then
         SleepFor(100) -- Let DAQ start measure and update trigger
-        local deadline = os.clock() + computeMeasureDuration(opt.samplesToTake, DAQ.AdcSampleRateEnum.f1000Hz, opt.delay)
+        local deadline = os.clock() + computeMeasureDuration(opt.samplesToTake, DAQ.AdcSampleRateEnum.f1000Hz, opt.delay) + 5000 -- We have too many issues with that
         local doRun = true
         while doRun do
             doRun = self.ib:Upload(odTrigger) --[[@as boolean]]
