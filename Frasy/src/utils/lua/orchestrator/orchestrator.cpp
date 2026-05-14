@@ -89,7 +89,7 @@ int OnPanic(lua_State* lua)
 }    // namespace
 
 
-bool Orchestrator::loadUserFiles(const std::string& environment, const std::string& testsDir)
+bool Orchestrator::loadUserFiles(const std::string& environment, const std::string& testsDir, const std::string& title)
 {
     if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), "Lua File Loader")) {
         BR_LOG_ERROR(s_tag, "Unable to set thread name");
@@ -116,10 +116,15 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     }
     m_uutStates.resize(m_map.uuts.size() + 1, UutState::Idle);
 
-    static const std::regex titlePattern(R"([\\\/]([^\\\/]+)[\\\/]environment$)");
-    if (std::smatch match; std::regex_search(environment, match, titlePattern)) { m_title = match.str(1); }
+    if (title.empty()) {
+        static const std::regex titlePattern(R"([\\\/]([^\\\/]+)[\\\/]environment$)");
+        if (std::smatch match; std::regex_search(environment, match, titlePattern)) { m_title = match.str(1); }
+        else {
+            m_title = "untitled";
+        }
+    }
     else {
-        m_title = "untitled";
+        m_title = title;
     }
 
     return true;

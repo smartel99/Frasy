@@ -65,7 +65,7 @@ public:
      * @param testsDir path the folder containing the test files
      * @return true if the orchestrator successfully loaded the files, false otherwise
      */
-    bool loadUserFiles(const std::string& environment, const std::string& testsDir);
+    bool loadUserFiles(const std::string& environment, const std::string& testsDir, const std::string& title = "");
 
     /**
      * Update filters to use when verifying user files
