@@ -76,8 +76,8 @@ private:
 
     void renderMenuBar();
 
-    void handleSerialConnection(const DeviceViewerOptions::WhitelistItem& info, const std::string& port);
-    void handleSerialDisconnection(const std::string& port);
+    void handleSerialConnection(const std::vector<std::string>& ports);
+    void handleSerialDisconnection(const std::vector<std::string>& ports);
 
 private:
     bool                m_isVisible = false;

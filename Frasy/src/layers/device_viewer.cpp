@@ -28,7 +28,6 @@
 #include <format>
 #include <regex>
 #include <string>
-#include <utils/get_serial_port.h>
 #include <vector>
 
 namespace Frasy {
@@ -232,6 +231,21 @@ void DeviceViewer::onDetach()
 void DeviceViewer::onEvent(Brigerad::Event& event)
 {
     Brigerad::EventDispatcher dispatcher = Brigerad::EventDispatcher(event);
+    auto                      getPorts   = [this] {
+        auto                     allPorts = serial::list_ports();
+        std::vector<std::string> filteredPorts;
+        for (auto& port : allPorts) {
+            auto info = DeviceViewerOptions::WhitelistItem::parse(port.hardware_id);
+            if (!info.has_value()) { continue; }
+            if (!std::ranges::any_of(m_options.usbWhitelist, [info](const auto& device) { return device == info; })) {
+                BR_APP_TRACE("Filtering {}, not in whitelist", port.port);
+                continue;
+            }
+            filteredPorts.push_back(port.port);
+        }
+        return filteredPorts;
+    };
+
     dispatcher.Dispatch<Brigerad::UsbConnectedEvent>([&](Brigerad::Event& e) {
         const auto& usbEvent = reinterpret_cast<const Brigerad::UsbEvent&>(e);
         const auto  info     = DeviceViewerOptions::WhitelistItem::parse(usbEvent.name);
@@ -239,25 +253,25 @@ void DeviceViewer::onEvent(Brigerad::Event& event)
             BR_APP_DEBUG("Could not parse device info, aborting");
             return false;
         }
-        m_ports                = serial::list_ports();
-        const std::string port = getSerialPort(usbEvent, m_ports);
-        if (port.empty()) {
-            BR_APP_DEBUG("Could not find port info, aborting");
+        if (!std::ranges::any_of(m_options.usbWhitelist, [info](const auto& device) { return device == info; })) {
+            BR_APP_DEBUG("New device not in whitelist, aborting");
             return false;
         }
-        handleSerialConnection(info.value(), port);
+        handleSerialConnection(getPorts());
         return false;
     });
     dispatcher.Dispatch<Brigerad::UsbDisconnectedEvent>([&](Brigerad::Event& e) {
-        // We must used previously used ports because if our port was disconnected, we won't have it anymore
-        const std::string port = getSerialPort(reinterpret_cast<const Brigerad::UsbEvent&>(e), m_ports);
-        // We do not update m_ports in case of multiple callback in a row
-        // m_ports                = serial::list_ports();
-        if (port.empty()) {
-            BR_APP_DEBUG("Could not find port info, aborting");
+        const auto& usbEvent = reinterpret_cast<const Brigerad::UsbEvent&>(e);
+        const auto  info     = DeviceViewerOptions::WhitelistItem::parse(usbEvent.name);
+        if (!info.has_value()) {
+            BR_APP_DEBUG("Could not parse device info, aborting");
             return false;
         }
-        handleSerialDisconnection(port);
+        if (!std::ranges::any_of(m_options.usbWhitelist, [info](const auto& device) { return device == info; })) {
+            BR_APP_DEBUG("New device not in whitelist, aborting");
+            return false;
+        }
+        handleSerialDisconnection(getPorts());
         return false;
     });
 }
@@ -470,7 +484,7 @@ void DeviceViewer::renderMenuBar()
             ImGui::BeginTooltip();
             ImGui::Text("Addresses: %zu", m_networkState.size());
             ImGui::Text("Packets Pending: %zu", [&devices = m_canOpen.m_devices]() -> size_t {
-                size_t tot = 0;
+                size_t          tot = 0;
                 std::lock_guard l {devices.mutex};
                 for (auto& device : devices.devices | std::views::values) {
                     tot += device.m_queue.size();
@@ -492,59 +506,68 @@ void DeviceViewer::renderMenuBar()
     }
 }
 
-void DeviceViewer::handleSerialConnection(const DeviceViewerOptions::WhitelistItem& info, const std::string& port)
+void DeviceViewer::handleSerialConnection(const std::vector<std::string>& ports)
 {
-    BR_APP_DEBUG("Handling connection of port {}", port);
-    if (port.empty()) {
-        BR_APP_DEBUG("No port provided, aborting");
-        return;
-    }
-    if (!std::ranges::any_of(m_options.usbWhitelist, [info](const auto& device) { return device == info; })) {
-        BR_APP_DEBUG("Not in whitelist, aborting");
-        return;
-    }
-    BR_APP_INFO("Connecting to {}", port);
-    if (m_canOpen.addDevice(port)) {
-        BR_APP_INFO("Connected");
-        std::lock_guard l {m_canOpen.m_devices.mutex};
-        // add monitoring hooks.
-        auto& device           = m_canOpen.m_devices.devices[port];
-        device.m_rxMonitorFunc = [this](const SlCan::Packet& pkt) {
-            FRASY_PROFILE_FUNCTION();
-            m_pktRxCount++;
+    for (const auto& port : ports) {
+        bool hasDevice = false;
+        for (const auto& [canDevicePort, canDeviceEntry] : m_canOpen.m_devices.devices) {
+            if (canDevicePort == port) {
+                hasDevice = true;
+                break;
+            }
+        }
+        if (hasDevice) { continue; }
+        BR_APP_INFO("Connecting to {}", ports);
+        if (m_canOpen.addDevice(port)) {
+            BR_APP_INFO("Connected");
+            std::lock_guard l {m_canOpen.m_devices.mutex};
+            // add monitoring hooks.
+            auto& device           = m_canOpen.m_devices.devices[port];
+            device.m_rxMonitorFunc = [this](const SlCan::Packet& pkt) {
+                FRASY_PROFILE_FUNCTION();
+                m_pktRxCount++;
 
-            m_packetsRxInCurrentSecond++;
-            m_bytesRxInCurrentSecond += pkt.sizeOfSerialPacket();
-            if (!m_isVisible) { return; }
-            if (!commandIsTransmit(pkt.command)) { return; }
+                m_packetsRxInCurrentSecond++;
+                m_bytesRxInCurrentSecond += pkt.sizeOfSerialPacket();
+                if (!m_isVisible) { return; }
+                if (!commandIsTransmit(pkt.command)) { return; }
 
-            m_networkState[pkt.data.packetData.id] = pkt.data.packetData;
-        };
+                m_networkState[pkt.data.packetData.id] = pkt.data.packetData;
+            };
 
-        device.m_txMonitorFunc = [this](const SlCan::Packet& pkt) {
-            FRASY_PROFILE_FUNCTION();
-            m_pktTxCount++;
+            device.m_txMonitorFunc = [this](const SlCan::Packet& pkt) {
+                FRASY_PROFILE_FUNCTION();
+                m_pktTxCount++;
 
-            m_packetsTxInCurrentSecond++;
-            m_bytesTxInCurrentSecond += pkt.sizeOfSerialPacket();
-            if (!m_isVisible) { return; }
-            if (!commandIsTransmit(pkt.command)) { return; }
+                m_packetsTxInCurrentSecond++;
+                m_bytesTxInCurrentSecond += pkt.sizeOfSerialPacket();
+                if (!m_isVisible) { return; }
+                if (!commandIsTransmit(pkt.command)) { return; }
 
-            m_networkState[pkt.data.packetData.id] = pkt.data.packetData;
-        };
+                m_networkState[pkt.data.packetData.id] = pkt.data.packetData;
+            };
+        }
     }
 }
 
-void DeviceViewer::handleSerialDisconnection(const std::string& port)
+void DeviceViewer::handleSerialDisconnection(const std::vector<std::string>& ports)
 {
-    BR_APP_DEBUG("Handling disconnection of port {}", port);
-    if (port.empty()) {
-        BR_APP_DEBUG("No port provided, aborting");
-        return;
+    std::vector<std::string> portsToRemove = {};
+    for (const auto& [canDevicePort, canDevice] : m_canOpen.m_devices.devices) {
+        bool hasDevice = false;
+        for (const auto& port : ports) {
+            if (canDevicePort == port) {
+                hasDevice = true;
+                break;
+            }
+        }
+        if (hasDevice) { continue; }
+        portsToRemove.push_back(canDevicePort);
     }
-    BR_APP_DEBUG("Removing port {} from the list...", port);
-    m_canOpen.removeDevice(port);
-    m_selectedPort = "";
+    for (const auto& port : portsToRemove) {
+        BR_APP_DEBUG("Removing device on port {}", port);
+        m_canOpen.removeDevice(port);
+    }
 }
 
 
