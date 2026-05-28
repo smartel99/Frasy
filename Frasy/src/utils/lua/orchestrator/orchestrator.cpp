@@ -102,6 +102,16 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     m_generated   = false;
     m_environment = environment;
     m_testsDir    = testsDir;
+    if (title.empty()) {
+        static const std::regex titlePattern(R"([\\\/]([^\\\/]+)[\\\/]environment$)");
+        if (std::smatch match; std::regex_search(environment, match, titlePattern)) { m_title = match.str(1); }
+        else {
+            m_title = "untitled";
+        }
+    }
+    else {
+        m_title = title;
+    }
     initLua(sol::state_view(*m_state));
     if (!loadEnvironment(sol::state_view(*m_state), m_environment)) { return false; }
     if (!loadTests(sol::state_view(*m_state), m_testsDir)) { return false; }
@@ -115,17 +125,6 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
         m_expectationsVectors.emplace_back();
     }
     m_uutStates.resize(m_map.uuts.size() + 1, UutState::Idle);
-
-    if (title.empty()) {
-        static const std::regex titlePattern(R"([\\\/]([^\\\/]+)[\\\/]environment$)");
-        if (std::smatch match; std::regex_search(environment, match, titlePattern)) { m_title = match.str(1); }
-        else {
-            m_title = "untitled";
-        }
-    }
-    else {
-        m_title = title;
-    }
 
     return true;
 }
@@ -293,7 +292,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["Context"]["info"]["version"]["application"]  = m_getApplicationVersion();
         lua["Context"]["info"]["version"]["orchestrator"] = "1.2.0";
         lua["Context"]["info"]["version"]["scripts"]      = "1.0.0";
-        lua["Context"]["info"]["title"]                   = "";
+        lua["Context"]["info"]["title"]                   = m_title;
         lua["Context"]["info"]["operator"]                = "";
         lua["Context"]["info"]["serial"]                  = "";
         std::atomic_thread_fence(std::memory_order_release);
@@ -774,7 +773,6 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
                         sol::state_view lua = states[uut];
                         mutex.unlock();
                         if (!initLua(lua, uut, Stage::execution)) { return; }
-                        lua["Context"]["info"]["title"]    = m_title;
                         lua["Context"]["info"]["operator"] = m_operator;
                         lua["Context"]["info"]["serial"]   = serials[uut];
                         // LoadIb(lua);
