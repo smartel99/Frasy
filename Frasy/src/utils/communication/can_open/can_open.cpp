@@ -116,8 +116,10 @@ CanOpen::~CanOpen()
 bool CanOpen::addDevice(const std::string& port)
 {
     if (m_devices.devices.contains(port)) {
-        BR_LOG_WARN(m_tag, "Device on port '{}' already open!", port);
-        return false;
+        BR_LOG_DEBUG(m_tag, "Device on port '{}' already in the list, opening it!", port);
+        auto& dev = m_devices.devices[port];
+        if (!dev.isOpen()) { return dev.open(); }
+        return true;
     }
 
     try {
@@ -137,8 +139,13 @@ bool CanOpen::addDevice(const std::string& port)
 
 bool CanOpen::removeDevice(const std::string& port)
 {
-    std::lock_guard l{m_devices.mutex};
-    return m_devices.devices.erase(port) == 1;
+    // We don't actually want to remove it from the interface list, we want to keep it around.
+    // std::lock_guard l{m_devices.mutex};
+    // return m_devices.devices.erase(port) == 1;
+    if (m_devices.devices.contains(port)) {
+        m_devices.devices[port].close();
+    }
+    return true;
 }
 
 // void CanOpen::open(std::string_view port)

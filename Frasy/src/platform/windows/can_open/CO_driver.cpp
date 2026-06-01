@@ -326,7 +326,15 @@ void CO_CANmodule_process(CO_CANmodule_t* CANmodule)
             if (buffer->bufferFull) {
                 buffer->bufferFull = false;
                 CANmodule->CANtxCount--;
-                CO_CANsend(CANmodule, buffer);
+                // If one or more interfaces failed to send, remove them from the list.
+                // When the device reconnects, we will receive a message through Windows, and the DeviceViewer will
+                // handle the reconnection.
+                // TODO: Ideally, we should signal the DeviceViewer or the CanOpen parent that there was an issue,
+                // and let one of them handle it in the way it sees fit.
+                if (CO_CANsend(CANmodule, buffer) == CO_ERROR_TX_BUSY) {
+                    auto* interfaces = static_cast<Frasy::CanOpen::CanOpen::Interfaces_t*>(CANmodule->interface);
+                    std::erase_if(interfaces->devices, [](auto& device){return !device.second.isOpen();});
+                }
                 found = true;
                 break;
             }
