@@ -517,7 +517,7 @@ void DeviceViewer::handleSerialConnection(const std::vector<std::string>& ports)
             }
         }
         if (hasDevice) { continue; }
-        BR_APP_INFO("Connecting to {}", ports);
+        BR_APP_INFO("Connecting to {}", port);
         if (m_canOpen.addDevice(port)) {
             BR_APP_INFO("Connected");
             std::lock_guard l {m_canOpen.m_devices.mutex};
