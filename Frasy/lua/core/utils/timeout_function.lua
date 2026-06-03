@@ -13,6 +13,7 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 local Is = require("lua/core/utils/is")
+local CheckField = require("lua/core/utils/check_field")
 
 ---Waits for a condition to be met for up to duration_ms milliseconds.
 ---

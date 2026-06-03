@@ -13,7 +13,7 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-local IsInteger = require("lua/core/utils/is_integer/is_integer")
+local Is = require("lua/core/utils/is")
 local CheckField = require("lua/core/utils/check_field")
 local function PrepareOptParameters(opt)
     if opt == nil then return {} end

@@ -31,7 +31,7 @@ local TryFunction = require("lua/core/utils/try_function")
 --- @class DAQ
 --- @field ib? Ib
 --- @field cache DAQ_Cache
-DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, }, adc = { lastStoredSamples = { [DAQ.AdcChannelEnum.adc2] = 0, [DAQ.AdcChannelEnum.adc3] = 0, }, } }, }
+DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, }, adc = { lastStoredSamples = { } } } }
 DAQ.__index = DAQ
 
 --- @enum DAQ_AdcChannelEnum
@@ -1126,7 +1126,7 @@ end
 
 local function IsPointsOk(points)
     if type(points) ~= table and #points == 0 then return false end
-    for _, v in ipairs(points) do if not IsIntegerIn(points, 0, 75) then return false end end
+    for _, v in ipairs(points) do if not Is.IntegerIn(points, 0, 75) then return false end end
     return true
 end
 
@@ -1166,6 +1166,8 @@ function DAQ:MeasureVoltage(points, opt)
     self:AdcChannelGain(opt.channel, opt.gain)
     self:AdcSampleRate(opt.sampleRate)
     self:AdcSamplesToTake(opt.samplesToTake)
+
+    print("Youhou")
 
     while opt.samplesToTake ~= 0 do
         local previous = opt.samplesToTake
