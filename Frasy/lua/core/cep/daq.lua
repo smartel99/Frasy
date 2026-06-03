@@ -1,16 +1,24 @@
+--- @file    daq.lua
+--- @author  Paul Thomas
+--- @date    2026-06-03
+---
+--- @copyright
+--- This program is free software: you can redistribute it and/or modify it under the
+--- terms of the GNU General Public License as published by the Free Software Foundation, either
+--- version 3 of the License, or (at your option) any later version.
+--- This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--- even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+--- General Public License for more details.
+--- You should have received a copy of the GNU General Public License along with this program. If
+--- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+
 --- @type Ib
-local Ib = require("lua/core/sdk/environment/ib")
 local Bitwise = require("lua/core/utils/bitwise")
-local IsBoolean = require("lua/core/utils/is_boolean")
-local IsInteger = require("lua/core/utils/is_integer/is_integer")
-local IsIntegerIn = require("lua/core/utils/is_integer/is_integer_in")
-local IsIntegerInOd = require("lua/core/utils/is_integer/is_integer_in_od")
-local IsUnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in")
-local IsUnsignedInOd = require("lua/core/utils/is_unsigned/is_unsigned_in_od")
-local IsFloatInOd = require("lua/core/utils/is_float/is_float_in_od")
-local TimeoutFunction = require("lua/core/utils/timeout_function")
 local CheckField = require("lua/core/utils/check_field")
+local Ib = require("lua/core/sdk/environment/ib")
+local Is = require("lua/core/utils/is")
 local StringizeValues = require("lua/core/utils/stringize_values")
+local TimeoutFunction = require("lua/core/utils/timeout_function")
 local TryFunction = require("lua/core/utils/try_function")
 
 --- @class DAQ_CacheIo
@@ -23,7 +31,7 @@ local TryFunction = require("lua/core/utils/try_function")
 --- @class DAQ
 --- @field ib? Ib
 --- @field cache DAQ_Cache
-DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, }, adc = {} }, }
+DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, }, adc = { lastStoredSamples = { [DAQ.AdcChannelEnum.adc2] = 0, [DAQ.AdcChannelEnum.adc3] = 0, }, } }, }
 DAQ.__index = DAQ
 
 --- @enum DAQ_AdcChannelEnum
@@ -41,9 +49,11 @@ function DAQ:New(opt)
     local ib = Ib:New()
     ib.kind = 02;
     if opt == nil then opt = {} end
-    CheckField(opt, "opt", type(opt) == "table")
-    if opt.name == nil then opt.name = "daq" end
-    if opt.nodeId == nil then opt.nodeId = ib.kind end
+    CheckField(opt, Is.Table)
+    opt.name = opt.name or "daq"
+    CheckField(opt.name, Is.String)
+    opt.nodeId = opt.nodeId or ib.kind
+    CheckField(opt.nodeId, Is.Unsigned8)
     ib.name = opt.name
     ib.nodeId = opt.nodeId
     ib.eds = "lua/core/cep/eds/daq.eds"
@@ -154,9 +164,7 @@ DAQ.RoutingPointsEnum = {
 }
 
 function DAQ.RoutingBusEnumToString(bus)
-    if not IsIntegerIn(bus, DAQ.RoutingBusEnum.all, DAQ.RoutingBusEnum.bus4) then
-        error("Invalid bus: " .. tostring(bus))
-    end
+    CheckField(bus, Is.IntegerIn, DAQ.RoutingBusEnum.all, DAQ.RoutingBusEnum.bus4)
     local names = {
         [DAQ.RoutingBusEnum.all] = "All",
         [DAQ.RoutingBusEnum.bus1] = "Bus 1",
@@ -168,7 +176,7 @@ function DAQ.RoutingBusEnumToString(bus)
 end
 
 function DAQ.RoutingPointsEnumToString(point)
-    CheckField(point, "point", IsIntegerIn(point, DAQ.RoutingPointsEnum.NONE, DAQ.RoutingPointsEnum.GUARD))
+    CheckField(point, Is.IntegerIn, DAQ.RoutingPointsEnum.NONE, DAQ.RoutingPointsEnum.GUARD)
     local names = {
         [DAQ.RoutingPointsEnum.NONE] = "NONE",
         [DAQ.RoutingPointsEnum.MUX1_A0] = "MUX1_A0",
@@ -273,11 +281,11 @@ end
 --- @param points DAQ_RoutingPointsEnum[]
 --- @return DAQ_RoutingBusEnum
 function DAQ:RequestRouting(points)
-    if type(points) ~= "table" then error("Invalid points: " .. tostring(points)) end
+    CheckField(points, Is.Array)
     if #points < 2 then error("Invalid points count: " .. tostring(#points)) end
     local sPoints = {}
     for k, v in ipairs(points) do
-        if not IsInteger(v) then error("Invalid point: [" .. k .. "] " .. tostring(v)) end
+        if not Is.Integer(v) then error("Invalid point: [" .. k .. "] " .. tostring(v)) end
         table.insert(sPoints, v)
     end
     table.insert(sPoints, 0)
@@ -295,9 +303,7 @@ end
 --- @param bus DAQ_RoutingBusEnum
 --- @return DAQ_RoutingPointsEnum[]
 function DAQ:GetBusState(bus)
-    if not IsIntegerIn(bus, DAQ.RoutingBusEnum.bus1, DAQ.RoutingBusEnum.bus4) then
-        error("Invalid bus: " .. tostring(bus))
-    end
+    CheckField(bus, Is.Unsigned, DAQ.RoutingBusEnum.bus1, DAQ.RoutingBusEnum.bus4)
     if Context.info.stage ~= Stage.execution then return {} end
     return self.ib:Upload(self.ib.od["Routing"][DAQ.RoutingBusEnumToString(bus) .. " State"]) --[[@as DAQ_RoutingPointsEnum[] ]]
 end
@@ -305,9 +311,7 @@ end
 --- Clears a bus.
 --- @param bus DAQ_RoutingBusEnum
 function DAQ:ClearBus(bus)
-    if not IsIntegerIn(bus, DAQ.RoutingBusEnum.all, DAQ.RoutingBusEnum.bus4) then
-        error("Invalid bus: " .. tostring(bus))
-    end
+    CheckField(bus, Is.UnsignedIn, DAQ.RoutingBusEnum.all, DAQ.RoutingBusEnum.bus4)
     self.ib:Download(self.ib.od["Routing"]["Clear " .. DAQ.RoutingBusEnumToString(bus)], true)
 end
 
@@ -316,15 +320,15 @@ end
 DAQ.DacShapeEnum = { dc = 1, sine = 2, sawtooth = 3, triangle = 4, square = 5, noise = 6 }
 
 --- Toggles the DAC, or get the current state of the DAC.
---- @param state? boolean The desired state.
+--- @param enable? boolean The desired state.
 --- @return boolean? state
-function DAQ:DacEnable(state)
+function DAQ:DacEnable(enable)
     local od = self.ib.od["DAC"]["Enable"]
-    if state == nil then
+    if enable == nil then
         return self.ib:Upload(od) --[[@as boolean]]
     else
-        CheckField(state, "enable", IsBoolean(state))
-        self.ib:Download(od, state)
+        CheckField(enable, Is.Boolean)
+        self.ib:Download(od, enable)
     end
 end
 
@@ -337,7 +341,7 @@ function DAQ:DacAmplitude(amplitude)
     if amplitude == nil then
         return self.ib:Upload(od) --[[@as number]]
     else
-        CheckField(amplitude, "amplitude", IsFloatInOd(amplitude, od))
+        CheckField(amplitude, Is.FloatInOd, od)
         self.ib:Download(od, amplitude)
     end
 end
@@ -350,7 +354,7 @@ function DAQ:DacFrequency(frequency)
     if frequency == nil then
         return self.ib:Upload(od) --[[@as number]]
     else
-        CheckField(frequency, "frequency", IsUnsignedInOd(frequency, od))
+        CheckField(frequency, Is.UnsignedInOd, od)
         self.ib:Download(od, frequency)
     end
 end
@@ -363,7 +367,7 @@ function DAQ:DacShape(shape)
     if shape == nil then
         return self.ib:Upload(od) --[[@as DAQ_DacShape]]
     else
-        CheckField(shape, "shape", IsUnsignedIn(shape, DAQ.DacShapeEnum.dc, DAQ.DacShapeEnum.noise))
+        CheckField(shape, Is.UnsignedIn, DAQ.DacShapeEnum.dc, DAQ.DacShapeEnum.noise)
         self.ib:Download(od, shape)
     end
 end
@@ -396,7 +400,7 @@ DAQ.HIGH = DAQ.IoValueEnum.high
 DAQ.LOW = DAQ.IoValueEnum.low
 
 local function CheckIoIndex(index)
-    CheckField(index, "io index", IsIntegerIn(index, DAQ.IoEnum.a, DAQ.IoEnum.db9SpareIo))
+    CheckField(index, Is.IntegerIn, DAQ.IoEnum.a, DAQ.IoEnum.db9SpareIo)
 end
 
 --- Multiple IO mode accessor.
@@ -409,7 +413,7 @@ function DAQ:IoModes(modes)
         self.cache.io.mode = self.ib:Upload(od) --[[@as integer]]
         return self.cache.io.mode
     else
-        CheckField(modes, "modes", IsIntegerIn(modes, 0, DAQ.IoValuesMax))
+        CheckField(modes, Is.IntegerIn, 0, DAQ.IoValuesMax)
         self.cache.io.mode = modes
         self.ib:Download(od, modes)
     end
@@ -425,7 +429,7 @@ function DAQ:IoMode(io, mode)
     if mode == nil then
         return Bitwise.Extract(io, self:IoModes())
     else
-        CheckField(mode, "mode", mode == 0 or mode == 1)
+        CheckField(mode, function(v) return v == 0 or v == 1 end)
         self:IoModes(Bitwise.Inject(io, mode, self.cache.io.mode))
     end
 end
@@ -455,7 +459,7 @@ function DAQ:IoOutputValues(values)
         self.cache.io.output = self.ib:Upload(od) --[[@as integer]]
         return self.cache.io.output
     else
-        CheckField(values, "values", IsUnsignedIn(values, 0, DAQ.IoValuesMax))
+        CheckField(values, Is.UnsignedIn, 0, DAQ.IoValuesMax)
         self.cache.io.output = values
         self.ib:Download(od, values)
     end
@@ -471,7 +475,7 @@ function DAQ:IoOutputValue(index, value)
     if value == nil then
         return Bitwise.Extract(index, self:IoOutputValues())
     else
-        CheckField(value, "value", value == 0 or value == 1)
+        CheckField(value, function(v) return v == 0 or v == 1 end)
         self:IoOutputValues(Bitwise.Inject(index, value, self.cache.io.output))
     end
 end
@@ -558,7 +562,7 @@ function DAQ:SignalingMode(mode)
     if mode == nil then
         return self.ib:Upload(od) --[[@as DAQ_SignalingModeEnum]]
     else
-        CheckField(mode, "mode", IsIntegerIn(mode, 0, 9))
+        CheckField(mode, Is.IntegerIn, 0, 9)
         self.ib:Download(od, mode)
     end
 end
@@ -571,7 +575,7 @@ function DAQ:SignalingModeModifier(mod)
     if mod == nil then
         return self.ib:Upload(od) --[[@as DAQ_SignalingModeEnum]]
     else
-        CheckField(mod, "mode", IsIntegerIn(mod, 0, 6))
+        CheckField(mod, Is.IntegerIn, 0, 6)
         self.ib:Download(od, mod)
     end
 end
@@ -584,7 +588,7 @@ function DAQ:SignalingIdleTime(minutes)
     if minutes == nil then
         return self.ib:Upload(od) --[[@as integer]]
     else
-        CheckField(minutes, "idle time", IsIntegerInOd(minutes, od))
+        CheckField(minutes, Is.IntegerInOd, od)
         self.ib:Download(od, minutes)
     end
 end
@@ -595,11 +599,11 @@ end
 --- @return integer?
 function DAQ:SignalingLedColor(led, color)
     local od = self.ib.od["Signaling"][led]
-    CheckField(led, "led", od ~= nil)
+    CheckField(led, Is.UnsignedIn, DAQ.SignalingLed.led1, DAQ.SignalingLed.led8)
     if color == nil then
         return self.ib:Upload(od) --[[@as integer]]
     else
-        CheckField(color, "Color", IsIntegerInOd(color, od))
+        CheckField(color, Is.IntegerInOd, od)
         self.ib:Download(od, color)
     end
 end
@@ -621,9 +625,9 @@ function DAQ:SignalingBuzzerMode(pattern, duration)
         error("Invalid pattern, nil")
     else
         if duration == nil then duration = 255 end
-        CheckField(pattern, "pattern", IsIntegerIn(pattern, DAQ.SignalingBuzzerPatternEnum.off,
-            DAQ.SignalingBuzzerPatternEnum.on125msPer250ms))
-        CheckField(duration, "duration", IsIntegerIn(duration, 0, 255))
+        CheckField(pattern, Is.IntegerIn, DAQ.SignalingBuzzerPatternEnum.off,
+            DAQ.SignalingBuzzerPatternEnum.on125msPer250ms)
+        CheckField(duration, Is.IntegerIn, 0, 255)
         self.ib:Download(od, pattern | (duration << 8))
     end
 end
@@ -637,7 +641,7 @@ function DAQ:UutGround(state)
     if state == nil then
         return self.ib:Upload(od) --[[@as boolean]]
     else
-        CheckField(state, "state", IsBoolean(state))
+        CheckField(state, Is.Boolean)
         self.ib:Download(od, state)
     end
 end
@@ -651,7 +655,7 @@ function DAQ:InternalCanStandby(state)
     if state == nil then
         return self.ib:Upload(od) --[[@as boolean]]
     else
-        CheckField(state, "state", IsBoolean(state))
+        CheckField(state, Is.Boolean)
         self.ib:Download(od, state)
     end
 end
@@ -664,7 +668,7 @@ function DAQ:InternalCanTerminationResistor(state)
     if state == nil then
         return self.ib:Upload(od) --[[@as boolean]]
     else
-        CheckField(state, "state", IsBoolean(state))
+        CheckField(state, Is.Boolean)
         self.ib:Download(od, state)
     end
 end
@@ -684,7 +688,7 @@ DAQ.SpiModeEnum = { gpio = 0, spi = 1, }
 --- @param mode DAQ_SpiModeEnum?
 --- @return DAQ_SpiModeEnum? mode
 function DAQ:SpiMode(mode)
-    --- TODO
+    error("Not Implemented")
 end
 
 --- Property for SPI GPIO Configuration
@@ -693,7 +697,7 @@ end
 --- @param value number?
 --- @return number? state
 function DAQ:SpiGpioConfigurations(value)
-    --- TODO
+    error("Not Implemented")
 end
 
 --- Property for SPI GPIO Values
@@ -702,7 +706,7 @@ end
 --- @param value number?
 --- @return number? state
 function DAQ:SpiGpioValues(value)
-    --- TODO
+    error("Not Implemented")
 end
 
 --- Property for SPI GPIO Values
@@ -711,6 +715,7 @@ end
 --- @param value number?
 --- @return number? state
 function DAQ:SpiGpioPolarities(value)
+    error("Not Implemented")
 end
 
 -- ADC
@@ -789,7 +794,7 @@ function DAQ.AdcChannelToTestPoint(channel)
 end
 
 local function CheckAdcChannel(channel)
-    CheckField(channel, "channel", IsIntegerIn(channel, DAQ.AdcChannelEnum.adc1, DAQ.AdcChannelEnum.adc4))
+    CheckField(channel, Is.IntegerIn, DAQ.AdcChannelEnum.adc1, DAQ.AdcChannelEnum.adc4)
 end
 
 --- @private
@@ -813,7 +818,7 @@ function DAQ:AdcSamplesToTake(count)
     if count == nil then
         return self.ib:Upload(od) --[[@as integer]]
     else
-        CheckField(count, "count", IsIntegerInOd(count, od))
+        CheckField(count, Is.IntegerInOd, od)
         self.ib:Download(od, count)
     end
 end
@@ -826,7 +831,7 @@ function DAQ:AdcSampleRate(sampleRate)
     if sampleRate == nil then
         return self.ib:Upload(od) --[[@as DAQ_AdcSampleRateEnum]]
     else
-        CheckField(sampleRate, "sample rate", IsIntegerInOd(sampleRate, od))
+        CheckField(sampleRate, Is.IntegerInOd, od)
         self.ib:Download(od, sampleRate)
     end
 end
@@ -841,7 +846,7 @@ function DAQ:AdcChannelGain(channel, gain)
     if gain == nil then
         return self.ib:Upload(od) --[[@as DAQ_AdcChannelGainEnum]]
     else
-        CheckField(gain, "gain", IsIntegerInOd(gain, od))
+        CheckField(gain, Is.IntegerInOd, od)
         self.ib:Download(od, gain)
     end
 end
@@ -878,7 +883,7 @@ end
 
 --- @param index integer
 function DAQ:AdcStoredSampleIndex(index)
-    CheckField(index, "index", IsIntegerIn(index, 0, 999))
+    CheckField(index, Is.IntegerIn, 0, 999)
     local od = self.ib.od["ADC"]["Stored Sample Index"]
     self.ib:Download(od, index)
 end
@@ -1017,7 +1022,7 @@ function DAQ:Impedances(mode, opt)
     if self.ib:Upload(odTrigger) then error("Impedance measure already running") end
 
     local odMode = od["Mode"]
-    CheckField(mode, "mode", IsIntegerInOd(mode, odMode))
+    CheckField(mode, Is.IntegerInOd, odMode)
     local odShape = od["Shape"]
     local odRangeResistor = od["Range Resistor"]
     local odFrequency = od["Frequency"]
@@ -1032,7 +1037,7 @@ function DAQ:Impedances(mode, opt)
     local odVout = od["Vout"]
 
     if opt == nil then opt = {} end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
 
     if opt.shape == nil then opt.shape = DAQ.ImpedanceDefaults.shape end
     if opt.rangeResistor == nil then opt.rangeResistor = DAQ.ImpedanceDefaults.rangeResistor end
@@ -1043,14 +1048,14 @@ function DAQ:Impedances(mode, opt)
     if opt.expectedValue == nil then opt.expectedValue = DAQ.ImpedanceDefaults.expectedValue end
     if opt.favorSpeed == nil then opt.favorSpeed = DAQ.ImpedanceDefaults.favorSpeed end
 
-    CheckField(opt.shape, "shape", IsIntegerInOd(opt.shape, odShape))
-    CheckField(opt.rangeResistor, "range Resistor", IsIntegerInOd(opt.rangeResistor, odRangeResistor))
-    CheckField(opt.frequency, "frequency", IsIntegerInOd(opt.frequency, odFrequency))
-    CheckField(opt.amplitude, "amplitude", IsFloatInOd(opt.amplitude, odAmplitude))
-    CheckField(opt.samplesToTake, "samples to take", IsIntegerInOd(opt.samplesToTake, odSamplesToTake))
-    CheckField(opt.delay, "delay", IsIntegerIn(opt.delay, 0, 4294967296))
-    CheckField(opt.expectedValue, "expected value", IsIntegerIn(opt.expectedValue, 0, 4294967296))
-    CheckField(opt.favorSpeed, "favorSpeed", IsBoolean(opt.favorSpeed))
+    CheckField(opt.shape, Is.IntegerInOd, odShape)
+    CheckField(opt.rangeResistor, Is.IntegerInOd, odRangeResistor)
+    CheckField(opt.frequency, Is.IntegerInOd, odFrequency)
+    CheckField(opt.amplitude, Is.FloatInOd, odAmplitude)
+    CheckField(opt.samplesToTake, Is.IntegerInOd, odSamplesToTake)
+    CheckField(opt.delay, Is.Unsigned32)
+    CheckField(opt.expectedValue, Is.Unsigned32)
+    CheckField(opt.favorSpeed, Is.Boolean)
 
 
     -- check auto parameters
@@ -1076,7 +1081,8 @@ function DAQ:Impedances(mode, opt)
 
     if Context.info.stage == Stage.execution then
         SleepFor(100) -- Let DAQ start measure and update trigger
-        local deadline = os.clock() + computeMeasureDuration(opt.samplesToTake, DAQ.AdcSampleRateEnum.f1000Hz, opt.delay) + 5000 -- We have too many issues with that
+        local deadline = os.clock() + computeMeasureDuration(opt.samplesToTake, DAQ.AdcSampleRateEnum.f1000Hz, opt.delay) +
+            5000      -- We have too many issues with that
         local doRun = true
         while doRun do
             doRun = self.ib:Upload(odTrigger) --[[@as boolean]]
@@ -1146,26 +1152,20 @@ function DAQ:MeasureVoltage(points, opt)
     points = PointToPoints(points)
     if IsPointsOk(points) then error("Invalid points") end
     if opt == nil then opt = {} end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
     if opt.channel == nil then opt.channel = DAQ.MeasureVoltageDefault.channel end
-    CheckField(opt.channel, "Channel", opt.channel == DAQ.AdcChannelEnum.adc2 or opt.channel == DAQ.AdcChannelEnum.adc3)
+    CheckField(opt.channel, Is.UnsignedIn, DAQ.AdcChannelEnum.adc2, DAQ.AdcChannelEnum.adc3)
     if opt.samplesToTake == nil then opt.samplesToTake = DAQ.MeasureVoltageDefault.samplesToTake end
     if opt.gain == nil then opt.gain = DAQ.MeasureVoltageDefault.gain end
     if opt.sampleRate == nil then opt.sampleRate = DAQ.MeasureVoltageDefault.sampleRate end
 
     local route = self:RequestRouting({ DAQ.AdcChannelToTestPoint(opt.channel), table.unpack(points) })
 
-    if route == -1 then
-        error("Unable to connect points to ADC!")
-    end
+    if route == -1 then error("Unable to connect points to ADC!") end
 
     self:AdcChannelGain(opt.channel, opt.gain)
     self:AdcSampleRate(opt.sampleRate)
     self:AdcSamplesToTake(opt.samplesToTake)
-
-    -- if points[1] == Context.values.route.tp51.daq then
-    --     BreakPopup("do your stuff")
-    -- end
 
     while opt.samplesToTake ~= 0 do
         local previous = opt.samplesToTake
@@ -1216,7 +1216,7 @@ end
 --- @return DAQ_ImpedanceResults
 function DAQ:MeasureResistor(impP, impN, opt)
     if opt == nil then opt = {} end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
 
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
@@ -1266,7 +1266,7 @@ end
 --- @return DAQ_ImpedanceResults
 function DAQ:MeasureCapacitor(impP, impN, opt)
     if opt == nil then opt = {} end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
 
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
@@ -1316,7 +1316,7 @@ end
 --- @return DAQ_ImpedanceResults
 function DAQ:MeasureInductor(impP, impN, opt)
     if opt == nil then opt = {} end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
 
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)

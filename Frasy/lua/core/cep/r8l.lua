@@ -1,9 +1,21 @@
-local Ib = require("lua/core/sdk/environment/ib")
+--- @file    r8l.lua
+--- @author  Paul Thomas
+--- @date    2026-06-03
+---
+--- @copyright
+--- This program is free software: you can redistribute it and/or modify it under the
+--- terms of the GNU General Public License as published by the Free Software Foundation, either
+--- version 3 of the License, or (at your option) any later version.
+--- This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--- even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+--- General Public License for more details.
+--- You should have received a copy of the GNU General Public License along with this program. If
+--- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+
 local Bitwise = require("lua/core/utils/bitwise")
-local IsBoolean = require("lua/core/utils/is_boolean")
-local IsIntegerIn = require("lua/core/utils/is_integer/is_integer_in")
-local IsUnsigned8 = require("lua/core/utils/is_unsigned/is_unsigned_8")
 local CheckField = require("lua/core/utils/check_field")
+local Ib = require("lua/core/sdk/environment/ib")
+local Is = require("lua/core/utils/is")
 
 ---@class R8L_Cache
 ---@field digitalOutput integer bitpacking of R8L_RelayStateOutput
@@ -24,9 +36,9 @@ R8L.RelayStateEnum = {
 R8L.OPEN = R8L.RelayStateEnum.open
 R8L.CLOSED = R8L.RelayStateEnum.closed
 
-local function CheckIndex(index) CheckField(index, "index", IsIntegerIn(index, 0, 7)) end
+local function CheckIndex(index) CheckField(index, Is.IntegerIn, 0, 7) end
 
-local function CheckRelayValue(value) CheckField(value, "value", IsUnsigned8(value)) end
+local function CheckRelayValue(value) CheckField(value, Is.Unsigned8) end
 
 --- @class R8L_NewOptionalParameters
 --- @field name string? default to "r8l"
@@ -40,7 +52,7 @@ function R8L:New(opt)
     local ib = Ib:New()
     ib.kind = 04;
     if opt == nil then opt = {} end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
     if opt.name == nil then opt.name = "r8l" end
     if opt.nodeId == nil then opt.nodeId = ib.kind end
     ib.name = opt.name
@@ -97,7 +109,7 @@ function R8L:ErrorModeOutput(value)
     if value == nil then
         return self.ib:Upload(self.ib.od["Error Mode Output"]) --[[@as boolean]]
     else
-        CheckField(value, "value", IsBoolean(value))
+        CheckField(value, Is.Boolean)
         self.ib:Download(self.ib.od["Error Mode Output"], value)
     end
 end

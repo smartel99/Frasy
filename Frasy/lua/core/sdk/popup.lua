@@ -17,16 +17,16 @@ local IsInteger = require("lua/core/utils/is_integer/is_integer")
 local CheckField = require("lua/core/utils/check_field")
 local function PrepareOptParameters(opt)
     if opt == nil then return {} end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
     return opt
 end
 local function PrepareImguiSize(value, name)
     if (value == nil) then return { 0.0, 0.0 } end
-    CheckField(value, name .. " type", type(value) == "table")
+    CheckField(value, Is.Table)
     if value.width == nil then value.width = 0.0 end
     if value.height == nil then value.height = 0.0 end
-    CheckField(value.width, name .. " width", type(value.width) == "number");
-    CheckField(value.height, name .. " height", type(value.height) == "number");
+    CheckField(value.width, Is.Number);
+    CheckField(value.height, Is.Number);
     return { value.width * 1.0, value.height * 1.0 }
 end
 
@@ -82,7 +82,7 @@ end
 ---@param text string
 ---@return PopupBuilder builder
 function PopupBuilder:Text(text)
-    CheckField(text, "text", type(text) == "string")
+    CheckField(text, Is.String)
     table.insert(self.elements, {
         kind = ElementKind.text,
         text = text,
@@ -94,7 +94,7 @@ end
 ---@param routine function
 ---@return PopupBuilder builder
 function PopupBuilder:TextDynamic(routine)
-    CheckField(routine, "routine", type(routine) == "function")
+    CheckField(routine, Is.Function)
     table.insert(self.elements, {
         kind = ElementKind.textDynamic,
         routine = routine,
@@ -106,7 +106,7 @@ end
 --- @param title string
 --- @return PopupBuilder builder
 function PopupBuilder:Input(title)
-    CheckField(title, "title", type(title) == "string")
+    CheckField(title, Is.String)
     table.insert(self.elements, {
         kind = ElementKind.input,
         title = title,
@@ -124,12 +124,12 @@ end
 --- @param opt Popup_Button_OptParameters?
 --- @return PopupBuilder builder
 function PopupBuilder:Button(label, action, opt)
-    CheckField(label, "label", type(label) == "string")
-    CheckField(action, "action", type(action) == "function")
+    CheckField(label, Is.String)
+    CheckField(action, Is.Function)
     opt = PrepareOptParameters(opt)
     opt.size = PrepareImguiSize(opt.size, "size")
     if opt.consume == nil then opt.consume = false end
-    CheckField(opt.consume, "consume", type(opt.consume) == "boolean")
+    CheckField(opt.consume, Is.Boolean)
     table.insert(self.elements, {
         kind    = ElementKind.button,
         label   = label,
@@ -144,7 +144,7 @@ end
 --- @param path string
 --- @param size ImGui_Size?
 function PopupBuilder:Image(path, size)
-    CheckField(path, "path", type(path) == "string")
+    CheckField(path, Is.String)
     size = PrepareImguiSize(size, "size")
     table.insert(self.elements, {
         kind = ElementKind.image,
@@ -162,11 +162,11 @@ end
 --- @param opt ImGui_Layout_OptParameters?
 --- @return PopupBuilder
 function PopupBuilder:BeginHorizontal(id, opt)
-    CheckField(id, "id", IsInteger(id))
+    CheckField(id, Is.Integer)
     opt = PrepareOptParameters(opt)
     opt.size = PrepareImguiSize(opt.size, "size")
     if opt.align == nil then opt.align = -1.0 end
-    CheckField(opt.align, "align", type(opt.align) == "number")
+    CheckField(opt.align, Is.Number)
     table.insert(self.elements, {
         kind = ElementKind.beginHorizontal,
         id = id,
@@ -186,11 +186,11 @@ end
 --- @param opt ImGui_Layout_OptParameters?
 --- @return PopupBuilder
 function PopupBuilder:BeginVertical(id, opt)
-    CheckField(id, "id", IsInteger(id))
+    CheckField(id, Is.Integer)
     opt = PrepareOptParameters(opt)
     opt.size = PrepareImguiSize(opt.size, "size")
     if opt.align == nil then opt.align = -1.0 end
-    CheckField(opt.align, "align", type(opt.align) == "number")
+    CheckField(opt.align, Is.Number)
     table.insert(self.elements, {
         kind = ElementKind.beginVertical,
         id = id,
@@ -215,11 +215,11 @@ end
 --- @return PopupBuilder builder
 function PopupBuilder:SameLine(opt)
     if opt == nil then opt = {} end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
     if opt.offsetFromStartX == nil then opt.offsetFromStartX = 0.0 end
     if opt.spacing == nil then opt.spacing = -1.0 end
-    CheckField(opt.offsetFromStartX, "offsetFromStartX", type(opt.offsetFromStartX) == "number");
-    CheckField(opt.spacing, "spacing", type(opt.spacing) == "number");
+    CheckField(opt.offsetFromStartX, Is.Number);
+    CheckField(opt.spacing, Is.Number);
     table.insert(self.elements, {
         kind = ElementKind.sameLine,
         offsetFromStartX = opt.offsetFromStartX,
@@ -237,8 +237,8 @@ function PopupBuilder:Spring(opt)
     opt = PrepareOptParameters(opt)
     if opt.weight == nil then opt.weight = 1 end
     if opt.spacing == nil then opt.spacing = -1 end
-    CheckField(opt.weight, "weight", type(opt.weight) == "number")
-    CheckField(opt.spacing, "spacing", type(opt.spacing) == "number")
+    CheckField(opt.weight, Is.Number)
+    CheckField(opt.spacing, Is.Number)
     table.insert(self.elements, {
         kind = ElementKind.spring,
         weight = opt.weight,

@@ -1,7 +1,6 @@
 --- @file    global.lua
 --- @author  Paul Thomas
---- @date    2023-03-15
---- @brief   Collection of globally declared utility calls
+--- @date    2026-06-03
 ---
 --- @copyright
 --- This program is free software: you can redistribute it and/or modify it under the
