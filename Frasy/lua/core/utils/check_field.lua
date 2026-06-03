@@ -17,6 +17,7 @@
 ---@param v any field to check
 ---@param f fun(v: any, ...): boolean predicate function that must at least take v as its first parameter
 ---@param ... any? predicate additional parameters, if any
+---@return any v the value that was provided
 return function(v, f, ...)
     local function getName()
         local caller = debug.getinfo(3, "Sl")
@@ -44,4 +45,6 @@ return function(v, f, ...)
     if not f(v, ...) then
         error(string.format("CheckField failed. %s: %s", tostring(getName()), ToString(v)), 2)
     end
+
+    return v
 end
