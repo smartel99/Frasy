@@ -1136,6 +1136,7 @@ DAQ.MeasureVoltageDefault = {
 --- @field samplesToTake integer? number of samples to take [1, 1000]
 --- @field gain DAQ_AdcChannelGainEnum? ADC gain
 --- @field sampleRate DAQ_AdcSampleRateEnum? ADC sampling rate
+--- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
 
 --- Measures a voltage on one or more points.
 --- @param points DAQ_RoutingPointsEnum[]|DAQ_RoutingPointsEnum place where to measure voltage
@@ -1157,6 +1158,13 @@ function DAQ:MeasureVoltage(points, opt)
 
     if route == -1 then
         error("Unable to connect points to ADC!")
+    end
+
+    if opt.debugPopup then 
+        local text = type(opt.debugPopup) == "string" and opt.debugPopup or "Do your stuff" --[[@as string]]
+        Popup("Measure Voltage")
+            :Text(text)
+            :Show()
     end
 
     self:AdcChannelGain(opt.channel, opt.gain)
@@ -1208,6 +1216,7 @@ end
 --- @field delay integer? us
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
+--- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
 
 --- Measures a resistor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
@@ -1228,6 +1237,13 @@ function DAQ:MeasureResistor(impP, impN, opt)
     if opt.guards ~= nil then
         opt.guards = PointToPoints(opt.guards)
         rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
+    end
+
+    if opt.debugPopup then 
+        local text = type(opt.debugPopup) == "string" and opt.debugPopup or "Do your stuff" --[[@as string]]
+        Popup("Measure Resistor")
+            :Text(text)
+            :Show()
     end
 
     local result = self:Impedances(
@@ -1258,6 +1274,7 @@ end
 --- @field delay integer?
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
+--- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
 
 --- Measures a capacitor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
@@ -1278,6 +1295,13 @@ function DAQ:MeasureCapacitor(impP, impN, opt)
     if opt.guards ~= nil then
         opt.guards = PointToPoints(opt.guards)
         rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
+    end
+
+    if opt.debugPopup then 
+        local text = type(opt.debugPopup) == "string" and opt.debugPopup or "Do your stuff" --[[@as string]]
+        Popup("Measure Capacitor")
+            :Text(text)
+            :Show()
     end
 
     local result = self:Impedances(
@@ -1308,6 +1332,7 @@ end
 --- @field delay integer?
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
+--- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
 
 --- Measures an inductor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
@@ -1328,6 +1353,13 @@ function DAQ:MeasureInductor(impP, impN, opt)
     if opt.guards ~= nil then
         opt.guards = PointToPoints(opt.guards)
         rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
+    end
+
+    if opt.debugPopup then 
+        local text = type(opt.debugPopup) == "string" and opt.debugPopup or "Do your stuff" --[[@as string]]
+        Popup("Measure Inductor")
+            :Text(text)
+            :Show()
     end
 
     local result = self:Impedances(
