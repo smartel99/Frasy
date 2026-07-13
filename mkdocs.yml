@@ -1,0 +1,107 @@
+site_name: Frasy
+site_description: Generic Automated Hardware Testing Software
+site_url: https://frasy.rald.ca
+repo_url: https://github.com/smartel99/Frasy
+repo_name: smartel99/Frasy
+
+docs_dir: docs
+theme:
+  name: material
+  logo: assets/icon.png
+  favicon: assets/icon.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+
+hooks:
+  - docs/hooks.py
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      use_pygments: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - md_in_html
+  - tables
+  - fenced_code
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Building: getting-started/building.md
+    - Running the Demo: getting-started/running-the-demo.md
+  - Architecture:
+    - architecture/index.md
+    - Overview: architecture/overview.md
+    - C++ Layer: architecture/cpp-layer.md
+    - Lua Layer: architecture/lua-layer.md
+    - Hardware Communication: architecture/hardware.md
+    - Test Lifecycle: architecture/test-lifecycle.md
+  - Developer Guide:
+    - developer-guide/index.md
+    - Creating a Product: developer-guide/creating-a-product.md
+    - Customizing the UI: developer-guide/customizing-the-ui.md
+    - Exposing C++ to Lua: developer-guide/cpp-to-lua.md
+    - Configuration: developer-guide/configuration.md
+    - Building an Installer: developer-guide/installer.md
+  - Lua Reference:
+    - lua-reference/index.md
+    - Environment: lua-reference/environment.md
+    - Sequences & Tests: lua-reference/sequences-and-tests.md
+    - Expectations: lua-reference/expectations.md
+    - Requirements: lua-reference/requirements.md
+    - Popups: lua-reference/popups.md
+    - Context: lua-reference/context.md
+    - Logging: lua-reference/logging.md
+    - Utilities: lua-reference/utilities.md
+  - Panels:
+    - panels/index.md
+    - Log Window: panels/log-window.md
+    - Device Viewer: panels/device-viewer.md
+    - Result Viewer: panels/result-viewer.md
+    - Result Analyzer: panels/result-analyzer.md
+    - Test Viewer: panels/test-viewer.md
+    - CANopen Viewer: panels/canopen-viewer.md
+    - Lua Profiler: panels/lua-profiler.md

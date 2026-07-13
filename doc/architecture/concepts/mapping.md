@@ -1,3 +1,0 @@
-# Test Point Mapping
-
-## Signals
