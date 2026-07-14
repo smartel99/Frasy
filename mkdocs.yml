@@ -71,7 +71,8 @@ nav:
     - getting-started/index.md
     - Installation: getting-started/installation.md
     - Building: getting-started/building.md
-    - Running the Demo: getting-started/running-the-demo.md
+    - C++ Application Setup: getting-started/cpp-setup.md
+    - Lua Setup: getting-started/lua-setup.md
   - Architecture:
     - architecture/index.md
     - Overview: architecture/overview.md
@@ -84,6 +85,7 @@ nav:
     - Creating a Product: developer-guide/creating-a-product.md
     - Customizing the UI: developer-guide/customizing-the-ui.md
     - Exposing C++ to Lua: developer-guide/cpp-to-lua.md
+    - Custom Instrumentation Boards: developer-guide/custom-ibs.md
     - Configuration: developer-guide/configuration.md
     - Building an Installer: developer-guide/installer.md
   - Lua Reference:
