@@ -513,6 +513,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -529,6 +547,97 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initializing-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initializing the Repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-build-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-Build Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -570,14 +679,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../running-the-demo/" class="md-nav__link">
+      <a href="../cpp-setup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Running the Demo
+    C++ Application Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lua-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Setup
   
 
     
@@ -980,6 +1117,34 @@
     
   
     Exposing C++ to Lua
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/custom-ibs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Instrumentation Boards
   
 
     
@@ -1674,6 +1839,86 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initializing-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initializing the Repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-build-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-Build Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1693,10 +1938,94 @@
 
 
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
+<p>This page covers the prerequisites and initial setup for building a Frasy application from the template.</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<h3 id="required">Required<a class="headerlink" href="#required" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Minimum Version</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows</td>
+<td>10 or later</td>
+<td>Frasy is Windows-only</td>
+</tr>
+<tr>
+<td><a href="https://cmake.org/download/">CMake</a></td>
+<td>3.22</td>
+<td>Build system</td>
+</tr>
+<tr>
+<td><a href="https://git-scm.com/">Git</a></td>
+<td>Any recent</td>
+<td>Required for submodule checkout</td>
+</tr>
+<tr>
+<td>C++ compiler</td>
+<td>C++23 support</td>
+<td>MSVC (Visual Studio 2022) recommended</td>
+</tr>
+</tbody>
+</table>
 <div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
+<p class="admonition-title">Compiler support</p>
+<p>MSVC (Visual Studio 2022) is the primary supported compiler. GCC and Clang are partially supported
+but not the primary target. The project uses C++23 features throughout.</p>
 </div>
+<h3 id="optional">Optional<a class="headerlink" href="#optional" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://visualstudio.microsoft.com/">Visual Studio 2022</a></td>
+<td>IDE — also provides MSVC</td>
+</tr>
+<tr>
+<td><a href="https://www.jetbrains.com/clion/">CLion</a></td>
+<td>Alternative IDE with CMake support</td>
+</tr>
+<tr>
+<td><a href="https://jrsoftware.org/isinfo.php">Inno Setup</a></td>
+<td>Building a Windows installer for distribution</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="initializing-the-repository">Initializing the Repository<a class="headerlink" href="#initializing-the-repository" title="Permanent link">&para;</a></h2>
+<p>Frasy is included as a Git submodule under <code>vendor/frasy</code>. </p>
+<p>Add it to your repository with <code>git submodule add https://github.com/smartel99/Frasy vendor/frasy</code></p>
+<hr />
+<h2 id="pre-build-steps">Pre-Build Steps<a class="headerlink" href="#pre-build-steps" title="Permanent link">&para;</a></h2>
+<p>Two scripts must be run before the first build, and again whenever Lua scripts are added or modified.</p>
+<p><strong>1. Generate script hashes</strong></p>
+<p>Frasy verifies the integrity of all Lua scripts at runtime using SHA hashes. This script scans the
+<code>src/lua/user/</code> and <code>lua/core/</code> directories and writes a <code>hash</code> file next to each:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>.\vendor\frasy\scripts\Windows\generate_hashes.bat
+</code></pre></div>
+<p><strong>2. Refresh dependencies</strong></p>
+<p>This script copies the Frasy Lua core SDK and assets into the build output directory so the
+application can find them at runtime:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>.\vendor\frasy\scripts\Windows\refresh_dependencies.bat <span class="p">&lt;</span>build-output-dir&gt;
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>When using CMake, these steps are automated as build targets (<code>generate_hashes</code> and
+<code>refresh_lua_core</code>). You only need to run them manually when working outside of a CMake build,
+or to pre-populate the output directory before the first build.</p>
+</div>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>With prerequisites installed and the repository cloned, proceed to <a href="../building/">Building</a>.</p>
 
 
 

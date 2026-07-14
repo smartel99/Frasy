@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://frasy.rald.ca/getting-started/running-the-demo/">
+        <link rel="canonical" href="https://frasy.rald.ca/developer-guide/custom-ibs/">
       
       
-        <link rel="prev" href="../building/">
+        <link rel="prev" href="../cpp-to-lua/">
       
       
-        <link rel="next" href="../../architecture/">
+        <link rel="next" href="../configuration/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Running the Demo - Frasy</title>
+        <title>Custom Instrumentation Boards - Frasy</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#running-the-demo" class="md-skip">
+        <a href="#creating-custom-instrumentation-boards" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Running the Demo
+              Custom Instrumentation Boards
             
           </span>
         </div>
@@ -237,13 +237,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   
@@ -279,11 +277,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../developer-guide/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -416,31 +416,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -458,7 +455,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -476,7 +473,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../getting-started/" class="md-nav__link">
         
   
   
@@ -504,7 +501,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -532,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../building/" class="md-nav__link">
+      <a href="../../getting-started/building/" class="md-nav__link">
         
   
   
@@ -557,26 +554,17 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../getting-started/cpp-setup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Running the Demo
+    C++ Application Setup
   
 
     
@@ -585,7 +573,34 @@
   
 
       </a>
-      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/lua-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -831,28 +846,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -870,7 +888,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -888,7 +906,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developer-guide/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -916,7 +934,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developer-guide/creating-a-product/" class="md-nav__link">
+      <a href="../creating-a-product/" class="md-nav__link">
         
   
   
@@ -944,7 +962,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developer-guide/customizing-the-ui/" class="md-nav__link">
+      <a href="../customizing-the-ui/" class="md-nav__link">
         
   
   
@@ -972,7 +990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developer-guide/cpp-to-lua/" class="md-nav__link">
+      <a href="../cpp-to-lua/" class="md-nav__link">
         
   
   
@@ -997,10 +1015,96 @@
                 
   
   
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Instrumentation Boards
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Instrumentation Boards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#topics-to-cover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topics to Cover
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
   
   
     <li class="md-nav__item">
-      <a href="../../developer-guide/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -1028,7 +1132,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developer-guide/installer/" class="md-nav__link">
+      <a href="../installer/" class="md-nav__link">
         
   
   
@@ -1674,6 +1778,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#topics-to-cover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topics to Cover
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1692,11 +1815,20 @@
   
 
 
-<h1 id="running-the-demo">Running the Demo<a class="headerlink" href="#running-the-demo" title="Permanent link">&para;</a></h1>
+<h1 id="creating-custom-instrumentation-boards">Creating Custom Instrumentation Boards<a class="headerlink" href="#creating-custom-instrumentation-boards" title="Permanent link">&para;</a></h1>
 <div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
+<p class="admonition-title">Coming Soon</p>
+<p>This page is under construction.</p>
 </div>
+<p>This page will cover how to define your own instrumentation board types when the predefined
+boards (<code>DAQ</code>, <code>PIO</code>, <code>R8L</code>) don't match your hardware.</p>
+<h2 id="topics-to-cover">Topics to Cover<a class="headerlink" href="#topics-to-cover" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Subclassing <code>Ib:New()</code> to create a custom board</li>
+<li>Providing an EDS file for your hardware's CANopen object dictionary</li>
+<li>Defining high-level helper methods (e.g., <code>MeasureVoltage</code>, <code>SetOutput</code>)</li>
+<li>Registering the board in <code>environment.lua</code></li>
+</ul>
 
 
 
@@ -1732,7 +1864,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../building/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Building">
+          <a href="../cpp-to-lua/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Exposing C++ to Lua">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1742,20 +1874,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Building
+                Exposing C++ to Lua
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture">
+          <a href="../configuration/" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Architecture
+                Configuration
               </div>
             </div>
             <div class="md-footer__button md-icon">

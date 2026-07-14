@@ -16,7 +16,7 @@
         <link rel="prev" href="../installation/">
       
       
-        <link rel="next" href="../running-the-demo/">
+        <link rel="next" href="../cpp-setup/">
       
       
         
@@ -541,6 +541,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -558,6 +576,158 @@
 
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cmakeliststxt-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CMakeLists.txt Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-with-cmake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure with CMake
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-build-does-automatically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the Build Does Automatically
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customizing-the-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customizing the Build
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Customizing the Build">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changing-the-application-name-and-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changing the application name and version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-source-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding source files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ide-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IDE Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="IDE Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#visual-studio-2022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Studio 2022
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -570,14 +740,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../running-the-demo/" class="md-nav__link">
+      <a href="../cpp-setup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Running the Demo
+    C++ Application Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lua-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Setup
   
 
     
@@ -980,6 +1178,34 @@
     
   
     Exposing C++ to Lua
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/custom-ibs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Instrumentation Boards
   
 
     
@@ -1674,6 +1900,147 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cmakeliststxt-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CMakeLists.txt Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-with-cmake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure with CMake
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-build-does-automatically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the Build Does Automatically
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customizing-the-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customizing the Build
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Customizing the Build">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changing-the-application-name-and-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changing the application name and version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-source-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding source files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ide-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IDE Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="IDE Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#visual-studio-2022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Studio 2022
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1693,10 +2060,176 @@
 
 
 <h1 id="building">Building<a class="headerlink" href="#building" title="Permanent link">&para;</a></h1>
+<h2 id="cmakeliststxt-setup">CMakeLists.txt Setup<a class="headerlink" href="#cmakeliststxt-setup" title="Permanent link">&para;</a></h2>
+<p>Your application's <code>CMakeLists.txt</code> must do the following to integrate Frasy:</p>
+<p><strong>1. Include Frasy's compile options</strong></p>
+<p>This sets up C++23, compiler flags, and build type configurations:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">include</span><span class="p">(</span><span class="s">vendor/frasy/compile_options.cmake</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>2. Add the Frasy submodule</strong></p>
+<p>This builds the <code>Frasy</code> static library target and makes <code>frasy_build_options</code> available:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">add_subdirectory</span><span class="p">(</span><span class="s">vendor/frasy</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>3. Link against Frasy</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">PRIVATE</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">        </span><span class="s">frasy_build_options</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="s">Frasy</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>4. Sync runtime assets</strong></p>
+<p>Frasy provides a <code>target_sync_assets()</code> helper that mirrors a directory into the build output on
+every build. You need it to keep your Lua products and <code>config.json</code> in sync:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">include</span><span class="p">(</span><span class="s">vendor/frasy/sync_assets.cmake</span><span class="p">)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c"># Copy config.json to the output directory</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nb">add_custom_target</span><span class="p">(</span><span class="s">refresh_config</span><span class="w"> </span><span class="s">ALL</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">        </span><span class="s">COMMAND</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_COMMAND</span><span class="o">}</span><span class="w"> </span><span class="s">-E</span><span class="w"> </span><span class="s">copy_if_newer</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/config.json&quot;</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">        </span><span class="s2">&quot;$&lt;TARGET_FILE_DIR:${APP_NAME}&gt;/config.json&quot;</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c"># Mirror src/lua/user/ into the output directory</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="nb">target_sync_assets</span><span class="p">(</span><span class="s">refresh_lua_user</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/lua/user&quot;</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">        </span><span class="s2">&quot;$&lt;TARGET_FILE_DIR:${APP_NAME}&gt;/lua/user&quot;</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">)</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c"># refresh_lua_core and refresh_config must complete before refresh_lua_user</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="nb">add_dependencies</span><span class="p">(</span><span class="s">refresh_lua_user</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">        </span><span class="s">refresh_lua_core</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">        </span><span class="s">refresh_config</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="p">)</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="nb">add_dependencies</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">refresh_lua_user</span><span class="p">)</span>
+</code></pre></div>
 <div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
+<p class="admonition-title">Note</p>
+<p><code>refresh_lua_core</code> is defined by <code>add_subdirectory(vendor/frasy)</code> — it syncs the Frasy Lua
+core SDK into the output directory automatically.</p>
 </div>
+<p>A minimal but complete <code>CMakeLists.txt</code> looks like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.22</span><span class="p">)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nb">set</span><span class="p">(</span><span class="s">APP_NAME</span><span class="w"> </span><span class="s2">&quot;MyApp&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nb">project</span><span class="p">(</span><span class="o">${</span><span class="nv">APP_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">LANGUAGES</span><span class="w"> </span><span class="s">CXX</span><span class="w"> </span><span class="s">VERSION</span><span class="w"> </span><span class="s">1.0.0</span><span class="p">)</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nb">set</span><span class="p">(</span><span class="s">SRC_DIR</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/src</span><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_RUNTIME_OUTPUT_DIRECTORY</span><span class="w"> </span><span class="s2">&quot;${CMAKE_BINARY_DIR}/bin/${APP_NAME}_v${CMAKE_PROJECT_VERSION}&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="nb">include</span><span class="p">(</span><span class="s">vendor/frasy/compile_options.cmake</span><span class="p">)</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nb">file</span><span class="p">(</span><span class="s">GLOB_RECURSE</span><span class="w"> </span><span class="s">SOURCES</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/my_frasy_interpreter.cpp&quot;</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/layers/*.cpp&quot;</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="p">)</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="nb">add_subdirectory</span><span class="p">(</span><span class="s">vendor/frasy</span><span class="p">)</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="nb">add_executable</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="o">${</span><span class="nv">SOURCES</span><span class="o">}</span><span class="p">)</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">frasy_build_options</span><span class="w"> </span><span class="s">Frasy</span><span class="p">)</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="nb">add_custom_target</span><span class="p">(</span><span class="s">refresh_config</span><span class="w"> </span><span class="s">ALL</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">        </span><span class="s">COMMAND</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_COMMAND</span><span class="o">}</span><span class="w"> </span><span class="s">-E</span><span class="w"> </span><span class="s">copy_if_newer</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/config.json&quot;</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">        </span><span class="s2">&quot;$&lt;TARGET_FILE_DIR:${APP_NAME}&gt;/config.json&quot;</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="p">)</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="nb">include</span><span class="p">(</span><span class="s">vendor/frasy/sync_assets.cmake</span><span class="p">)</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="nb">target_sync_assets</span><span class="p">(</span><span class="s">refresh_lua_user</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/lua/user&quot;</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">        </span><span class="s2">&quot;$&lt;TARGET_FILE_DIR:${APP_NAME}&gt;/lua/user&quot;</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="p">)</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="nb">add_dependencies</span><span class="p">(</span><span class="s">refresh_lua_user</span><span class="w"> </span><span class="s">refresh_lua_core</span><span class="w"> </span><span class="s">refresh_config</span><span class="p">)</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="nb">add_dependencies</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">refresh_lua_user</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="configure-with-cmake">Configure with CMake<a class="headerlink" href="#configure-with-cmake" title="Permanent link">&para;</a></h2>
+<p>From the root of your application repository, configure the project with CMake. Choose a build
+type based on your intent:</p>
+<table>
+<thead>
+<tr>
+<th>Build Type</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Debug</code></td>
+<td>Local development — no optimization, assertions enabled</td>
+</tr>
+<tr>
+<td><code>Release</code></td>
+<td>Optimized build, no debug info</td>
+</tr>
+<tr>
+<td><code>RelWithDebInfo</code></td>
+<td><strong>Recommended for production</strong> — optimized with debug info for crash stacktraces</td>
+</tr>
+<tr>
+<td><code>MinSizeRel</code></td>
+<td>Size-optimized build</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Use RelWithDebInfo for production</p>
+<p>The application must be built with <code>RelWithDebInfo</code> to properly recover stacktraces from crash
+dumps. A <code>Release</code> build will produce unusable crash reports.</p>
+</div>
+<hr />
+<h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>cmake --build build
+</code></pre></div>
+<p>The output is placed under:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>build/bin/&lt;APP_NAME&gt;_v&lt;VERSION&gt;/
+</code></pre></div>
+<p>For example, with the default settings (<code>APP_NAME=FrasyApp</code>, <code>VERSION=0.0.1</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>build/bin/FrasyApp_v0.0.1/
+</code></pre></div>
+<p>This directory contains the executable, assets, Lua core SDK, and your product's Lua files — everything needed to run the application.</p>
+<hr />
+<h2 id="what-the-build-does-automatically">What the Build Does Automatically<a class="headerlink" href="#what-the-build-does-automatically" title="Permanent link">&para;</a></h2>
+<p>The CMake build handles several steps automatically on every build:</p>
+<ul>
+<li><strong><code>generate_hashes</code></strong> — runs <code>generate_hashes.bat</code> to hash all Lua scripts for runtime integrity verification</li>
+<li><strong><code>refresh_lua_core</code></strong> — syncs the Frasy Lua core SDK into the output directory</li>
+<li><strong><code>refresh_frasy_assets</code></strong> — syncs application assets (icons, textures) into the output directory</li>
+<li><strong><code>refresh_lua_user</code></strong> — syncs your <code>src/lua/user/</code> products into the output directory</li>
+<li><strong><code>refresh_config</code></strong> — copies <code>src/config.json</code> into the output directory</li>
+</ul>
+<p>You do not need to run any of these manually when building through CMake.</p>
+<hr />
+<h2 id="customizing-the-build">Customizing the Build<a class="headerlink" href="#customizing-the-build" title="Permanent link">&para;</a></h2>
+<h3 id="changing-the-application-name-and-version">Changing the application name and version<a class="headerlink" href="#changing-the-application-name-and-version" title="Permanent link">&para;</a></h3>
+<p>Edit the top of <code>CMakeLists.txt</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">set</span><span class="p">(</span><span class="s">APP_NAME</span><span class="w"> </span><span class="s2">&quot;MyApp&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nb">project</span><span class="p">(</span><span class="o">${</span><span class="nv">APP_NAME</span><span class="o">}</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">        </span><span class="s">LANGUAGES</span><span class="w"> </span><span class="s">CXX</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">        </span><span class="s">VERSION</span><span class="w"> </span><span class="s">1.0.0</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="p">)</span>
+</code></pre></div>
+<h3 id="adding-source-files">Adding source files<a class="headerlink" href="#adding-source-files" title="Permanent link">&para;</a></h3>
+<p>C++ files under <code>src/layers/</code> are picked up automatically. To add files from other directories,
+extend the <code>GLOB_RECURSE</code> call in <code>CMakeLists.txt</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">file</span><span class="p">(</span><span class="s">GLOB_RECURSE</span><span class="w"> </span><span class="s">SOURCES</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/my_frasy_interpreter.cpp&quot;</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/layers/*.cpp&quot;</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">        </span><span class="s2">&quot;${SRC_DIR}/my_other_dir/*.cpp&quot;</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="ide-setup">IDE Setup<a class="headerlink" href="#ide-setup" title="Permanent link">&para;</a></h2>
+<h3 id="visual-studio-2022">Visual Studio 2022<a class="headerlink" href="#visual-studio-2022" title="Permanent link">&para;</a></h3>
+<p>Open Visual Studio 2022 and use <strong>File → Open → CMake...</strong> to open the root <code>CMakeLists.txt</code>
+directly. Visual Studio will configure the project automatically.</p>
+<h3 id="clion">CLion<a class="headerlink" href="#clion" title="Permanent link">&para;</a></h3>
+<p>Open the root directory in CLion. It detects <code>CMakeLists.txt</code> automatically and configures the
+project on first open.</p>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>With a successful build, proceed to <a href="../cpp-setup/">C++ Application Setup</a>.</p>
 
 
 
@@ -1749,13 +2282,13 @@
         
         
           
-          <a href="../running-the-demo/" class="md-footer__link md-footer__link--next" aria-label="Next: Running the Demo">
+          <a href="../cpp-setup/" class="md-footer__link md-footer__link--next" aria-label="Next: C++ Application Setup">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Running the Demo
+                C++ Application Setup
               </div>
             </div>
             <div class="md-footer__button md-icon">
