@@ -98,6 +98,9 @@ void ResultAnalyzer::onImGuiRender()
         }
         else {
             ImGui::Text("Generating... %zu/%zu", m_analyzer.Analyzed, m_analyzer.ToAnalyze);
+            m_currentSequence    = nullptr;
+            m_currentTest        = nullptr;
+            m_currentExpectation = nullptr;
         }
         if (m_doneGenerating && m_generating) {
             m_generatorThread.join();
