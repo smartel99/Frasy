@@ -172,10 +172,32 @@ Inserts a **barrier** — all enabled UUTs must reach the same `Sync()` point be
 
 ```lua
 Test("Simultaneous Load", function()
-    prepareLoad()       -- each UUT prepares independently
-    Sync()              -- everyone waits here until all UUTs are ready
-    applyLoad()         -- all UUTs trigger together
+    ApplyLoad()       -- each UUT prepares independently
+    Sync()              -- everyone waits here until all UUTs have applied their load
+
+    local i = MeasurePowerSupplyCurrent()
+    Expect(i, "Current"):ToBeInRange(1.0, 1.2)
 end)
+```
+
+```mermaid
+sequenceDiagram
+    participant UUT1
+    participant UUT2
+    participant UUT3
+
+    UUT1->>UUT1: ApplyLoad()
+    UUT2->>UUT2: ApplyLoad()
+    UUT3->>UUT3: ApplyLoad()
+    UUT1-->>UUT1: reaches Sync()
+    Note over UUT1: waiting...
+    UUT3-->>UUT3: reaches Sync()
+    Note over UUT3: waiting...
+    UUT2-->>UUT2: reaches Sync()
+    Note over UUT1,UUT3: barrier met — all continue
+    UUT1->>UUT1: MeasurePowerSupplyCurrent()
+    UUT2->>UUT2: MeasurePowerSupplyCurrent()
+    UUT3->>UUT3: MeasurePowerSupplyCurrent()
 ```
 
 ### `Exclusive(id, fn)`
@@ -213,6 +235,9 @@ Once(function()
     calibrateSharedFixture()
 end)
 ```
+
+!!! tip "Sharing values between UUTs"
+    UUTs can also share data with each other at runtime (e.g., a calibration value computed by one UUT and needed by others). See the [Developer Guide](../developer-guide/index.md) for patterns and examples.
 
 ---
 
