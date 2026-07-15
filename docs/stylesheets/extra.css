@@ -1,0 +1,4 @@
+/* Prevent inline code in table cells from wrapping */
+td code {
+    white-space: nowrap;
+}
