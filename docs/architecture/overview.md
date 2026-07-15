@@ -80,26 +80,16 @@ Frasy applications do not interact with Brigerad directly — the Frasy framewor
 
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "22px"}}}%%
-flowchart LR
-    subgraph UI["Operator UI"]
-        OP[Operator selects product & clicks Run]
-    end
-    subgraph CPP["C++ Host"]
-        ORC[Orchestrator]
-        CAN[CANopen Bus]
-    end
-    subgraph LUA["Lua VM"]
-        ENV[environment.lua]
-        TST[test scripts]
-    end
-    subgraph HW["Hardware"]
-        IB[Instrumentation Boards]
-    end
+flowchart TD
+    OP[Operator selects product & clicks Run]
+    ORC[Orchestrator]
+    ENV[environment.lua & test scripts]
+    CAN[CANopen Bus]
+    IB[Instrumentation Boards]
 
-    OP --> ORC
+    OP -->|run| ORC
     ORC -->|loads & executes| ENV
-    ORC -->|loads & executes| TST
-    TST -->|SDO Upload/Download| CAN
+    ENV <-->|SDO Upload/Download| CAN
     CAN <-->|SLCAN over USB| IB
     ORC -->|results| OP
 ```

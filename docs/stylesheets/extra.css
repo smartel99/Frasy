@@ -2,3 +2,8 @@
 td code {
     white-space: nowrap;
 }
+
+/* Center mermaid diagrams */
+.mermaid {
+    text-align: center;
+}
