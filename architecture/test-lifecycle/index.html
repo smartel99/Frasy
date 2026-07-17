@@ -53,6 +53,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -826,6 +828,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -842,6 +862,275 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#stages-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stages Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-1-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1: Generation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 1: Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forward-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forward References
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-sort-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Sort Algorithm
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-2-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2: Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 2: Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skipping-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skipping Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-3-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 3: Execution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 3: Execution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-during-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling During Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uut-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UUT States
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-solution-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Solution Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structure-breakdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure Breakdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executionstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enablingdisabling-at-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enabling/Disabling at Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-and-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results and Reporting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results and Reporting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#report-structure-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report Structure (JSON)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regeneration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regeneration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sequence-diagram-full-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence Diagram: Full Run
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1730,6 +2019,264 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#stages-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stages Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-1-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1: Generation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 1: Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forward-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forward References
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-sort-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Sort Algorithm
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-2-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2: Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 2: Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skipping-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skipping Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-3-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 3: Execution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 3: Execution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-during-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling During Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uut-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UUT States
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-solution-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Solution Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structure-breakdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure Breakdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executionstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enablingdisabling-at-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enabling/Disabling at Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-and-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results and Reporting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results and Reporting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#report-structure-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report Structure (JSON)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regeneration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regeneration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sequence-diagram-full-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence Diagram: Full Run
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1749,10 +2296,326 @@
 
 
 <h1 id="test-lifecycle">Test Lifecycle<a class="headerlink" href="#test-lifecycle" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
-</div>
+<p>This page describes how Frasy transforms Lua source files into an executable test plan and runs it across one or more UUTs. The lifecycle has three stages: <strong>generation</strong>, <strong>validation</strong>, and <strong>execution</strong>.</p>
+<hr />
+<h2 id="stages-overview">Stages Overview<a class="headerlink" href="#stages-overview" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TD
+    LOAD["loadUserFiles(environment, testsDir)\nLua state created · environment.lua loaded · test files loaded"]
+    GEN["Stage 1: Generation\nExecutes all Lua files to discover sequences &amp; tests\nCollects order/sync requirements\nSorts and sections into the Solution"]
+    VAL["Stage 2: Validation\nRe-executes the Solution in validation mode\nVerifies script integrity (SHA hashes via hashdir)\nAll runtime requirements return true"]
+    EXE["Stage 3: Execution\nRuns the Solution for real across all enabled UUTs\nHardware I/O active · Requirements evaluated live\nExpectations produce pass/fail results"]
+    DONE["Post-Execution\nResults compiled per UUT\nJSON report saved to logs/\nonDoneCallback invoked"]
+
+    LOAD --&gt; GEN
+    GEN --&gt; VAL
+    VAL --&gt; EXE
+    EXE --&gt; DONE</code></pre>
+<p>The <code>Stage</code> enum tracks where the system is at any moment:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">Stage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nv">idle</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nv">generation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nv">validation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nv">execution</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
+</code></pre></div>
+<p>This is exposed to Lua as <code>Context.info.stage</code>, and many SDK functions behave differently based on the current stage (e.g., expectations always pass during generation/validation).</p>
+<hr />
+<h2 id="stage-1-generation">Stage 1: Generation<a class="headerlink" href="#stage-1-generation" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Discover all sequences and tests, collect ordering constraints, and produce a sorted execution plan (the Solution).</p>
+<h3 id="what-happens">What Happens<a class="headerlink" href="#what-happens" title="Permanent link">&para;</a></h3>
+<ol>
+<li>A fresh <code>sol::state</code> (Lua VM) is created.</li>
+<li>The core SDK is loaded (framework globals, expectations, requirements, etc.).</li>
+<li><code>environment.lua</code> is executed — this registers UUTs, IBs, and execution policy.</li>
+<li>All test files in the product's <code>tests/</code> directory are executed.</li>
+<li>Each <code>Sequence("name", fn)</code> call registers a sequence. Each <code>Test("name", fn)</code> call inside registers a test.</li>
+<li>The sequence and test body functions are <strong>called</strong> — this collects <code>Requires()</code> calls to discover order requirements and sync points.</li>
+<li>Expectations (<code>Expect()</code>) return immediately with <code>pass = true</code> during generation — no actual assertions are made.</li>
+<li>All collected order requirements and sync points are processed by the sort algorithm.</li>
+<li>The <strong>Solution</strong> is produced and optionally saved to <code>lua/solution.json</code>.</li>
+</ol>
+<h3 id="forward-references">Forward References<a class="headerlink" href="#forward-references" title="Permanent link">&para;</a></h3>
+<p>Order requirements can reference sequences or tests that haven't been defined yet at the point of declaration. The generation stage retries sequences that fail due to unresolved references, making forward references valid. If no progress can be made, a <code>GenerationError</code> is raised.</p>
+<h3 id="the-sort-algorithm">The Sort Algorithm<a class="headerlink" href="#the-sort-algorithm" title="Permanent link">&para;</a></h3>
+<p>The sorter:</p>
+<ol>
+<li>Respects <code>ToBeFirst</code> / <code>ToBeLast</code> edge requirements.</li>
+<li>Builds a dependency graph from <code>ToBeBefore</code> / <code>ToBeAfter</code> requirements.</li>
+<li>Performs a topological sort on sequences and on tests within each sequence.</li>
+<li><strong>Sectionizes</strong> — splits the sorted list at sync points (<code>Sync()</code>) to create sections that act as barriers.</li>
+</ol>
+<hr />
+<h2 id="stage-2-validation">Stage 2: Validation<a class="headerlink" href="#stage-2-validation" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Verify script integrity and catch errors before committing to a real test run.</p>
+<h3 id="what-happens_1">What Happens<a class="headerlink" href="#what-happens_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Script file hashes are verified against the stored hash file (generated by <code>generate_hashes.bat</code>).</li>
+<li>The Solution is re-executed in <code>Stage.validation</code> mode.</li>
+<li>All runtime requirements (<code>ToPass()</code>, <code>ToFail()</code>, <code>ToBeComplete()</code>) return <code>true</code> unconditionally.</li>
+<li>Expectations return <code>pass = true</code> unconditionally.</li>
+<li>Hardware I/O calls (<code>Upload</code>/<code>Download</code>) are no-ops (guarded by <code>if stage ~= Stage.execution then return end</code>).</li>
+</ol>
+<h3 id="skipping-validation">Skipping Validation<a class="headerlink" href="#skipping-validation" title="Permanent link">&para;</a></h3>
+<p>In debug mode (or when <code>skipVerification</code> is passed to <code>runSolution()</code>), hash checking is bypassed. The validation stage still runs the Lua files but won't block on hash mismatches.</p>
+<hr />
+<h2 id="stage-3-execution">Stage 3: Execution<a class="headerlink" href="#stage-3-execution" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Actually run the tests against real hardware and produce results.</p>
+<h3 id="what-happens_2">What Happens<a class="headerlink" href="#what-happens_2" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Each enabled UUT gets its own Lua coroutine/thread context.</li>
+<li>The orchestrator iterates through the Solution's sections sequentially.</li>
+<li>Within each section, sequences execute according to the execution policy (parallel or sequential).</li>
+<li>Within each sequence, tests run in their sorted order.</li>
+<li>Runtime requirements are <strong>evaluated for real</strong> — if unmet, the scope is skipped.</li>
+<li>Expectations perform actual assertions and record pass/fail.</li>
+<li>Hardware I/O is active — SDO uploads/downloads communicate with physical boards.</li>
+<li><code>Sync()</code> blocks until all UUTs reach the barrier.</li>
+<li><code>Exclusive(id, fn)</code> serializes access across UUTs.</li>
+<li>Results, timing, and expectation details are collected.</li>
+</ol>
+<h3 id="error-handling-during-execution">Error Handling During Execution<a class="headerlink" href="#error-handling-during-execution" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Error Type</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UnmetRequirement</code></td>
+<td>Scope is <strong>skipped</strong> (not failed)</td>
+</tr>
+<tr>
+<td><code>UnmetExpectation</code> (from <code>:Mandatory()</code>)</td>
+<td>Test immediately <strong>fails</strong> and stops</td>
+</tr>
+<tr>
+<td>Any other Lua error</td>
+<td>Test <strong>fails</strong> with the error message</td>
+</tr>
+<tr>
+<td>Uncaught sequence-level error</td>
+<td>Sequence <strong>fails</strong>; remaining tests in it are not run</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="uut-states">UUT States<a class="headerlink" href="#uut-states" title="Permanent link">&para;</a></h2>
+<p>Each Unit Under Test progresses through a state machine during execution:</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    direction LR
+    [*] --&gt; Disabled
+    [*] --&gt; Idle
+    Disabled --&gt; Idle : toggleUut()
+    Idle --&gt; Disabled : toggleUut()
+    Idle --&gt; Waiting : run started
+    Waiting --&gt; Running : first section begins
+    Running --&gt; Passed : all expectations pass
+    Running --&gt; Failed : one or more expectations fail
+    Running --&gt; Error : uncaught exception
+    Passed --&gt; Idle : next run
+    Failed --&gt; Idle : next run
+    Error --&gt; Idle : next run</code></pre>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Disabled</strong></td>
+<td>UUT is excluded from the run (toggled via <code>toggleUut()</code>)</td>
+</tr>
+<tr>
+<td><strong>Idle</strong></td>
+<td>Ready, not yet started</td>
+</tr>
+<tr>
+<td><strong>Waiting</strong></td>
+<td>Waiting at a synchronization barrier (<code>Sync()</code>)</td>
+</tr>
+<tr>
+<td><strong>Running</strong></td>
+<td>Actively executing tests</td>
+</tr>
+<tr>
+<td><strong>Passed</strong></td>
+<td>All sequences and tests passed</td>
+</tr>
+<tr>
+<td><strong>Failed</strong></td>
+<td>One or more expectations did not pass</td>
+</tr>
+<tr>
+<td><strong>Error</strong></td>
+<td>An unrecoverable error occurred (Lua crash, hardware timeout, etc.)</td>
+</tr>
+</tbody>
+</table>
+<p>The state is queryable via:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">m_orchestrator</span><span class="p">.</span><span class="n">getUutState</span><span class="p">(</span><span class="n">uutIndex</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns Frasy::UutState enum</span>
+</code></pre></div>
+<hr />
+<h2 id="the-solution-model">The Solution Model<a class="headerlink" href="#the-solution-model" title="Permanent link">&para;</a></h2>
+<p>The Solution is the <strong>execution plan</strong> — the fully sorted, sectioned, dependency-resolved map of everything that needs to run.</p>
+<pre class="mermaid"><code>classDiagram
+    class Solution {
+        +sections : Section[]
+        +sequences : map~string, Sequence~
+        +SetSequenceEnable(name, bool)
+        +SetTestEnable(sequence, test, bool)
+    }
+    class Section {
+        +sequenceStages : Subsequence[][]
+    }
+    class Subsequence {
+        +name : string
+        +tests : string[][]
+    }
+    class Sequence {
+        +enabled : bool
+        +state : ExecutionState[]
+        +tests : map~string, Test~
+    }
+    class Test {
+        +enabled : bool
+        +state : ExecutionState[]
+    }
+
+    Solution "1" *-- "0..*" Section : sections
+    Solution "1" *-- "0..*" Sequence : sequences
+    Section "1" *-- "0..*" Subsequence
+    Sequence "1" *-- "0..*" Test : tests</code></pre>
+<h3 id="structure-breakdown">Structure Breakdown<a class="headerlink" href="#structure-breakdown" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Solution</strong> — top-level container. Holds the ordered sections and a flat map of all sequences (for enable/disable and state tracking).</li>
+<li><strong>Section</strong> — a group of sequences separated by sync barriers. All UUTs must complete a section before moving to the next.</li>
+<li><strong>Subsequence</strong> — a reference to a sequence within a section, plus its test execution order (also potentially sectioned by test-level sync points).</li>
+<li><strong>Sequence</strong> — metadata about a sequence: enabled state and per-UUT execution states.</li>
+<li><strong>Test</strong> — metadata about a test: enabled state and per-UUT execution states.</li>
+</ul>
+<h3 id="executionstate">ExecutionState<a class="headerlink" href="#executionstate" title="Permanent link">&para;</a></h3>
+<p>Each sequence and test tracks a per-UUT execution state:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">enum</span><span class="w"> </span><span class="nc">ExecutionState</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">idle</span><span class="p">,</span><span class="w">       </span><span class="c1">// Not yet reached</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">disabled</span><span class="p">,</span><span class="w">   </span><span class="c1">// Excluded from run</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">waiting</span><span class="p">,</span><span class="w">    </span><span class="c1">// At a sync barrier</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="n">running</span><span class="p">,</span><span class="w">    </span><span class="c1">// Currently executing</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="n">passed</span><span class="p">,</span><span class="w">     </span><span class="c1">// Completed successfully</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="n">failed</span><span class="p">,</span><span class="w">     </span><span class="c1">// One or more expectations failed</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="n">error</span><span class="p">,</span><span class="w">      </span><span class="c1">// Uncaught exception</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">};</span>
+</code></pre></div>
+<h3 id="enablingdisabling-at-runtime">Enabling/Disabling at Runtime<a class="headerlink" href="#enablingdisabling-at-runtime" title="Permanent link">&para;</a></h3>
+<p>The Test Viewer panel (<span class="keys"><kbd class="key-f6">F6</kbd></span>) allows operators to enable or disable individual sequences and tests before or between runs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">m_orchestrator</span><span class="p">.</span><span class="n">setSequenceEnable</span><span class="p">(</span><span class="s">&quot;Power On&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">m_orchestrator</span><span class="p">.</span><span class="n">setTestEnable</span><span class="p">(</span><span class="s">&quot;Power On&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Check Voltage&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+</code></pre></div>
+<p>Disabled items are skipped during execution with reason "Disabled".</p>
+<hr />
+<h2 id="results-and-reporting">Results and Reporting<a class="headerlink" href="#results-and-reporting" title="Permanent link">&para;</a></h2>
+<p>After execution completes for each UUT, the orchestrator:</p>
+<ol>
+<li>
+<p>Compiles a <strong>report</strong> containing:</p>
+<ul>
+<li>Metadata: versions, operator, serial, date, overall pass/fail, timing.</li>
+<li>IB info: each board's software/hardware version and serial.</li>
+<li>Per-sequence results with timing.</li>
+<li>Per-test results with timing and all expectation details.</li>
+</ul>
+</li>
+<li>
+<p>Invokes <code>Context.map.onReport(report)</code> — a user-defined hook to transform the report.</p>
+</li>
+<li>
+<p>Saves the report as JSON to:</p>
+<ul>
+<li><code>logs/last/</code> — always overwritten.</li>
+<li><code>logs/pass/</code> or <code>logs/fail/</code> — organized by outcome.</li>
+</ul>
+</li>
+<li>
+<p>Invokes the C++ <code>onDoneCallback</code> to signal the UI.</p>
+</li>
+</ol>
+<h3 id="report-structure-json">Report Structure (JSON)<a class="headerlink" href="#report-structure-json" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;frasy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;orchestrator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;scripts&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MyProduct&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nt">&quot;operator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SN123456789&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">&quot;date&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-05-15 14:30:00&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;start&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;stop&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;elapsed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;process&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.1</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="nt">&quot;ib&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="nt">&quot;MyBoard&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;nodeId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;software&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;hardware&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;12345&quot;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="nt">&quot;sequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="nt">&quot;Power On&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">      </span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">      </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;start&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;stop&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;elapsed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;process&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.1</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">      </span><span class="nt">&quot;tests&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">        </span><span class="nt">&quot;Check Voltage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">          </span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">          </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;start&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;stop&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;elapsed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;process&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">          </span><span class="nt">&quot;expectations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">            </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ToBeInRange&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.02</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;max&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">          </span><span class="p">]</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="regeneration">Regeneration<a class="headerlink" href="#regeneration" title="Permanent link">&para;</a></h2>
+<p>The orchestrator caches the generated Solution in <code>lua/solution.json</code>. On subsequent runs:</p>
+<ul>
+<li>If <code>regenerate = false</code> and no source files have changed, the cached Solution is reused.</li>
+<li>If source files have been modified (detected by file modification timestamps), the Solution is regenerated automatically.</li>
+<li><code>regenerate = true</code> forces regeneration regardless.</li>
+</ul>
+<p>This speeds up repeated runs during testing.</p>
+<hr />
+<h2 id="sequence-diagram-full-run">Sequence Diagram: Full Run<a class="headerlink" href="#sequence-diagram-full-run" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Op as Operator
+    participant UI as Control Room
+    participant Orc as Orchestrator
+    participant Lua as Lua VM
+    participant HW as Hardware
+
+    Op-&gt;&gt;UI: Click Run
+    UI-&gt;&gt;Orc: runSolution(operator, serials, regen, skip)
+    activate Orc
+    Orc-&gt;&gt;Lua: Generation (if needed)
+    Lua--&gt;&gt;Orc: Solution
+    Orc-&gt;&gt;Lua: Validation
+    Lua--&gt;&gt;Orc: OK / hash mismatch
+    Orc-&gt;&gt;Orc: Set UUT states → Running
+    loop Each Section
+        loop Each Sequence
+            Orc-&gt;&gt;Lua: RunSequence(scope)
+            loop Each Test
+                Lua-&gt;&gt;HW: SDO Upload/Download
+                HW--&gt;&gt;Lua: Values
+                Lua-&gt;&gt;Lua: Expect() assertions
+            end
+            Lua--&gt;&gt;Orc: Sequence result
+        end
+        Note over Orc: Section barrier (Sync)
+    end
+    Orc-&gt;&gt;Orc: Compile results
+    Orc--&gt;&gt;UI: onDoneCallback()
+    deactivate Orc
+    UI-&gt;&gt;Op: Display results</code></pre>
 
 
 

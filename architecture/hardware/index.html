@@ -53,6 +53,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -798,6 +800,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Communication
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -814,6 +834,302 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#slcan-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLCAN Transport
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SLCAN Transport">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-slcan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is SLCAN?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usb-adapter-identification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        USB Adapter Identification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slcandevice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SlCan::Device
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canopen-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CANopen Stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CANopen Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frasy-as-a-canopen-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frasy as a CANopen Node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#node-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#threading-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Threading Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eds-files-and-the-object-dictionary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EDS Files and the Object Dictionary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EDS Files and the Object Dictionary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-an-eds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is an EDS?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-frasy-uses-eds-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Frasy Uses EDS Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-dictionary-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object Dictionary Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sdo-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SDO Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SDO Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-read-from-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload (Read from Node)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-write-to-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Download (Write to Node)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complex-entries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complex Entries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#heartbeat-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Heartbeat Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#emergency-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Emergency Messages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-the-orchestrator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration with the Orchestrator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canopen-viewer-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CANopen Viewer Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1730,6 +2046,291 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#slcan-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLCAN Transport
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SLCAN Transport">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-slcan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is SLCAN?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usb-adapter-identification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        USB Adapter Identification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slcandevice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SlCan::Device
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canopen-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CANopen Stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CANopen Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frasy-as-a-canopen-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frasy as a CANopen Node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#node-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#threading-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Threading Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eds-files-and-the-object-dictionary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EDS Files and the Object Dictionary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EDS Files and the Object Dictionary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-an-eds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is an EDS?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-frasy-uses-eds-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Frasy Uses EDS Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-dictionary-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object Dictionary Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sdo-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SDO Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SDO Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-read-from-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload (Read from Node)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-write-to-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Download (Write to Node)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complex-entries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complex Entries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#heartbeat-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Heartbeat Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#emergency-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Emergency Messages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-the-orchestrator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration with the Orchestrator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canopen-viewer-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CANopen Viewer Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1749,10 +2350,279 @@
 
 
 <h1 id="hardware-communication">Hardware Communication<a class="headerlink" href="#hardware-communication" title="Permanent link">&para;</a></h1>
+<p>Frasy communicates with test hardware (Instrumentation Boards) using the <strong>CANopen</strong> protocol transported over a <strong>SLCAN</strong> (Serial Line CAN) USB adapter. This page describes the full communication stack from the physical link up to the Lua test scripting layer.</p>
+<hr />
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph LUA["Lua Test Scripts"]
+        IB["Ibs.MyBoard.ib:Upload(od_entry)"]
+    end
+    subgraph CPP["C++ Framework"]
+        SDO["SdoManager\n(upload/download queues)"]
+        CO["CanOpen\n(CANopenNode stack)"]
+        SLC["SlCan::Device\n(serial framing)"]
+    end
+    subgraph HW["Physical"]
+        USB["USB-to-CAN Adapter\n(SLCAN protocol)"]
+        CAN["CAN Bus (125–1000 kbps)"]
+        BOARDS["Instrumentation Boards\n(CANopen nodes)"]
+    end
+
+    IB --&gt; SDO
+    SDO --&gt; CO
+    CO --&gt; SLC
+    SLC &lt;--&gt; USB
+    USB &lt;--&gt; CAN
+    CAN &lt;--&gt; BOARDS</code></pre>
+<hr />
+<h2 id="slcan-transport">SLCAN Transport<a class="headerlink" href="#slcan-transport" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-slcan">What Is SLCAN?<a class="headerlink" href="#what-is-slcan" title="Permanent link">&para;</a></h3>
+<p>SLCAN is a simple ASCII protocol that encodes CAN frames over a serial (UART/USB-CDC) connection. It allows standard serial port drivers to carry CAN traffic without dedicated CAN hardware on the host PC.</p>
+<h3 id="usb-adapter-identification">USB Adapter Identification<a class="headerlink" href="#usb-adapter-identification" title="Permanent link">&para;</a></h3>
+<p>Frasy automatically detects SLCAN-capable hardware by matching USB Vendor ID / Product ID / Interface Number triplets configured in <code>config.json</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&quot;communication&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">&quot;usbWhitelist&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;vid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1155</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42180</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;mi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">}</span>
+</code></pre></div>
+<p>The default triplet (<code>1155</code>/<code>42180</code>/<code>0</code>) corresponds to SMarTest devices (DAQ, PIO, R8L). If you use custom hardware with a different USB identity, add its VID/PID/MI to the whitelist and Frasy will detect it automatically.</p>
+<p>Frasy's USB enumerator scans for matching devices at startup and exposes them through the Device Viewer panel.</p>
+<h3 id="slcandevice">SlCan::Device<a class="headerlink" href="#slcandevice" title="Permanent link">&para;</a></h3>
+<p>The <code>SlCan::Device</code> class wraps a serial port and handles:</p>
+<ul>
+<li>Opening/closing the physical port.</li>
+<li>Framing CAN packets into the SLCAN ASCII format for transmission.</li>
+<li>A background receive thread that parses incoming SLCAN bytes into <code>Packet</code> structures and queues them.</li>
+<li>Muting (discarding incoming packets while muted).</li>
+<li>A callback hook for waking up the CANopen processing thread on new data.</li>
+</ul>
+<hr />
+<h2 id="canopen-stack">CANopen Stack<a class="headerlink" href="#canopen-stack" title="Permanent link">&para;</a></h2>
+<p>Frasy uses the <a href="https://github.com/CANopenNode/CANopenNode">CANopenNode</a> C library as its protocol stack. The <code>Frasy::CanOpen::CanOpen</code> class wraps it and provides a higher-level C++ interface.</p>
+<h3 id="frasy-as-a-canopen-node">Frasy as a CANopen Node<a class="headerlink" href="#frasy-as-a-canopen-node" title="Permanent link">&para;</a></h3>
+<p>Frasy itself is a CANopen node on the bus (node ID 0x01 by default). It acts as:</p>
+<ul>
+<li>An <strong>NMT master</strong> — it can reset remote nodes and monitors their operational state.</li>
+<li>An <strong>SDO client</strong> — it initiates SDO upload/download transfers to read/write the object dictionaries of remote nodes.</li>
+<li>A <strong>heartbeat consumer</strong> — it monitors the liveness of instrumentation boards.</li>
+<li>An <strong>emergency consumer</strong> — it receives and logs emergency messages from remote nodes.</li>
+</ul>
+<h3 id="node-management">Node Management<a class="headerlink" href="#node-management" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">m_canOpen</span><span class="p">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">nodeId</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;BoardName&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;path/to/board.eds&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">m_canOpen</span><span class="p">.</span><span class="n">start</span><span class="p">();</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">// Query state</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">m_canOpen</span><span class="p">.</span><span class="n">isNodeOnNetwork</span><span class="p">(</span><span class="n">nodeId</span><span class="p">);</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_canOpen</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">nodeId</span><span class="p">).</span><span class="n">value</span><span class="p">();</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">node</span><span class="o">-&gt;</span><span class="n">getNmtState</span><span class="p">();</span><span class="w">   </span><span class="c1">// CO_NMT_OPERATIONAL, etc.</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">node</span><span class="o">-&gt;</span><span class="n">getHbState</span><span class="p">();</span><span class="w">    </span><span class="c1">// Heartbeat state</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1">// Lifecycle</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">m_canOpen</span><span class="p">.</span><span class="n">resetNode</span><span class="p">(</span><span class="n">nodeId</span><span class="p">);</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">m_canOpen</span><span class="p">.</span><span class="n">removeNode</span><span class="p">(</span><span class="n">nodeId</span><span class="p">);</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">m_canOpen</span><span class="p">.</span><span class="n">stop</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="threading-model">Threading Model<a class="headerlink" href="#threading-model" title="Permanent link">&para;</a></h3>
+<p>The CANopen stack runs in its own <code>std::jthread</code>. It:</p>
+<ol>
+<li>Processes incoming CAN frames from all attached SLCAN devices.</li>
+<li>Runs the CANopenNode <code>CO_process()</code> loop (NMT, heartbeat, emergency).</li>
+<li>Services SDO upload/download requests from worker threads.</li>
+<li>Sleeps or wakes based on a condition variable triggered by new incoming data.</li>
+</ol>
+<hr />
+<h2 id="eds-files-and-the-object-dictionary">EDS Files and the Object Dictionary<a class="headerlink" href="#eds-files-and-the-object-dictionary" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-an-eds">What Is an EDS?<a class="headerlink" href="#what-is-an-eds" title="Permanent link">&para;</a></h3>
+<p>An <strong>Electronic Data Sheet</strong> (EDS) is a standardized INI-format file (CiA 306) that describes a CANopen node's capabilities. It lists every object in the node's <strong>object dictionary</strong> — their indexes, sub-indexes, data types, access rights, and default values.</p>
+<h3 id="how-frasy-uses-eds-files">How Frasy Uses EDS Files<a class="headerlink" href="#how-frasy-uses-eds-files" title="Permanent link">&para;</a></h3>
+<p>When <code>Environment.Ib.Add(board)</code> is called in Lua, the framework:</p>
+<ol>
+<li>Reads the EDS file specified in the board definition.</li>
+<li>Parses it with an INI parser.</li>
+<li>Builds an in-memory Lua table representing the object dictionary.</li>
+<li>Attaches it to the board as <code>board.ib.od</code>.</li>
+</ol>
+<h3 id="object-dictionary-structure">Object Dictionary Structure<a class="headerlink" href="#object-dictionary-structure" title="Permanent link">&para;</a></h3>
+<p>Each OD entry can be one of three object types:</p>
+<table>
+<thead>
+<tr>
+<th>Object Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>var</code> (0x07)</td>
+<td>A single variable with one value</td>
+</tr>
+<tr>
+<td><code>array</code> (0x08)</td>
+<td>An indexed array of same-typed sub-entries</td>
+</tr>
+<tr>
+<td><code>record</code> (0x09)</td>
+<td>A struct-like group of named sub-entries</td>
+</tr>
+</tbody>
+</table>
+<p>An entry looks like this in Lua:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">entry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">board</span><span class="p">.</span><span class="py">ib</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">]</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">-- entry.parameterName = &quot;Supply Voltage&quot;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1">-- entry.objectType    = 7 (var)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1">-- entry.dataType      = 8 (REAL32)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1">-- entry.accessType    = &quot;ro&quot;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1">-- entry.index         = &quot;0x2001&quot;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">-- entry.subIndex      = &quot;0x0&quot;</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1">-- entry.value         = 0.0 (default, updated on Upload)</span>
+</code></pre></div>
+<h3 id="data-types">Data Types<a class="headerlink" href="#data-types" title="Permanent link">&para;</a></h3>
+<p>The EDS parser recognizes all standard CANopen data types:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>ID</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BOOLEAN</td>
+<td>1</td>
+<td>Single bit</td>
+</tr>
+<tr>
+<td>INTEGER8–64</td>
+<td>2–21</td>
+<td>Signed integers</td>
+</tr>
+<tr>
+<td>UNSIGNED8–64</td>
+<td>5–27</td>
+<td>Unsigned integers</td>
+</tr>
+<tr>
+<td>REAL32</td>
+<td>8</td>
+<td>32-bit float</td>
+</tr>
+<tr>
+<td>REAL64</td>
+<td>17</td>
+<td>64-bit float</td>
+</tr>
+<tr>
+<td>VISIBLE_STRING</td>
+<td>9</td>
+<td>ASCII string</td>
+</tr>
+<tr>
+<td>OCTET_STRING</td>
+<td>10</td>
+<td>Byte array</td>
+</tr>
+<tr>
+<td>DOMAIN</td>
+<td>15</td>
+<td>Arbitrary binary blob</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sdo-operations">SDO Operations<a class="headerlink" href="#sdo-operations" title="Permanent link">&para;</a></h2>
+<p><strong>SDO</strong> (Service Data Object) is the CANopen protocol for reading and writing individual object dictionary entries on a remote node. It is a confirmed, request-response protocol.</p>
+<h3 id="upload-read-from-node">Upload (Read from Node)<a class="headerlink" href="#upload-read-from-node" title="Permanent link">&para;</a></h3>
+<p><strong>Upload</strong> transfers data from a remote node's object dictionary to Frasy.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">-- In a test script:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">voltage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Ibs</span><span class="p">.</span><span class="py">MyBoard</span><span class="p">.</span><span class="py">ib</span><span class="p">:</span><span class="nf">Upload</span><span class="p">(</span><span class="nv">Ibs</span><span class="p">.</span><span class="py">MyBoard</span><span class="p">.</span><span class="py">ib</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p>Under the hood:</p>
+<ol>
+<li>The Lua <code>Ib:Upload(ode)</code> call invokes <code>CanOpen.__upload(nodeId, ode)</code>.</li>
+<li>The C++ binding queues an <code>SdoUploadRequest</code> with the <code>SdoManager</code> for that node.</li>
+<li>The SDO worker thread initiates a <code>CO_SDOclientUploadInitiate</code> on the CANopen stack.</li>
+<li>The stack sends a CAN frame (COB-ID = 0x600 + nodeId) to the remote node.</li>
+<li>The remote node responds with the data.</li>
+<li>The worker reads the buffer, resolves the future, and returns the value to Lua.</li>
+</ol>
+<h3 id="download-write-to-node">Download (Write to Node)<a class="headerlink" href="#download-write-to-node" title="Permanent link">&para;</a></h3>
+<p><strong>Download</strong> transfers data from Frasy to a remote node's object dictionary.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">-- In a test script:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">Ibs</span><span class="p">.</span><span class="py">MyBoard</span><span class="p">.</span><span class="py">ib</span><span class="p">:</span><span class="nf">Download</span><span class="p">(</span><span class="nv">Ibs</span><span class="p">.</span><span class="py">MyBoard</span><span class="p">.</span><span class="py">ib</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;DAC Output&quot;</span><span class="p">],</span><span class="w"> </span><span class="mf">2.5</span><span class="p">)</span>
+</code></pre></div>
+<p>Under the hood:</p>
+<ol>
+<li>The Lua <code>Ib:Download(ode, value)</code> call invokes <code>CanOpen.__download(nodeId, ode, value)</code>.</li>
+<li>An <code>SdoDownloadRequest</code> is queued.</li>
+<li>The worker initiates a <code>CO_SDOclientDownloadInitiate</code>.</li>
+<li>CAN frame sent (COB-ID = 0x600 + nodeId), remote node acknowledges.</li>
+</ol>
+<h3 id="complex-entries">Complex Entries<a class="headerlink" href="#complex-entries" title="Permanent link">&para;</a></h3>
+<p>For <code>array</code> and <code>record</code> object types, <code>Ib:Upload()</code> and <code>Ib:Download()</code> automatically iterate over all sub-entries, performing individual SDO transfers for each.</p>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h3>
+<p>SDO operations can fail due to:</p>
+<ul>
+<li><strong>Timeout</strong> — no response from the node within <code>sdoTimeoutMs</code> (default: 1000ms).</li>
+<li><strong>Abort codes</strong> — the remote node actively rejects the transfer (e.g., non-existent object, access denied).</li>
+<li><strong>Retries</strong> — each request retries up to 5 times before giving up.</li>
+</ul>
+<p>Failures surface as Lua errors that the orchestrator catches and reports.</p>
+<hr />
+<h2 id="heartbeat-monitoring">Heartbeat Monitoring<a class="headerlink" href="#heartbeat-monitoring" title="Permanent link">&para;</a></h2>
+<p>Frasy monitors instrumentation boards via the CANopen <strong>heartbeat protocol</strong>:</p>
+<ul>
+<li>Each board periodically sends a heartbeat message (its node ID + NMT state).</li>
+<li>Frasy's heartbeat consumer tracks these. If a board stops sending heartbeats within the configured period, it transitions to a <strong>timeout</strong> state.</li>
+<li>A board in timeout is considered <strong>unresponsive</strong> — it may have crashed, lost power, been physically disconnected, or its firmware has hung. SDO operations to a timed-out node will fail, and any test relying on that board should be treated as invalid.</li>
+<li>Heartbeat events trigger callbacks that can be used for error reporting.</li>
+</ul>
+<p>Configure per-node heartbeat monitoring:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">m_canOpen</span><span class="p">.</span><span class="n">setNodeHeartbeatProdTime</span><span class="p">(</span><span class="n">nodeId</span><span class="p">,</span><span class="w"> </span><span class="n">periodMs</span><span class="p">);</span>
+</code></pre></div>
 <div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
+<p class="admonition-title">Note</p>
+<p>The CANopen stack must be restarted after changing heartbeat configuration for the monitoring to take effect.</p>
 </div>
+<hr />
+<h2 id="emergency-messages">Emergency Messages<a class="headerlink" href="#emergency-messages" title="Permanent link">&para;</a></h2>
+<p>Emergency messages are unsolicited alerts sent by a node when an error condition occurs. Frasy:</p>
+<ol>
+<li>Receives them via the <code>emRxCallback</code>.</li>
+<li>Logs them to the application log.</li>
+<li>Stores them in the node's emergency history (<code>node-&gt;getEmergencies()</code>).</li>
+<li>Invokes any registered <code>EmergencyMessageCallback</code> functions.</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">m_canOpen</span><span class="p">.</span><span class="n">addEmergencyMessageCallback</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">EmergencyMessage</span><span class="o">&amp;</span><span class="w"> </span><span class="n">em</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="c1">// React to hardware error conditions</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="p">});</span>
+</code></pre></div>
+<hr />
+<h2 id="integration-with-the-orchestrator">Integration with the Orchestrator<a class="headerlink" href="#integration-with-the-orchestrator" title="Permanent link">&para;</a></h2>
+<p>When a product is loaded:</p>
+<ol>
+<li>The application reads the environment's IB declarations.</li>
+<li>For each IB, <code>addNode(nodeId, name, edsPath)</code> is called on <code>m_canOpen</code>.</li>
+<li><code>m_canOpen.start()</code> launches the CANopen thread.</li>
+<li>The orchestrator receives <code>setCanOpen(&amp;m_canOpen)</code> so the Lua bindings can invoke SDO operations.</li>
+</ol>
+<p>When the product changes or the environment is reloaded:</p>
+<ol>
+<li><code>m_canOpen.stop()</code> halts the thread.</li>
+<li><code>m_canOpen.clearNodes()</code> removes all registered nodes.</li>
+<li>New nodes are added and <code>start()</code> is called again.</li>
+</ol>
+<hr />
+<h2 id="canopen-viewer-panel">CANopen Viewer Panel<a class="headerlink" href="#canopen-viewer-panel" title="Permanent link">&para;</a></h2>
+<p>The built-in CANopen Viewer (<span class="keys"><kbd class="key-f7">F7</kbd></span>) provides a live UI for:</p>
+<ul>
+<li>Browsing each node's full object dictionary (parsed from EDS).</li>
+<li>Manually initiating SDO upload/download operations.</li>
+<li>Viewing node NMT state and heartbeat status.</li>
+<li>Inspecting emergency message history.</li>
+</ul>
+<p>This is invaluable for debugging hardware communication issues during test development.</p>
 
 
 

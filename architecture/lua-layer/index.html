@@ -53,6 +53,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -770,6 +772,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Layer
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -786,6 +806,458 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#product-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Product Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-environmentlua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment (environment.lua)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment (environment.lua)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sequences-and-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequences and Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sequences and Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#order-requirements-generation-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order Requirements (generation-time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-requirements-execution-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Requirements (execution-time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expectations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expectations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expectations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-matchers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Matchers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modifiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-uut-coordination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-UUT Coordination
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-UUT Coordination">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exclusiveid-fn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exclusive(id, fn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oncefn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Once(fn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#teams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Teams
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Teams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#team-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Team API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-sync-on-test-completion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Sync on Test Completion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#popups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Popups
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Popups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#builder-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Builder Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Elements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-lua-and-c-interact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Lua and C++ Interact
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instrumentation-boards-ibs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instrumentation Boards (Ibs)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Instrumentation Boards (Ibs)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-ib-base-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Ib Base Class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#board-specific-sdks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Board-Specific SDKs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-board-sdks-build-on-ib" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Board SDKs Build on Ib
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#declaring-boards-in-environmentlua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declaring Boards in environment.lua
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-sdk-file-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core SDK File Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1730,6 +2202,447 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#product-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Product Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-environmentlua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment (environment.lua)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment (environment.lua)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sequences-and-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequences and Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sequences and Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#order-requirements-generation-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order Requirements (generation-time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-requirements-execution-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Requirements (execution-time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expectations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expectations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expectations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-matchers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Matchers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modifiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-uut-coordination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-UUT Coordination
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-UUT Coordination">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exclusiveid-fn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exclusive(id, fn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oncefn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Once(fn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#teams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Teams
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Teams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#team-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Team API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-sync-on-test-completion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Sync on Test Completion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#popups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Popups
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Popups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#builder-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Builder Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Elements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-lua-and-c-interact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Lua and C++ Interact
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instrumentation-boards-ibs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instrumentation Boards (Ibs)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Instrumentation Boards (Ibs)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-ib-base-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Ib Base Class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#board-specific-sdks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Board-Specific SDKs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-board-sdks-build-on-ib" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Board SDKs Build on Ib
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#declaring-boards-in-environmentlua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declaring Boards in environment.lua
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-sdk-file-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core SDK File Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1749,10 +2662,667 @@
 
 
 <h1 id="lua-layer">Lua Layer<a class="headerlink" href="#lua-layer" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
+<p>The Lua layer is where test engineers define what a board should do and how to verify it. Frasy embeds a Lua 5.4 runtime (via <a href="https://github.com/ThePhD/sol2">sol2</a>) and provides a rich SDK of globals. The Lua files are loaded, validated, and executed by the C++ orchestrator without requiring a recompile of the application.</p>
+<hr />
+<h2 id="product-structure">Product Structure<a class="headerlink" href="#product-structure" title="Permanent link">&para;</a></h2>
+<p>A <strong>product</strong> is a directory under <code>lua/user/</code> that contains at least an <code>environment.lua</code> file:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>lua/user/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  &lt;product-name&gt;/
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    environment.lua         ← required: declares the test environment
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    tests/
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>      *.lua                 ← one or more test files (any depth)
+</code></pre></div>
+<p>The application scans this directory tree at startup (and on <span class="keys"><kbd class="key-f9">F9</kbd></span>) to discover available products. The directory name becomes the product name shown in the UI.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can have multiple products side-by-side. The operator selects which one to run from a dropdown in the Control Room.</p>
 </div>
+<hr />
+<h2 id="environment-environmentlua">Environment (<code>environment.lua</code>)<a class="headerlink" href="#environment-environmentlua" title="Permanent link">&para;</a></h2>
+<p>The environment file declares the <strong>static configuration</strong> of the test setup for this product — how many UUTs, which instrumentation boards are present, and how execution should proceed.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">DAQ</span><span class="p">:</span><span class="nf">New</span><span class="p">())</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">SetExecutionPolicy</span><span class="p">(</span><span class="nv">ExecutionPolicy</span><span class="p">.</span><span class="py">parallel</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="environment-api">Environment API<a class="headerlink" href="#environment-api" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Environment.Make(fn)</code></td>
+<td>Wraps the environment definition; validates on completion</td>
+</tr>
+<tr>
+<td><code>Environment.ScriptVersion(version)</code></td>
+<td>Declares the script version string</td>
+</tr>
+<tr>
+<td><code>Environment.Uut.Count(n)</code></td>
+<td>Sets the number of UUTs (Units Under Test)</td>
+</tr>
+<tr>
+<td><code>Environment.Ib.Add(board)</code></td>
+<td>Registers an instrumentation board; parses its EDS file</td>
+</tr>
+<tr>
+<td><code>Environment.SetExecutionPolicy(policy)</code></td>
+<td><code>ExecutionPolicy.parallel</code> or <code>ExecutionPolicy.sequential</code></td>
+</tr>
+<tr>
+<td><code>Environment.UutValue.Add(key)</code></td>
+<td>Declares a per-UUT value with <code>.Link(uut, value)</code> chaining</td>
+</tr>
+<tr>
+<td><code>Environment.Team.Add(leader, ...)</code></td>
+<td>Groups UUTs into teams for coordinated execution</td>
+</tr>
+<tr>
+<td><code>Environment.Worker.Limit(n)</code></td>
+<td>Limits the number of concurrent worker threads</td>
+</tr>
+<tr>
+<td><code>Environment.SetOnReport(fn)</code></td>
+<td>Hook to transform the report before saving</td>
+</tr>
+<tr>
+<td><code>Environment.SetOnReportInfo(fn)</code></td>
+<td>Hook to inject extra metadata into reports</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sequences-and-tests">Sequences and Tests<a class="headerlink" href="#sequences-and-tests" title="Permanent link">&para;</a></h2>
+<p>Test files define <strong>sequences</strong> (groups of related tests) and the <strong>tests</strong> within them.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Sequence</span><span class="p">():</span><span class="nf">ToBeFirst</span><span class="p">())</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Check Supply Voltage&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="w"> </span><span class="cm">--[[@as DAQ]]</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">_24VDC</span><span class="p">)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">v</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">24.0</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">):</span><span class="nf">Mandatory</span><span class="p">()</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Check Current Draw&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">        </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Check Supply Voltage&quot;</span><span class="p">):</span><span class="nf">ToPass</span><span class="p">())</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">MeasureCurrent</span><span class="p">()</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">i</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Current&quot;</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Sequence names must be <strong>unique</strong> across all test files for a product.</li>
+<li>Test names must be <strong>unique within their sequence</strong>.</li>
+<li>A sequence must contain at least one test.</li>
+<li>Test files are loaded in filesystem order; ordering between sequences is expressed via requirements, not file order.</li>
+</ul>
+<hr />
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<p>Requirements express <strong>constraints</strong> between sequences and tests. They come in two flavors:</p>
+<h3 id="order-requirements-generation-time">Order Requirements (generation-time)<a class="headerlink" href="#order-requirements-generation-time" title="Permanent link">&para;</a></h3>
+<p>Influence how the orchestrator sorts sequences into the execution plan:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Sequence():ToBeFirst()</code></td>
+<td>Place this sequence first</td>
+</tr>
+<tr>
+<td><code>Sequence():ToBeLast()</code></td>
+<td>Place this sequence last</td>
+</tr>
+<tr>
+<td><code>Sequence("Other"):ToBeBefore()</code></td>
+<td>Current runs before "Other"</td>
+</tr>
+<tr>
+<td><code>Sequence("Other"):ToBeAfter()</code></td>
+<td>Current runs after "Other"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="runtime-requirements-execution-time">Runtime Requirements (execution-time)<a class="headerlink" href="#runtime-requirements-execution-time" title="Permanent link">&para;</a></h3>
+<p>Evaluated live during execution; if unmet, the current scope is <strong>skipped</strong> (not failed):</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ToPass()</code></td>
+<td>Target scope completed and all expectations passed</td>
+</tr>
+<tr>
+<td><code>ToFail()</code></td>
+<td>Target scope did not pass</td>
+</tr>
+<tr>
+<td><code>ToBeComplete()</code></td>
+<td>Target scope ran (regardless of outcome)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="custom-requirements">Custom Requirements<a class="headerlink" href="#custom-requirements" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nf">Requires</span><span class="p">(</span><span class="nf">RequirementSpecifier</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">someCondition</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kr">end</span><span class="p">))</span>
+</code></pre></div>
+<p>See <a href="../test-lifecycle/">Test Lifecycle</a> for how requirements interact with the generation and execution stages.</p>
+<hr />
+<h2 id="expectations">Expectations<a class="headerlink" href="#expectations" title="Permanent link">&para;</a></h2>
+<p>Expectations are <strong>assertions</strong> on measured values. They are created with <code>Expect()</code> and chained with matchers:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">value</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;name&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="nv">min</span><span class="p">,</span><span class="w"> </span><span class="nv">max</span><span class="p">):</span><span class="nf">Mandatory</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="available-matchers">Available Matchers<a class="headerlink" href="#available-matchers" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Matcher</th>
+<th>Assertion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:ToBeTrue()</code></td>
+<td>Value is boolean <code>true</code></td>
+</tr>
+<tr>
+<td><code>:ToBeFalse()</code></td>
+<td>Value is boolean <code>false</code></td>
+</tr>
+<tr>
+<td><code>:ToBeEqual(expected)</code></td>
+<td>Value equals expected (type and value)</td>
+</tr>
+<tr>
+<td><code>:ToBeNear(expected, deviation)</code></td>
+<td><code>expected ± deviation</code></td>
+</tr>
+<tr>
+<td><code>:ToBeInRange(min, max)</code></td>
+<td><code>min ≤ value ≤ max</code></td>
+</tr>
+<tr>
+<td><code>:ToBeInPercentage(expected, pct)</code></td>
+<td><code>expected ± (expected × pct/100)</code></td>
+</tr>
+<tr>
+<td><code>:ToBeGreater(min)</code></td>
+<td><code>value &gt; min</code></td>
+</tr>
+<tr>
+<td><code>:ToBeGreaterOrEqual(min)</code></td>
+<td><code>value ≥ min</code></td>
+</tr>
+<tr>
+<td><code>:ToBeLesser(max)</code></td>
+<td><code>value &lt; max</code></td>
+</tr>
+<tr>
+<td><code>:ToBeLesserOrEqual(max)</code></td>
+<td><code>value ≤ max</code></td>
+</tr>
+<tr>
+<td><code>:ToBeType(typeName)</code></td>
+<td><code>type(value) == typeName</code></td>
+</tr>
+<tr>
+<td><code>:ToMatch(pattern)</code></td>
+<td>String matches Lua pattern</td>
+</tr>
+</tbody>
+</table>
+<h3 id="modifiers">Modifiers<a class="headerlink" href="#modifiers" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Modifier</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:Mandatory()</code></td>
+<td>If this expectation fails, immediately abort the current test</td>
+</tr>
+<tr>
+<td><code>:Not()</code></td>
+<td>Inverts the assertion (e.g., <code>:Not():ToBeTrue()</code> asserts false)</td>
+</tr>
+<tr>
+<td><code>:ExportAs(name)</code></td>
+<td>Exports the value for use in later tests</td>
+</tr>
+<tr>
+<td><code>:OnErrorExtra(table)</code></td>
+<td>Attaches extra debug info to the result on failure</td>
+</tr>
+<tr>
+<td><code>:Show()</code></td>
+<td>Registers the expectation result for display in the Result Viewer panel</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="multi-uut-coordination">Multi-UUT Coordination<a class="headerlink" href="#multi-uut-coordination" title="Permanent link">&para;</a></h2>
+<p>When testing multiple boards simultaneously (e.g., <code>Environment.Uut.Count(2)</code>), each UUT runs through the same test scripts in its own thread. Most of the time they execute independently and in parallel. However, real test fixtures often have <strong>shared resources</strong> (a single power supply, a shared communication bus, a calibration reference) or require <strong>coordinated timing</strong> (applying a load to all boards at the same instant).</p>
+<p>Frasy provides three synchronization primitives to handle these cases:</p>
+<h3 id="sync"><code>Sync()</code><a class="headerlink" href="#sync" title="Permanent link">&para;</a></h3>
+<p>Inserts a <strong>barrier</strong> — all enabled UUTs must reach the same <code>Sync()</code> point before any of them continues.</p>
+<p><strong>When to use it:</strong> When you need all boards to perform an action at the same time — for example, simultaneously applying a load to verify that a shared power rail doesn't sag, or ensuring all boards are in a known state before a cross-talk measurement.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Simultaneous Load&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nf">ApplyLoad</span><span class="p">()</span><span class="w">       </span><span class="c1">-- each UUT prepares independently</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nf">Sync</span><span class="p">()</span><span class="w">              </span><span class="c1">-- everyone waits here until all UUTs have applied their load</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">MeasurePowerSupplyCurrent</span><span class="p">()</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">i</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Current&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.2</span><span class="p">)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<pre class="mermaid"><code>sequenceDiagram
+    participant UUT1
+    participant UUT2
+    participant UUT3
+
+    par
+        UUT1-&gt;&gt;UUT1: ApplyLoad()
+    and
+        UUT2-&gt;&gt;UUT2: ApplyLoad()
+    and
+        UUT3-&gt;&gt;UUT3: ApplyLoad()
+    end
+    UUT1--&gt;&gt;UUT1: reaches Sync()
+    Note over UUT1: waiting...
+    UUT3--&gt;&gt;UUT3: reaches Sync()
+    Note over UUT3: waiting...
+    UUT2--&gt;&gt;UUT2: reaches Sync()
+    Note over UUT1,UUT3: barrier met — all continue
+    par
+        UUT1-&gt;&gt;UUT1: MeasurePowerSupplyCurrent()
+    and
+        UUT2-&gt;&gt;UUT2: MeasurePowerSupplyCurrent()
+    and
+        UUT3-&gt;&gt;UUT3: MeasurePowerSupplyCurrent()
+    end</code></pre>
+<h3 id="exclusiveid-fn"><code>Exclusive(id, fn)</code><a class="headerlink" href="#exclusiveid-fn" title="Permanent link">&para;</a></h3>
+<p>A <strong>mutex</strong> — only one UUT at a time may execute the protected function. Other UUTs wait their turn.</p>
+<p><strong>When to use it:</strong> When multiple UUTs need to access a shared physical resource that can't handle concurrent access — for example, a single programmable power supply, a shared I²C bus, or a calibration instrument that serves all slots.</p>
+<p>The <code>id</code> parameter identifies <em>which</em> mutex to use. Different IDs are independent mutexes, so you can protect different resources without unnecessary blocking.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nf">Exclusive</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="c1">-- Only one UUT at a time can talk to the shared power supply</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nv">sharedPowerSupply</span><span class="p">:</span><span class="nf">setVoltage</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nv">sharedPowerSupply</span><span class="p">:</span><span class="nf">waitStable</span><span class="p">()</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="nf">Exclusive</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="c1">-- A different mutex for a different shared resource</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nv">sharedMultimeter</span><span class="p">:</span><span class="nf">measure</span><span class="p">()</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="oncefn"><code>Once(fn)</code><a class="headerlink" href="#oncefn" title="Permanent link">&para;</a></h3>
+<p>Executes a function <strong>exactly once</strong> across all UUTs, regardless of how many call it. The first UUT to reach the call runs it; all others skip it.</p>
+<p><strong>When to use it:</strong> For one-time setup actions that affect all UUTs equally — calibrating a shared fixture, initializing a shared instrument, or loading a reference dataset that all boards will use.</p>
+<p><code>Once</code> is scoped per call-site — it uses a hash of the call's traceback and the current scope to identify uniqueness. This means two different <code>Once()</code> calls in different tests will each run once independently.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nf">Once</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="c1">-- Runs exactly once, even with 4 UUTs hitting this point</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nf">calibrateSharedFixture</span><span class="p">()</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Sharing values between UUTs</p>
+<p>UUTs can also share data with each other at runtime (e.g., a calibration value computed by one UUT and needed by others). See the <a href="../../developer-guide/">Developer Guide</a> for patterns and examples.</p>
+</div>
+<h3 id="teams">Teams<a class="headerlink" href="#teams" title="Permanent link">&para;</a></h3>
+<p>Teams group UUTs into <strong>leader/teammate pairs</strong> that coordinate more tightly than the general synchronization primitives allow. In a team, one UUT is the <strong>leader</strong> and the others are <strong>teammates</strong>. This enables asymmetric workflows where one UUT drives an action and the others follow.</p>
+<p><strong>When to use it:</strong> When UUTs have different roles during a test — for example, one board acts as a transmitter and the other as a receiver in a communication test, or one board provides a stimulus while the other measures the response. Teams are also useful when a large panel of UUTs is divided into physical groups that share instrumentation — for example, 50 UUTs where each group of 10 shares its own power supply and measurement hardware. You'd define 5 teams of 10 so that synchronization happens within each group, not across the entire panel.</p>
+<h4 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h4>
+<p>Teams are declared in <code>environment.lua</code>. Each call to <code>Environment.Team.Add()</code> groups UUT indices together, with the first being the leader:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Team</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w">  </span><span class="c1">-- UUT 1 leads, UUT 2 follows</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Team</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w">  </span><span class="c1">-- UUT 3 leads, UUT 4 follows</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When teams are enabled, every UUT must belong to a team.</p>
+</div>
+<h4 id="team-api">Team API<a class="headerlink" href="#team-api" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Team.IsLeader()</code></td>
+<td>Returns <code>true</code> if the current UUT is the team leader</td>
+</tr>
+<tr>
+<td><code>Team.Position()</code></td>
+<td>Returns the UUT's position within its team (1 = leader)</td>
+</tr>
+<tr>
+<td><code>Team.GetLeader()</code></td>
+<td>Returns the leader's UUT index</td>
+</tr>
+<tr>
+<td><code>Team.Tell(value)</code></td>
+<td>Broadcasts a value to all teammates (blocks until all receive it)</td>
+</tr>
+<tr>
+<td><code>Team.Get()</code></td>
+<td>Receives the value sent by <code>Team.Tell()</code></td>
+</tr>
+<tr>
+<td><code>Team.Wait(fn)</code></td>
+<td>Leader-only: loops <code>fn</code> until all teammates have called <code>Team.Done()</code></td>
+</tr>
+<tr>
+<td><code>Team.Done()</code></td>
+<td>Teammate-only: signals the leader that this UUT is ready</td>
+</tr>
+<tr>
+<td><code>Team.HasTeam()</code></td>
+<td>Returns <code>true</code> if teams are enabled</td>
+</tr>
+</tbody>
+</table>
+<h4 id="automatic-sync-on-test-completion">Automatic Sync on Test Completion<a class="headerlink" href="#automatic-sync-on-test-completion" title="Permanent link">&para;</a></h4>
+<p>Teams automatically synchronize at the end of each test. If any teammate fails or encounters a critical error, the failure propagates to the entire team — ensuring that a broken UUT doesn't leave its partners in an inconsistent state.</p>
+<hr />
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>The <code>Context</code> global provides runtime information accessible from any test script:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">Context</span><span class="p">.</span><span class="py">info</span><span class="p">.</span><span class="py">uut</span><span class="w">          </span><span class="c1">-- UUT index (1-based)</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">Context</span><span class="p">.</span><span class="py">info</span><span class="p">.</span><span class="py">serial</span><span class="w">       </span><span class="c1">-- Serial number string</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">Context</span><span class="p">.</span><span class="py">info</span><span class="p">.</span><span class="py">operator</span><span class="w">     </span><span class="c1">-- Operator name</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="nv">Context</span><span class="p">.</span><span class="py">info</span><span class="p">.</span><span class="py">stage</span><span class="w">        </span><span class="c1">-- Current stage (Stage.generation/validation/execution)</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="nv">Context</span><span class="p">.</span><span class="py">info</span><span class="p">.</span><span class="py">time</span><span class="w">         </span><span class="c1">-- Timing info: start, stop, elapsed, process</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="nv">Context</span><span class="p">.</span><span class="py">info</span><span class="p">.</span><span class="py">orchestrator</span><span class="w"> </span><span class="c1">-- { version, date }</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="nv">Context</span><span class="p">.</span><span class="py">info</span><span class="p">.</span><span class="py">user</span><span class="w">         </span><span class="c1">-- { version, date } (from Environment.ScriptVersion)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="w">           </span><span class="c1">-- Registered instrumentation boards</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">uuts</span><span class="w">          </span><span class="c1">-- UUT indices</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">values</span><span class="w">        </span><span class="c1">-- Per-UUT values declared in environment</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="w">            </span><span class="c1">-- Runtime value store (per-sequence namespace)</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">gui</span><span class="w">        </span><span class="c1">-- Values injected from C++ (setLoadUserValues)</span>
+</code></pre></div>
+<hr />
+<h2 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">D</span><span class="p">(</span><span class="s2">&quot;debug message&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1">-- Debug level</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">I</span><span class="p">(</span><span class="s2">&quot;info message&quot;</span><span class="p">)</span><span class="w">      </span><span class="c1">-- Info level</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">W</span><span class="p">(</span><span class="s2">&quot;warning message&quot;</span><span class="p">)</span><span class="w">   </span><span class="c1">-- Warning level</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">E</span><span class="p">(</span><span class="s2">&quot;error message&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1">-- Error level</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">T</span><span class="p">(</span><span class="s2">&quot;trace message&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1">-- Trace level</span>
+</code></pre></div>
+<p>Log messages appear in the Log Window panel with the UUT index as context.</p>
+<hr />
+<h2 id="popups">Popups<a class="headerlink" href="#popups" title="Permanent link">&para;</a></h2>
+<p>Popups are operator-facing dialogs defined in Lua but rendered by the C++ UI layer. They allow test scripts to pause execution and interact with the operator — for example, to request a manual action, confirm a fixture placement, or collect input.</p>
+<h3 id="builder-pattern">Builder Pattern<a class="headerlink" href="#builder-pattern" title="Permanent link">&para;</a></h3>
+<p>Popups use a chainable builder API:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nf">Popup</span><span class="p">(</span><span class="s2">&quot;Confirm Fixture&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="p">:</span><span class="nf">Text</span><span class="p">(</span><span class="s2">&quot;Place the board in the fixture&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="p">:</span><span class="nf">Text</span><span class="p">(</span><span class="s2">&quot;Then press OK&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="p">:</span><span class="nf">Button</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span><span class="w"> </span><span class="kr">end</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">consume</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="p">:</span><span class="nf">Show</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="available-elements">Available Elements<a class="headerlink" href="#available-elements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:Text(str)</code></td>
+<td>Static text label</td>
+</tr>
+<tr>
+<td><code>:TextDynamic(fn)</code></td>
+<td>Dynamic text that updates by calling <code>fn</code> periodically</td>
+</tr>
+<tr>
+<td><code>:Input(title)</code></td>
+<td>Text input field; value returned when popup is consumed</td>
+</tr>
+<tr>
+<td><code>:Button(label, fn, opt)</code></td>
+<td>Clickable button; <code>opt.consume = true</code> dismisses the popup</td>
+</tr>
+<tr>
+<td><code>:Image(path, size)</code></td>
+<td>Displays an image from file</td>
+</tr>
+<tr>
+<td><code>:BeginHorizontal(id)</code> / <code>:EndHorizontal()</code></td>
+<td>Horizontal layout group</td>
+</tr>
+<tr>
+<td><code>:BeginVertical(id)</code> / <code>:EndVertical()</code></td>
+<td>Vertical layout group</td>
+</tr>
+<tr>
+<td><code>:SameLine(opt)</code></td>
+<td>Places the next element on the same line</td>
+</tr>
+<tr>
+<td><code>:Spring(opt)</code></td>
+<td>Flexible spacer for layout balancing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="additional-options">Additional Options<a class="headerlink" href="#additional-options" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:Routine(fn)</code></td>
+<td>A function called repeatedly while the popup is visible (e.g., for polling)</td>
+</tr>
+<tr>
+<td><code>:ConsumeButtonText(text)</code></td>
+<td>Changes the default "Cancel" button label</td>
+</tr>
+<tr>
+<td><code>:Consume()</code></td>
+<td>Programmatically dismisses the popup</td>
+</tr>
+<tr>
+<td><code>:Global()</code></td>
+<td>Makes the popup shared across UUTs (not scoped to a single UUT)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-lua-and-c-interact">How Lua and C++ Interact<a class="headerlink" href="#how-lua-and-c-interact" title="Permanent link">&para;</a></h3>
+<p>When <code>:Show()</code> is called during execution:</p>
+<ol>
+<li>The Lua side passes the builder table (name, elements, options) to the C++ <code>__popup.Show</code> binding.</li>
+<li>C++ constructs a <code>Popup</code> object from the builder table, creating ImGui-renderable elements (text, buttons, inputs, images, layout nodes).</li>
+<li>The popup is inserted into a shared popup map (<code>m_popups</code>), protected by a mutex.</li>
+<li>The <strong>Lua thread blocks</strong> — it calls <code>Routine()</code> which waits until the popup is consumed.</li>
+<li>On the <strong>C++ main thread</strong>, <code>Orchestrator::renderPopups()</code> is called each frame by <code>MainApplicationLayer::onImGuiRender()</code>, which draws all active popups using ImGui.</li>
+<li>When the operator clicks a <code>consume = true</code> button (or the Cancel button), the popup is marked as consumed.</li>
+<li>The Lua thread unblocks, receives any input values, and continues execution.</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Lua as Lua Thread (UUT)
+    participant CPP as C++ Main Thread
+
+    Lua-&gt;&gt;CPP: __popup.Show(builder)
+    CPP-&gt;&gt;CPP: Construct Popup from builder
+    CPP-&gt;&gt;CPP: Insert into m_popups
+    Note over Lua: blocked (waiting)
+    loop Every frame
+        CPP-&gt;&gt;CPP: renderPopups() → ImGui draw
+    end
+    Note over CPP: Operator clicks button
+    CPP-&gt;&gt;CPP: Popup.Consume()
+    CPP--&gt;&gt;Lua: returns input values
+    Note over Lua: resumes execution</code></pre>
+<h3 id="stage-behavior">Stage Behavior<a class="headerlink" href="#stage-behavior" title="Permanent link">&para;</a></h3>
+<p>Popups behave differently depending on the current stage:</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Execution</strong></td>
+<td>Full rendering — Lua blocks until operator dismisses</td>
+</tr>
+<tr>
+<td><strong>Validation</strong></td>
+<td>Popup is constructed and routine runs, but no UI rendering (auto-consumed)</td>
+</tr>
+<tr>
+<td><strong>Generation</strong></td>
+<td>Popup is constructed but immediately returns with default input values</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="instrumentation-boards-ibs">Instrumentation Boards (Ibs)<a class="headerlink" href="#instrumentation-boards-ibs" title="Permanent link">&para;</a></h2>
+<p>Instrumentation Boards (IBs) are the physical hardware that Frasy controls to stimulate and measure the board under test. Each IB is a CANopen node on the CAN bus with its own object dictionary describing its capabilities.</p>
+<h3 id="the-ib-base-class">The <code>Ib</code> Base Class<a class="headerlink" href="#the-ib-base-class" title="Permanent link">&para;</a></h3>
+<p>At the Lua level, every board has an <code>ib</code> field — an instance of the <code>Ib</code> class that provides the low-level communication interface. It exposes two core operations:</p>
+<ul>
+<li><strong><code>Upload(ode)</code></strong> — reads a value from the board (SDO upload).</li>
+<li><strong><code>Download(ode, value)</code></strong> — writes a value to the board (SDO download).</li>
+</ul>
+<p>Both take an <strong>object dictionary entry</strong> (<code>ode</code>) — a reference to a specific register or parameter on the board, looked up by name from the <code>od</code> table.</p>
+<p>Those two operations can then be used to implement the functionalities of your custom boards:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="p">.</span><span class="py">ib</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1">-- Read the current DAC amplitude from the board</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">amplitude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">Upload</span><span class="p">(</span><span class="nv">daq</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;DAC&quot;</span><span class="p">][</span><span class="s2">&quot;Amplitude&quot;</span><span class="p">])</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1">-- Set the DAC amplitude to 3.3V</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="nv">daq</span><span class="p">:</span><span class="nf">Download</span><span class="p">(</span><span class="nv">daq</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;DAC&quot;</span><span class="p">][</span><span class="s2">&quot;Amplitude&quot;</span><span class="p">],</span><span class="w"> </span><span class="mf">3.3</span><span class="p">)</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="c1">-- Enable the DAC output</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="nv">daq</span><span class="p">:</span><span class="nf">Download</span><span class="p">(</span><span class="nv">daq</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;DAC&quot;</span><span class="p">][</span><span class="s2">&quot;Enable&quot;</span><span class="p">],</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="c1">-- Read a complex (record) entry — uploads all sub-entries automatically</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="kd">local</span><span class="w"> </span><span class="nv">adcResult</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">Upload</span><span class="p">(</span><span class="nv">daq</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;ADC&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p>The <code>od</code> table mirrors the board's EDS file structure. Simple entries (vars) have a single value; complex entries (arrays, records) contain nested sub-entries that <code>Upload</code>/<code>Download</code> handle recursively.</p>
+<h3 id="board-specific-sdks">Board-Specific SDKs<a class="headerlink" href="#board-specific-sdks" title="Permanent link">&para;</a></h3>
+<p>The raw <code>Ib:Upload()</code> / <code>Ib:Download()</code> interface is powerful but low-level — you'd need to know exact OD entry names, data formats, and multi-step protocols. To make test scripting ergonomic, Frasy provides <strong>board-specific SDK classes</strong> that wrap the base <code>Ib</code> with high-level, domain-appropriate methods:</p>
+<table>
+<thead>
+<tr>
+<th>Board</th>
+<th>Purpose</th>
+<th>Example Methods</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DAQ</strong></td>
+<td>Data Acquisition — voltage/impedance measurement, signal routing, DAC output, GPIO, ADC</td>
+<td><code>MeasureVoltage(points)</code>, <code>MeasureResistor(p, n)</code>, <code>DacAmplitude(v)</code>, <code>RequestRouting(points)</code></td>
+</tr>
+<tr>
+<td><strong>PIO</strong></td>
+<td>Programmable I/O — power supply control, digital GPIO</td>
+<td><code>SupplyEnable(supply, state)</code>, <code>SupplyVoltage(supply, v)</code>, <code>IoOutputValue(pin, val)</code></td>
+</tr>
+<tr>
+<td><strong>R8L</strong></td>
+<td>Relay board — 8 relays for signal switching</td>
+<td><code>DigitalOutput(index, state)</code>, <code>ErrorModeOutput(enable)</code>, <code>Id()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-board-sdks-build-on-ib">How Board SDKs Build on <code>Ib</code><a class="headerlink" href="#how-board-sdks-build-on-ib" title="Permanent link">&para;</a></h3>
+<p>Each SDK class:</p>
+<ol>
+<li><strong>Extends <code>Ib</code></strong> — creates an <code>Ib:New()</code> instance with a fixed <code>kind</code>, default <code>nodeId</code>, and path to its EDS file.</li>
+<li><strong>Provides named methods</strong> that translate human-readable operations into the correct sequence of <code>Upload</code>/<code>Download</code> calls.</li>
+<li><strong>Maintains a cache</strong> to avoid redundant reads and enable bitwise manipulation of register values.</li>
+<li><strong>Validates inputs</strong> — checks types, ranges, and enum values before sending anything to hardware.</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">-- DAQ SDK wraps multiple OD operations into one high-level call:</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">_24VDC</span><span class="p">)</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="c1">-- Internally this:</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1">--   1. Routes the measurement bus to the requested test point</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1">--   2. Configures ADC gain and sample rate</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="c1">--   3. Triggers sampling</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1">--   4. Waits for samples to complete</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1">--   5. Reads and returns the result</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">result</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;24V Rail&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="declaring-boards-in-environmentlua">Declaring Boards in <code>environment.lua</code><a class="headerlink" href="#declaring-boards-in-environmentlua" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">pio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">PIO</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pio&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">r8l</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">R8L</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;r8l&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">daq</span><span class="p">)</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">pio</span><span class="p">)</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">r8l</span><span class="p">)</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<p>After registration, they're accessible in test scripts as <code>Ibs.daq</code>, <code>Ibs.pio</code>, <code>Ibs.r8l</code> (or via <code>Context.map.ibs</code>).</p>
+<h3 id="custom-boards">Custom Boards<a class="headerlink" href="#custom-boards" title="Permanent link">&para;</a></h3>
+<p>You can create your own board SDK by following the same pattern — subclass <code>Ib</code>, point to your EDS file, and wrap OD operations in meaningful methods. See the <a href="../../developer-guide/custom-ibs/">Developer Guide</a> for details.</p>
+<p>See <a href="../hardware/">Hardware Communication</a> for the full details on CANopen, EDS parsing, and how SDO operations work at the protocol level.</p>
+<hr />
+<h2 id="core-sdk-file-layout">Core SDK File Layout<a class="headerlink" href="#core-sdk-file-layout" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Frasy/lua/core/
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>  framework/
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>    orchestrator.lua        ← Orchestrator logic (sequences, tests, execution)
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>    expectation/            ← Expectation matchers (generation, validation, execution variants)
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    scope.lua               ← Scope definition
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    scope_requirement/      ← ScopeRequirement methods per stage
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    runtime_requirement.lua ← RuntimeRequirement wrapper
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>    order_requirement.lua   ← Order requirement registration
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    sync_requirement.lua    ← Sync barrier implementation
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>    context.lua             ← Context global definition
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>    stage.lua               ← Stage enum (idle, generation, validation, execution)
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>    exception.lua           ← Error types (UnmetRequirement, UnmetExpectation, etc.)
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>    error_handler.lua       ← xpcall error handler with traceback
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>  sdk/
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>    test.lua                ← Sequence(), Test(), Expect(), Requires(), Sync(), etc.
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a>    log.lua                 ← Log.D/I/W/E/T stubs (replaced by C++ at runtime)
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a>    popup.lua               ← Popup builder
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a>    environment/            ← Environment.Make and sub-APIs
+<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a>  utils/                    ← Helper functions (type checks, bitwise, ini parser, etc.)
+<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a>  can_open/                 ← CANopen OD parser, type definitions
+<a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a>  cep/                      ← Board-specific SDKs (DAQ, PIO, R8L)
+<a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a>  vendor/                   ← Third-party Lua libraries (json.lua)
+</code></pre></div>
 
 
 
