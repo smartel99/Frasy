@@ -51,6 +51,7 @@ markdown_extensions:
       anchor_linenums: true
       use_pygments: true
   - pymdownx.inlinehilite
+  - pymdownx.keys
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.emoji:

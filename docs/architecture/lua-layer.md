@@ -154,7 +154,7 @@ Expect(value, "name"):ToBeInRange(min, max):Mandatory()
 | `:Not()` | Inverts the assertion (e.g., `:Not():ToBeTrue()` asserts false) |
 | `:ExportAs(name)` | Exports the value for use in later tests |
 | `:OnErrorExtra(table)` | Attaches extra debug info to the result on failure |
-| `:Show()` | Displays the expectation result in a popup |
+| `:Show()` | Registers the expectation result for display in the Result Viewer panel |
 
 ---
 
@@ -186,18 +186,26 @@ sequenceDiagram
     participant UUT2
     participant UUT3
 
-    UUT1->>UUT1: ApplyLoad()
-    UUT2->>UUT2: ApplyLoad()
-    UUT3->>UUT3: ApplyLoad()
+    par
+        UUT1->>UUT1: ApplyLoad()
+    and
+        UUT2->>UUT2: ApplyLoad()
+    and
+        UUT3->>UUT3: ApplyLoad()
+    end
     UUT1-->>UUT1: reaches Sync()
     Note over UUT1: waiting...
     UUT3-->>UUT3: reaches Sync()
     Note over UUT3: waiting...
     UUT2-->>UUT2: reaches Sync()
     Note over UUT1,UUT3: barrier met — all continue
-    UUT1->>UUT1: MeasurePowerSupplyCurrent()
-    UUT2->>UUT2: MeasurePowerSupplyCurrent()
-    UUT3->>UUT3: MeasurePowerSupplyCurrent()
+    par
+        UUT1->>UUT1: MeasurePowerSupplyCurrent()
+    and
+        UUT2->>UUT2: MeasurePowerSupplyCurrent()
+    and
+        UUT3->>UUT3: MeasurePowerSupplyCurrent()
+    end
 ```
 
 ### `Exclusive(id, fn)`
@@ -238,6 +246,44 @@ end)
 
 !!! tip "Sharing values between UUTs"
     UUTs can also share data with each other at runtime (e.g., a calibration value computed by one UUT and needed by others). See the [Developer Guide](../developer-guide/index.md) for patterns and examples.
+
+### Teams
+
+Teams group UUTs into **leader/teammate pairs** that coordinate more tightly than the general synchronization primitives allow. In a team, one UUT is the **leader** and the others are **teammates**. This enables asymmetric workflows where one UUT drives an action and the others follow.
+
+**When to use it:** When UUTs have different roles during a test — for example, one board acts as a transmitter and the other as a receiver in a communication test, or one board provides a stimulus while the other measures the response. Teams are also useful when a large panel of UUTs is divided into physical groups that share instrumentation — for example, 50 UUTs where each group of 10 shares its own power supply and measurement hardware. You'd define 5 teams of 10 so that synchronization happens within each group, not across the entire panel.
+
+#### Setup
+
+Teams are declared in `environment.lua`. Each call to `Environment.Team.Add()` groups UUT indices together, with the first being the leader:
+
+```lua
+Environment.Make(function()
+    Environment.Uut.Count(4)
+    Environment.Team.Add(1, 2)  -- UUT 1 leads, UUT 2 follows
+    Environment.Team.Add(3, 4)  -- UUT 3 leads, UUT 4 follows
+end)
+```
+
+!!! note
+    When teams are enabled, every UUT must belong to a team.
+
+#### Team API
+
+| Function | Description |
+|---|---|
+| `Team.IsLeader()` | Returns `true` if the current UUT is the team leader |
+| `Team.Position()` | Returns the UUT's position within its team (1 = leader) |
+| `Team.GetLeader()` | Returns the leader's UUT index |
+| `Team.Tell(value)` | Broadcasts a value to all teammates (blocks until all receive it) |
+| `Team.Get()` | Receives the value sent by `Team.Tell()` |
+| `Team.Wait(fn)` | Leader-only: loops `fn` until all teammates have called `Team.Done()` |
+| `Team.Done()` | Teammate-only: signals the leader that this UUT is ready |
+| `Team.HasTeam()` | Returns `true` if teams are enabled |
+
+#### Automatic Sync on Test Completion
+
+Teams automatically synchronize at the end of each test. If any teammate fails or encounters a critical error, the failure propagates to the entire team — ensuring that a broken UUT doesn't leave its partners in an inconsistent state.
 
 ---
 
@@ -280,41 +326,171 @@ Log messages appear in the Log Window panel with the UUT index as context.
 
 ## Popups
 
-Operator-facing dialogs built in Lua and rendered by the C++ UI:
+Popups are operator-facing dialogs defined in Lua but rendered by the C++ UI layer. They allow test scripts to pause execution and interact with the operator — for example, to request a manual action, confirm a fixture placement, or collect input.
+
+### Builder Pattern
+
+Popups use a chainable builder API:
 
 ```lua
 Popup("Confirm Fixture")
     :Text("Place the board in the fixture")
     :Text("Then press OK")
-    :Button("OK", function() end)
+    :Button("OK", function() end, { consume = true })
     :Show()
 ```
 
-The test execution **pauses** until the operator dismisses the popup. Popups support text, dynamic text, inputs, buttons, images, and layout directives (horizontal/vertical grouping, springs, same-line).
+### Available Elements
+
+| Method | Description |
+|---|---|
+| `:Text(str)` | Static text label |
+| `:TextDynamic(fn)` | Dynamic text that updates by calling `fn` periodically |
+| `:Input(title)` | Text input field; value returned when popup is consumed |
+| `:Button(label, fn, opt)` | Clickable button; `opt.consume = true` dismisses the popup |
+| `:Image(path, size)` | Displays an image from file |
+| `:BeginHorizontal(id)` / `:EndHorizontal()` | Horizontal layout group |
+| `:BeginVertical(id)` / `:EndVertical()` | Vertical layout group |
+| `:SameLine(opt)` | Places the next element on the same line |
+| `:Spring(opt)` | Flexible spacer for layout balancing |
+
+### Additional Options
+
+| Method | Description |
+|---|---|
+| `:Routine(fn)` | A function called repeatedly while the popup is visible (e.g., for polling) |
+| `:ConsumeButtonText(text)` | Changes the default "Cancel" button label |
+| `:Consume()` | Programmatically dismisses the popup |
+| `:Global()` | Makes the popup shared across UUTs (not scoped to a single UUT) |
+
+### How Lua and C++ Interact
+
+When `:Show()` is called during execution:
+
+1. The Lua side passes the builder table (name, elements, options) to the C++ `__popup.Show` binding.
+2. C++ constructs a `Popup` object from the builder table, creating ImGui-renderable elements (text, buttons, inputs, images, layout nodes).
+3. The popup is inserted into a shared popup map (`m_popups`), protected by a mutex.
+4. The **Lua thread blocks** — it calls `Routine()` which waits until the popup is consumed.
+5. On the **C++ main thread**, `Orchestrator::renderPopups()` is called each frame by `MainApplicationLayer::onImGuiRender()`, which draws all active popups using ImGui.
+6. When the operator clicks a `consume = true` button (or the Cancel button), the popup is marked as consumed.
+7. The Lua thread unblocks, receives any input values, and continues execution.
+
+```mermaid
+sequenceDiagram
+    participant Lua as Lua Thread (UUT)
+    participant CPP as C++ Main Thread
+
+    Lua->>CPP: __popup.Show(builder)
+    CPP->>CPP: Construct Popup from builder
+    CPP->>CPP: Insert into m_popups
+    Note over Lua: blocked (waiting)
+    loop Every frame
+        CPP->>CPP: renderPopups() → ImGui draw
+    end
+    Note over CPP: Operator clicks button
+    CPP->>CPP: Popup.Consume()
+    CPP-->>Lua: returns input values
+    Note over Lua: resumes execution
+```
+
+### Stage Behavior
+
+Popups behave differently depending on the current stage:
+
+| Stage | Behavior |
+|---|---|
+| **Execution** | Full rendering — Lua blocks until operator dismisses |
+| **Validation** | Popup is constructed and routine runs, but no UI rendering (auto-consumed) |
+| **Generation** | Popup is constructed but immediately returns with default input values |
 
 ---
 
 ## Instrumentation Boards (Ibs)
 
-Boards registered via `Environment.Ib.Add()` become available as `Ibs.<name>`:
+Instrumentation Boards (IBs) are the physical hardware that Frasy controls to stimulate and measure the board under test. Each IB is a CANopen node on the CAN bus with its own object dictionary describing its capabilities.
+
+### The `Ib` Base Class
+
+At the Lua level, every board has an `ib` field — an instance of the `Ib` class that provides the low-level communication interface. It exposes two core operations:
+
+- **`Upload(ode)`** — reads a value from the board (SDO upload).
+- **`Download(ode, value)`** — writes a value to the board (SDO download).
+
+Both take an **object dictionary entry** (`ode`) — a reference to a specific register or parameter on the board, looked up by name from the `od` table.
+
+Those two operations can then be used to implement the functionalities of your custom boards:
 
 ```lua
-local board = Ibs.MyBoard.ib
+local daq = Context.map.ibs.daq.ib
 
--- Read a value from the board's object dictionary
-local voltage = board:Upload(board.od["Supply Voltage"])
+-- Read the current DAC amplitude from the board
+local amplitude = daq:Upload(daq.od["DAC"]["Amplitude"])
 
--- Write a value to the board
-board:Download(board.od["DAC Output"], 2.5)
+-- Set the DAC amplitude to 3.3V
+daq:Download(daq.od["DAC"]["Amplitude"], 3.3)
 
--- Utility methods
-board:Reset()
-board:Serial()
-board:SoftwareVersion()
-board:HardwareVersion()
+-- Enable the DAC output
+daq:Download(daq.od["DAC"]["Enable"], true)
+
+-- Read a complex (record) entry — uploads all sub-entries automatically
+local adcResult = daq:Upload(daq.od["ADC"])
 ```
 
-The `od` table is automatically populated by parsing the board's EDS file. See [Hardware Communication](hardware.md) for details on how this maps to CANopen SDO operations.
+The `od` table mirrors the board's EDS file structure. Simple entries (vars) have a single value; complex entries (arrays, records) contain nested sub-entries that `Upload`/`Download` handle recursively.
+
+### Board-Specific SDKs
+
+The raw `Ib:Upload()` / `Ib:Download()` interface is powerful but low-level — you'd need to know exact OD entry names, data formats, and multi-step protocols. To make test scripting ergonomic, Frasy provides **board-specific SDK classes** that wrap the base `Ib` with high-level, domain-appropriate methods:
+
+| Board | Purpose | Example Methods |
+|---|---|---|
+| **DAQ** | Data Acquisition — voltage/impedance measurement, signal routing, DAC output, GPIO, ADC | `MeasureVoltage(points)`, `MeasureResistor(p, n)`, `DacAmplitude(v)`, `RequestRouting(points)` |
+| **PIO** | Programmable I/O — power supply control, digital GPIO | `SupplyEnable(supply, state)`, `SupplyVoltage(supply, v)`, `IoOutputValue(pin, val)` |
+| **R8L** | Relay board — 8 relays for signal switching | `DigitalOutput(index, state)`, `ErrorModeOutput(enable)`, `Id()` |
+
+### How Board SDKs Build on `Ib`
+
+Each SDK class:
+
+1. **Extends `Ib`** — creates an `Ib:New()` instance with a fixed `kind`, default `nodeId`, and path to its EDS file.
+2. **Provides named methods** that translate human-readable operations into the correct sequence of `Upload`/`Download` calls.
+3. **Maintains a cache** to avoid redundant reads and enable bitwise manipulation of register values.
+4. **Validates inputs** — checks types, ranges, and enum values before sending anything to hardware.
+
+```lua
+-- DAQ SDK wraps multiple OD operations into one high-level call:
+local result = daq:MeasureVoltage(Context.values.route._24VDC)
+-- Internally this:
+--   1. Routes the measurement bus to the requested test point
+--   2. Configures ADC gain and sample rate
+--   3. Triggers sampling
+--   4. Waits for samples to complete
+--   5. Reads and returns the result
+Expect(result.average, "24V Rail"):ToBeInPercentage(24, 1.0)
+```
+
+### Declaring Boards in `environment.lua`
+
+```lua
+local daq = DAQ:New({ name = "daq", nodeId = 2 })
+local pio = PIO:New({ name = "pio", nodeId = 3 })
+local r8l = R8L:New({ name = "r8l", nodeId = 4 })
+
+Environment.Make(function()
+    Environment.Uut.Count(1)
+    Environment.Ib.Add(daq)
+    Environment.Ib.Add(pio)
+    Environment.Ib.Add(r8l)
+end)
+```
+
+After registration, they're accessible in test scripts as `Ibs.daq`, `Ibs.pio`, `Ibs.r8l` (or via `Context.map.ibs`).
+
+### Custom Boards
+
+You can create your own board SDK by following the same pattern — subclass `Ib`, point to your EDS file, and wrap OD operations in meaningful methods. See the [Developer Guide](../developer-guide/custom-ibs.md) for details.
+
+See [Hardware Communication](hardware.md) for the full details on CANopen, EDS parsing, and how SDO operations work at the protocol level.
 
 ---
 
