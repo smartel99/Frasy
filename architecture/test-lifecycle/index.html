@@ -2331,6 +2331,7 @@
 <li>Each <code>Sequence("name", fn)</code> call registers a sequence. Each <code>Test("name", fn)</code> call inside registers a test.</li>
 <li>The sequence and test body functions are <strong>called</strong> — this collects <code>Requires()</code> calls to discover order requirements and sync points.</li>
 <li>Expectations (<code>Expect()</code>) return immediately with <code>pass = true</code> during generation — no actual assertions are made.</li>
+<li>Hardware I/O calls (IB <code>Upload</code>/<code>Download</code>, DAQ measurements, etc.) are no-ops — they are guarded by <code>if Context.info.stage ~= Stage.execution then return end</code> and return dummy values without touching hardware.</li>
 <li>All collected order requirements and sync points are processed by the sort algorithm.</li>
 <li>The <strong>Solution</strong> is produced and optionally saved to <code>lua/solution.json</code>.</li>
 </ol>

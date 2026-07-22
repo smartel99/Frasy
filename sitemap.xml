@@ -2,146 +2,146 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://frasy.rald.ca/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/architecture/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/architecture/cpp-layer/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/architecture/hardware/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/architecture/lua-layer/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/architecture/overview/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/architecture/test-lifecycle/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/developer-guide/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/developer-guide/configuration/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/developer-guide/cpp-to-lua/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/developer-guide/creating-a-product/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/developer-guide/custom-ibs/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/developer-guide/customizing-the-ui/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/developer-guide/installer/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/getting-started/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/getting-started/building/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/getting-started/cpp-setup/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/getting-started/installation/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/getting-started/lua-setup/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/context/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/environment/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/expectations/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/logging/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/popups/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/requirements/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/sequences-and-tests/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/lua-reference/utilities/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/panels/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/panels/canopen-viewer/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/panels/device-viewer/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/panels/log-window/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/panels/lua-profiler/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/panels/result-analyzer/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/panels/result-viewer/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://frasy.rald.ca/panels/test-viewer/</loc>
-         <lastmod>2026-07-17</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
 </urlset>
