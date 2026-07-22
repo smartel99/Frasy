@@ -48,8 +48,9 @@ This is exposed to Lua as `Context.info.stage`, and many SDK functions behave di
 5. Each `Sequence("name", fn)` call registers a sequence. Each `Test("name", fn)` call inside registers a test.
 6. The sequence and test body functions are **called** — this collects `Requires()` calls to discover order requirements and sync points.
 7. Expectations (`Expect()`) return immediately with `pass = true` during generation — no actual assertions are made.
-8. All collected order requirements and sync points are processed by the sort algorithm.
-9. The **Solution** is produced and optionally saved to `lua/solution.json`.
+8. Hardware I/O calls (IB `Upload`/`Download`, DAQ measurements, etc.) are no-ops — they are guarded by `if Context.info.stage ~= Stage.execution then return end` and return dummy values without touching hardware.
+9. All collected order requirements and sync points are processed by the sort algorithm.
+10. The **Solution** is produced and optionally saved to `lua/solution.json`.
 
 ### Forward References
 
