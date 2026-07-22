@@ -87,6 +87,7 @@ nav:
   - Developer Guide:
     - developer-guide/index.md
     - Creating a Product: developer-guide/creating-a-product.md
+    - Teams: developer-guide/teams.md
     - Customizing the UI: developer-guide/customizing-the-ui.md
     - Exposing C++ to Lua: developer-guide/cpp-to-lua.md
     - Custom Instrumentation Boards: developer-guide/custom-ibs.md

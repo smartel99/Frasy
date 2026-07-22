@@ -274,6 +274,7 @@ test sequences concurrently across all UUTs. This introduces coordination primit
 `Sync()` and `Exclusive()` for synchronization and mutual exclusion.
 
 For details on multi-UUT coordination, see the [Lua Reference](../lua-reference/index.md).
+For grouping UUTs that share resources, see [Teams](../developer-guide/teams.md).
 
 ---
 
