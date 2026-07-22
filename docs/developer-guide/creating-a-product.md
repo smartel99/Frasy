@@ -58,33 +58,78 @@ end)
 If your fixture uses physical hardware boards for measurement and stimulus:
 
 ```lua
-local MyDaq = DAQ:New({ name = "daq", nodeId = 2 })
-local MyPio = PIO:New({ name = "pio", nodeId = 3 })
-
 Environment.Make(function()
     Environment.ScriptVersion("1.0.0")
     Environment.Uut.Count(1)
-    Environment.Ib.Add(MyDaq)
-    Environment.Ib.Add(MyPio)
+    Environment.Ib.Add({ name = "daq", nodeId = 2 })
+    Environment.Ib.Add({ name = "pio", nodeId = 3 })
 end)
 ```
 
-The boards are instantiated **outside** `Environment.Make()` so they can be `require`d from test
-files if needed. Once registered, they are accessible at runtime through `Context.map.ibs.<name>`.
+Once registered, they are accessible at runtime through `Context.map.ibs.<name>`.
 
 ### Multi-UUT Environment
 
 For fixtures that test multiple boards in parallel:
 
 ```lua
+Environment.Make(function()
+    Environment.ScriptVersion("1.0.0")
+    Environment.Uut.Count(4)
+    Environment.Ib.Add({ name = "daq", nodeId = 2 }) -- shared by all UUTs
+    Environment.SetExecutionPolicy(ExecutionPolicy.parallel)
+end)
+```
+
+### Mapping Test Points to Hardware Resources
+
+Most test fixtures need to route logical test points on the UUT (e.g., "VCC", "SDA") to physical
+hardware resources (e.g., a DAQ multiplexer channel). You can store this mapping directly in
+`Context.values` so that test scripts reference named test points without hard-coding hardware
+details.
+
+A common pattern is to build a `route` table in `Context.values`:
+
+```lua
 local MyDaq = DAQ:New({ name = "daq", nodeId = 2 })
 
 Environment.Make(function()
     Environment.ScriptVersion("1.0.0")
-    Environment.Uut.Count(4)
+    Environment.Uut.Count(1)
     Environment.Ib.Add(MyDaq)
-    Environment.SetExecutionPolicy(ExecutionPolicy.parallel)
+
+    Context.values.route = {
+        vcc      = DAQ.RoutingPointsEnum.MUX1_A0,
+        gnd      = DAQ.RoutingPointsEnum.MUX1_A1,
+        sda      = DAQ.RoutingPointsEnum.MUX2_A0,
+        scl      = DAQ.RoutingPointsEnum.MUX2_A1,
+        led_out  = DAQ.RoutingPointsEnum.MUX3_A0,
+    }
 end)
+```
+
+In your tests, you then reference the named route instead of raw hardware constants:
+
+```lua
+Test("Supply Voltage", function()
+    local daq = Context.map.ibs.daq --[[@as DAQ]]
+    local v = daq:MeasureVoltage(Context.values.route.vcc)
+    Expect(v.average, "VCC"):ToBeInPercentage(3.3, 5.0)
+end)
+```
+
+This separation means that if a test point moves to a different mux channel (due to a fixture
+revision), you only update the route table in `environment.lua` — no test files need to change.
+
+You can also store non-routing values such as calibration constants, expected firmware versions,
+or fixture-specific thresholds:
+
+```lua
+Context.values.expected_fw_version = "2.4.1"
+Context.values.calibration = {
+    voltage_offset = 0.012,
+    current_gain   = 1.003,
+}
 ```
 
 ### Environment API Reference
@@ -95,7 +140,7 @@ end)
 | `Environment.Uut.Count(n)` | Number of UUTs tested in parallel |
 | `Environment.Ib.Add(board)` | Register an instrumentation board |
 | `Environment.SetExecutionPolicy(policy)` | `ExecutionPolicy.parallel` (default) or `ExecutionPolicy.sequential` |
-| `Environment.Team.Add(leader, ...)` | Group UUTs into a team (for team-based synchronization) |
+| `Environment.Team.Add(leader, ...)` | Group UUTs into a team (for team-based synchronization). See [Teams](teams.md). |
 | `Environment.UutValue.Add(key)` | Declare a per-UUT value (e.g., different test point routing per slot) |
 | `Environment.SetOnReport(fn)` | Hook called on report generation to transform the report |
 | `Environment.SetOnReportInfo(fn)` | Hook to inject extra metadata into reports |
@@ -207,27 +252,72 @@ end)
 
 ## Report Hooks
 
-You can customize test reports by providing hook functions in the environment:
+Frasy generates test reports in multiple formats (JSON, Key-Value, Markdown, PDF) after each run.
+Two hooks let you inject extra information or transform the report before it is saved to disk.
+
+### `Environment.SetOnReportInfo(fn)`
+
+Called during report generation to inject extra metadata into the report header. The function
+receives no arguments and must return a table of key-value pairs. These appear alongside the
+built-in info fields (date, operator, serial, version, etc.) in all report formats.
+
+**Use cases:**
+
+- Identifying the physical fixture or station that produced the report
+- Recording firmware versions read from the DUT during the test
+- Tagging reports with a production lot or work order number
+- Adding traceability fields required by your quality management system
 
 ```lua
-Environment.Make(function()
-    Environment.ScriptVersion("1.0.0")
-    Environment.Uut.Count(1)
-
-    Environment.SetOnReportInfo(function()
-        return {
-            fixture_id = "FIX-001",
-            station = "Station A",
-        }
-    end)
-
-    Environment.SetOnReport(function(report)
-        -- Transform the report before it's saved
-        report.custom_field = "custom value"
-        return report
-    end)
+Environment.SetOnReportInfo(function()
+    return {
+        fixture_id   = "FIX-001",
+        station      = "Station A",
+        work_order   = "WO-2026-1234",
+        fw_version   = Context.values.detected_fw_version or "unknown",
+    }
 end)
 ```
+
+In the generated JSON report, these appear as top-level fields in the `info` object. In
+Key-Value reports, they are printed as `<key>: <value>` lines in the header section.
+
+### `Environment.SetOnReport(fn)`
+
+Called after the full report table has been assembled but **before** it is serialized to JSON on
+disk. The function receives the complete report as a mutable table. You can add, remove, or
+modify any field. The report is passed by reference — mutations apply directly.
+
+**Use cases:**
+
+- Stripping internal fields that should not appear in customer-facing reports
+- Adding computed summaries (e.g., total pass rate, yield statistics)
+- Renaming or restructuring fields to match an external system's expected schema
+- Injecting a digital signature or checksum for tamper detection
+- Filtering out expectations marked as debug-only
+
+```lua
+Environment.SetOnReport(function(report)
+    -- Add a computed yield field
+    local total = 0
+    local passed = 0
+    for _, seq in pairs(report.sequences) do
+        for _, test in pairs(seq.tests or {}) do
+            total = total + 1
+            if test.pass then passed = passed + 1 end
+        end
+    end
+    report.info.yield = string.format("%.1f%%", (passed / total) * 100)
+
+    -- Remove a debug-only sequence from the report
+    report.sequences["Debug Checks"] = nil
+end)
+```
+
+!!! warning
+    The report table is passed by reference. If your `onReport` function errors, the report is
+    still saved in its current state (the error is logged but does not block report generation).
+    Test your hook thoroughly to avoid corrupted reports.
 
 ---
 
@@ -246,6 +336,7 @@ Before running your product for the first time, verify:
 
 ## Next Steps
 
+- [Teams](teams.md) — grouping UUTs for coordinated execution
 - [Lua Setup](../getting-started/lua-setup.md) — environment and test scripting overview
 - [Expectations](../lua-reference/expectations.md) — full list of matchers
 - [Requirements](../lua-reference/requirements.md) — ordering and conditional execution
