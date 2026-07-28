@@ -54,12 +54,32 @@ end)
 
 ## Leader and Follower Roles
 
-Every team member has a **position** (1-indexed). Position 1 is the leader.
+Every team member has a **position** — a 1-indexed number determined by its order in the
+`Environment.Team.Add()` call. The first argument is position 1 (the leader), the second is
+position 2, and so on.
+
+```lua
+Environment.Team.Add(3, 7, 5)
+-- UUT 3 → position 1 (leader)
+-- UUT 7 → position 2 (follower)
+-- UUT 5 → position 3 (follower)
+```
 
 | Role | Position | Characteristics |
 |---|---|---|
-| Leader | 1 | Can call `Team.Wait()`. Drives the team's coordination logic. |
-| Follower | 2+ | Calls `Team.Done()` to signal readiness. Receives data from the leader. |
+| Leader | 1 (first argument) | Can call `Team.Wait()`. Drives the team's coordination logic. |
+| Follower | 2+ (subsequent arguments) | Calls `Team.Done()` to signal readiness. Receives data from the leader. |
+
+The position is useful inside tests to assign different work to different members without
+hard-coding UUT numbers:
+
+```lua
+Test("Multi-Channel Measurement", function()
+    local channel = Team.Position()  -- 1, 2, or 3
+    local v = daq:MeasureVoltage(channels[channel])
+    Expect(v.average, "Channel " .. channel):ToBeInPercentage(3.3, 5.0)
+end)
+```
 
 Query roles at runtime:
 
