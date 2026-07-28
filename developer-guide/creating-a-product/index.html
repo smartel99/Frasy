@@ -16,7 +16,7 @@
         <link rel="prev" href="../">
       
       
-        <link rel="next" href="../customizing-the-ui/">
+        <link rel="next" href="../teams/">
       
       
         
@@ -945,6 +945,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a Product
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -962,6 +980,241 @@
 
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#directory-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-create-the-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create the Directory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-write-environmentlua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Write environment.lua
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Write environment.lua">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minimal-environment-no-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal Environment (No Hardware)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-instrumentation-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With Instrumentation Boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-uut-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-UUT Environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapping-test-points-to-hardware-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapping Test Points to Hardware Resources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment API Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-write-test-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Write Test Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-build-and-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Build and Run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-uut-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-UUT Values
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#report-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report Hooks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Report Hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environmentsetonreportinfofn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment.SetOnReportInfo(fn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsetonreportfn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment.SetOnReport(fn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../teams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Teams
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1732,6 +1985,202 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#directory-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-create-the-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create the Directory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-write-environmentlua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Write environment.lua
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Write environment.lua">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minimal-environment-no-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal Environment (No Hardware)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-instrumentation-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With Instrumentation Boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-uut-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-UUT Environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapping-test-points-to-hardware-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapping Test Points to Hardware Resources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment API Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-write-test-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Write Test Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-build-and-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Build and Run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-uut-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-UUT Values
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#report-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report Hooks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Report Hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environmentsetonreportinfofn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment.SetOnReportInfo(fn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsetonreportfn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment.SetOnReport(fn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1751,10 +2200,304 @@
 
 
 <h1 id="creating-a-product">Creating a Product<a class="headerlink" href="#creating-a-product" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
+<p>A <strong>product</strong> is the unit of test configuration in Frasy. It bundles the environment declaration
+(hardware setup, UUT count, execution policy) with the test sequences that validate a specific
+PCBA. This page walks through creating one from scratch.</p>
+<hr />
+<h2 id="directory-layout">Directory Layout<a class="headerlink" href="#directory-layout" title="Permanent link">&para;</a></h2>
+<p>Frasy discovers products by scanning the <code>lua/user/</code> directory at runtime. Any subdirectory
+containing an <code>environment.lua</code> file is treated as a product. The directory name becomes the
+product name shown in the UI's product dropdown.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>src/lua/user/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  &lt;product-name&gt;/
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    environment.lua           ← required
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    tests/
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>      *.lua                   ← one or more test files (loaded automatically)
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can organize test files however you like — by phase (<code>power_on.lua</code>,
+<code>functional.lua</code>, <code>teardown.lua</code>), by board subsystem, or any other grouping that makes sense
+for your workflow. Frasy loads all <code>.lua</code> files found under <code>tests/</code> recursively.</p>
 </div>
+<hr />
+<h2 id="step-1-create-the-directory">Step 1: Create the Directory<a class="headerlink" href="#step-1-create-the-directory" title="Permanent link">&para;</a></h2>
+<p>From your application root:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>mkdir -p src/lua/user/my_board/tests
+</code></pre></div>
+<hr />
+<h2 id="step-2-write-environmentlua">Step 2: Write <code>environment.lua</code><a class="headerlink" href="#step-2-write-environmentlua" title="Permanent link">&para;</a></h2>
+<p>This file declares the static configuration of your test fixture. It must call
+<code>Environment.Make()</code> with a configuration function.</p>
+<h3 id="minimal-environment-no-hardware">Minimal Environment (No Hardware)<a class="headerlink" href="#minimal-environment-no-hardware" title="Permanent link">&para;</a></h3>
+<p>If you just want to define logic-only tests (no instrumentation boards):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="with-instrumentation-boards">With Instrumentation Boards<a class="headerlink" href="#with-instrumentation-boards" title="Permanent link">&para;</a></h3>
+<p>If your fixture uses physical hardware boards for measurement and stimulus:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pio&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<p>Once registered, they are accessible at runtime through <code>Context.map.ibs.&lt;name&gt;</code>.</p>
+<h3 id="multi-uut-environment">Multi-UUT Environment<a class="headerlink" href="#multi-uut-environment" title="Permanent link">&para;</a></h3>
+<p>For fixtures that test multiple boards in parallel:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="c1">-- shared by all UUTs</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">SetExecutionPolicy</span><span class="p">(</span><span class="nv">ExecutionPolicy</span><span class="p">.</span><span class="py">parallel</span><span class="p">)</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="mapping-test-points-to-hardware-resources">Mapping Test Points to Hardware Resources<a class="headerlink" href="#mapping-test-points-to-hardware-resources" title="Permanent link">&para;</a></h3>
+<p>Most test fixtures need to route logical test points on the UUT (e.g., "VCC", "SDA") to physical
+hardware resources (e.g., a DAQ multiplexer channel). You can store this mapping directly in
+<code>Context.values</code> so that test scripts reference named test points without hard-coding hardware
+details.</p>
+<p>A common pattern is to build a <code>route</code> table in <code>Context.values</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">MyDaq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">MyDaq</span><span class="p">)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="nv">vcc</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">.</span><span class="py">RoutingPointsEnum</span><span class="p">.</span><span class="py">MUX1_A0</span><span class="p">,</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">        </span><span class="nv">gnd</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">.</span><span class="py">RoutingPointsEnum</span><span class="p">.</span><span class="py">MUX1_A1</span><span class="p">,</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">        </span><span class="nv">sda</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">.</span><span class="py">RoutingPointsEnum</span><span class="p">.</span><span class="py">MUX2_A0</span><span class="p">,</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">        </span><span class="nv">scl</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">.</span><span class="py">RoutingPointsEnum</span><span class="p">.</span><span class="py">MUX2_A1</span><span class="p">,</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">        </span><span class="nv">led_out</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">.</span><span class="py">RoutingPointsEnum</span><span class="p">.</span><span class="py">MUX3_A0</span><span class="p">,</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<p>In your tests, you then reference the named route instead of raw hardware constants:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="w"> </span><span class="cm">--[[@as DAQ]]</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">vcc</span><span class="p">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">v</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;VCC&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<p>This separation means that if a test point moves to a different mux channel (due to a fixture
+revision), you only update the route table in <code>environment.lua</code> — no test files need to change.</p>
+<p>You can also store non-routing values such as calibration constants, expected firmware versions,
+or fixture-specific thresholds:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">expected_fw_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.4.1&quot;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">calibration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nv">voltage_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.012</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nv">current_gain</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mf">1.003</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="environment-api-reference">Environment API Reference<a class="headerlink" href="#environment-api-reference" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Environment.ScriptVersion(version)</code></td>
+<td>Script version string (appears in reports)</td>
+</tr>
+<tr>
+<td><code>Environment.Uut.Count(n)</code></td>
+<td>Number of UUTs tested in parallel</td>
+</tr>
+<tr>
+<td><code>Environment.Ib.Add(board)</code></td>
+<td>Register an instrumentation board</td>
+</tr>
+<tr>
+<td><code>Environment.SetExecutionPolicy(policy)</code></td>
+<td><code>ExecutionPolicy.parallel</code> (default) or <code>ExecutionPolicy.sequential</code></td>
+</tr>
+<tr>
+<td><code>Environment.Team.Add(leader, ...)</code></td>
+<td>Group UUTs into a team (for team-based synchronization). See <a href="../teams/">Teams</a>.</td>
+</tr>
+<tr>
+<td><code>Environment.UutValue.Add(key)</code></td>
+<td>Declare a per-UUT value (e.g., different test point routing per slot)</td>
+</tr>
+<tr>
+<td><code>Environment.SetOnReport(fn)</code></td>
+<td>Hook called on report generation to transform the report</td>
+</tr>
+<tr>
+<td><code>Environment.SetOnReportInfo(fn)</code></td>
+<td>Hook to inject extra metadata into reports</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-3-write-test-files">Step 3: Write Test Files<a class="headerlink" href="#step-3-write-test-files" title="Permanent link">&para;</a></h2>
+<p>Create one or more <code>.lua</code> files in the <code>tests/</code> directory. Each file defines sequences and tests:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">-- src/lua/user/my_board/tests/power_on.lua</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Sequence</span><span class="p">():</span><span class="nf">ToBeFirst</span><span class="p">())</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="w"> </span><span class="cm">--[[@as DAQ]]</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">vcc</span><span class="p">)</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">v</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;VCC&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Current Draw&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="w"> </span><span class="cm">--[[@as DAQ]]</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureCurrent</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">supply</span><span class="p">)</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">i</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Idle Current&quot;</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.100</span><span class="p">)</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">-- src/lua/user/my_board/tests/functional.lua</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Functional&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Power On&quot;</span><span class="p">):</span><span class="nf">ToPass</span><span class="p">())</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;LED Toggle&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">pio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">pio</span><span class="w"> </span><span class="cm">--[[@as PIO]]</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">        </span><span class="nv">pio</span><span class="p">:</span><span class="nf">SetOutput</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">        </span><span class="nf">SleepFor</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">pio</span><span class="p">:</span><span class="nf">ReadInput</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">state</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;LED Feedback&quot;</span><span class="p">):</span><span class="nf">ToBeTrue</span><span class="p">()</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">-- src/lua/user/my_board/tests/teardown.lua</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Teardown&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Sequence</span><span class="p">():</span><span class="nf">ToBeLast</span><span class="p">())</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Power Off&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">pio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">pio</span><span class="w"> </span><span class="cm">--[[@as PIO]]</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">        </span><span class="nv">pio</span><span class="p">:</span><span class="nf">SetOutput</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">)</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="step-4-build-and-run">Step 4: Build and Run<a class="headerlink" href="#step-4-build-and-run" title="Permanent link">&para;</a></h2>
+<p>Rebuild your application (or just let CMake's <code>refresh_lua_user</code> target sync the files):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cmake --build build
+</code></pre></div>
+<p>Launch the application. Your new product should appear in the product dropdown. Select it and
+press <strong>Run</strong>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you modify Lua files while the application is running, press <strong>F9</strong> (or the "Reload"
+button) to re-scan products and reload the environment.</p>
+</div>
+<hr />
+<h2 id="per-uut-values">Per-UUT Values<a class="headerlink" href="#per-uut-values" title="Permanent link">&para;</a></h2>
+<p>When testing multiple UUTs on the same fixture, each UUT might be wired to a different test point
+route. Use <code>Environment.UutValue.Add()</code> to declare per-UUT constants:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">MyDaq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">MyDaq</span><span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">UutValue</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s2">&quot;vcc_route&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">        </span><span class="p">:</span><span class="nf">Link</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">.</span><span class="py">RoutingPointsEnum</span><span class="p">.</span><span class="py">MUX1_A0</span><span class="p">)</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">        </span><span class="p">:</span><span class="nf">Link</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">.</span><span class="py">RoutingPointsEnum</span><span class="p">.</span><span class="py">MUX1_A1</span><span class="p">)</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<p>In tests, access the value for the current UUT through <code>Context.values</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;VCC&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">route</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">vcc_route</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">route</span><span class="p">)</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">v</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;VCC&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="report-hooks">Report Hooks<a class="headerlink" href="#report-hooks" title="Permanent link">&para;</a></h2>
+<p>Frasy generates test reports in multiple formats (JSON, Key-Value, Markdown, PDF) after each run.
+Two hooks let you inject extra information or transform the report before it is saved to disk.</p>
+<h3 id="environmentsetonreportinfofn"><code>Environment.SetOnReportInfo(fn)</code><a class="headerlink" href="#environmentsetonreportinfofn" title="Permanent link">&para;</a></h3>
+<p>Called during report generation to inject extra metadata into the report header. The function
+receives no arguments and must return a table of key-value pairs. These appear alongside the
+built-in info fields (date, operator, serial, version, etc.) in all report formats.</p>
+<p><strong>Use cases:</strong></p>
+<ul>
+<li>Identifying the physical fixture or station that produced the report</li>
+<li>Recording firmware versions read from the DUT during the test</li>
+<li>Tagging reports with a production lot or work order number</li>
+<li>Adding traceability fields required by your quality management system</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">SetOnReportInfo</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">        </span><span class="nv">fixture_id</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;FIX-001&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">        </span><span class="nv">station</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Station A&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">        </span><span class="nv">work_order</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;WO-2026-1234&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">        </span><span class="nv">fw_version</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">detected_fw_version</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<p>In the generated JSON report, these appear as top-level fields in the <code>info</code> object. In
+Key-Value reports, they are printed as <code>&lt;key&gt;: &lt;value&gt;</code> lines in the header section.</p>
+<h3 id="environmentsetonreportfn"><code>Environment.SetOnReport(fn)</code><a class="headerlink" href="#environmentsetonreportfn" title="Permanent link">&para;</a></h3>
+<p>Called after the full report table has been assembled but <strong>before</strong> it is serialized to JSON on
+disk. The function receives the complete report as a mutable table. You can add, remove, or
+modify any field. The report is passed by reference — mutations apply directly.</p>
+<p><strong>Use cases:</strong></p>
+<ul>
+<li>Stripping internal fields that should not appear in customer-facing reports</li>
+<li>Adding computed summaries (e.g., total pass rate, yield statistics)</li>
+<li>Renaming or restructuring fields to match an external system's expected schema</li>
+<li>Injecting a digital signature or checksum for tamper detection</li>
+<li>Filtering out expectations marked as debug-only</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">SetOnReport</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">report</span><span class="p">)</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="c1">-- Add a computed yield field</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">passed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">seq</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nb">pairs</span><span class="p">(</span><span class="nv">report</span><span class="p">.</span><span class="py">sequences</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">        </span><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">test</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nb">pairs</span><span class="p">(</span><span class="nv">seq</span><span class="p">.</span><span class="py">tests</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="p">{})</span><span class="w"> </span><span class="kr">do</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">            </span><span class="nv">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">total</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">            </span><span class="kr">if</span><span class="w"> </span><span class="nv">test</span><span class="p">.</span><span class="py">pass</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">passed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">passed</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="kr">end</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">        </span><span class="kr">end</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span><span class="kr">end</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">    </span><span class="nv">report</span><span class="p">.</span><span class="py">info</span><span class="p">.</span><span class="py">yield</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">string.format</span><span class="p">(</span><span class="s2">&quot;%.1f%%&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nv">passed</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nv">total</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">    </span><span class="c1">-- Remove a debug-only sequence from the report</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">    </span><span class="nv">report</span><span class="p">.</span><span class="py">sequences</span><span class="p">[</span><span class="s2">&quot;Debug Checks&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">nil</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The report table is passed by reference. If your <code>onReport</code> function errors, the report is
+still saved in its current state (the error is logged but does not block report generation).
+Test your hook thoroughly to avoid corrupted reports.</p>
+</div>
+<hr />
+<h2 id="checklist">Checklist<a class="headerlink" href="#checklist" title="Permanent link">&para;</a></h2>
+<p>Before running your product for the first time, verify:</p>
+<ul>
+<li>[ ] <code>src/lua/user/&lt;name&gt;/environment.lua</code> exists and calls <code>Environment.Make()</code></li>
+<li>[ ] At least one test file exists in <code>src/lua/user/&lt;name&gt;/tests/</code></li>
+<li>[ ] Each test file defines at least one <code>Sequence</code> containing at least one <code>Test</code></li>
+<li>[ ] If using IBs, they are instantiated and registered with <code>Environment.Ib.Add()</code></li>
+<li>[ ] EDS files are accessible at the paths declared by your boards</li>
+<li>[ ] The project builds without errors</li>
+</ul>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../teams/">Teams</a> — grouping UUTs for coordinated execution</li>
+<li><a href="../../getting-started/lua-setup/">Lua Setup</a> — environment and test scripting overview</li>
+<li><a href="../../lua-reference/expectations/">Expectations</a> — full list of matchers</li>
+<li><a href="../../lua-reference/requirements/">Requirements</a> — ordering and conditional execution</li>
+<li><a href="../custom-ibs/">Custom Instrumentation Boards</a> — defining your own board types</li>
+</ul>
 
 
 
@@ -1807,13 +2550,13 @@
         
         
           
-          <a href="../customizing-the-ui/" class="md-footer__link md-footer__link--next" aria-label="Next: Customizing the UI">
+          <a href="../teams/" class="md-footer__link md-footer__link--next" aria-label="Next: Teams">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Customizing the UI
+                Teams
               </div>
             </div>
             <div class="md-footer__button md-icon">
