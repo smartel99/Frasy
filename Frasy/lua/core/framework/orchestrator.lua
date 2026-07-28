@@ -79,7 +79,7 @@ function Orchestrator.RunSequence(sIndex, scope)
 
     if sequence.time == nil then
         Context.orchestrator.values[scope.sequence] = {}
-        Log.D("Start sequence: " .. scope.sequence)
+        Log.I("Start sequence: " .. scope.sequence)
         sequence.result.enabled = IsScopeEnabled(scope)
         if sequence.result.enabled then
             local status, err = xpcall(sequence.func, ErrorHandler)
@@ -151,7 +151,7 @@ function Orchestrator.RunTest(scope)
     test.result.enabled = IsScopeEnabled(scope)
     Context.orchestrator.values[scope.sequence][scope.test] = {}
     Context.orchestrator.scope = scope
-    Log.D("Start test: " .. scope.test)
+    Log.I("Start test: " .. scope.test)
     test.expectations = {}
     test.result.time = {}
     test.result.time.start = os.clock()
@@ -593,6 +593,7 @@ function Orchestrator.AddSyncRequirement(requirement)
     table.insert(Context.orchestrator.sync_requirements, requirement)
 end
 
+---@param result ExpectationResult
 function Orchestrator.AddExpectationResult(result)
     if not Orchestrator.IsInTest() then
         error(BadScope())
@@ -601,6 +602,19 @@ function Orchestrator.AddExpectationResult(result)
     table.insert(
         Context.orchestrator.sequences[scope.sequence].tests[scope.test]
         .expectations, result)
+
+    local function getName()
+        if (result.note ~= nil) then
+            return string.format("%s - %s", result.name, result.note)
+        else
+            return result.name
+        end
+    end
+    if (result.pass) then
+        Log.I(string.format("%s - PASSED", getName()))
+    else
+        Log.E(string.format("%s - FAILED", getName()))
+    end
 end
 
 function Orchestrator.GetScope()
