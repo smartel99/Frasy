@@ -137,6 +137,49 @@ Sequence("Calibration", function()
 end)
 ```
 
+### How Tell/Get Works
+
+```mermaid
+sequenceDiagram
+    participant L as Leader (pos 1)
+    participant F1 as Follower (pos 2)
+    participant F2 as Follower (pos 3)
+
+    par barrier[0] — all arrive
+        L->>L: wait
+    and
+        F1->>F1: wait
+    and
+        F2->>F2: wait
+    end
+
+    Note over L: Leader writes value (Team.Tell)
+
+    par barrier[1] — value ready
+        L->>L: wait
+    and
+        F1->>F1: wait
+    and
+        F2->>F2: wait
+    end
+
+    Note over F1,F2: Followers read value (Team.Get)
+
+    par barrier[2] — all done reading
+        L->>L: wait
+    and
+        F1->>F1: wait
+    and
+        F2->>F2: wait
+    end
+
+    Note over L: Leader clears shared value
+```
+
+The exchange is a **broadcast** — the leader's value is copied to every follower. All members
+must participate; if any member doesn't reach its `Tell`/`Get` call, the others will block
+indefinitely.
+
 ### Rules for Tell/Get
 
 - `Team.Tell(value)` is a **blocking** call — all team members must participate (leader tells,
@@ -231,7 +274,7 @@ Sequence("Signal Integrity", function()
 
         if Team.IsLeader() then
             -- Leader: enable signal output on UUT 1
-            daq:SetOutput(Context.values.signal_route, true)
+            Testbench.SetOutput(Context.values.signal_route, true)
             SleepFor(50) -- Allow signal to settle
 
             -- Tell the follower the signal is ready
@@ -250,7 +293,7 @@ Sequence("Signal Integrity", function()
     Test("Cleanup", function()
         if Team.IsLeader() then
             local daq = Context.map.ibs.daq --[[@as DAQ]]
-            daq:SetOutput(Context.values.signal_route, false)
+            Testbench.SetOutput(Context.values.signal_route, false)
         end
     end)
 end)
