@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#creating-custom-instrumentation-boards" class="md-skip">
+        <a href="#custom-instrumentation-boards" class="md-skip">
           Skip to content
         </a>
       
@@ -1108,10 +1108,231 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#topics-to-cover" class="md-nav__link">
+  <a href="#canopen-boards-lua" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Topics to Cover
+        CANopen Boards (Lua)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CANopen Boards (Lua)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-provide-an-eds-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Provide an EDS File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-define-the-board-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Define the Board Class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-add-high-level-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Add High-Level Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-register-in-the-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Register in the Environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-use-in-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Use in Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tips-for-canopen-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips for CANopen Boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-canopen-devices-c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-CANopen Devices (C++)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Non-CANopen Devices (C++)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-define-the-c-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Define the C++ Class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-register-the-lua-usertype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Register the Lua Usertype
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-register-in-loaduserfunctions-or-loaduservalues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Register in loadUserFunctions (or loadUserValues)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-instantiate-in-environmentlua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Instantiate in environment.lua
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-use-in-tests_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Use in Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-ib-field-and-ibinfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The ib Field and IbInfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exposing-enums-and-constants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exposing Enums and Constants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-environmentibadd-vs-contextmapibs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison: Environment.Ib.Add() vs. Context.map.ibs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips
       
     </span>
   </a>
@@ -1815,10 +2036,231 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#topics-to-cover" class="md-nav__link">
+  <a href="#canopen-boards-lua" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Topics to Cover
+        CANopen Boards (Lua)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CANopen Boards (Lua)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-provide-an-eds-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Provide an EDS File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-define-the-board-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Define the Board Class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-add-high-level-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Add High-Level Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-register-in-the-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Register in the Environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-use-in-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Use in Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tips-for-canopen-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips for CANopen Boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-canopen-devices-c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-CANopen Devices (C++)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Non-CANopen Devices (C++)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-define-the-c-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Define the C++ Class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-register-the-lua-usertype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Register the Lua Usertype
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-register-in-loaduserfunctions-or-loaduservalues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Register in loadUserFunctions (or loadUserValues)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-instantiate-in-environmentlua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Instantiate in environment.lua
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-use-in-tests_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Use in Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-ib-field-and-ibinfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The ib Field and IbInfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exposing-enums-and-constants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exposing Enums and Constants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-environmentibadd-vs-contextmapibs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison: Environment.Ib.Add() vs. Context.map.ibs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips
       
     </span>
   </a>
@@ -1845,19 +2287,408 @@
   
 
 
-<h1 id="creating-custom-instrumentation-boards">Creating Custom Instrumentation Boards<a class="headerlink" href="#creating-custom-instrumentation-boards" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Coming Soon</p>
-<p>This page is under construction.</p>
-</div>
-<p>This page will cover how to define your own instrumentation board types when the predefined
-boards (<code>DAQ</code>, <code>PIO</code>, <code>R8L</code>) don't match your hardware.</p>
-<h2 id="topics-to-cover">Topics to Cover<a class="headerlink" href="#topics-to-cover" title="Permanent link">&para;</a></h2>
+<h1 id="custom-instrumentation-boards">Custom Instrumentation Boards<a class="headerlink" href="#custom-instrumentation-boards" title="Permanent link">&para;</a></h1>
+<p>Frasy ships with predefined board types for SMarTest hardware (<code>DAQ</code>, <code>PIO</code>, <code>R8L</code>). When your
+fixture uses different hardware — whether it's a CANopen device with a different object
+dictionary, or a non-CANopen instrument like an oscilloscope or bench power supply — you need
+to define a custom board type.</p>
+<p>There are two approaches depending on your hardware's communication protocol:</p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>When to Use</th>
+<th>Defined In</th>
+<th>Communication</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CANopen board (Lua)</strong></td>
+<td>Your board speaks CANopen and has an EDS file</td>
+<td>Lua (<code>lua/core/cep/</code> or <code>lua/user/</code>)</td>
+<td>SDO via <code>Ib:Upload()</code> / <code>Ib:Download()</code></td>
+</tr>
+<tr>
+<td><strong>Non-CANopen device (C++)</strong></td>
+<td>Your device uses USB, serial, TCP, or a vendor SDK</td>
+<td>C++ with sol2 usertype</td>
+<td>Direct API calls</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="canopen-boards-lua">CANopen Boards (Lua)<a class="headerlink" href="#canopen-boards-lua" title="Permanent link">&para;</a></h2>
+<p>If your custom hardware is a CANopen node with an EDS file, you implement it entirely in Lua
+by building on the <code>Ib</code> base class — the same pattern used by <code>DAQ</code>, <code>PIO</code>, and <code>R8L</code>.</p>
+<h3 id="structure">Structure<a class="headerlink" href="#structure" title="Permanent link">&para;</a></h3>
+<p>A CANopen board definition consists of:</p>
+<ol>
+<li>An <strong>EDS file</strong> describing the node's object dictionary</li>
+<li>A <strong>Lua module</strong> that creates the board class with high-level methods</li>
+</ol>
+<h3 id="step-1-provide-an-eds-file">Step 1: Provide an EDS File<a class="headerlink" href="#step-1-provide-an-eds-file" title="Permanent link">&para;</a></h3>
+<p>Place your board's EDS file in your project. Convention is to put it alongside your board
+definition:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>src/lua/user/common/boards/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  my_board.lua
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  my_board.eds
+</code></pre></div>
+<h3 id="step-2-define-the-board-class">Step 2: Define the Board Class<a class="headerlink" href="#step-2-define-the-board-class" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">-- src/lua/user/common/boards/my_board.lua</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Ib</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;lua/core/sdk/environment/ib&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">CheckField</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;lua/core/utils/check_field&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">---@class MyBoard</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1">---@field ib Ib</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nv">MyBoard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nv">MyBoard</span><span class="p">.</span><span class="py">__index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">MyBoard</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1">---@class MyBoard_NewOpt</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1">---@field name string?    -- default: &quot;my_board&quot;</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1">---@field nodeId integer? -- default: 10</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1">---@param opt MyBoard_NewOpt?</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="c1">---@return MyBoard</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="kr">function</span><span class="w"> </span><span class="nc">MyBoard</span><span class="p">:</span><span class="nf">New</span><span class="p">(</span><span class="nv">opt</span><span class="p">)</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">ib</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Ib</span><span class="p">:</span><span class="nf">New</span><span class="p">()</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="nv">ib</span><span class="p">.</span><span class="py">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">99</span><span class="w">  </span><span class="c1">-- Arbitrary kind ID for your board</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">opt</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">opt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span><span class="w"> </span><span class="kr">end</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">opt</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;opt&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">type</span><span class="p">(</span><span class="nv">opt</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;table&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_board&quot;</span><span class="w"> </span><span class="kr">end</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">nodeId</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="kr">end</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="nv">ib</span><span class="p">.</span><span class="py">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">name</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="nv">ib</span><span class="p">.</span><span class="py">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">nodeId</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="nv">ib</span><span class="p">.</span><span class="py">eds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;lua/user/common/boards/my_board.eds&quot;</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nb">setmetatable</span><span class="p">({</span><span class="w"> </span><span class="nv">ib</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ib</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="nv">MyBoard</span><span class="p">)</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="kr">end</span>
+</code></pre></div>
+<h3 id="step-3-add-high-level-methods">Step 3: Add High-Level Methods<a class="headerlink" href="#step-3-add-high-level-methods" title="Permanent link">&para;</a></h3>
+<p>Wrap <code>Ib:Upload()</code> and <code>Ib:Download()</code> calls in descriptive methods that test engineers will
+use:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">--- Read the temperature sensor value.</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">---@return number temperature in °C</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kr">function</span><span class="w"> </span><span class="nc">MyBoard</span><span class="p">:</span><span class="nf">ReadTemperature</span><span class="p">()</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">:</span><span class="nf">Upload</span><span class="p">(</span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;Temperature Sensor&quot;</span><span class="p">][</span><span class="s2">&quot;Value&quot;</span><span class="p">])</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="kr">end</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">--- Set the output voltage.</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1">---@param volts number desired voltage</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="kr">function</span><span class="w"> </span><span class="nc">MyBoard</span><span class="p">:</span><span class="nf">SetVoltage</span><span class="p">(</span><span class="nv">volts</span><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">od</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;Output Voltage&quot;</span><span class="p">][</span><span class="s2">&quot;Desired&quot;</span><span class="p">]</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">volts</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;voltage&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">type</span><span class="p">(</span><span class="nv">volts</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;number&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">:</span><span class="nf">Download</span><span class="p">(</span><span class="nv">od</span><span class="p">,</span><span class="w"> </span><span class="nv">volts</span><span class="p">)</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="kr">end</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="c1">--- Read the measured output current.</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="c1">---@return number current in amps</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="kr">function</span><span class="w"> </span><span class="nc">MyBoard</span><span class="p">:</span><span class="nf">ReadCurrent</span><span class="p">()</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">:</span><span class="nf">Upload</span><span class="p">(</span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="s2">&quot;Output Current&quot;</span><span class="p">][</span><span class="s2">&quot;Measured&quot;</span><span class="p">])</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="kr">end</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="c1">--- Reset the board to factory defaults.</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="kr">function</span><span class="w"> </span><span class="nc">MyBoard</span><span class="p">:</span><span class="nf">Reset</span><span class="p">()</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">    </span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">:</span><span class="nf">Reset</span><span class="p">()</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="kr">end</span>
+</code></pre></div>
+<h3 id="step-4-register-in-the-environment">Step 4: Register in the Environment<a class="headerlink" href="#step-4-register-in-the-environment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">-- environment.lua</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;lua/user/common/boards/my_board&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">MyBoard</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;heater&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">}))</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="step-5-use-in-tests">Step 5: Use in Tests<a class="headerlink" href="#step-5-use-in-tests" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Temperature Reading&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">board</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">heater</span><span class="w"> </span><span class="cm">--[[@as MyBoard]]</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nv">board</span><span class="p">:</span><span class="nf">SetVoltage</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nf">SleepFor</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">temp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">board</span><span class="p">:</span><span class="nf">ReadTemperature</span><span class="p">()</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">temp</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Board Temperature&quot;</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">85.0</span><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
+<p>When <code>Environment.Ib.Add()</code> is called with your board:</p>
+<ol>
+<li>The framework reads the EDS file at the path in <code>ib.eds</code>.</li>
+<li>It parses the object dictionary and attaches it as <code>board.ib.od</code>.</li>
+<li>During execution, <code>Ib:Upload()</code> and <code>Ib:Download()</code> perform SDO operations via the CANopen
+   bus.</li>
+<li>During generation/validation, they return default values without touching hardware.</li>
+</ol>
+<p>You get stage-aware behavior for free — no need to guard your methods manually.</p>
+<h3 id="tips-for-canopen-boards">Tips for CANopen Boards<a class="headerlink" href="#tips-for-canopen-boards" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Subclassing <code>Ib:New()</code> to create a custom board</li>
-<li>Providing an EDS file for your hardware's CANopen object dictionary</li>
-<li>Defining high-level helper methods (e.g., <code>MeasureVoltage</code>, <code>SetOutput</code>)</li>
-<li>Registering the board in <code>environment.lua</code></li>
+<li><strong>Name OD entries clearly</strong> in your EDS file — those names become the keys in <code>self.ib.od</code>.</li>
+<li><strong>Add parameter validation</strong> using <code>CheckField</code> to catch mistakes early.</li>
+<li><strong>Provide enums</strong> for constants (e.g., channel IDs, modes) as class-level tables.</li>
+<li><strong>Add caching</strong> if you read the same OD entry repeatedly — store it locally and only refresh
+  when needed.</li>
+</ul>
+<hr />
+<h2 id="non-canopen-devices-c">Non-CANopen Devices (C++)<a class="headerlink" href="#non-canopen-devices-c" title="Permanent link">&para;</a></h2>
+<p>For instruments that don't speak CANopen — bench multimeters, oscilloscopes, power supplies,
+GPIO expanders over USB, or anything with a vendor SDK — you define the board as a C++ class
+and expose it to Lua as a sol2 usertype.</p>
+<h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Lua["Lua (test scripts)"]
+        ENV["environment.lua\nContext.map.ibs['ad3'] = AnalogDiscovery3.new()"]
+        TEST["tests/*.lua\nad3:scopeMeasure(1)"]
+    end
+    subgraph CPP["C++ (your application)"]
+        REG["registerLuaType(lua)\nExposes class as sol2 usertype"]
+        CLASS["AnalogDiscovery3\nWraps vendor SDK"]
+    end
+    subgraph HW["Hardware"]
+        DEV["Physical Device\n(USB/Serial/TCP)"]
+    end
+
+    ENV --&gt; REG
+    TEST --&gt; CLASS
+    CLASS &lt;--&gt; DEV</code></pre>
+<h3 id="step-1-define-the-c-class">Step 1: Define the C++ Class<a class="headerlink" href="#step-1-define-the-c-class" title="Permanent link">&para;</a></h3>
+<p>Your class needs:</p>
+<ul>
+<li>A <code>static void registerLuaType(sol::state_view lua)</code> method</li>
+<li>An <code>m_ibInfo</code> member (for framework compatibility and test reports)</li>
+<li>Methods that wrap the vendor SDK</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// src/services/my_instrument.h</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="cp">#pragma once</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;utils/lua/ib_info.h&quot;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sol/sol.hpp&gt;</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyInstrument</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">registerLuaType</span><span class="p">(</span><span class="n">sol</span><span class="o">::</span><span class="n">state_view</span><span class="w"> </span><span class="n">lua</span><span class="p">);</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="n">MyInstrument</span><span class="p">();</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="o">~</span><span class="n">MyInstrument</span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="kt">bool</span><span class="w">   </span><span class="nf">open</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">port</span><span class="p">);</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="kt">bool</span><span class="w">   </span><span class="nf">close</span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">    </span><span class="kt">bool</span><span class="w">   </span><span class="nf">isOpen</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="nf">measure</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">channel</span><span class="p">);</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">    </span><span class="kt">void</span><span class="w">   </span><span class="nf">setOutput</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">channel</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">value</span><span class="p">);</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="k">private</span><span class="o">:</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">s_tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;MyInstrument&quot;</span><span class="p">;</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">    </span><span class="n">Lua</span><span class="o">::</span><span class="n">IbInfo</span><span class="w"> </span><span class="n">m_ibInfo</span><span class="p">;</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="w">    </span><span class="c1">// ... vendor SDK handles, serial port, etc.</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="p">};</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="p">}</span><span class="w">  </span><span class="c1">// namespace Frasy</span>
+</code></pre></div>
+<h3 id="step-2-register-the-lua-usertype">Step 2: Register the Lua Usertype<a class="headerlink" href="#step-2-register-the-lua-usertype" title="Permanent link">&para;</a></h3>
+<p>The key pattern: register <strong>real implementations</strong> during execution and <strong>no-ops</strong> during
+generation/validation. This mirrors how the framework's built-in CANopen operations are
+stage-guarded.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// src/services/my_instrument.cpp</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;my_instrument.h&quot;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="kt">void</span><span class="w"> </span><span class="nf">MyInstrument::registerLuaType</span><span class="p">(</span><span class="n">sol</span><span class="o">::</span><span class="n">state_view</span><span class="w"> </span><span class="n">lua</span><span class="p">)</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="c1">// Register the IbInfo type if not already done</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="n">Lua</span><span class="o">::</span><span class="n">IbInfo</span><span class="o">::</span><span class="n">registerLuaType</span><span class="p">(</span><span class="n">lua</span><span class="p">);</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="n">sol</span><span class="o">::</span><span class="n">usertype</span><span class="o">&lt;</span><span class="n">MyInstrument</span><span class="o">&gt;</span><span class="w"> </span><span class="n">udt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lua</span><span class="p">.</span><span class="n">new_usertype</span><span class="o">&lt;</span><span class="n">MyInstrument</span><span class="o">&gt;</span><span class="p">(</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">        </span><span class="s">&quot;MyInstrument&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">        </span><span class="n">sol</span><span class="o">::</span><span class="n">meta_function</span><span class="o">::</span><span class="n">construct</span><span class="p">,</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">        </span><span class="n">sol</span><span class="o">::</span><span class="n">factories</span><span class="p">([]</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">MyInstrument</span><span class="o">&gt;</span><span class="p">();</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="p">);</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="c1">// The `ib` field makes this compatible with Frasy&#39;s IB reporting system</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;ib&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sol</span><span class="o">::</span><span class="n">readonly</span><span class="p">(</span><span class="o">&amp;</span><span class="n">MyInstrument</span><span class="o">::</span><span class="n">m_ibInfo</span><span class="p">);</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">    </span><span class="c1">// Stage-aware registration</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lua</span><span class="p">[</span><span class="s">&quot;Context&quot;</span><span class="p">][</span><span class="s">&quot;info&quot;</span><span class="p">][</span><span class="s">&quot;stage&quot;</span><span class="p">].</span><span class="n">get</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">lua</span><span class="p">[</span><span class="s">&quot;Stage&quot;</span><span class="p">][</span><span class="s">&quot;execution&quot;</span><span class="p">].</span><span class="n">get</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">        </span><span class="c1">// Real implementations — only during execution</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;open&quot;</span><span class="p">]</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyInstrument</span><span class="o">::</span><span class="n">open</span><span class="p">;</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;close&quot;</span><span class="p">]</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyInstrument</span><span class="o">::</span><span class="n">close</span><span class="p">;</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;isOpen&quot;</span><span class="p">]</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyInstrument</span><span class="o">::</span><span class="n">isOpen</span><span class="p">;</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;measure&quot;</span><span class="p">]</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyInstrument</span><span class="o">::</span><span class="n">measure</span><span class="p">;</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;setOutput&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyInstrument</span><span class="o">::</span><span class="n">setOutput</span><span class="p">;</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">        </span><span class="c1">// No-ops during generation/validation</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;open&quot;</span><span class="p">]</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">MyInstrument</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;close&quot;</span><span class="p">]</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">MyInstrument</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;isOpen&quot;</span><span class="p">]</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">MyInstrument</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;measure&quot;</span><span class="p">]</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">MyInstrument</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="w">        </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;setOutput&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">MyInstrument</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">)</span><span class="w"> </span><span class="p">{};</span>
+<a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="p">}</span>
+<a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a>
+<a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a><span class="p">}</span><span class="w">  </span><span class="c1">// namespace Frasy</span>
+</code></pre></div>
+<h3 id="step-3-register-in-loaduserfunctions-or-loaduservalues">Step 3: Register in loadUserFunctions (or loadUserValues)<a class="headerlink" href="#step-3-register-in-loaduserfunctions-or-loaduservalues" title="Permanent link">&para;</a></h3>
+<p>Call <code>registerLuaType</code> from your layer's callback so the type is available when
+<code>environment.lua</code> runs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">MyMainApplicationLayer::loadLuaFunctions</span><span class="p">(</span><span class="n">sol</span><span class="o">::</span><span class="n">state_view</span><span class="w"> </span><span class="n">lua</span><span class="p">)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="n">Frasy</span><span class="o">::</span><span class="n">MyInstrument</span><span class="o">::</span><span class="n">registerLuaType</span><span class="p">(</span><span class="n">lua</span><span class="p">);</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">}</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Registration must happen <strong>before</strong> the environment is loaded. Both
+<code>setLoadUserFunctions</code> and <code>setLoadUserValues</code> are called at the right time — the type
+will be available when <code>environment.lua</code> executes.</p>
+</div>
+<h3 id="step-4-instantiate-in-environmentlua">Step 4: Instantiate in environment.lua<a class="headerlink" href="#step-4-instantiate-in-environmentlua" title="Permanent link">&para;</a></h3>
+<p>Since the usertype exposes a constructor, test engineers can create instances directly in Lua
+and add them to <code>Context.map.ibs</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">-- environment.lua</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="c1">-- CANopen boards use Environment.Ib.Add()</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">DAQ</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">}))</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="c1">-- Non-CANopen devices are added directly to Context.map.ibs</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">[</span><span class="s2">&quot;instrument&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">MyInstrument</span><span class="p">.</span><span class="nf">new</span><span class="p">()</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="step-5-use-in-tests_1">Step 5: Use in Tests<a class="headerlink" href="#step-5-use-in-tests_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Output Voltage&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">inst</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">instrument</span><span class="w"> </span><span class="cm">--[[@as MyInstrument]]</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="nv">inst</span><span class="p">:</span><span class="nf">open</span><span class="p">(</span><span class="s2">&quot;COM3&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nv">inst</span><span class="p">:</span><span class="nf">setOutput</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nf">SleepFor</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">inst</span><span class="p">:</span><span class="nf">measure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">v</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Output&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">2.0</span><span class="p">)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nv">inst</span><span class="p">:</span><span class="nf">close</span><span class="p">()</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="the-ib-field-and-ibinfo">The <code>ib</code> Field and IbInfo<a class="headerlink" href="#the-ib-field-and-ibinfo" title="Permanent link">&para;</a></h3>
+<p>The <code>ib</code> field is what makes your custom device show up in test reports alongside CANopen
+boards. The framework reads <code>ib.name</code>, <code>ib.serialNumber</code>, <code>ib.softwareVersion</code>, and
+<code>ib.hardwareVersion</code> when generating reports.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">MyInstrument</span><span class="o">::</span><span class="n">MyInstrument</span><span class="p">()</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">m_ibInfo</span><span class="p">{.</span><span class="n">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">edsPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;N/A&quot;</span><span class="p">}</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="p">{</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="p">}</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="kt">bool</span><span class="w"> </span><span class="n">MyInstrument</span><span class="o">::</span><span class="n">open</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">port</span><span class="p">)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">{</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="c1">// ... open the device ...</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="c1">// Populate IbInfo for reports</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">    </span><span class="n">m_ibInfo</span><span class="p">.</span><span class="n">name</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;My Instrument&quot;</span><span class="p">;</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="n">m_ibInfo</span><span class="p">.</span><span class="n">nodeId</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">    </span><span class="n">m_ibInfo</span><span class="p">.</span><span class="n">serialNumber</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">querySerial</span><span class="p">();</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="n">m_ibInfo</span><span class="p">.</span><span class="n">softwareVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">queryFirmwareVersion</span><span class="p">();</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">    </span><span class="n">m_ibInfo</span><span class="p">.</span><span class="n">hardwareVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">queryModelNumber</span><span class="p">();</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="exposing-enums-and-constants">Exposing Enums and Constants<a class="headerlink" href="#exposing-enums-and-constants" title="Permanent link">&para;</a></h3>
+<p>For devices with multiple modes, channels, or filter types, expose them as nested tables on
+the usertype:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">MyInstrument::registerLuaType</span><span class="p">(</span><span class="n">sol</span><span class="o">::</span><span class="n">state_view</span><span class="w"> </span><span class="n">lua</span><span class="p">)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="p">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="c1">// ... usertype registration ...</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="c1">// Expose enums as nested tables</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;Mode&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lua</span><span class="p">.</span><span class="n">create_table_with</span><span class="p">(</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">        </span><span class="s">&quot;DC&quot;</span><span class="p">,</span><span class="w">      </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">        </span><span class="s">&quot;AC&quot;</span><span class="p">,</span><span class="w">      </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">        </span><span class="s">&quot;ACplusDC&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="p">);</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">    </span><span class="n">udt</span><span class="p">[</span><span class="s">&quot;Range&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lua</span><span class="p">.</span><span class="n">create_table_with</span><span class="p">(</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">        </span><span class="s">&quot;Auto&quot;</span><span class="p">,</span><span class="w">   </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">        </span><span class="s">&quot;R100mV&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">        </span><span class="s">&quot;R1V&quot;</span><span class="p">,</span><span class="w">    </span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">        </span><span class="s">&quot;R10V&quot;</span><span class="p">,</span><span class="w">   </span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="w">        </span><span class="s">&quot;R100V&quot;</span><span class="p">,</span><span class="w">  </span><span class="mi">4</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">    </span><span class="p">);</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="p">}</span>
+</code></pre></div>
+<p>In Lua:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">inst</span><span class="p">:</span><span class="nf">setMode</span><span class="p">(</span><span class="nv">MyInstrument</span><span class="p">.</span><span class="py">Mode</span><span class="p">.</span><span class="py">AC</span><span class="p">)</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nv">inst</span><span class="p">:</span><span class="nf">setRange</span><span class="p">(</span><span class="nv">MyInstrument</span><span class="p">.</span><span class="py">Range</span><span class="p">.</span><span class="py">R10V</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="comparison-environmentibadd-vs-contextmapibs">Comparison: <code>Environment.Ib.Add()</code> vs. <code>Context.map.ibs</code><a class="headerlink" href="#comparison-environmentibadd-vs-contextmapibs" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>Environment.Ib.Add(board)</code></th>
+<th><code>Context.map.ibs["name"] = board</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Communication</strong></td>
+<td>CANopen (SDO via SLCAN)</td>
+<td>Anything (USB, serial, TCP, vendor SDK)</td>
+</tr>
+<tr>
+<td><strong>EDS file</strong></td>
+<td>Required — parsed automatically</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td><strong>Object dictionary</strong></td>
+<td>Built from EDS, accessible as <code>board.ib.od</code></td>
+<td>N/A (methods wrap hardware directly)</td>
+</tr>
+<tr>
+<td><strong>Stage guards</strong></td>
+<td>Built into <code>Ib:Upload()</code> / <code>Ib:Download()</code></td>
+<td>You implement them in <code>registerLuaType</code></td>
+</tr>
+<tr>
+<td><strong>CANopen node management</strong></td>
+<td>Automatic (added to bus, heartbeat, NMT)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Test report integration</strong></td>
+<td>Automatic via <code>ib</code> field</td>
+<td>Works if your type exposes an <code>ib</code> field with <code>IbInfo</code></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>Lua</td>
+<td>C++ (usertype) + Lua (instantiation)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Always expose an <code>ib</code> field.</strong> Even for non-CANopen devices, this ensures your instrument
+  appears in test reports with its serial number and firmware version. Use the <code>IbInfo</code> struct.</li>
+<li><strong>Stage-guard all hardware I/O.</strong> During generation and validation, the orchestrator runs
+  your test code to discover sequences and requirements — real hardware calls would fail or
+  cause damage. Always provide no-op implementations for non-execution stages.</li>
+<li><strong>Open/close in tests, not in the environment.</strong> Instantiate the object in <code>environment.lua</code>,
+  but defer <code>open()</code> calls to the test code (which only runs during execution). This keeps
+  generation and validation fast and hardware-independent.</li>
+<li><strong>Provide enums, not magic numbers.</strong> Test scripts should read like documentation. Prefer
+  <code>inst:setMode(MyInstrument.Mode.AC)</code> over <code>inst:setMode(1)</code>.</li>
+<li><strong>Keep the Lua API high-level.</strong> Wrap low-level protocol details inside your C++ class.
+  Test engineers should call <code>inst:measureVoltage(channel)</code>, not fiddle with register addresses.</li>
+<li><strong>Handle errors gracefully.</strong> Throw <code>sol::error</code> with descriptive messages so that failures
+  surface clearly in the test report.</li>
 </ul>
 
 

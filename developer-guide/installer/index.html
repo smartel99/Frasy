@@ -1113,6 +1113,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building an Installer
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1129,6 +1147,213 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-gets-packaged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Gets Packaged
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-inno-setup-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Inno Setup Script
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-by-step-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step-by-Step Instructions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step-by-Step Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-build-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Build the Application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-obtain-the-vc-redistributable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Obtain the VC++ Redistributable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-generate-a-unique-appid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Generate a Unique AppId
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-customize-the-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Customize the Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-compile-the-installer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Compile the Installer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Decisions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Decisions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configjson-overwrite-or-preserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config.json: Overwrite or Preserve?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdb-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PDB Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#privilegesrequired" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PrivilegesRequired
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-test-scripts-without-reinstalling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating Test Scripts Without Reinstalling
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automating-the-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automating the Build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1760,6 +1985,202 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-gets-packaged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Gets Packaged
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-inno-setup-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Inno Setup Script
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-by-step-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step-by-Step Instructions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step-by-Step Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-build-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Build the Application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-obtain-the-vc-redistributable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Obtain the VC++ Redistributable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-generate-a-unique-appid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Generate a Unique AppId
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-customize-the-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Customize the Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-compile-the-installer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Compile the Installer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Decisions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Decisions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configjson-overwrite-or-preserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config.json: Overwrite or Preserve?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdb-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PDB Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#privilegesrequired" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PrivilegesRequired
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-test-scripts-without-reinstalling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating Test Scripts Without Reinstalling
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automating-the-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automating the Build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1779,10 +2200,223 @@
 
 
 <h1 id="building-an-installer">Building an Installer<a class="headerlink" href="#building-an-installer" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
+<p>Frasy applications are distributed as standalone Windows executables with supporting files
+(Lua scripts, assets, config). <a href="https://jrsoftware.org/isinfo.php">Inno Setup</a> is the
+recommended tool for packaging everything into a single installer <code>.exe</code> that operators can
+run on test stations.</p>
+<hr />
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://jrsoftware.org/isdl.php">Inno Setup</a></td>
+<td>Installer compiler</td>
+</tr>
+<tr>
+<td>A <strong>RelWithDebInfo</strong> build</td>
+<td>Optimized + debug symbols for crash reports</td>
+</tr>
+<tr>
+<td><strong>VC_redist.x64.exe</strong></td>
+<td>Microsoft Visual C++ Redistributable (required on target machines)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Always use RelWithDebInfo</p>
+<p>The application must be built with <code>RelWithDebInfo</code> to properly recover stacktraces from
+crashes. A pure <code>Release</code> build will produce unusable crash reports.</p>
 </div>
+<hr />
+<h2 id="what-gets-packaged">What Gets Packaged<a class="headerlink" href="#what-gets-packaged" title="Permanent link">&para;</a></h2>
+<p>The build output directory contains everything needed to run the application:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>build/bin/MyApp_v1.0.0/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  MyApp.exe              ← the application
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  MyApp.pdb              ← debug symbols (for crash reports)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  wkhtmltox.dll          ← PDF generation library
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  config.json            ← runtime configuration
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  assets/
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    textures/            ← UI icons and images
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    fonts/               ← application fonts
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  lua/
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    core/                ← Frasy Lua SDK
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    user/                ← your product test scripts
+</code></pre></div>
+<p>The installer bundles all of this into a single distributable file.</p>
+<hr />
+<h2 id="the-inno-setup-script">The Inno Setup Script<a class="headerlink" href="#the-inno-setup-script" title="Permanent link">&para;</a></h2>
+<p>The template includes an <code>inno_script.iss</code> file at the project root. Here's a complete,
+annotated version:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>; --- Preprocessor Definitions ---
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>; Adjust these to match your build output
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>#define AppName &quot;MyApp&quot;
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>#define AppVersion &quot;1.0.0&quot;
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>#define BinDir &quot;cmake-build-relwithdebinfo-visual-studio\bin\&quot; + AppName + &quot;_v&quot; + AppVersion
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>#define ExeName AppName
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>[Setup]
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>; Application metadata
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>AppName={#AppName}
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>AppVersion={#AppVersion}
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>AppId=YOUR-UNIQUE-GUID-HERE
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>AppPublisher=Your Company Name
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>AppPublisherURL=https://your-company.com
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>AppSupportURL=https://your-company.com/support
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>AppCopyright=Your Company © 2024
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>; Installer behavior
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>WizardStyle=modern
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>DefaultDirName={autopf}\{#AppName}
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>DefaultGroupName={#AppName}
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>AllowUNCPath=no
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>AlwaysShowComponentsList=no
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>PrivilegesRequired=lowest
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>OutputBaseFilename={#AppName}Installer_v{#AppVersion}
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>OutputDir=installer_output
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>[Files]
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>; Application executable and debug symbols
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>Source: &quot;{#BinDir}\{#ExeName}.exe&quot;; DestDir: &quot;{app}&quot;; Flags: ignoreversion
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>Source: &quot;{#BinDir}\{#ExeName}.pdb&quot;; DestDir: &quot;{app}&quot;; Flags: ignoreversion
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>; Required DLLs
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>Source: &quot;{#BinDir}\wkhtmltox.dll&quot;; DestDir: &quot;{app}&quot;; Flags: ignoreversion
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>; Configuration
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>Source: &quot;{#BinDir}\config.json&quot;; DestDir: &quot;{app}&quot;; Flags: onlyifdoesntexist
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>; Assets and Lua scripts
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>Source: &quot;{#BinDir}\assets\*&quot;; DestDir: &quot;{app}\assets&quot;; Flags: recursesubdirs createallsubdirs ignoreversion
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>Source: &quot;{#BinDir}\lua\*&quot;; DestDir: &quot;{app}\lua&quot;; Flags: recursesubdirs createallsubdirs ignoreversion
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>; Visual C++ Redistributable (place in a known location)
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>Source: &quot;redist\VC_redist.x64.exe&quot;; DestDir: &quot;{tmp}&quot;; Flags: deleteafterinstall
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>[Icons]
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>; Start menu and desktop shortcuts
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>Name: &quot;{userstartmenu}\{#AppName}&quot;; Filename: &quot;{app}\{#ExeName}.exe&quot;; WorkingDir: &quot;{app}&quot;
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>Name: &quot;{userdesktop}\{#AppName}&quot;; Filename: &quot;{app}\{#ExeName}.exe&quot;; WorkingDir: &quot;{app}&quot;
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>[Run]
+<a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>; Install the VC++ redistributable silently
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a>Filename: &quot;{tmp}\VC_redist.x64.exe&quot;; Parameters: &quot;/install /quiet /norestart&quot;; StatusMsg: &quot;Installing Microsoft Visual C++ Redistributable...&quot;
+</code></pre></div>
+<hr />
+<h2 id="step-by-step-instructions">Step-by-Step Instructions<a class="headerlink" href="#step-by-step-instructions" title="Permanent link">&para;</a></h2>
+<h3 id="1-build-the-application">1. Build the Application<a class="headerlink" href="#1-build-the-application" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>cmake --build build --config RelWithDebInfo
+</code></pre></div>
+<p>Verify the output directory contains all required files:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">dir</span> build\bin\MyApp_v1.0.0\
+</code></pre></div>
+<p>You should see the <code>.exe</code>, <code>.pdb</code>, <code>wkhtmltox.dll</code>, <code>config.json</code>, <code>assets/</code>, and <code>lua/</code>.</p>
+<h3 id="2-obtain-the-vc-redistributable">2. Obtain the VC++ Redistributable<a class="headerlink" href="#2-obtain-the-vc-redistributable" title="Permanent link">&para;</a></h3>
+<p>Download the latest <strong>Visual C++ Redistributable for x64</strong> from
+<a href="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist">Microsoft</a>.</p>
+<p>Place it at <code>redist/VC_redist.x64.exe</code> relative to your project root (or adjust the path in
+the script).</p>
+<h3 id="3-generate-a-unique-appid">3. Generate a Unique AppId<a class="headerlink" href="#3-generate-a-unique-appid" title="Permanent link">&para;</a></h3>
+<p>Every application needs a unique GUID for Windows to distinguish it from other installed
+software. Generate one using PowerShell:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">[guid]</span><span class="p">::</span><span class="n">NewGuid</span><span class="p">().</span><span class="n">ToString</span><span class="p">().</span><span class="n">ToUpper</span><span class="p">()</span>
+</code></pre></div>
+<p>Replace <code>YOUR-UNIQUE-GUID-HERE</code> in the script with the generated GUID.</p>
+<h3 id="4-customize-the-script">4. Customize the Script<a class="headerlink" href="#4-customize-the-script" title="Permanent link">&para;</a></h3>
+<p>Update the preprocessor definitions at the top:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>#define AppName &quot;YourAppName&quot;
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>#define AppVersion &quot;1.0.0&quot;
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>#define BinDir &quot;cmake-build-relwithdebinfo-visual-studio\bin\YourAppName_v1.0.0&quot;
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>#define ExeName &quot;YourAppName&quot;
+</code></pre></div>
+<p>Update the <code>[Setup]</code> section with your company information.</p>
+<h3 id="5-compile-the-installer">5. Compile the Installer<a class="headerlink" href="#5-compile-the-installer" title="Permanent link">&para;</a></h3>
+<p>Open <code>inno_script.iss</code> in Inno Setup and press <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-f9">F9</kbd></span> to compile, or use the command line:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>iscc inno_script.iss
+</code></pre></div>
+<p>The output is a single <code>.exe</code> file (e.g., <code>MyAppInstaller_v1.0.0.exe</code>) in the <code>OutputDir</code>
+directory.</p>
+<hr />
+<h2 id="key-decisions">Key Decisions<a class="headerlink" href="#key-decisions" title="Permanent link">&para;</a></h2>
+<h3 id="configjson-overwrite-or-preserve"><code>config.json</code>: Overwrite or Preserve?<a class="headerlink" href="#configjson-overwrite-or-preserve" title="Permanent link">&para;</a></h3>
+<p>The template uses <code>Flags: onlyifdoesntexist</code> for <code>config.json</code>. This means:</p>
+<ul>
+<li><strong>First install</strong>: the config is placed in the app directory.</li>
+<li><strong>Upgrades</strong>: the existing config is preserved (operator customizations are kept).</li>
+</ul>
+<p>If you want upgrades to always reset the config, change to <code>Flags: ignoreversion</code>.</p>
+<h3 id="pdb-files">PDB Files<a class="headerlink" href="#pdb-files" title="Permanent link">&para;</a></h3>
+<p>Including the <code>.pdb</code> file in the installer enables meaningful crash stacktraces on operator
+machines. This adds ~100–150 MB to the installer size. If size is a concern, you can:</p>
+<ul>
+<li>Ship the PDB separately and instruct support to retrieve it when debugging.</li>
+<li>Store PDBs on a network share indexed by version for symbol server lookup.</li>
+</ul>
+<h3 id="privilegesrequired">PrivilegesRequired<a class="headerlink" href="#privilegesrequired" title="Permanent link">&para;</a></h3>
+<p>The template uses <code>PrivilegesRequired=lowest</code>, which installs per-user (no admin required).
+This is suitable for most test station deployments. If you need machine-wide installation
+(e.g., for shared stations), change to <code>PrivilegesRequired=admin</code> and update <code>DefaultDirName</code>
+to use <code>{commonpf}</code> instead of <code>{autopf}</code>.</p>
+<hr />
+<h2 id="updating-test-scripts-without-reinstalling">Updating Test Scripts Without Reinstalling<a class="headerlink" href="#updating-test-scripts-without-reinstalling" title="Permanent link">&para;</a></h2>
+<p>In production environments, you may need to update Lua test scripts without rebuilding or
+reinstalling the entire application. Since Lua scripts are plain files in the <code>lua/user/</code>
+directory, you can:</p>
+<ol>
+<li>Copy updated <code>.lua</code> files to the install directory (<code>{app}\lua\user\</code>).</li>
+<li>Regenerate hashes by running <code>generate_hashes.bat</code> targeting the install directory.</li>
+<li>Restart the application (or press <span class="keys"><kbd class="key-f9">F9</kbd></span> to reload products).</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Hash verification must pass for the updated scripts to run. Either regenerate hashes after
+copying, or run in debug mode (<span class="keys"><kbd class="key-f10">F10</kbd></span>) to skip verification during development.</p>
+</div>
+<hr />
+<h2 id="automating-the-build">Automating the Build<a class="headerlink" href="#automating-the-build" title="Permanent link">&para;</a></h2>
+<p>For CI/CD pipelines, the full build-and-package flow:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">@</span><span class="k">echo</span> off
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">set</span> <span class="nv">APP_NAME</span><span class="p">=</span>MyApp
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">set</span> <span class="nv">APP_VERSION</span><span class="p">=</span>1.0.0
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">:</span><span class="c1">: Build</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>cmake --build build --config RelWithDebInfo
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="p">:</span><span class="c1">: Verify output exists</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="k">if</span> <span class="k">not</span> <span class="k">exist</span> <span class="s2">&quot;build\bin\</span><span class="nv">%APP_NAME%</span><span class="s2">_v</span><span class="nv">%APP_VERSION%</span><span class="s2">\</span><span class="nv">%APP_NAME%</span><span class="s2">.exe&quot;</span> <span class="p">(</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="k">echo</span> ERROR: Build output not found
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="k">exit</span> /b 1
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="p">)</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="p">:</span><span class="c1">: Compile installer</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>iscc inno_script.iss
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="k">if</span> <span class="nv">%ERRORLEVEL%</span> <span class="ow">neq</span> 0 <span class="p">(</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    <span class="k">echo</span> ERROR: Installer compilation failed
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>    <span class="k">exit</span> /b 1
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="p">)</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="k">echo</span> Installer created successfully.
+</code></pre></div>
+<hr />
+<h2 id="checklist">Checklist<a class="headerlink" href="#checklist" title="Permanent link">&para;</a></h2>
+<p>Before distributing an installer:</p>
+<ul>
+<li>[ ] Built with <strong>RelWithDebInfo</strong> configuration</li>
+<li>[ ] <code>config.json</code> contains the correct <code>usbWhitelist</code> for your hardware</li>
+<li>[ ] All products in <code>lua/user/</code> are present and tested</li>
+<li>[ ] Script hashes are generated and up-to-date</li>
+<li>[ ] <code>VC_redist.x64.exe</code> is included for machines without the runtime</li>
+<li>[ ] <code>AppId</code> is a unique GUID (not shared with other applications)</li>
+<li>[ ] <code>AppVersion</code> matches the version in <code>CMakeLists.txt</code></li>
+<li>[ ] Tested on a clean machine (no Visual Studio installed)</li>
+</ul>
 
 
 

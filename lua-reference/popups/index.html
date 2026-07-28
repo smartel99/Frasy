@@ -1342,6 +1342,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Popups
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1358,6 +1376,47 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#topics-to-cover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topics to Cover
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices-to-cover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices to Cover
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1760,6 +1819,36 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#topics-to-cover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topics to Cover
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices-to-cover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices to Cover
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1783,6 +1872,28 @@
 <p class="admonition-title">Work in progress</p>
 <p>This page is a placeholder. Content coming soon.</p>
 </div>
+<h2 id="topics-to-cover">Topics to Cover<a class="headerlink" href="#topics-to-cover" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>Popup(name)</code> constructor and the builder pattern</li>
+<li>Elements: <code>:Text()</code>, <code>:TextDynamic()</code>, <code>:Input()</code>, <code>:Button()</code>, <code>:Image()</code></li>
+<li>Layout: <code>:BeginHorizontal()</code> / <code>:EndHorizontal()</code>, <code>:BeginVertical()</code> / <code>:EndVertical()</code>, <code>:SameLine()</code>, <code>:Spring()</code></li>
+<li>Displaying popups with <code>:Show()</code> (blocks the calling UUT's coroutine until consumed)</li>
+<li>Consuming popups: <code>:Consume()</code>, button with <code>consume = true</code> option</li>
+<li><code>:ConsumeButtonText()</code> for customizing the dismiss button label</li>
+<li><code>:Global()</code> popups vs. per-UUT popups</li>
+<li><code>:Routine()</code> for running a function while the popup is displayed</li>
+<li>Reading input values from <code>GetInputs()</code></li>
+<li>Initial position with the <code>initialPosition</code> parameter</li>
+</ul>
+<h2 id="best-practices-to-cover">Best Practices to Cover<a class="headerlink" href="#best-practices-to-cover" title="Permanent link">&para;</a></h2>
+<ul>
+<li>When to use popups vs. pre-filling values through <code>Context.values</code> or the Control Room UI</li>
+<li>Designing popups that don't block teammates (interaction with teams and <code>Sync()</code>)</li>
+<li>Using dynamic text for progress feedback during long operations</li>
+<li>Layout tips: horizontal/vertical grouping, springs for clean alignment</li>
+<li>Keeping popup text clear and actionable for operators</li>
+<li>Using images to guide operators (photos of cable connections, indicator locations, etc.)</li>
+</ul>
 
 
 
