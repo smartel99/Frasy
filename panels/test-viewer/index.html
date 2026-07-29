@@ -1330,6 +1330,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../lua-reference/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation & Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../lua-reference/popups/" class="md-nav__link">
         
   
@@ -1655,6 +1683,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Viewer
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1671,6 +1717,75 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#intended-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intended Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Intended Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#live-execution-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live Execution Progress
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enabledisable-sequences-and-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable/Disable Sequences and Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1760,6 +1875,64 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#intended-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intended Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Intended Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#live-execution-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live Execution Progress
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enabledisable-sequences-and-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable/Disable Sequences and Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1779,10 +1952,47 @@
 
 
 <h1 id="test-viewer">Test Viewer<a class="headerlink" href="#test-viewer" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Work in progress</p>
-<p>This page is a placeholder. Content coming soon.</p>
+<div class="admonition warning">
+<p class="admonition-title">Not yet implemented</p>
+<p>The Test Viewer panel is currently under development. The UI is present but functionality
+is incomplete.</p>
 </div>
+<p><strong>Hotkey:</strong> <span class="keys"><kbd class="key-f6">F6</kbd></span></p>
+<hr />
+<h2 id="intended-purpose">Intended Purpose<a class="headerlink" href="#intended-purpose" title="Permanent link">&para;</a></h2>
+<p>The Test Viewer will serve two functions:</p>
+<h3 id="live-execution-progress">Live Execution Progress<a class="headerlink" href="#live-execution-progress" title="Permanent link">&para;</a></h3>
+<p>During a test run, the Test Viewer will display the Solution tree — all sequences and tests —
+with real-time status updates as they execute:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>▶ Power On          [RUNNING]
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  ✓ Supply Voltage  [PASSED]
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  ▶ Current Draw    [RUNNING]
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  ○ LED Check       [IDLE]
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>○ Functional        [IDLE]
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  ○ Communication   [IDLE]
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  ○ Data Transfer   [IDLE]
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>✓ Teardown          [DISABLED]
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  ✓ Power Off       [DISABLED]
+</code></pre></div>
+<p>Each node will show its execution state (idle, running, passed, failed, skipped, disabled)
+with color coding matching the UUT status icons.</p>
+<h3 id="enabledisable-sequences-and-tests">Enable/Disable Sequences and Tests<a class="headerlink" href="#enabledisable-sequences-and-tests" title="Permanent link">&para;</a></h3>
+<p>Before starting a run, operators will be able to toggle individual sequences and tests on or
+off by clicking checkboxes in the tree. Disabled items are skipped during execution with the
+reason "Disabled".</p>
+<p>This is useful for:</p>
+<ul>
+<li><strong>Debugging</strong> — run only the sequence you're working on.</li>
+<li><strong>Partial retesting</strong> — skip sequences that already passed on a previous run.</li>
+<li><strong>Development</strong> — disable tests that depend on hardware not yet connected.</li>
+</ul>
+<hr />
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../architecture/test-lifecycle/">Test Lifecycle</a> — how the Solution tree is structured</li>
+<li><a href="../../lua-reference/sequences-and-tests/">Sequences &amp; Tests</a> — defining sequences and tests</li>
+<li><a href="../../lua-reference/requirements/">Requirements</a> — how disabled scopes interact with requirements</li>
+</ul>
 
 
 

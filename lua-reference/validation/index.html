@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://frasy.rald.ca/lua-reference/utilities/">
+        <link rel="canonical" href="https://frasy.rald.ca/lua-reference/validation/">
       
       
-        <link rel="prev" href="../logging/">
+        <link rel="prev" href="../requirements/">
       
       
-        <link rel="next" href="../../panels/">
+        <link rel="next" href="../popups/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Utilities - Frasy</title>
+        <title>Validation & Assertions - Frasy</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#utilities" class="md-skip">
+        <a href="#validation-assertions" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Utilities
+              Validation & Assertions
             
           </span>
         </div>
@@ -1330,10 +1330,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../validation/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation & Assertions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1349,6 +1376,281 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#checkfieldvalue-predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CheckField(value, predicate, ...)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CheckField(value, predicate, ...)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Error
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the Return Value
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Is
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Is">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#type-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Predicates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sized-integer-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sized Integer Predicates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range-predicates-inclusive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Range Predicates (Inclusive)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range-predicates-exclusive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Range Predicates (Exclusive)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-dictionary-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object Dictionary Predicates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collection-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collection Predicates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#negation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Negation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#maybevalue-predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maybe(value, predicate, ...)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Maybe(value, predicate, ...)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage-with-checkfield" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage with CheckField
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Patterns
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validating-function-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating Function Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validating-against-an-enum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating Against an Enum
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validating-od-bounds-before-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating OD Bounds Before Download
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-parameters-with-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional Parameters with Defaults
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#negation-for-exclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Negation for Exclusion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1442,37 +1744,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Utilities
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../utilities/" class="md-nav__link">
         
   
   
@@ -1488,264 +1763,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#global-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Global Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Global Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sleepforms" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SleepFor(ms)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tostringt-max_depth" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ToString(t, max_depth?)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#printt-max_depth" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Print(t, max_depth?)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#equalst1-t2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Equals(t1, t2)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#traverset" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Traverse(t, ...)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tointvalue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ToInt(value)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hashstr" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Hash(str)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dirlistpath" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DirList(path)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#saveasjsontable-filepath" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SaveAsJson(table, filepath)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#combineandbitcastdata" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CombineAndBitcast(data)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#linesplitcontent" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        LineSplit(content)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#importable-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Importable Modules
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Importable Modules">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#tryfunction-retry-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        TryFunction — Retry Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#timeoutfunction-wait-with-timeout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        TimeoutFunction — Wait with Timeout
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bitwise-bit-manipulation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bitwise — Bit Manipulation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Bitwise — Bit Manipulation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#bitwiseinjectindex-value-cache" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bitwise.Inject(index, value, cache)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bitwiseextractindex-value" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bitwise.Extract(index, value)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stringizevalues-pack-bytes-to-string" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        StringizeValues — Pack Bytes to String
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#see-also" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        See Also
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2070,22 +2087,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#global-functions" class="md-nav__link">
+  <a href="#checkfieldvalue-predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Global Functions
+        CheckField(value, predicate, ...)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Global Functions">
+    <nav class="md-nav" aria-label="CheckField(value, predicate, ...)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sleepforms" class="md-nav__link">
+  <a href="#example-error" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SleepFor(ms)
+        Example Error
       
     </span>
   </a>
@@ -2093,109 +2110,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tostringt-max_depth" class="md-nav__link">
+  <a href="#using-the-return-value" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ToString(t, max_depth?)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#printt-max_depth" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Print(t, max_depth?)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#equalst1-t2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Equals(t1, t2)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#traverset" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Traverse(t, ...)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tointvalue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ToInt(value)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hashstr" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Hash(str)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dirlistpath" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DirList(path)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#saveasjsontable-filepath" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SaveAsJson(table, filepath)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#combineandbitcastdata" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CombineAndBitcast(data)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#linesplitcontent" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        LineSplit(content)
+        Using the Return Value
       
     </span>
   </a>
@@ -2208,22 +2126,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#importable-modules" class="md-nav__link">
+  <a href="#is" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Importable Modules
+        Is
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Importable Modules">
+    <nav class="md-nav" aria-label="Is">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tryfunction-retry-logic" class="md-nav__link">
+  <a href="#type-predicates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        TryFunction — Retry Logic
+        Type Predicates
       
     </span>
   </a>
@@ -2231,10 +2149,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#timeoutfunction-wait-with-timeout" class="md-nav__link">
+  <a href="#sized-integer-predicates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        TimeoutFunction — Wait with Timeout
+        Sized Integer Predicates
       
     </span>
   </a>
@@ -2242,22 +2160,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#bitwise-bit-manipulation" class="md-nav__link">
+  <a href="#range-predicates-inclusive" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bitwise — Bit Manipulation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Bitwise — Bit Manipulation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#bitwiseinjectindex-value-cache" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bitwise.Inject(index, value, cache)
+        Range Predicates (Inclusive)
       
     </span>
   </a>
@@ -2265,10 +2171,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#bitwiseextractindex-value" class="md-nav__link">
+  <a href="#range-predicates-exclusive" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bitwise.Extract(index, value)
+        Range Predicates (Exclusive)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-dictionary-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object Dictionary Predicates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collection-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collection Predicates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#negation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Negation
       
     </span>
   </a>
@@ -2279,12 +2218,24 @@
     </nav>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#stringizevalues-pack-bytes-to-string" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#maybevalue-predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        StringizeValues — Pack Bytes to String
+        Maybe(value, predicate, ...)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Maybe(value, predicate, ...)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage-with-checkfield" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage with CheckField
       
     </span>
   </a>
@@ -2293,6 +2244,89 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Patterns
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validating-function-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating Function Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validating-against-an-enum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating Against an Enum
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validating-od-bounds-before-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating OD Bounds Before Download
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-parameters-with-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional Parameters with Defaults
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#negation-for-exclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Negation for Exclusion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
   
 </li>
       
@@ -2327,169 +2361,278 @@
   
 
 
-<h1 id="utilities">Utilities<a class="headerlink" href="#utilities" title="Permanent link">&para;</a></h1>
-<p>Frasy provides a set of global helper functions and importable modules for common operations:
-sleeping, string conversion, table traversal, retries, timeouts, and bitwise manipulation.</p>
+<h1 id="validation-assertions">Validation &amp; Assertions<a class="headerlink" href="#validation-assertions" title="Permanent link">&para;</a></h1>
+<p>Frasy provides three utilities for validating function arguments and data at runtime:
+<code>CheckField</code>, <code>Is</code>, and <code>Maybe</code>. These are available as globals in all Lua scripts (loaded by
+the framework at startup via <code>checkers.lua</code>).</p>
+<p>They are used extensively inside board drivers and helper functions to catch programming errors
+early with clear error messages — before they reach hardware or corrupt test results.</p>
 <hr />
-<h2 id="global-functions">Global Functions<a class="headerlink" href="#global-functions" title="Permanent link">&para;</a></h2>
-<p>These are available everywhere without <code>require()</code>.</p>
-<h3 id="sleepforms"><code>SleepFor(ms)</code><a class="headerlink" href="#sleepforms" title="Permanent link">&para;</a></h3>
-<p>Pauses the current UUT's execution for the specified duration.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">SleepFor</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span><span class="w">  </span><span class="c1">-- wait 200 milliseconds</span>
+<h2 id="checkfieldvalue-predicate"><code>CheckField(value, predicate, ...)</code><a class="headerlink" href="#checkfieldvalue-predicate" title="Permanent link">&para;</a></h2>
+<p>Asserts that a value satisfies a predicate. Throws an error with the variable name and value
+if validation fails. Returns the value on success (for use in expressions).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">CheckField</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Float</span><span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nf">CheckField</span><span class="p">(</span><span class="nv">channel</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerIn</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">CheckField</span><span class="p">(</span><span class="nv">mode</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Boolean</span><span class="p">)</span>
 </code></pre></div>
+<p><strong>Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Parameter</th>
+<th>Name</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>ms</code></td>
-<td><code>integer</code></td>
-<td>Duration in milliseconds</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Notes:</strong></p>
-<ul>
-<li>During generation/validation, <code>SleepFor</code> is a no-op (returns immediately).</li>
-<li>Only the calling UUT's thread sleeps — other UUTs continue running.</li>
-</ul>
-<hr />
-<h3 id="tostringt-max_depth"><code>ToString(t, max_depth?)</code><a class="headerlink" href="#tostringt-max_depth" title="Permanent link">&para;</a></h3>
-<p>Converts any Lua value to a string. Unlike <code>tostring()</code>, it recursively prints table contents.
-Respects <code>__tostring</code> metamethods.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">ToString</span><span class="p">({</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">})</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">D</span><span class="p">(</span><span class="nv">s</span><span class="p">)</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">-- a: 1</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">-- b:</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">--   c: 2</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>t</code></td>
+<td><code>value</code></td>
 <td>any</td>
-<td>Value to convert</td>
+<td>The value to validate</td>
 </tr>
 <tr>
-<td><code>max_depth</code></td>
-<td><code>number?</code></td>
-<td>Maximum table depth (default: unlimited)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>string</code></p>
-<hr />
-<h3 id="printt-max_depth"><code>Print(t, max_depth?)</code><a class="headerlink" href="#printt-max_depth" title="Permanent link">&para;</a></h3>
-<p>Prints any Lua value to stdout. Like <code>ToString()</code> but outputs directly via <code>print()</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nf">Print</span><span class="p">(</span><span class="nv">myTable</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w">  </span><span class="c1">-- print up to 2 levels deep</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>t</code></td>
-<td>any</td>
-<td>Value to print</td>
-</tr>
-<tr>
-<td><code>max_depth</code></td>
-<td><code>number?</code></td>
-<td>Maximum table depth</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="equalst1-t2"><code>Equals(t1, t2)</code><a class="headerlink" href="#equalst1-t2" title="Permanent link">&para;</a></h3>
-<p>Deep equality comparison. Unlike <code>==</code>, it compares table contents recursively rather than
-object references.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nf">Equals</span><span class="p">(</span><span class="nv">a</span><span class="p">,</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w">  </span><span class="c1">-- true (same content)</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nv">a</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nv">b</span><span class="w">        </span><span class="c1">-- false (different references)</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>t1</code></td>
-<td>any</td>
-<td>First value</td>
-</tr>
-<tr>
-<td><code>t2</code></td>
-<td>any</td>
-<td>Second value</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>boolean</code></p>
-<hr />
-<h3 id="traverset"><code>Traverse(t, ...)</code><a class="headerlink" href="#traverset" title="Permanent link">&para;</a></h3>
-<p>Safely accesses nested table values via a chain of keys. Returns <code>nil</code> if any key in the chain
-is missing (instead of erroring).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">display</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">brightness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">80</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nf">Traverse</span><span class="p">(</span><span class="nv">config</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;display&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;brightness&quot;</span><span class="p">)</span><span class="w">  </span><span class="c1">-- 80</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nf">Traverse</span><span class="p">(</span><span class="nv">config</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;display&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;contrast&quot;</span><span class="p">)</span><span class="w">    </span><span class="c1">-- nil (missing key)</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nf">Traverse</span><span class="p">(</span><span class="nv">config</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;audio&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;volume&quot;</span><span class="p">)</span><span class="w">        </span><span class="c1">-- nil (broken chain)</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>t</code></td>
-<td><code>table</code></td>
-<td>Table to traverse</td>
+<td><code>predicate</code></td>
+<td><code>function(v, ...) → boolean</code></td>
+<td>A validation function (typically from <code>Is</code>)</td>
 </tr>
 <tr>
 <td><code>...</code></td>
-<td><code>string\|number</code></td>
-<td>Chain of keys</td>
+<td>any</td>
+<td>Additional arguments passed to the predicate</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Returns:</strong> The value at the end of the chain, or <code>nil</code> if any key is missing.</p>
-<hr />
-<h3 id="tointvalue"><code>ToInt(value)</code><a class="headerlink" href="#tointvalue" title="Permanent link">&para;</a></h3>
-<p>Rounds a number to the nearest integer.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">ToInt</span><span class="p">(</span><span class="mf">3.7</span><span class="p">)</span><span class="w">   </span><span class="c1">-- 4</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nf">ToInt</span><span class="p">(</span><span class="mf">3.2</span><span class="p">)</span><span class="w">   </span><span class="c1">-- 3</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nf">ToInt</span><span class="p">(</span><span class="o">-</span><span class="mf">1.6</span><span class="p">)</span><span class="w">  </span><span class="c1">-- -2</span>
+<p><strong>Returns:</strong> <code>value</code> (pass-through on success).</p>
+<p><strong>On failure:</strong> Throws an error with the variable name (auto-detected from the source line)
+and the invalid value.</p>
+<h3 id="example-error">Example Error<a class="headerlink" href="#example-error" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">temperature</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;not a number&quot;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nf">CheckField</span><span class="p">(</span><span class="nv">temperature</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Float</span><span class="p">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">-- Error: CheckField failed. temperature: not a number</span>
 </code></pre></div>
+<h3 id="using-the-return-value">Using the Return Value<a class="headerlink" href="#using-the-return-value" title="Permanent link">&para;</a></h3>
+<p>Since <code>CheckField</code> returns the value, you can use it inline:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">MyBoard</span><span class="p">:</span><span class="nf">SetChannel</span><span class="p">(</span><span class="nv">ch</span><span class="p">)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nv">self</span><span class="p">.</span><span class="py">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">ch</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerIn</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kr">end</span>
+</code></pre></div>
+<hr />
+<h2 id="is"><code>Is</code><a class="headerlink" href="#is" title="Permanent link">&para;</a></h2>
+<p>A table of predicate functions for type and range checking. Each function takes a value as its
+first argument and returns <code>true</code> or <code>false</code>.</p>
+<h3 id="type-predicates">Type Predicates<a class="headerlink" href="#type-predicates" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Parameter</th>
+<th>Predicate</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Is.Nil(v)</code></td>
+<td><code>v</code> is <code>nil</code></td>
+</tr>
+<tr>
+<td><code>Is.Boolean(v)</code></td>
+<td><code>v</code> is a boolean</td>
+</tr>
+<tr>
+<td><code>Is.Number(v)</code></td>
+<td><code>v</code> is a number (integer or float)</td>
+</tr>
+<tr>
+<td><code>Is.Float(v)</code></td>
+<td><code>v</code> is a number (any numeric value)</td>
+</tr>
+<tr>
+<td><code>Is.Integer(v)</code></td>
+<td><code>v</code> is a whole number (no fractional part)</td>
+</tr>
+<tr>
+<td><code>Is.Unsigned(v)</code></td>
+<td><code>v</code> is a non-negative integer (≥ 0)</td>
+</tr>
+<tr>
+<td><code>Is.String(v)</code></td>
+<td><code>v</code> is a string</td>
+</tr>
+<tr>
+<td><code>Is.Table(v)</code></td>
+<td><code>v</code> is a table</td>
+</tr>
+<tr>
+<td><code>Is.Function(v)</code></td>
+<td><code>v</code> is a function</td>
+</tr>
+<tr>
+<td><code>Is.Array(v)</code></td>
+<td><code>v</code> is a non-empty table with sequential integer keys</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sized-integer-predicates">Sized Integer Predicates<a class="headerlink" href="#sized-integer-predicates" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Predicate</th>
+<th>Range</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Is.Integer8(v)</code></td>
+<td>-128 to 127</td>
+</tr>
+<tr>
+<td><code>Is.Integer16(v)</code></td>
+<td>-32,768 to 32,767</td>
+</tr>
+<tr>
+<td><code>Is.Integer32(v)</code></td>
+<td>-2,147,483,648 to 2,147,483,647</td>
+</tr>
+<tr>
+<td><code>Is.Unsigned8(v)</code></td>
+<td>0 to 255</td>
+</tr>
+<tr>
+<td><code>Is.Unsigned16(v)</code></td>
+<td>0 to 65,535</td>
+</tr>
+<tr>
+<td><code>Is.Unsigned32(v)</code></td>
+<td>0 to 4,294,967,295</td>
+</tr>
+</tbody>
+</table>
+<h3 id="range-predicates-inclusive">Range Predicates (Inclusive)<a class="headerlink" href="#range-predicates-inclusive" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Predicate</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Is.IntegerIn(v, min, max)</code></td>
+<td>Integer where <code>min ≤ v ≤ max</code></td>
+</tr>
+<tr>
+<td><code>Is.UnsignedIn(v, min, max)</code></td>
+<td>Unsigned integer where <code>min ≤ v ≤ max</code></td>
+</tr>
+<tr>
+<td><code>Is.FloatIn(v, min, max)</code></td>
+<td>Number where <code>min ≤ v ≤ max</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="range-predicates-exclusive">Range Predicates (Exclusive)<a class="headerlink" href="#range-predicates-exclusive" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Predicate</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Is.IntegerInEx(v, min, max)</code></td>
+<td>Integer where <code>min &lt; v &lt; max</code></td>
+</tr>
+<tr>
+<td><code>Is.UnsignedInEx(v, min, max)</code></td>
+<td>Unsigned integer where <code>min &lt; v &lt; max</code></td>
+</tr>
+<tr>
+<td><code>Is.FloatInEx(v, min, max)</code></td>
+<td>Number where <code>min &lt; v &lt; max</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="object-dictionary-predicates">Object Dictionary Predicates<a class="headerlink" href="#object-dictionary-predicates" title="Permanent link">&para;</a></h3>
+<p>These validate a value against limits defined in a CANopen object dictionary entry:</p>
+<table>
+<thead>
+<tr>
+<th>Predicate</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Is.IntegerInOd(v, od)</code></td>
+<td>Integer within <code>od.lowLimit</code> to <code>od.highLimit</code></td>
+</tr>
+<tr>
+<td><code>Is.UnsignedInOd(v, od)</code></td>
+<td>Unsigned integer within OD limits</td>
+</tr>
+<tr>
+<td><code>Is.FloatInOd(v, od)</code></td>
+<td>Float within OD limits</td>
+</tr>
+<tr>
+<td><code>Is.ArrayInOd(v, od)</code></td>
+<td>Array with length ≤ <code>od.stringLengthMin</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="collection-predicates">Collection Predicates<a class="headerlink" href="#collection-predicates" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Predicate</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Is.Array(v)</code></td>
+<td>Value is a non-empty table</td>
+</tr>
+<tr>
+<td><code>Is.ArrayInOd(v, od)</code></td>
+<td>Array with length within OD bounds</td>
+</tr>
+<tr>
+<td><code>Is.InArray(v, t)</code></td>
+<td>Value <code>v</code> exists in array <code>t</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="negation">Negation<a class="headerlink" href="#negation" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Predicate</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Is.Not(v, f, ...)</code></td>
+<td>Inverts any predicate: <code>not f(v, ...)</code></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nf">CheckField</span><span class="p">(</span><span class="nv">value</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Not</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Nil</span><span class="p">)</span><span class="w">          </span><span class="c1">-- value must not be nil</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nf">CheckField</span><span class="p">(</span><span class="nv">mode</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Not</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Integer8</span><span class="p">)</span><span class="w">      </span><span class="c1">-- mode must not fit in 8 bits</span>
+</code></pre></div>
+<hr />
+<h2 id="maybevalue-predicate"><code>Maybe(value, predicate, ...)</code><a class="headerlink" href="#maybevalue-predicate" title="Permanent link">&para;</a></h2>
+<p>Validates that a value is <strong>either <code>nil</code> or satisfies the predicate</strong>. Useful for optional
+parameters.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nf">Maybe</span><span class="p">(</span><span class="nv">timeout</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Integer</span><span class="p">)</span><span class="w">       </span><span class="c1">-- nil is OK, but if provided must be an integer</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nf">Maybe</span><span class="p">(</span><span class="nv">name</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">String</span><span class="p">)</span><span class="w">           </span><span class="c1">-- nil is OK, but if provided must be a string</span>
+</code></pre></div>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
@@ -2497,343 +2640,99 @@ is missing (instead of erroring).</p>
 <tbody>
 <tr>
 <td><code>value</code></td>
-<td><code>number</code></td>
-<td>Number to round</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>integer</code></p>
-<hr />
-<h3 id="hashstr"><code>Hash(str)</code><a class="headerlink" href="#hashstr" title="Permanent link">&para;</a></h3>
-<p>Hashes a string using a fast hash function. Returns an integer.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">Hash</span><span class="p">(</span><span class="s2">&quot;my_unique_key&quot;</span><span class="p">)</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>str</code></td>
-<td><code>string</code></td>
-<td>String to hash</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>integer</code></p>
-<p><strong>Notes:</strong> Used internally by <code>Once()</code> to identify unique call sites. Can also be used to
-generate deterministic IDs from strings.</p>
-<hr />
-<h3 id="dirlistpath"><code>DirList(path)</code><a class="headerlink" href="#dirlistpath" title="Permanent link">&para;</a></h3>
-<p>Lists all <code>.lua</code> files recursively in a directory. Returns their paths without the <code>.lua</code>
-extension.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">DirList</span><span class="p">(</span><span class="s2">&quot;lua/user/my_product/tests&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">f</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nb">ipairs</span><span class="p">(</span><span class="nv">files</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nv">Log</span><span class="p">.</span><span class="nf">D</span><span class="p">(</span><span class="s2">&quot;Found: &quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">f</span><span class="p">)</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kr">end</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>path</code></td>
-<td><code>string</code></td>
-<td>Directory path to scan</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>string[]</code> — array of file paths (without <code>.lua</code> extension).</p>
-<hr />
-<h3 id="saveasjsontable-filepath"><code>SaveAsJson(table, filepath)</code><a class="headerlink" href="#saveasjsontable-filepath" title="Permanent link">&para;</a></h3>
-<p>Serializes a Lua table to a JSON file on disk.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nf">SaveAsJson</span><span class="p">({</span><span class="w"> </span><span class="nv">voltage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="nv">pass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="s2">&quot;logs/debug_data.json&quot;</span><span class="p">)</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>table</code></td>
-<td><code>table</code></td>
-<td>Data to serialize</td>
+<td>any</td>
+<td>The value to check (may be <code>nil</code>)</td>
 </tr>
 <tr>
-<td><code>filepath</code></td>
-<td><code>string</code></td>
-<td>Output file path</td>
+<td><code>predicate</code></td>
+<td><code>function(v, ...) → boolean</code></td>
+<td>Validation function</td>
 </tr>
-</tbody>
-</table>
-<hr />
-<h3 id="combineandbitcastdata"><code>CombineAndBitcast(data)</code><a class="headerlink" href="#combineandbitcastdata" title="Permanent link">&para;</a></h3>
-<p>Combines 4 bytes (little-endian) and interprets them as a 32-bit float. Useful for decoding
-raw sensor data.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">raw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0x00</span><span class="p">,</span><span class="w"> </span><span class="mh">0x00</span><span class="p">,</span><span class="w"> </span><span class="mh">0x48</span><span class="p">,</span><span class="w"> </span><span class="mh">0x42</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">-- 50.0 as IEEE 754</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">CombineAndBitcast</span><span class="p">(</span><span class="nv">raw</span><span class="p">)</span><span class="w">      </span><span class="c1">-- 50.0</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>data</code></td>
-<td><code>integer[4]</code></td>
-<td>Array of 4 bytes</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>number</code> — the decoded float value.</p>
-<hr />
-<h3 id="linesplitcontent"><code>LineSplit(content)</code><a class="headerlink" href="#linesplitcontent" title="Permanent link">&para;</a></h3>
-<p>Splits a string into an array of lines.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">lines</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">LineSplit</span><span class="p">(</span><span class="s2">&quot;line1</span><span class="se">\n</span><span class="s2">line2</span><span class="se">\n</span><span class="s2">line3&quot;</span><span class="p">)</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="c1">-- lines = {&quot;line1&quot;, &quot;line2&quot;, &quot;line3&quot;}</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>content</code></td>
-<td><code>string</code></td>
-<td>Text to split</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>string[]</code></p>
-<hr />
-<h2 id="importable-modules">Importable Modules<a class="headerlink" href="#importable-modules" title="Permanent link">&para;</a></h2>
-<p>These must be loaded with <code>require()</code>.</p>
-<h3 id="tryfunction-retry-logic"><code>TryFunction</code> — Retry Logic<a class="headerlink" href="#tryfunction-retry-logic" title="Permanent link">&para;</a></h3>
-<p>Calls a function repeatedly until it returns <code>true</code> or a maximum number of attempts is
-reached.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">TryFunction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;lua/core/utils/try_function&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">success</span><span class="p">,</span><span class="w"> </span><span class="nv">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">TryFunction</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">attempt</span><span class="p">)</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nv">Log</span><span class="p">.</span><span class="nf">D</span><span class="p">(</span><span class="s2">&quot;Attempt &quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">attempt</span><span class="p">)</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sendCommand</span><span class="p">(</span><span class="mh">0x01</span><span class="p">)</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">response</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0x06</span><span class="p">,</span><span class="w"> </span><span class="nv">response</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="kr">end</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">maxTryCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="nv">delay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="nv">raiseError</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">})</span>
-</code></pre></div>
-<p><strong>Signature:</strong> <code>TryFunction(fn, opt?) → boolean, any?</code></p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>fn</code></td>
-<td><code>function(attempt) → boolean, any?</code></td>
-<td>Function to try. Receives attempt number (1-indexed). Return <code>true</code> to stop retrying. Optional second return value is passed through.</td>
-</tr>
-<tr>
-<td><code>opt</code></td>
-<td><code>table?</code></td>
-<td>Options (see below)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Options:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>maxTryCount</code></td>
-<td><code>integer</code></td>
-<td><code>3</code></td>
-<td>Maximum number of attempts</td>
-</tr>
-<tr>
-<td><code>delay</code></td>
-<td><code>integer</code></td>
-<td><code>10</code></td>
-<td>Delay in ms between attempts</td>
-</tr>
-<tr>
-<td><code>raiseError</code></td>
-<td><code>boolean</code></td>
-<td><code>false</code></td>
-<td>If <code>true</code>, throws an error when max attempts is reached</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>success</code> (boolean), and optionally the second return value from <code>fn</code>.</p>
-<hr />
-<h3 id="timeoutfunction-wait-with-timeout"><code>TimeoutFunction</code> — Wait with Timeout<a class="headerlink" href="#timeoutfunction-wait-with-timeout" title="Permanent link">&para;</a></h3>
-<p>Polls a condition function repeatedly until it returns <code>false</code> (condition met) or the timeout
-is reached.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">TimeoutFunction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;lua/core/utils/timeout_function&quot;</span><span class="p">)</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1">-- Wait up to 5 seconds for the device to become ready</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nf">TimeoutFunction</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nf">isDeviceReady</span><span class="p">()</span><span class="w">  </span><span class="c1">-- return true to keep waiting, false to stop</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="kr">end</span><span class="p">,</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span>
-</code></pre></div>
-<p><strong>Signature:</strong> <code>TimeoutFunction(routine, duration_ms, sleep_ms?)</code></p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>routine</code></td>
-<td><code>function() → boolean</code></td>
-<td>Return <code>true</code> to keep waiting, <code>false</code> when condition is met</td>
-</tr>
-<tr>
-<td><code>duration_ms</code></td>
-<td><code>integer</code></td>
-<td>Maximum wait time in milliseconds</td>
-</tr>
-<tr>
-<td><code>sleep_ms</code></td>
-<td><code>integer?</code></td>
-<td>Sleep between polls (default: 10ms)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Behavior:</strong></p>
-<ul>
-<li>Throws <code>"Timeout"</code> error if <code>duration_ms</code> is exceeded during execution.</li>
-<li>During generation/validation, returns immediately without error.</li>
-</ul>
-<hr />
-<h3 id="bitwise-bit-manipulation"><code>Bitwise</code> — Bit Manipulation<a class="headerlink" href="#bitwise-bit-manipulation" title="Permanent link">&para;</a></h3>
-<p>Helpers for injecting and extracting individual bits in an integer (useful for GPIO registers).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Bitwise</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;lua/core/utils/bitwise&quot;</span><span class="p">)</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="c1">-- Set bit 3 to 1 in a cache value</span>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">cache</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x00</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="nv">cache</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Bitwise</span><span class="p">.</span><span class="nf">Inject</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">cache</span><span class="p">)</span><span class="w">  </span><span class="c1">-- cache = 0x08</span>
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1">-- Read bit 3</span>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="kd">local</span><span class="w"> </span><span class="nv">bit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Bitwise</span><span class="p">.</span><span class="nf">Extract</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nv">cache</span><span class="p">)</span><span class="w">  </span><span class="c1">-- bit = 1</span>
-</code></pre></div>
-<h4 id="bitwiseinjectindex-value-cache"><code>Bitwise.Inject(index, value, cache)</code><a class="headerlink" href="#bitwiseinjectindex-value-cache" title="Permanent link">&para;</a></h4>
-<p>Sets a single bit in an integer.</p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>index</code></td>
-<td><code>integer</code></td>
-<td>Bit position (0-indexed)</td>
-</tr>
-<tr>
-<td><code>value</code></td>
-<td><code>integer</code></td>
-<td>Bit value (0 or 1)</td>
-</tr>
-<tr>
-<td><code>cache</code></td>
-<td><code>integer</code></td>
-<td>The integer to modify</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> The modified integer.</p>
-<h4 id="bitwiseextractindex-value"><code>Bitwise.Extract(index, value)</code><a class="headerlink" href="#bitwiseextractindex-value" title="Permanent link">&para;</a></h4>
-<p>Reads a single bit from an integer.</p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>index</code></td>
-<td><code>integer</code></td>
-<td>Bit position (0-indexed)</td>
-</tr>
-<tr>
-<td><code>value</code></td>
-<td><code>integer</code></td>
-<td>The integer to read from</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>0</code> or <code>1</code>.</p>
-<hr />
-<h3 id="stringizevalues-pack-bytes-to-string"><code>StringizeValues</code> — Pack Bytes to String<a class="headerlink" href="#stringizevalues-pack-bytes-to-string" title="Permanent link">&para;</a></h3>
-<p>Packs a list of byte values into a binary string using <code>string.pack</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">StringizeValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;lua/core/utils/stringize_values&quot;</span><span class="p">)</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">packet</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">StringizeValues</span><span class="p">(</span><span class="mh">0x01</span><span class="p">,</span><span class="w"> </span><span class="mh">0x02</span><span class="p">,</span><span class="w"> </span><span class="mh">0x03</span><span class="p">,</span><span class="w"> </span><span class="mh">0x04</span><span class="p">)</span>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1">-- packet = &quot;\x01\x02\x03\x04&quot;</span>
-</code></pre></div>
-<p><strong>Signature:</strong> <code>StringizeValues(...) → string</code></p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
 <tr>
 <td><code>...</code></td>
-<td><code>integer...</code></td>
-<td>Byte values (0–255)</td>
+<td>any</td>
+<td>Additional arguments for the predicate</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Returns:</strong> A binary string with each byte packed sequentially.</p>
+<p><strong>Returns:</strong> <code>true</code> if the value is <code>nil</code> or satisfies the predicate, <code>false</code> otherwise.</p>
+<h3 id="usage-with-checkfield">Usage with CheckField<a class="headerlink" href="#usage-with-checkfield" title="Permanent link">&para;</a></h3>
+<p>Combine <code>Maybe</code> with <code>CheckField</code> for optional parameter validation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">MyBoard</span><span class="p">:</span><span class="nf">Configure</span><span class="p">(</span><span class="nv">channel</span><span class="p">,</span><span class="w"> </span><span class="nv">timeout</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">channel</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerIn</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">)</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">timeout</span><span class="p">,</span><span class="w"> </span><span class="nv">Maybe</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Integer</span><span class="p">)</span><span class="w">  </span><span class="c1">-- timeout is optional</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="kr">end</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>Maybe</code> returns a boolean — it doesn't throw. Wrap it in <code>CheckField</code> if you want an
+error on failure.</p>
+</div>
+<hr />
+<h2 id="common-patterns">Common Patterns<a class="headerlink" href="#common-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="validating-function-parameters">Validating Function Parameters<a class="headerlink" href="#validating-function-parameters" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">DAQ</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">routingPoint</span><span class="p">,</span><span class="w"> </span><span class="nv">samples</span><span class="p">)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">routingPoint</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Unsigned16</span><span class="p">)</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">samples</span><span class="p">,</span><span class="w"> </span><span class="nv">Maybe</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerIn</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1000</span><span class="p">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="c1">-- ...</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="kr">end</span>
+</code></pre></div>
+<h3 id="validating-against-an-enum">Validating Against an Enum<a class="headerlink" href="#validating-against-an-enum" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">off</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nv">low</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kr">function</span><span class="w"> </span><span class="nf">setMode</span><span class="p">(</span><span class="nv">mode</span><span class="p">)</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">mode</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerIn</span><span class="p">,</span><span class="w"> </span><span class="nv">Mode</span><span class="p">.</span><span class="py">off</span><span class="p">,</span><span class="w"> </span><span class="nv">Mode</span><span class="p">.</span><span class="py">high</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="c1">-- ...</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="kr">end</span>
+</code></pre></div>
+<h3 id="validating-od-bounds-before-download">Validating OD Bounds Before Download<a class="headerlink" href="#validating-od-bounds-before-download" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">PIO</span><span class="p">:</span><span class="nf">SupplyCurrentLimit</span><span class="p">(</span><span class="nv">supply</span><span class="p">,</span><span class="w"> </span><span class="nv">limit</span><span class="p">)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">supply</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">UnsignedIn</span><span class="p">,</span><span class="w"> </span><span class="nv">PIO</span><span class="p">.</span><span class="py">SupplyEnum</span><span class="p">.</span><span class="py">p3v3</span><span class="p">,</span><span class="w"> </span><span class="nv">PIO</span><span class="p">.</span><span class="py">SupplyEnum</span><span class="p">.</span><span class="py">pVariable2</span><span class="p">)</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">od</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">.</span><span class="py">od</span><span class="p">[</span><span class="nv">PIO</span><span class="p">.</span><span class="nf">SupplyEnumToOdName</span><span class="p">(</span><span class="nv">supply</span><span class="p">)][</span><span class="s2">&quot;Current Limit&quot;</span><span class="p">]</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">limit</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerInOd</span><span class="p">,</span><span class="w"> </span><span class="nv">od</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="nv">self</span><span class="p">.</span><span class="py">ib</span><span class="p">:</span><span class="nf">Download</span><span class="p">(</span><span class="nv">od</span><span class="p">,</span><span class="w"> </span><span class="nv">limit</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="kr">end</span>
+</code></pre></div>
+<h3 id="optional-parameters-with-defaults">Optional Parameters with Defaults<a class="headerlink" href="#optional-parameters-with-defaults" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kr">function</span><span class="w"> </span><span class="nf">measure</span><span class="p">(</span><span class="nv">channel</span><span class="p">,</span><span class="w"> </span><span class="nv">opt</span><span class="p">)</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">channel</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerIn</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">opt</span><span class="w"> </span><span class="o">~=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">        </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">opt</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Table</span><span class="p">)</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">        </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">opt</span><span class="p">.</span><span class="py">samples</span><span class="p">,</span><span class="w"> </span><span class="nv">Maybe</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerIn</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">10000</span><span class="p">)</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">        </span><span class="nf">CheckField</span><span class="p">(</span><span class="nv">opt</span><span class="p">.</span><span class="py">timeout</span><span class="p">,</span><span class="w"> </span><span class="nv">Maybe</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Integer</span><span class="p">)</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="kr">end</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nv">opt</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">samples</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="mi">100</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nv">opt</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">timeout</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="mi">1000</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="c1">-- ...</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="kr">end</span>
+</code></pre></div>
+<h3 id="negation-for-exclusion">Negation for Exclusion<a class="headerlink" href="#negation-for-exclusion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">-- Ensure value is not nil (required parameter)</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nf">CheckField</span><span class="p">(</span><span class="nv">callback</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Not</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Nil</span><span class="p">)</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1">-- Ensure value is not zero</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nf">CheckField</span><span class="p">(</span><span class="nv">divisor</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">Not</span><span class="p">,</span><span class="w"> </span><span class="nv">Is</span><span class="p">.</span><span class="py">IntegerIn</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Validate at function boundaries.</strong> Check parameters at the top of functions — before any
+  hardware interaction or state mutation.</li>
+<li><strong>Use <code>Is.*</code> predicates, not raw type checks.</strong> <code>CheckField(v, Is.Integer)</code> gives better
+  error messages than <code>assert(type(v) == "number")</code> and also verifies it's a whole number.</li>
+<li><strong>Use <code>Maybe</code> for optional parameters.</strong> It clearly documents intent and avoids nil-check
+  boilerplate.</li>
+<li><strong>Validate OD bounds before download.</strong> Sending an out-of-range value to hardware can cause
+  undefined behavior. Use <code>Is.IntegerInOd</code> / <code>Is.FloatInOd</code> to catch this in software.</li>
+<li><strong>Keep CheckField close to the call site.</strong> Validate where the data enters your function,
+  not deep inside nested logic. This produces clearer error messages.</li>
+</ul>
 <hr />
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../validation/">Validation &amp; Assertions</a> — <code>CheckField</code>, <code>Is</code>, <code>Maybe</code></li>
-<li><a href="../logging/">Logging</a> — <code>Log.D/I/W/E</code> for debug output</li>
-<li><a href="../context/">Context</a> — <code>Context.info.stage</code> for stage-aware logic</li>
+<li><a href="../../developer-guide/custom-ibs/">Custom Instrumentation Boards</a> — using CheckField in board method implementations</li>
+<li><a href="../environment/">Environment</a> — how boards and their OD entries are set up</li>
+<li><a href="../utilities/">Utilities</a> — other helper functions available in scripts</li>
 </ul>
 
 
@@ -2870,7 +2769,7 @@ is reached.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../logging/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Logging">
+          <a href="../requirements/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Requirements">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2880,20 +2779,20 @@ is reached.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Logging
+                Requirements
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../panels/" class="md-footer__link md-footer__link--next" aria-label="Next: Panels">
+          <a href="../popups/" class="md-footer__link md-footer__link--next" aria-label="Next: Popups">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Panels
+                Popups
               </div>
             </div>
             <div class="md-footer__button md-icon">
