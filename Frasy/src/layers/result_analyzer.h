@@ -45,21 +45,24 @@ private:
     static void renderStringList(std::string_view                   name,
                                  std::string_view                   tooltip,
                                  std::vector<std::array<char, 32>>& strings);
-    void renderAnalysisResults();
-    void renderSingleAnalysisResults();
-    void renderMultipleAnalysisResults();
-    void renderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results);
-    void renderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location);
-    void renderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence);
-    void renderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test);
+    void        renderAnalysisResults();
+    void        renderSingleAnalysisResults();
+    void        renderMultipleAnalysisResults();
+    void        renderAnalysisResultsFile(const Analyzers::ResultAnalysisResults& results);
+    void        renderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location);
+    void        renderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence);
+    void        renderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test);
 
     bool                         m_isVisible  = false;
     static constexpr const char* s_windowName = "Result Analyzer Options";
 
-    Analyzers::ResultOptions                                m_options       = {};
-    bool                                                    m_renderResults = false;
-    Analyzers::ResultAnalysisResults                        m_lastResults   = {};
-    std::map<std::string, Analyzers::ResultAnalysisResults> m_loadedResults = {};
+    Analyzers::ResultOptions                                m_options            = {};
+    bool                                                    m_renderResults      = false;
+    Analyzers::ResultAnalysisResults                        m_lastResults        = {};
+    std::map<std::string, Analyzers::ResultAnalysisResults> m_loadedResults      = {};
+    const Analyzers::ResultAnalysisResults::Sequence*       m_currentSequence    = nullptr;
+    const Analyzers::ResultAnalysisResults::Test*           m_currentTest        = nullptr;
+    Analyzers::ResultAnalysisResults::Expectation*          m_currentExpectation = nullptr;
 
     Analyzers::ResultAnalyzer    m_analyzer;
     bool                         m_generating     = false;
@@ -68,6 +71,6 @@ private:
     std::jthread                 m_generatorThread;
     std::function<std::string()> m_getTitle = [] { return "untitled"; };
 };
-} // namespace Frasy
+}    // namespace Frasy
 
 #endif    // FRASY_SRC_LAYERS_RESULT_ANALYZER_H

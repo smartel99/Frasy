@@ -25,3 +25,5 @@ Release-*
 docs/build
 .gitmodules.swp
 docs/__pycache__
+
+__pycache__

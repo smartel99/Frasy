@@ -1,11 +1,21 @@
-local Ib = require("lua/core/sdk/environment/ib")
-local IsBoolean = require("lua/core/utils/is_boolean")
-local IsIntegerInOd = require("lua/core/utils/is_integer/is_integer_in_od")
-local IsFloatInOd = require("lua/core/utils/is_float/is_float_in_od")
-local IsUnsigned16 = require("lua/core/utils/is_unsigned/is_unsigned_16")
-local IsUnsignedIn = require("lua/core/utils/is_unsigned/is_unsigned_in")
+--- @file    pio.lua
+--- @author  Paul Thomas
+--- @date    2026-06-03
+---
+--- @copyright
+--- This program is free software: you can redistribute it and/or modify it under the
+--- terms of the GNU General Public License as published by the Free Software Foundation, either
+--- version 3 of the License, or (at your option) any later version.
+--- This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--- even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+--- General Public License for more details.
+--- You should have received a copy of the GNU General Public License along with this program. If
+--- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+
 local Bitwise = require("lua/core/utils/bitwise")
 local CheckField = require("lua/core/utils/check_field")
+local Ib = require("lua/core/sdk/environment/ib")
+local Is = require("lua/core/utils/is")
 
 ---@class PIO_CacheGpio
 ---@field output integer
@@ -58,14 +68,11 @@ PIO.HIGH = PIO.IoValueEnum.high
 --- Alias to PIO.IoValueEnum.low
 PIO.LOW = PIO.IoValueEnum.low
 
-local function CheckSupplyEnum(supply)
-    CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.p3v3,
-        PIO.SupplyEnum.pVariable2))
-end
+local function CheckSupplyEnum(supply) CheckField(supply, Is.UnsignedIn, PIO.SupplyEnum.p3v3, PIO.SupplyEnum.pVariable2) end
 
 local function CheckVariableSupplyEnum(supply)
-    CheckField(supply, "supply", IsUnsignedIn(supply, PIO.SupplyEnum.pVariable1,
-        PIO.SupplyEnum.pVariable2))
+    CheckField(supply, Is.UnsignedIn, PIO.SupplyEnum.pVariable1,
+        PIO.SupplyEnum.pVariable2)
 end
 
 function PIO.SupplyEnumToOdName(supply)
@@ -76,9 +83,7 @@ function PIO.SupplyEnumToOdName(supply)
     return names[supply]
 end
 
-local function CheckIoIndex(index)
-    CheckField(index, "gpio index", IsUnsignedIn(index, 0, PIO.IoIndexMax))
-end
+local function CheckIoIndex(index) CheckField(index, Is.UnsignedIn, 0, PIO.IoIndexMax) end
 
 --- @class PIO_NewOptionalParameters
 --- @field name string? default to "pio"
@@ -94,7 +99,7 @@ function PIO:New(opt)
     if opt == nil then
         opt = {}
     end
-    CheckField(opt, "opt", type(opt) == "table")
+    CheckField(opt, Is.Table)
     if opt.name == nil then
         opt.name = "pio"
     end
@@ -139,7 +144,7 @@ function PIO:SupplyCurrentLimit(supply, limit)
     local odName = PIO.SupplyEnumToOdName(supply)
     local od = self.ib.od[odName]["Current Limit"]
     if limit ~= nil then
-        CheckField(limit, "current limit", IsIntegerInOd(limit, od))
+        CheckField(limit, Is.IntegerInOd, od)
         self.ib:Download(od, limit)
     else
         return self.ib:Upload(od) --[[@as number]]
@@ -167,7 +172,7 @@ function PIO:SupplyDesiredVoltage(supply, voltage)
     if voltage == nil then
         return self.ib:Upload(od) --[[@as number]]
     else
-        CheckField(voltage, "desired voltage", IsFloatInOd(voltage, od))
+        CheckField(voltage, Is.FloatInOd, od)
         self.ib:Download(od, voltage --[[@as OdEntryType]])
     end
 end
@@ -193,7 +198,7 @@ function PIO:SupplyOutputEnable(supply, state)
     if state == nil then
         return self.ib:Upload(od) --[[@as boolean]]
     else
-        CheckField(state, "output enable", IsBoolean(state))
+        CheckField(state, Is.Boolean)
         self.ib:Download(od, state)
     end
 end
@@ -213,7 +218,7 @@ function PIO:SupplyGracePeriod(supply, period)
     if period == nil then
         return self.ib:Upload(od) --[[@as integer]]
     else
-        CheckField(period, "Grace Period", IsIntegerInOd(period, od))
+        CheckField(period, Is.IntegerInOd, od)
         self.ib:Download(od, period)
     end
 end
@@ -225,7 +230,7 @@ function PIO:SupplyFeedbackControllerEnable(supply, enable)
     if enable == nil then
         return self.ib:Upload(od) --[[@as boolean]]
     else
-        CheckField(enable, "feedback enable", IsBoolean(enable))
+        CheckField(enable, Is.Boolean)
         self.ib:Download(od, enable --[[@as OdEntryType]])
     end
 end
@@ -254,7 +259,7 @@ function PIO:IoOutputValues(values)
         self.cache.gpio.output = self.ib:Upload(od) --[[@as integer]]
         return self.cache.gpio.output
     else
-        CheckField(values, "values", IsUnsignedIn(values, 0, PIO.IoValuesMax))
+        CheckField(values, Is.UnsignedIn, 0, PIO.IoValuesMax)
         self.cache.gpio.output = values
         self.ib:Download(od, values)
     end
@@ -271,7 +276,7 @@ function PIO:IoOutputValue(index, value)
         return Bitwise.Extract(index, self:IoOutputValues()) --[[@as PIO_IoValueEnum]]
     else
         CheckIoIndex(index)
-        CheckField(value, "value", value == 0 or value == 1)
+        CheckField(value, Is.UnsignedIn, 0, 1)
         self:IoOutputValues(Bitwise.Inject(index, value, self.cache.gpio.output))
     end
 end
@@ -287,7 +292,7 @@ function PIO:IoPolarities(polarities)
         self.cache.gpio.polarity = polarities
         return polarities
     else
-        CheckField(polarities, "polarities", IsUnsigned16(polarities))
+        CheckField(polarities, Is.Unsigned16)
         self.cache.gpio.polarity = polarities
         self.ib:Download(od, polarities)
     end
@@ -304,7 +309,7 @@ function PIO:IoPolarity(index, polarity)
         return Bitwise.Extract(index, self:IoPolarities())
     else
         CheckIoIndex(index)
-        CheckField(polarity, "polarity", polarity == 0 or polarity == 1)
+        CheckField(polarity, Is.UnsignedIn, 0, 1)
         self:IoPolarities(Bitwise.Inject(index, polarity, self.cache.gpio.polarity))
     end
 end
@@ -319,7 +324,7 @@ function PIO:IoModes(modes)
         self.cache.gpio.mode = self.ib:Upload(od) --[[@as integer]]
         return self.cache.gpio.mode
     else
-        CheckField(modes, "modes", IsUnsignedIn(modes, 0, PIO.IoValuesMax))
+        CheckField(modes, Is.UnsignedIn, 0, PIO.IoValuesMax)
         self.cache.gpio.mode = modes
         self.ib:Download(od, modes)
     end
@@ -335,7 +340,7 @@ function PIO:IoMode(index, mode)
     if mode == nil then
         return Bitwise.Extract(index, self:IoModes())
     else
-        CheckField(mode, "mode", mode == 0 or mode == 1)
+        CheckField(mode, Is.UnsignedIn, 0, 1)
         self:IoModes(Bitwise.Inject(index, mode, self.cache.gpio.mode))
     end
 end
