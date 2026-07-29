@@ -99,6 +99,7 @@ nav:
     - Sequences & Tests: lua-reference/sequences-and-tests.md
     - Expectations: lua-reference/expectations.md
     - Requirements: lua-reference/requirements.md
+    - Validation & Assertions: lua-reference/validation.md
     - Popups: lua-reference/popups.md
     - Context: lua-reference/context.md
     - Logging: lua-reference/logging.md
