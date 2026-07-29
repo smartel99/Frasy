@@ -1,7 +1,7 @@
 [![Documentation](https://img.shields.io/badge/docs-frasy.rald.ca-blue)](https://frasy.rald.ca)
 
-![logo](docs/assets/img/frasy_logo_light.svg#gh-dark-mode-only)
-![logo](docs/assets/img/frasy_logo.svg#gh-light-mode-only)
+![logo](docs/assets/frasy_logo_light.svg#gh-dark-mode-only)
+![logo](docs/assets/frasy_logo.svg#gh-light-mode-only)
 
 # Frasy — Generic Automated Hardware Testing Software
 
