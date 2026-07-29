@@ -32,72 +32,31 @@ else ()
     )
 endif ()
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    message(STATUS "Maximum optimization for speed")
-    if (MSVC)
-        target_compile_options(frasy_dep_build_options INTERFACE
-                /O2
-                /Zi
-        )
-    else ()
-        target_compile_options(frasy_dep_build_options INTERFACE
-                -Os
-        )
-        target_link_options(frasy_dep_build_options INTERFACE
-                -Os
-        )
-    endif ()
-elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-    message(STATUS "Maximum optimization for speed, debug info included")
-    if (MSVC)
-        target_compile_options(frasy_dep_build_options INTERFACE
-                /O2
-                /Zi
-        )
-    else ()
-        target_compile_options(frasy_dep_build_options INTERFACE
-                -Ofast
-                -g
-        )
-        target_link_options(frasy_dep_build_options INTERFACE
-                -Ofast
-                -g
-        )
-    endif ()
-elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
-    message(STATUS "Maximum optimization for size")
-    if (MSVC)
-        target_compile_options(frasy_dep_build_options INTERFACE
-                /Os
-        )
-    else ()
-        target_compile_options(frasy_dep_build_options INTERFACE
-                -Os
-        )
-        target_link_options(frasy_dep_build_options INTERFACE
-                -Os
-        )
-    endif ()
-else ()
-    message(STATUS "Minimal optimization, debug info included")
-    target_compile_definitions(frasy_dep_build_options INTERFACE
-            BR_DEBUG
-            BR_ENABLE_ASSERTS
+target_compile_definitions(frasy_dep_build_options INTERFACE
+        $<$<CONFIG:Debug>:BR_DEBUG>
+        $<$<CONFIG:Debug>:BR_ENABLE_ASSERTS>
+)
+
+if (MSVC)
+    target_compile_options(frasy_dep_build_options INTERFACE
+            $<$<CONFIG:Debug>:/Od>
+            $<$<CONFIG:Release>:/O2 /Zi>
+            $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
+            $<$<CONFIG:MinSizeRel>:/Os>
     )
-    if (MSVC)
-        target_compile_options(frasy_dep_build_options INTERFACE
-                /Od
-        )
-    else ()
-        target_compile_options(frasy_dep_build_options INTERFACE
-                -O0
-                -g
-        )
-        target_link_options(frasy_dep_build_options INTERFACE
-                -O0
-                -g
-        )
-    endif ()
+else ()
+    target_compile_options(frasy_dep_build_options INTERFACE
+            $<$<CONFIG:Debug>:-O0 -g>
+            $<$<CONFIG:Release>:-Os>
+            $<$<CONFIG:RelWithDebInfo>:-Ofast -g>
+            $<$<CONFIG:MinSizeRel>:-Os>
+    )
+    target_link_options(frasy_dep_build_options INTERFACE
+            $<$<CONFIG:Debug>:-O0 -g>
+            $<$<CONFIG:Release>:-Os>
+            $<$<CONFIG:RelWithDebInfo>:-Ofast -g>
+            $<$<CONFIG:MinSizeRel>:-Os>
+    )
 endif ()
 
 target_link_libraries(frasy_build_options INTERFACE frasy_dep_build_options)

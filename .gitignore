@@ -24,5 +24,6 @@ Release-*
 # Documentation build files.
 docs/build
 .gitmodules.swp
+docs/__pycache__
 
 __pycache__

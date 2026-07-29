@@ -1,0 +1,11 @@
+# Developer Guide
+
+This section covers how to use the Frasy template to build your own application.
+
+- [Creating a Product](creating-a-product.md) — setting up a new product directory with environment and tests
+- [Teams](teams.md) — grouping UUTs for coordinated execution and shared resources
+- [Customizing the UI](customizing-the-ui.md) — overriding `renderControlRoom()` and other extension points
+- [Exposing C++ to Lua](cpp-to-lua.md) — binding custom C++ functions into the Lua scripting environment
+- [Custom Instrumentation Boards](custom-ibs.md) — defining your own board types beyond the predefined ones
+- [Configuration](configuration.md) — `config.json` reference
+- [Building an Installer](installer.md) — packaging a release with Inno Setup

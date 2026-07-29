@@ -1,69 +1,63 @@
-[![Documentation Status](https://readthedocs.org/projects/frasy/badge/?version=latest)](https://frasy.readthedocs.io/en/latest/?badge=latest)
+[![Documentation](https://img.shields.io/badge/docs-frasy.rald.ca-blue)](https://frasy.rald.ca)
 
-# Frasy - Generic Automated Hardware Testing Software
+![logo](docs/assets/img/frasy_logo_light.svg#gh-dark-mode-only)
+![logo](docs/assets/img/frasy_logo.svg#gh-light-mode-only)
 
-![logo](doc/assets/img/frasy_logo_light.svg#gh-dark-mode-only)
-![logo](doc/assets/img/frasy_logo.svg#gh-light-mode-only)
+# Frasy — Generic Automated Hardware Testing Software
 
-Frasy is a tool allowing technicians to test any Printed Circuit Board Assemblies (PCBA) in a highly scalable manner, ranging from small (less than 1000 units per year) to very large (> 10 million units per year) production lines.
+Frasy is a Windows desktop application for automated PCBA (Printed Circuit Board Assembly)
+testing. It combines a C++ host process for UI, hardware communication, and test orchestration
+with a Lua scripting layer where all test logic lives — allowing test engineers to write and
+iterate on test sequences without recompiling the application.
 
-Using a descriptive approach, very little programming knowledge are required in order to write test sequences. The technician only has to specify the criteria for a PCBA to be valid, and Frasy handles the rest!
+## Quick Example
 
-![main_gui](doc/assets/img/main_gui.png)
-
-## Example Sequence
-This short example demonstrates how a voltage is measured on a PCBA.
 ```lua
-local Commands = requires("commands.lua")
-
-Sequence("MySequence", function(seqContext)
-    Test("VCC", function(testContext)
-        local tension = Commands.GetTension(testContext.Map.VCC)
-        Expect(tension):ToBeBetween(3.0, 3.6)   -- Expects VCC to be 3.3V +/- 300mV.
+Sequence("Power On", function()
+    Test("Check Supply Voltage", function()
+        local daq = Context.map.ibs.daq --[[@as DAQ]]
+        local v = daq:MeasureVoltage(Context.values.route.vcc)
+        Expect(v.average, "Supply Voltage"):ToBeInPercentage(3.3, 5.0)
     end)
 end)
 ```
 
-## What does Frasy do?
-At its core, Frasy uses the functionalities of the [GoogleTest](https://github.com/google/googletest) unit testing framework to select, configure and execute sequences of tests defined by the user.
-Tests can be individually controlled from within the software, and their behavior can be specified through scripts written in Lua.
+## Key Features
 
-When opening Frasy for the first time, the user will be prompted to select the files that contain the sequences of test. This will be remembered so that they are automatically loaded on start up in the future.
-
-Sequences and tests can be enabled and disabled through the test explorer, which is also used to display the progression of the sequence. The user then only has to click on the "run" button.
+- **Descriptive test scripting** — write what a board *should* do, not how to check it
+- **Multi-UUT support** — test multiple boards in parallel with built-in synchronization
+- **CANopen hardware integration** — communicate with instrumentation boards over SLCAN
+- **Live UI panels** — log viewer, result viewer, statistical analyzer, CANopen browser, profiler
+- **Hash-verified scripts** — integrity checking on all Lua files before execution
+- **Test report generation** — JSON, Markdown, Key-Value, and PDF formats
 
 ## Documentation
-The API reference documentation can be found [here](doc/API/).
 
-A thorough description of Frasy's architecture can be found [here](doc/architecture/)
+Full documentation is available at **[frasy.rald.ca](https://frasy.rald.ca)**, including:
 
-## Thanks
-Thank you to the following persons for their help in making this project possible!
+- [Getting Started](https://frasy.rald.ca/getting-started/) — installation, building, and first product setup
+- [Architecture](https://frasy.rald.ca/architecture/) — how Frasy is structured
+- [Developer Guide](https://frasy.rald.ca/developer-guide/) — customization and extension
+- [Lua Reference](https://frasy.rald.ca/lua-reference/) — complete scripting API
+- [Panels](https://frasy.rald.ca/panels/) — built-in UI panels reference
 
-- [DoubleNom](https://gitlab.com/DoubleNom) for the help designing the entire architecture and for his helpful criticism :)
-- [nickclark2016](https://github.com/nickclark2016) for designing the test description procedure!
-- An anonymous sergal for the help coming up with sentences that makes sense!
+## Requirements
+
+- Windows 10 or later
+- C++23 compiler (MSVC / Visual Studio 2022 recommended)
+- CMake 3.22+
+- Git (for submodule checkout)
 
 ## Getting Started
-To generate the project files, use one of the scripts found [here](scripts/Windows/).
-Alternatively, invoke Premake directly. 
 
-**Note**: C++23 is required to build Frasy!
+Frasy is intended to be used as a git submodule in your application repository. See the the [installation guide](https://frasy.rald.ca/getting-started/installation/) to get started.
 
-By default, Frasy builds the demonstration mode. The sources for this demo mode can be found [here](Frasy/src/demo_mode).
-To provide your own source code, use the `--src_loc` flag when generating the project files.
+## License
 
-## FAQ
+This project is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE) for
+details.
 
-### Why is the main branch called Morwenn?
-Because [Morwenn](https://github.com/Morwenn).
+## Acknowledgments
 
-### TODOs
-
-- Automatic (re) connection to a USB device.
-  - When the currently connected USB device disconnects, then reconnects, Frasy should automatically re-establish the connection.
-  - When there are currently no USB device, and that a device with a VID/PID pair registered in the config is detected, automatically connect to it.
-  - Current state: 
-    - Connection is handled in Frasy/utils/communication/device, layer in Frasy/layers/device_viewer.*
-    - Device notification hooks are setup with [Win32](https://learn.microsoft.com/en-us/windows/win32/devio/registering-for-device-notification) in Brigerad/src/Platform/Windows/WindowsWindow.*. They however are not working (no change is detected.)
-    - The message handler should dispatch UsbConnected and UsbDisconnected events, with information on what the device is. (dispatch through Brigerad::Application::onEvent).
+- [DoubleNom](https://gitlab.com/DoubleNom) — architecture design and invaluable criticism
+- [nickclark2016](https://github.com/nickclark2016) — test description procedure design

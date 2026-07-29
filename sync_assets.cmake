@@ -2,7 +2,7 @@ function(target_sync_assets target src dst)
     if (WIN32)
         add_custom_target(${target}
                 COMMAND cmd /c
-                "robocopy \"${src}\" \"${dst}\" /MIR /NFL /NDL /NJH /NJS /NC /NS & if %ERRORLEVEL% GEQ 8 exit %ERRORLEVEL%"
+                "robocopy \"${src}\" \"${dst}\" /MIR /NFL /NDL /NJH /NJS /NC /NS & if %ERRORLEVEL% GEQ 8 (exit /b %ERRORLEVEL%) else (exit /b 0)"
                 COMMENT "Sync ${target} assets (robocopy)..."
         )
     else ()

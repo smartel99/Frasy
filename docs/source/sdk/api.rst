@@ -1,4 +1,0 @@
-API
-===
-
-.. lua:autoclass:: Expectation
