@@ -17,11 +17,18 @@ local _team = require("lua/core/sdk/environment/team")
 local _ib = require("lua/core/sdk/environment/ib")
 
 if (Context.map == nil) then
-    Context.map = { uuts = {}, ibs = {}, team = {}, values = {}, onReport = function(report)
-        return report
-    end, onReportInfo = function()
-        return {}
-    end }
+    Context.map = {
+        uuts = {},
+        ibs = {},
+        team = {},
+        values = {},
+        onReport = function(report)
+            return report
+        end,
+        onReportInfo = function()
+            return {}
+        end
+    }
 end
 
 if (Ibs == nil) then
@@ -56,20 +63,26 @@ local function AddTeam(...)
             leader = uuts
         end
         assert(Context.team.players[uuts] == nil, TeamError(
-                string.format("Player %d is already in team %d", uuts, leader)))
+            string.format("Player %d is already in team %d", uuts, leader)))
         Context.team.players[uuts] = { leader = leader, position = index }
     end
     Context.team.teams[leader] = { ... }
 end
 
-local function AddUutValue(key)
-    --     assert(Context.info.stage == Stage.generation, "AddUutValue, invalid stage")
+
+---@param key string
+---@param default any?
+local function AddUutValue(key, default)
     assert(type(key) == "string", "AddUutValue, argument is not a string")
-    Context.map.values[key] = {}
+    Context.values[key] = default
     local t = {}
-    t.Link = function(uuts, value)
-        assert(type(uuts) == "number", "AddUutValue.Link, uuts is not a number")
-        Context.map.values[key][uuts] = value
+    --- @param  uut integer
+    --- @param value any?
+    t.Link = function(uut, value)
+        assert(type(uut) == "number", "AddUutValue.Link, uuts is not a number")
+        if Context.info.uut == uut or Context.info.stage ~= Stage.execution then
+            Context.values[key] = value
+        end
         return t
     end
     return t
@@ -81,7 +94,7 @@ local function AddIb(board)
     end
     local odParser = require("lua.core.can_open.object_dictionary")
     assert(Context.map.ibs[board.ib.name] == nil,
-            "Ib already defined. " .. board.ib.name)
+        "Ib already defined. " .. board.ib.name)
     Context.map.ibs[board.ib.name] = board
     board.ib.od = odParser.LoadFile(board.ib.eds)
     return board
