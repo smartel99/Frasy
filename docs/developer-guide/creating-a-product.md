@@ -61,8 +61,8 @@ If your fixture uses physical hardware boards for measurement and stimulus:
 Environment.Make(function()
     Environment.ScriptVersion("1.0.0")
     Environment.Uut.Count(1)
-    Environment.Ib.Add({ name = "daq", nodeId = 2 })
-    Environment.Ib.Add({ name = "pio", nodeId = 3 })
+    Environment.Ib.Add(DAQ:New { name = "daq", nodeId = 2 })
+    Environment.Ib.Add(PIO:New { name = "pio", nodeId = 3 })
 end)
 ```
 
@@ -76,7 +76,7 @@ For fixtures that test multiple boards in parallel:
 Environment.Make(function()
     Environment.ScriptVersion("1.0.0")
     Environment.Uut.Count(4)
-    Environment.Ib.Add({ name = "daq", nodeId = 2 }) -- shared by all UUTs
+    Environment.Ib.Add(DAQ:New { name = "daq", nodeId = 2 }) -- shared by all UUTs
     Environment.SetExecutionPolicy(ExecutionPolicy.parallel)
 end)
 ```
@@ -91,12 +91,10 @@ details.
 A common pattern is to build a `route` table in `Context.values`:
 
 ```lua
-local MyDaq = DAQ:New({ name = "daq", nodeId = 2 })
-
 Environment.Make(function()
     Environment.ScriptVersion("1.0.0")
     Environment.Uut.Count(1)
-    Environment.Ib.Add(MyDaq)
+    Environment.Ib.Add(DAQ:New { name = "daq", nodeId = 2 })
 
     Context.values.route = {
         vcc      = DAQ.RoutingPointsEnum.MUX1_A0,
@@ -225,7 +223,7 @@ When testing multiple UUTs on the same fixture, each UUT might be wired to a dif
 route. Use `Environment.UutValue.Add()` to declare per-UUT constants:
 
 ```lua
-local MyDaq = DAQ:New({ name = "daq", nodeId = 2 })
+local MyDaq = DAQ:New { name = "daq", nodeId = 2 }
 
 Environment.Make(function()
     Environment.ScriptVersion("1.0.0")
