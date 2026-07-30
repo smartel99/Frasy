@@ -1175,8 +1175,6 @@ function DAQ:MeasureVoltage(points, opt)
     self:AdcSampleRate(opt.sampleRate)
     self:AdcSamplesToTake(opt.samplesToTake)
 
-    print("Youhou")
-
     while opt.samplesToTake ~= 0 do
         local previous = opt.samplesToTake
         TimeoutFunction(function()
