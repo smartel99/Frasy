@@ -269,9 +269,7 @@ void CanOpen::clearNodes()
 
 void CanOpen::resetNodes() const
 {
-    for (const auto& node : m_nodes) {
-        resetNode(node.nodeId());
-    }
+    resetNode(0); // 0 is broadcast to all nodes
 }
 
 void CanOpen::resetNode(uint8_t nodeId) const
