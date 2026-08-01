@@ -138,13 +138,19 @@ protected:
     }
 
     /**
-     * Helper: create a test within the current sequence scope.
+     * Helper: create a test within a sequence.
+     * Creates the sequence first if it doesn't exist.
      */
     void createTest(const std::string& sequenceName, const std::string& testName, bool enterScope = false)
     {
-        // Ensure we're in the sequence scope
+        // Ensure the sequence exists
+        lua.script(
+            "if not Orchestrator.HasSequence(require('lua/core/framework/scope'):New('" + sequenceName + "')) then "
+            "Orchestrator.CreateSequence('" + sequenceName + "', function() end, 'test', 0) end");
+        // Set scope to the sequence
         lua.script(
             "Context.orchestrator.scope = require('lua/core/framework/scope'):New('" + sequenceName + "')");
+        // Create the test
         lua.script(
             "Orchestrator.CreateTest('" + testName + "', function() end, 'test', 0)");
         if (enterScope)
