@@ -27,3 +27,5 @@ docs/build
 docs/__pycache__
 
 __pycache__
+
+cmake_test_discovery*

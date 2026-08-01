@@ -30,6 +30,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/Frasy/src
 )
 
+option(FRASY_BUILD_TESTS "Build Frasy unit tests" OFF)
+if (FRASY_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif ()
 
 add_custom_target(generate_hashes
         COMMAND ${CMAKE_CURRENT_LIST_DIR}/scripts/Windows/generate_hashes.bat
