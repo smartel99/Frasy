@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.22)
 
 project(Frasy C CXX)
 
+if (NOT TARGET frasy_dep_build_options)
+    include(compile_options.cmake)
+endif ()
+
 add_subdirectory(Brigerad)
 
 file(GLOB_RECURSE FRASY_SOURCES
@@ -39,30 +43,33 @@ endif ()
 add_custom_target(generate_hashes
         COMMAND ${CMAKE_CURRENT_LIST_DIR}/scripts/Windows/generate_hashes.bat
 )
-add_custom_target(make_lua_dir COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${APP_NAME}>/lua"
-)
-include(sync_assets.cmake)
-target_sync_assets(
-        refresh_lua_core
-        "${CMAKE_CURRENT_LIST_DIR}/Frasy/lua/core"
-        "$<TARGET_FILE_DIR:${APP_NAME}>/lua/core"
-)
-target_sync_assets(
-        refresh_frasy_assets
-        "${CMAKE_CURRENT_LIST_DIR}/Frasy/assets"
-        "$<TARGET_FILE_DIR:${APP_NAME}>/assets"
-)
-add_dependencies(refresh_lua_core
-        generate_hashes
-        make_lua_dir
-        refresh_frasy_assets
-)
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${WKHTMLTOX_DIR}/bin/wkhtmltox.dll"
-        "$<TARGET_FILE_DIR:${APP_NAME}>/wkhtmltox.dll"
-)
+if (DEFINED APP_NAME)
+    add_custom_target(make_lua_dir COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${APP_NAME}>/lua"
+    )
+    include(sync_assets.cmake)
+    target_sync_assets(
+            refresh_lua_core
+            "${CMAKE_CURRENT_LIST_DIR}/Frasy/lua/core"
+            "$<TARGET_FILE_DIR:${APP_NAME}>/lua/core"
+    )
+    target_sync_assets(
+            refresh_frasy_assets
+            "${CMAKE_CURRENT_LIST_DIR}/Frasy/assets"
+            "$<TARGET_FILE_DIR:${APP_NAME}>/assets"
+    )
+    add_dependencies(refresh_lua_core
+            generate_hashes
+            make_lua_dir
+            refresh_frasy_assets
+    )
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${WKHTMLTOX_DIR}/bin/wkhtmltox.dll"
+            "$<TARGET_FILE_DIR:${APP_NAME}>/wkhtmltox.dll"
+    )
+endif ()
 
 if (MSVC)
     set_source_files_properties(${CANOPEN_OD_DIR}/OD.c PROPERTIES
