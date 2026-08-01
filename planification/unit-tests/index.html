@@ -1,0 +1,2254 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generic Automated Hardware Testing Software">
+      
+      
+      
+        <link rel="canonical" href="https://frasy.rald.ca/planification/unit-tests/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/icon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Implementation Plan — Unit Test Infrastructure for Frasy (Lua Core Scripts) - Frasy</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#implementation-plan-unit-test-infrastructure-for-frasy-lua-core-scripts" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Frasy" class="md-header__button md-logo" aria-label="Frasy" data-md-component="logo">
+      
+  <img src="../../assets/icon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Frasy
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Implementation Plan — Unit Test Infrastructure for Frasy (Lua Core Scripts)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/smartel99/Frasy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    smartel99/Frasy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developer-guide/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../lua-reference/" class="md-tabs__link">
+          
+  
+  
+  Lua Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../panels/" class="md-tabs__link">
+          
+  
+  
+  Panels
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Frasy" class="md-nav__button md-logo" aria-label="Frasy" data-md-component="logo">
+      
+  <img src="../../assets/icon.png" alt="logo">
+
+    </a>
+    Frasy
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/smartel99/Frasy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    smartel99/Frasy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/building/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/cpp-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C++ Application Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/lua-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/cpp-layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C++ Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/lua-layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Communication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/test-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/creating-a-product/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a Product
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/teams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Teams
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/customizing-the-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customizing the UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/cpp-to-lua/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exposing C++ to Lua
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/custom-ibs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Instrumentation Boards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/installer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building an Installer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Lua Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/sequences-and-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequences & Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/expectations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Expectations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation & Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/popups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Popups
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Panels
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Panels
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Panels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/log-window/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log Window
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/device-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/result-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/result-analyzer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Analyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/test-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/canopen-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CANopen Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/lua-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proposed-directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proposed Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-breakdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task Breakdown
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task Breakdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-create-the-test-infrastructure-and-shared-fixture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Create the test infrastructure and shared fixture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-add-utils-tests-globallua-is-maybe-bitwise-stringize_values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Add utils tests (global.lua, Is, maybe, bitwise, stringize_values)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-3-add-check_field-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Add check_field tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-4-add-try_function-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: Add try_function tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-5-add-timeout_function-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: Add timeout_function tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-6-add-sort_utils-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: Add sort_utils tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-7-add-expectation-common-function-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 7: Add expectation common function tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-8-wire-everything-together-and-verify-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 8: Wire everything together and verify end-to-end
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-implementation-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Important Implementation Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="implementation-plan-unit-test-infrastructure-for-frasy-lua-core-scripts">Implementation Plan — Unit Test Infrastructure for Frasy (Lua Core Scripts)<a class="headerlink" href="#implementation-plan-unit-test-infrastructure-for-frasy-lua-core-scripts" title="Permanent link">&para;</a></h1>
+<h2 id="problem-statement">Problem Statement<a class="headerlink" href="#problem-statement" title="Permanent link">&para;</a></h2>
+<p>The Frasy repository has no CMake-integrated test suite. The existing <code>Tests/LuaDeserializer/test.cpp</code> is outdated and built via the legacy premake5 system. We need a proper test infrastructure that validates the Lua core scripts (<code>Frasy/lua/core/*</code>) using C++ test executables with sol2 and Google Test.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Tests live in a <code>tests/</code> directory (lowercase) with their own <code>CMakeLists.txt</code></li>
+<li>Included from <code>vendor/frasy/CMakeLists.txt</code> behind a <code>FRASY_BUILD_TESTS</code> option</li>
+<li>Google Test fetched via FetchContent (pinned version)</li>
+<li>CTest enabled with <code>gtest_discover_tests()</code></li>
+<li>Lua files copied to the build directory at build time via custom commands (no staleness)</li>
+<li>Tests use C++ with sol2: create a Lua state, register C++ mocks for external bindings, load scripts, assert behavior</li>
+<li>A shared test fixture provides common mock setup (SleepFor, Hash, DirList, Stage, Context, etc.)</li>
+<li>Delete the obsolete <code>Tests/</code> directory and its contents</li>
+<li>Scope: utils (global, Is, maybe, check_field, bitwise, try_function, timeout_function, stringize_values, ini_parser), framework (sort_utils, expectations/common), and the sort sectionize logic</li>
+</ul>
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The project is at <code>F:\dev\frasy-template\vendor\frasy</code></li>
+<li>The Lua scripts depend on C++ bindings: <code>SleepFor</code>, <code>Hash</code>, <code>DirList</code>, <code>SaveAsJson</code>, <code>CombineAndBitcast</code>, <code>Orchestrator.*</code>, <code>__exclusive</code>, <code>__once</code>, <code>ShowExpectation</code></li>
+<li>The expectation system's <code>common.lua</code> functions check <code>Context.info.stage == Stage.execution</code> — tests must set this global to exercise real logic paths</li>
+<li>The <code>framework/expectation/module.lua</code> dispatches based on stage — tests should load execution.lua directly or set stage before requiring</li>
+<li><code>sort_utils.lua</code> is pure logic with no C++ dependencies — ideal first test target</li>
+<li><code>Is</code> module is pure Lua — straightforward to test</li>
+<li><code>try_function</code> and <code>timeout_function</code> depend on <code>SleepFor</code> (mock as no-op or with time tracking)</li>
+<li><code>check_field</code> uses <code>debug.getinfo</code> and <code>io.open</code> for error messages — can be tested for pass/fail behavior without worrying about the error message format</li>
+<li>The project uses CMake 3.22+, C++23, MSVC on Windows</li>
+<li><code>Frasy</code> is a static library; tests link against it</li>
+<li>sol2 is available via the <code>Brigerad</code> dependency (at <code>Brigerad/vendor/sol</code>)</li>
+<li><code>target_sync_assets()</code> macro (robocopy/rsync) defined in <code>sync_assets.cmake</code> can be reused</li>
+<li>Build options are in <code>compile_options.cmake</code> via <code>frasy_build_options</code> and <code>frasy_dep_build_options</code></li>
+<li>The parent template CMakeLists at <code>F:\dev\frasy-template\CMakeLists.txt</code> sets <code>APP_NAME</code> which is referenced in Frasy's CMakeLists — the test CMake should NOT depend on APP_NAME</li>
+</ul>
+<h2 id="proposed-directory-structure">Proposed Directory Structure<a class="headerlink" href="#proposed-directory-structure" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>vendor/frasy/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── CMakeLists.txt                    (add FRASY_BUILD_TESTS option + add_subdirectory)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── tests/
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── CMakeLists.txt                (FetchContent gtest, enable_testing, lua sync, add subdirs)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── lua_test_fixture.h            (shared fixture: sol::state + common mocks + global setup)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── utils/
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   │   ├── CMakeLists.txt
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   │   └── test.cpp                  (global.lua, Is, maybe, bitwise, stringize_values, ini_parser)
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   ├── check_field/
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   │   ├── CMakeLists.txt
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   │   └── test.cpp
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   ├── try_function/
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   │   ├── CMakeLists.txt
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   │   └── test.cpp
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   ├── timeout_function/
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   │   ├── CMakeLists.txt
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   │   └── test.cpp
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   ├── sort_utils/
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   │   ├── CMakeLists.txt
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   │   └── test.cpp
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│   └── expectations/
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│       ├── CMakeLists.txt
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│       └── test.cpp                  (common.lua expectation functions)
+</code></pre></div>
+<h2 id="task-breakdown">Task Breakdown<a class="headerlink" href="#task-breakdown" title="Permanent link">&para;</a></h2>
+<h3 id="task-1-create-the-test-infrastructure-and-shared-fixture">Task 1: Create the test infrastructure and shared fixture<a class="headerlink" href="#task-1-create-the-test-infrastructure-and-shared-fixture" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Set up <code>tests/CMakeLists.txt</code> with FetchContent for GoogleTest, CTest, Lua file syncing, and the shared <code>lua_test_fixture.h</code>. Remove the obsolete <code>Tests/</code> directory.</p>
+<p><strong>Implementation guidance:</strong>
+- Add <code>option(FRASY_BUILD_TESTS "Build Frasy unit tests" OFF)</code> to <code>vendor/frasy/CMakeLists.txt</code>
+- Add at the end (BEFORE the custom targets that reference APP_NAME): <code>if(FRASY_BUILD_TESTS) add_subdirectory(tests) endif()</code>
+- Delete the <code>Tests/</code> directory entirely (LuaDeserializer test is outdated)
+- Create <code>tests/CMakeLists.txt</code> that:
+  - Calls <code>include(FetchContent)</code> and fetches <code>googletest</code> at tag <code>v1.15.2</code>
+  - Sets <code>gtest_force_shared_crt ON</code> for MSVC compatibility
+  - Calls <code>enable_testing()</code> and <code>include(GoogleTest)</code>
+  - Reuses <code>target_sync_assets</code> (already included in parent CMakeLists via <code>include(sync_assets.cmake)</code>) to sync <code>${CMAKE_CURRENT_LIST_DIR}/../Frasy/lua/core/</code> → <code>${CMAKE_CURRENT_BINARY_DIR}/lua/core/</code>
+  - Adds subdirectories for each test module
+- Create <code>tests/lua_test_fixture.h</code>:
+  - A gtest fixture class that creates a <code>sol::state</code> with base/string/table/math/io/debug libraries
+  - Registers common mocks: <code>SleepFor</code> (no-op), <code>Hash</code> (returns 0), <code>DirList</code> (returns empty table), <code>SaveAsJson</code> (no-op), <code>CombineAndBitcast</code> (returns 0), <code>ShowExpectation</code> (no-op)
+  - Loads <code>lua/core/framework/stage.lua</code> (defines <code>Stage</code> global)
+  - Loads <code>lua/core/framework/exception.lua</code> (defines exception constructors)
+  - Loads <code>lua/core/utils/global.lua</code> (defines <code>Print</code>, <code>ToString</code>, <code>Equals</code>, <code>Traverse</code>, <code>LineSplit</code>, <code>ToInt</code>)
+  - Sets up a minimal <code>Context</code> table with <code>Context.info.stage = Stage.execution</code>
+  - Sets up a minimal <code>Orchestrator</code> table with no-op functions (<code>AddExpectationResult</code>, <code>GetScope</code>, <code>SetValue</code>, <code>GetSequenceScopeRequirement</code>, <code>GetTestScopeRequirement</code>)
+  - Sets the working directory context so <code>require()</code> paths resolve from the binary output dir
+  - NOTE: The fixture must configure <code>package.path</code> to include the binary output directory so that <code>require("lua/core/...")</code> works</p>
+<p><strong>Test requirements:</strong> CMake configures successfully with <code>-DFRASY_BUILD_TESTS=ON</code>, GoogleTest is fetched, no test targets fail to configure.</p>
+<p><strong>Demo:</strong> <code>cmake -DFRASY_BUILD_TESTS=ON -B build</code> completes without errors. The <code>tests/</code> directory structure is in place.</p>
+<hr />
+<h3 id="task-2-add-utils-tests-globallua-is-maybe-bitwise-stringize_values">Task 2: Add utils tests (global.lua, Is, maybe, bitwise, stringize_values)<a class="headerlink" href="#task-2-add-utils-tests-globallua-is-maybe-bitwise-stringize_values" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Test the pure-Lua utility functions that form the foundation of the scripting layer.</p>
+<p><strong>Implementation guidance:</strong>
+- Create <code>tests/utils/CMakeLists.txt</code> and <code>tests/utils/test.cpp</code>
+- The CMakeLists.txt should:
+  - Define an executable target (e.g., <code>FrasyTest_Utils</code>)
+  - Link against <code>Frasy</code> and <code>GTest::gtest_main</code>
+  - Call <code>gtest_discover_tests(FrasyTest_Utils WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/..)</code>
+  - Add dependency on the lua sync target
+- Test <code>global.lua</code> functions (already loaded by fixture):
+  - <code>Equals</code>: same primitives, different primitives, same tables, different tables (nested), different key counts, different types
+  - <code>ToString</code>: primitives, tables, nested tables, tables with <code>__tostring</code> metamethod
+  - <code>Traverse</code>: valid chain, broken chain, nil input, empty args
+  - <code>LineSplit</code>: basic multiline string, empty string, single line
+  - <code>ToInt</code>: positive rounding, negative rounding, exact integers
+- Test <code>Is</code> module (load via <code>require("lua/core/utils/is")</code>):
+  - <code>Is.Integer</code>, <code>Is.Float</code>, <code>Is.String</code>, <code>Is.Boolean</code>, <code>Is.Nil</code>, <code>Is.Table</code>, <code>Is.Array</code>, <code>Is.Function</code>
+  - Range checks: <code>Is.Integer8</code>, <code>Is.Integer16</code>, <code>Is.Integer32</code>, <code>Is.Unsigned8</code>, <code>Is.Unsigned16</code>, <code>Is.Unsigned32</code>
+  - <code>Is.IntegerIn</code>, <code>Is.FloatIn</code>, <code>Is.UnsignedIn</code> with boundary values
+  - <code>Is.Not</code> inversion
+  - <code>Is.InArray</code> with present and absent values
+- Test <code>maybe</code> (load via <code>require("lua/core/utils/maybe")</code>): nil passes, valid value passes, invalid value fails
+- Test <code>bitwise</code> (load via <code>require("lua/core/utils/bitwise")</code>): <code>Inject</code> and <code>Extract</code> for various bit positions
+- Test <code>stringize_values</code> (load via <code>require("lua/core/utils/stringize_values")</code>): pack bytes, verify string output</p>
+<p>Link against <code>Frasy</code> and <code>GTest::gtest_main</code>. Use the shared fixture for sol state setup.</p>
+<p><strong>Test requirements:</strong> All assertions pass via <code>ctest -R Utils</code>.</p>
+<p><strong>Demo:</strong> <code>ctest -R Utils --output-on-failure</code> shows all utility function tests passing.</p>
+<hr />
+<h3 id="task-3-add-check_field-tests">Task 3: Add check_field tests<a class="headerlink" href="#task-3-add-check_field-tests" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Test that <code>check_field</code> passes valid values through and throws on invalid ones.</p>
+<p><strong>Implementation guidance:</strong>
+- Create <code>tests/check_field/CMakeLists.txt</code> and <code>tests/check_field/test.cpp</code>
+- Load <code>Is</code> and <code>check_field</code> via require
+- Test cases:
+  - Valid field: <code>CheckField(5, Is.Integer)</code> returns 5
+  - Invalid field: <code>CheckField("hello", Is.Integer)</code> throws an error
+  - With additional predicate args: <code>CheckField(10, Is.IntegerIn, 0, 100)</code> passes
+  - Boundary: <code>CheckField(101, Is.IntegerIn, 0, 100)</code> throws
+  - Works with Maybe: <code>CheckField(nil, Maybe, Is.Integer)</code> passes (nil is OK for Maybe)
+- Use <code>sol::protected_function</code> to catch Lua errors and assert on them in C++</p>
+<p><strong>Test requirements:</strong> <code>ctest -R check_field</code> passes.</p>
+<p><strong>Demo:</strong> Build and run, demonstrating pass-through and error-throwing behavior.</p>
+<hr />
+<h3 id="task-4-add-try_function-tests">Task 4: Add try_function tests<a class="headerlink" href="#task-4-add-try_function-tests" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Test the retry logic in <code>try_function.lua</code>.</p>
+<p><strong>Implementation guidance:</strong>
+- Create <code>tests/try_function/CMakeLists.txt</code> and <code>tests/try_function/test.cpp</code>
+- Mock <code>SleepFor</code> to track call count and arguments (override the fixture's default no-op)
+- Test cases:
+  - Function succeeds on first try: returns true, SleepFor not called
+  - Function succeeds on 3rd try: returns true, SleepFor called twice (delay between retries, not before first)
+  - Function never succeeds (default 3 tries): returns false
+  - Function never succeeds with <code>raiseError = true</code>: throws error
+  - Custom <code>maxTryCount</code>: verify correct number of retries
+  - Custom <code>delay</code>: verify SleepFor receives correct ms value
+  - Invalid arguments (non-function, non-table opt): throws CheckField error
+- Load <code>Is</code>, <code>check_field</code>, and <code>try_function</code> via require</p>
+<p><strong>Test requirements:</strong> <code>ctest -R try_function</code> passes.</p>
+<p><strong>Demo:</strong> All retry scenarios verified, including mock call tracking.</p>
+<hr />
+<h3 id="task-5-add-timeout_function-tests">Task 5: Add timeout_function tests<a class="headerlink" href="#task-5-add-timeout_function-tests" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Test the timeout/polling logic in <code>timeout_function.lua</code>.</p>
+<p><strong>Implementation guidance:</strong>
+- Create <code>tests/timeout_function/CMakeLists.txt</code> and <code>tests/timeout_function/test.cpp</code>
+- Mock <code>SleepFor</code> to track calls but not actually sleep
+- Set <code>Context.info.stage = Stage.execution</code> (needed for the timeout error path)
+- Test cases:
+  - Routine returns false immediately (condition met): no timeout, no SleepFor calls
+  - Routine returns true N times then false: SleepFor called N times
+  - Routine always returns true: error thrown ("Timeout") after deadline exceeded
+  - Custom <code>sleep_ms</code>: verify SleepFor receives correct value
+  - Invalid arguments: throws CheckField error
+  - Non-execution stage: timeout path returns early instead of erroring</p>
+<p><strong>Test requirements:</strong> <code>ctest -R timeout_function</code> passes.</p>
+<p><strong>Demo:</strong> Timeout behavior verified without actual delays.</p>
+<hr />
+<h3 id="task-6-add-sort_utils-tests">Task 6: Add sort_utils tests<a class="headerlink" href="#task-6-add-sort_utils-tests" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Test the scope/test sorting and sectionization logic used by the orchestrator.</p>
+<p><strong>Implementation guidance:</strong>
+- Create <code>tests/sort_utils/CMakeLists.txt</code> and <code>tests/sort_utils/test.cpp</code>
+- <code>sort_utils.lua</code> is nearly pure logic — only depends on <code>ToString</code> and <code>InvalidRequirement</code> globals (already in fixture)
+- Load via <code>require("lua/core/framework/sort_utils")</code>
+- Test <code>Sort.SortScopes</code>:
+  - No dependencies: all scopes in one layer
+  - Linear chain (A→B→C): produces ordered layers
+  - First/last edges: placed correctly
+  - Circular dependency: throws InvalidRequirement
+  - Invalid last (something depends on it): throws
+- Test <code>Sort.Sectionize</code>:
+  - No sync requirements: single section with all stages
+  - Sync requirement splits into sections
+  - Multiple syncs: multiple sections
+- Test <code>Sort.CombineSectionized</code>:
+  - Verify combined output matches expected structure for known inputs
+  - Use the example from the commented-out <code>sectionize.lua</code> test as a reference case
+- Test <code>Sort.HasMetDependencies</code>:
+  - All dependencies met: returns true
+  - Unmet dependency: returns false
+- Test <code>Sort.AddEdgeRequirement</code>:
+  - Valid edge: adds to structure
+  - Duplicate: no-op or error as expected
+  - Conflicting edge: throws</p>
+<p><strong>Test requirements:</strong> <code>ctest -R sort_utils</code> passes.</p>
+<p><strong>Demo:</strong> Sort ordering verified against hand-computed expected outputs.</p>
+<hr />
+<h3 id="task-7-add-expectation-common-function-tests">Task 7: Add expectation common function tests<a class="headerlink" href="#task-7-add-expectation-common-function-tests" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Test the <code>ExpectTo*</code> functions in <code>framework/expectation/common.lua</code>.</p>
+<p><strong>Implementation guidance:</strong>
+- Create <code>tests/expectations/CMakeLists.txt</code> and <code>tests/expectations/test.cpp</code>
+- Must set <code>Context.info.stage = Stage.execution</code> (otherwise all functions short-circuit to <code>{pass = true}</code>)
+- Load <code>lua/core/framework/expectation/common.lua</code> via <code>script_file</code> (it defines globals, not a module)
+- Test each function:
+  - <code>ExpectToBeTrue</code>: true passes, false fails, non-boolean fails
+  - <code>ExpectToBeFalse</code>: false passes, true fails, non-boolean fails
+  - <code>ExpectToBeEqual</code>: same value/type passes, different value fails, different type fails
+  - <code>ExpectToBeNear</code>: within deviation passes, outside fails, non-number fails
+  - <code>ExpectToBeInRange</code>: within range passes, boundary values, outside fails
+  - <code>ExpectToBeInPercentage</code>: within percentage passes, outside fails, verify min/max calculation
+  - <code>ExpectToBeGreater</code> / <code>ExpectToBeGreaterOrEqual</code>: boundary cases
+  - <code>ExpectToBeLesser</code> / <code>ExpectToBeLesserOrEqual</code>: boundary cases
+  - <code>ExpectToBeType</code>: matching type passes, mismatched fails
+  - <code>ExpectToBeMatch</code>: matching pattern passes, non-match fails, non-string fails
+- For each: verify the returned table has correct <code>method</code>, <code>pass</code>, <code>expected</code>/<code>min</code>/<code>max</code> fields
+- Also test that non-execution stage returns <code>{pass = true}</code> for all functions</p>
+<p><strong>Test requirements:</strong> <code>ctest -R expectations</code> passes.</p>
+<p><strong>Demo:</strong> Full expectation logic verified, including edge cases and stage-gating.</p>
+<hr />
+<h3 id="task-8-wire-everything-together-and-verify-end-to-end">Task 8: Wire everything together and verify end-to-end<a class="headerlink" href="#task-8-wire-everything-together-and-verify-end-to-end" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Ensure the full test suite builds, all tests are discovered by CTest, and everything passes cleanly.</p>
+<p><strong>Implementation guidance:</strong>
+- Run full build with <code>-DFRASY_BUILD_TESTS=ON</code>
+- Run <code>ctest --output-on-failure</code> — all tests pass
+- Verify building without <code>-DFRASY_BUILD_TESTS=ON</code> produces no test artifacts
+- Verify that editing a Lua file and rebuilding triggers the sync (modify a comment in <code>is.lua</code>, rebuild, confirm the copy updates)
+- Ensure test executables can be run directly (not just via ctest) for debugging
+- Add a brief comment block at the top of <code>tests/CMakeLists.txt</code> documenting:
+  - How to enable tests (<code>-DFRASY_BUILD_TESTS=ON</code>)
+  - How to run (<code>ctest --output-on-failure</code> or run binary directly)
+  - How to add a new test module</p>
+<p><strong>Test requirements:</strong> Clean build in both configurations. Full CTest pass. No staleness.</p>
+<p><strong>Demo:</strong> <code>cmake --build build &amp;&amp; ctest --test-dir build --output-on-failure</code> shows all test modules discovered and passing. Building without the flag confirms no test targets exist.</p>
+<hr />
+<h2 id="important-implementation-notes">Important Implementation Notes<a class="headerlink" href="#important-implementation-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The main <code>CMakeLists.txt</code> at <code>vendor/frasy/CMakeLists.txt</code> references <code>${APP_NAME}</code> in custom targets (sync_assets, copy DLLs). The test infrastructure must NOT depend on APP_NAME. Place the <code>if(FRASY_BUILD_TESTS)</code> block before those APP_NAME-dependent targets, or guard it so tests work standalone.</li>
+<li>For <code>package.path</code> in the fixture, set it to something like: <code>lua["package"]["path"] = luaDir + "/?.lua;" + luaDir + "/?/init.lua"</code> where <code>luaDir</code> is the directory where lua files are synced.</li>
+<li>The working directory for <code>gtest_discover_tests</code> should be the <code>tests/</code> binary directory (where lua/core/ is synced to).</li>
+<li>Each test subdirectory's CMakeLists.txt should be minimal: define executable, link libraries, call gtest_discover_tests, add dependency on lua sync target.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.highlight", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
