@@ -1,6 +1,7 @@
 .vscode
 .idea
 .vs
+.kiro
 bin
 bin-int
 cmake-build*
