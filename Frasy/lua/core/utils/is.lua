@@ -21,7 +21,7 @@ function Is.Array(v) return Is.Table(v) and #v ~= 0 end
 function Is.ArrayInOd(v, od) return Is.Array(v) and #v <= od.stringLengthMin end
 
 function Is.InArray(v, t)
-    if not Is.Array(v) then return false end
+    if not Is.Array(t) then return false end
     for _, e in ipairs(t) do
         if type(e) == type(v) and e == v then return true end
     end
