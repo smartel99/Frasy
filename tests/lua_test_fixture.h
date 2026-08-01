@@ -113,6 +113,16 @@ protected:
         lua.set_function("ShowExpectation", [](sol::table /*result*/) {});
         lua.set_function("__exclusive", [](int /*value*/, sol::function func) { func(); });
         lua.set_function("__once", [](int /*hash*/, sol::function func) { func(); });
+
+        // Log mock — used by many scripts (orchestrator, sort_utils, exception handling)
+        lua.script(R"(
+            Log = {
+                I = function(msg) end,
+                D = function(msg) end,
+                E = function(msg) end,
+                W = function(msg) end,
+            }
+        )");
     }
 };
 

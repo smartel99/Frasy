@@ -1,0 +1,5 @@
+add_executable(FrasyTest_Team test.cpp)
+target_link_libraries(FrasyTest_Team PRIVATE Frasy GTest::gtest_main)
+target_include_directories(FrasyTest_Team PRIVATE ${CMAKE_CURRENT_LIST_DIR}/..)
+add_dependencies(FrasyTest_Team sync_test_lua)
+gtest_discover_tests(FrasyTest_Team WORKING_DIRECTORY ${FRASY_TEST_LUA_DIR})
