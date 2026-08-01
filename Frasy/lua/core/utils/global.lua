@@ -125,13 +125,15 @@ end
 --- @return any value
 function Traverse(t, ...)
     local args = { ... }
-    if #args == 0 or t == nil or t[args[1]] == nil then
+    if #args == 0 then
         return t
-    else
-        local st = t[args[1]]
-        table.remove(args, 1)
-        return Traverse(st, table.unpack(args))
     end
+    if t == nil or type(t) ~= "table" or t[args[1]] == nil then
+        return nil
+    end
+    local st = t[args[1]]
+    table.remove(args, 1)
+    return Traverse(st, table.unpack(args))
 end
 
 --- Split a string per line
