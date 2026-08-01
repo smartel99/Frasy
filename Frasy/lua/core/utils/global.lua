@@ -152,7 +152,7 @@ end
 --- @param value number
 --- @return integer
 function ToInt(value)
-    if (value >= 0) then return math.floor(value + 0.5) else return math.ceil(value + 0.5) end
+    if (value >= 0) then return math.floor(value + 0.5) else return math.ceil(value - 0.5) end
 end
 
 --- Get List of files and folder from a directory
