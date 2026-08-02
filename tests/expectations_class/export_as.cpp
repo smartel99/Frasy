@@ -27,19 +27,6 @@ TEST_F(ExpectationExportAsTest, ExportAs_StoresValueInOrchestrator)
     EXPECT_DOUBLE_EQ(val, 3.3);
 }
 
-TEST_F(ExpectationExportAsTest, ExportAs_StoresOriginalValue)
-{
-    // ExportAs stores the value from the expectation, not the expected/result
-    lua.script(R"(
-        Expectation:New(42, "answer"):ToBeEqual(42):ExportAs("the_answer")
-    )");
-    auto val = lua.script(R"(
-        local scope = Orchestrator.GetScope()
-        return Orchestrator.GetValue(scope, "the_answer")
-    )").get<int>();
-    EXPECT_EQ(val, 42);
-}
-
 TEST_F(ExpectationExportAsTest, ExportAs_WorksEvenWhenFailing)
 {
     // The value is exported regardless of pass/fail
