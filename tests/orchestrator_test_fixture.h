@@ -143,6 +143,8 @@ protected:
      */
     void createTest(const std::string& sequenceName, const std::string& testName, bool enterScope = false)
     {
+        // Clear scope to avoid NestedScope error when creating sequence
+        lua.script("Context.orchestrator.scope = nil");
         // Ensure the sequence exists
         lua.script(
             "if not Orchestrator.HasSequence(require('lua/core/framework/scope'):New('" + sequenceName + "')) then "
