@@ -31,7 +31,7 @@ Expect(voltage, "Supply Voltage"):ToBeInRange(4.9, 5.1)
 | `note` | `string?` | Additional note attached to the result (defaults to `name`) |
 | `extra` | `table?` | Extra data stored alongside the result for debugging |
 | `onErrorExtra` | `table?` | Extra data to be added only if test fails |
-| `mandatory` | `boolean?` | Set Mandatory modifier (default to `false`) |
+| `policy` | `ErrorPolicy?` | Set Policy modifier (default to `nil`) |
 | `inverted` | `boolean?` | Set Inverted modifier (default to `false`) |
 
 ---
@@ -50,18 +50,20 @@ vice versa.
 Expect(status, "Status", { inverted = true }):ToBeEqual(0)     -- passes if status ≠ 0
 ```
 
-### `Mandatory`
+### `Policy`
 
-If this expectation fails, the **entire test stops immediately**. Remaining expectations in the
-test are not evaluated.
+Tells the orchestrator to halt testing when an expectation fails.
+
+`ErrorPolicy.stopCurrent` will stop the current test.
+
+`ErrorPolicy.stopAll` will stop all tests.
+
+Does nothing if not provided.
 
 ```lua
-Expect(connected, "Device Connected", { mandatory = true }):ToBeTrue()
+Expect(connected, "Device Connected", { policy =  ErrorPolicy.stopCurrent }):ToBeTrue()
 -- If connected is false, test stops here with "Unmet Expectation"
 ```
-
-Without `Mandatory`, a failing expectation marks the test as failed but allows subsequent
-expectations to still run.
 
 ---
 

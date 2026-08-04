@@ -2,8 +2,7 @@
 
 #include <gtest/gtest.h>
 
-class ExpectationClassTest : public OrchestratorTestFixture
-{
+class ExpectationClassTest : public OrchestratorTestFixture {
 protected:
     void SetUp() override
     {
@@ -31,36 +30,44 @@ TEST_F(ExpectationClassTest, New_CreatesWithValueAndName)
 
 TEST_F(ExpectationClassTest, New_DefaultsInvertedToFalse)
 {
-    auto inverted = lua.script(R"(
+    auto inverted = lua
+                      .script(R"(
         local e = Expectation:New(1, "x")
         return e.inverted
-    )").get<bool>();
+    )")
+                      .get<bool>();
     EXPECT_FALSE(inverted);
 }
 
 TEST_F(ExpectationClassTest, New_DefaultsMandatoryToFalse)
 {
-    auto mandatory = lua.script(R"(
+    std::optional<int> policy = lua
+                                  .script(R"(
         local e = Expectation:New(1, "x")
-        return e.mandatory
-    )").get<bool>();
-    EXPECT_FALSE(mandatory);
+        return e.policy
+    )")
+                                  .get<std::optional<int>>();
+    EXPECT_FALSE(policy.has_value());
 }
 
 TEST_F(ExpectationClassTest, New_WithOptNote)
 {
-    auto note = lua.script(R"(
+    auto note = lua
+                  .script(R"(
         local e = Expectation:New(1, "x", { note = "custom note" })
         return e.note
-    )").get<std::string>();
+    )")
+                  .get<std::string>();
     EXPECT_EQ(note, "custom note");
 }
 
 TEST_F(ExpectationClassTest, New_WithOptExtra)
 {
-    auto hasExtra = lua.script(R"(
+    auto hasExtra = lua
+                      .script(R"(
         local e = Expectation:New(1, "x", { extra = { key = "val" } })
         return e.extra.key
-    )").get<std::string>();
+    )")
+                      .get<std::string>();
     EXPECT_EQ(hasExtra, "val");
 }

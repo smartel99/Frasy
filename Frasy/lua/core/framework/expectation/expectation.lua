@@ -1,13 +1,18 @@
 require("lua/core/utils/checkers")
 require("lua/core/framework/expectation/utils")
 
+--- @enum ErrorPolicy
+ErrorPolicy = {
+    stopCurrent = 1,
+    stopAll = 2,
+}
+
 --- @class ExpectationResult
 --- @field value any
 --- @field name string
 --- @field note string?
 --- @field pass boolean? tell if the value fulfilled requirement
 --- @field inverted boolean tell if the result should be interpreted with invert logic
---- @field mandatory boolean tell if the expectation should throw on error
 --- @field extra any? additional data that could be useful for developer
 --- @field method string
 --- @field expected any?
@@ -23,7 +28,7 @@ require("lua/core/framework/expectation/utils")
 --- @field note string? Extra note added to the expectation
 --- @field extra table? Extra data to be added to the expectation
 --- @field onErrorExtra table? Extra data to be added to the expectation if it error occurs
---- @field mandatory boolean? Tell if the expectation should throw on error, default to false
+--- @field policy ErrorPolicy? Tell if the expectation should throw on error and how to affect the solution
 --- @field inverted boolean? Tell if the result should be interpreted with invert logic, default to false
 
 --- @class Expectation
@@ -33,7 +38,7 @@ require("lua/core/framework/expectation/utils")
 --- @field extra table?
 --- @field onErrorExtra table?
 --- @field inverted boolean
---- @field mandatory boolean
+--- @field policy ErrorPolicy?
 --- @field New fun(any, string, ExpectationOpt?)
 --- @field ToBeTrue fun(self): ExpectationResult
 --- @field ToBeFalse fun(self): ExpectationResult
@@ -58,7 +63,7 @@ function Expectation:New(value, name, opt)
     CheckField(name, Is.String)
     local opt = CheckField(opt, Maybe, Is.Table) or {}
     local note = CheckField(opt.note, Maybe, Is.String) or name
-    local mandatory = CheckField(opt.mandatory, Maybe, Is.Boolean) or false
+    local policy = CheckField(opt.policy, Maybe, Is.IntegerIn, ErrorPolicy.stopCurrent, ErrorPolicy.stopAll)
     local inverted = CheckField(opt.inverted, Maybe, Is.Boolean) or false
     local extra = CheckField(opt.extra, Maybe, Is.Table)
     local onErrorExtra = CheckField(opt.onErrorExtra, Maybe, Is.Table)
@@ -69,16 +74,9 @@ function Expectation:New(value, name, opt)
         extra = extra,
         onErrorExtra = onErrorExtra,
         inverted = inverted,
-        mandatory = mandatory,
+        policy = policy,
+        __consumed = false,
     }, Expectation)
-end
-
----@deprecated use optional field `mandatory` on New instead
----@return Expectation
-function Expectation:Mandatory()
-    self.mandatory = true
-    Log.W("Mandatory is deprecated, use optional field `mandatory` on New instead")
-    return self
 end
 
 ---@deprecated use optional field `inverted` on New instead
@@ -103,13 +101,14 @@ ExpectationResult.__index = ExpectationResult
 ---@param expectation Expectation
 ---@param result table
 function ExpectationResult:New(expectation, result)
+    if expectation.__consumed then error(ConsumedExpectation("Expectation has already been consumed by another matcher")) end
+    expectation.__consumed = true
     local result = setmetatable({
         value = expectation.value,
         name = expectation.name,
         note = expectation.note,
         pass = result.pass ~= expectation.inverted,
         inverted = expectation.inverted,
-        mandatory = expectation.mandatory,
         extra = expectation.extra,
         method = result.method,
         expected = result.expected,
@@ -125,7 +124,9 @@ function ExpectationResult:New(expectation, result)
             result.extra = result.extra or {}
             for k, v in pairs(expectation.onErrorExtra) do result.extra[k] = v end
         end
-        if Context.info.stage == Stage.execution and result.mandatory then error(UnmetExpectation()) end
+        if Context.info.stage == Stage.execution and expectation.policy then
+            error(UnmetExpectation(expectation.policy))
+        end
     end
     return result
 end

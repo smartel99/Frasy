@@ -14,19 +14,20 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
 local exceptions        = {
-    "UnmetRequirement", -- 1
-    "UnmetExpectation", -- 2
-    "NestedScope", -- 3
-    "BadScope", -- 4
-    "AlreadyDefined", -- 5
-    "NotFound", -- 6
-    "InvalidRequirement", -- 7
-    "InvalidStage", -- 8
-    "MapperError", -- 9
-    "TeamError", -- 10
-    "WorkerError", -- 11
-    "GenerationError", -- 12
-    "GenericError", -- 13
+    "UnmetRequirement",    -- 1
+    "UnmetExpectation",    -- 2
+    "ConsumedExpectation", -- 3
+    "NestedScope",         -- 4
+    "BadScope",            -- 5
+    "AlreadyDefined",      -- 6
+    "NotFound",            -- 7
+    "InvalidRequirement",  -- 8
+    "InvalidStage",        -- 9
+    "MapperError",         -- 10
+    "TeamError",           -- 11
+    "WorkerError",         -- 12
+    "GenerationError",     -- 13
+    "GenericError",        -- 14
 }
 
 local exceptions_values = {}
@@ -45,22 +46,40 @@ local function PopulateException(exception, what)
 end
 
 function UnmetRequirement(what) return PopulateException(exceptions_values.UnmetRequirement, what) end
-function UnmetExpectation(what) return PopulateException(exceptions_values.UnmetExpectation, what) end
+
+function UnmetExpectation(policy, what)
+    local exception = PopulateException(exceptions_values.UnmetExpectation, what)
+    exception.policy = policy
+    return exception
+end
+
+function ConsumedExpectation(what) return PopulateException(exceptions_values.ConsumedExpectation, what) end
+
 function NestedScope(what) return PopulateException(exceptions_values.NestedScope, what) end
+
 function BadScope(what) return PopulateException(exceptions_values.BadScope, what) end
+
 function AlreadyDefined(what) return PopulateException(exceptions_values.AlreadyDefined, what) end
+
 function NotFound(what) return PopulateException(exceptions_values.NotFound, what) end
+
 function InvalidRequirement(what, requirement)
     what = what .. "\nRequirement\n" .. ToString(requirement)
     return PopulateException(exceptions_values.InvalidRequirement, what)
 end
+
 function InvalidStage(what) return PopulateException(exceptions_values.InvalidStage, what) end
+
 function MapperError(what) return PopulateException(exceptions_values.MapperError, what) end
+
 function TeamError(what) return PopulateException(exceptions_values.TeamError, what) end
+
 function WorkerError(what) return PopulateException(exceptions_values.WorkerError, what) end
+
 function GenerationError(what) return PopulateException(exceptions_values.GenerationError, what) end
+
 function GenericError(what)
-    if(what == nil) then what = exceptions_values.GenericError.what end
+    if (what == nil) then what = exceptions_values.GenericError.what end
     return {
         code = exceptions_values.GenericError.code,
         what = what
