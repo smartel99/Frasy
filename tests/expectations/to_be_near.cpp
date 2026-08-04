@@ -10,7 +10,7 @@ protected:
         LuaTestFixture::SetUp();
         // Context.info.stage is already Stage.execution from fixture
         // Load the common expectation functions (they define globals)
-        lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/common.lua");
+        lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/utils.lua");
     }
 };
 

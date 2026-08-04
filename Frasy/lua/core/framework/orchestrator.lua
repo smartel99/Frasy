@@ -189,7 +189,7 @@ function Orchestrator.RunTest(scope)
         else
             test.result.pass = true
             for _, expectation in ipairs(test.expectations) do
-                if expectation.pass == expectation.inverted then
+                if not expectation.pass then
                     test.result.pass = false
                     test.result.reason = "Unmet expectation"
                 end
