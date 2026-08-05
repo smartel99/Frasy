@@ -7,10 +7,23 @@
 
 #include <filesystem>
 #include <fstream>
+#include <random>
 
 using namespace Frasy::Headless;
 
 namespace {
+
+/// Generate a unique directory name to avoid races when CTest runs tests in parallel.
+inline std::filesystem::path makeUniqueTempDir(const std::string& prefix)
+{
+    std::random_device              rd;
+    std::mt19937                    gen(rd());
+    std::uniform_int_distribution<> dist(100000, 999999);
+    auto path = std::filesystem::temp_directory_path() / (prefix + "_" + std::to_string(dist(gen)));
+    std::filesystem::create_directories(path);
+    return path;
+}
+
 /// Create a temporary product directory structure for testing
 class ProductDiscoveryFixture : public ::testing::Test {
 protected:
@@ -18,8 +31,7 @@ protected:
 
     void SetUp() override
     {
-        testDir = std::filesystem::temp_directory_path() / "frasy_test_discovery";
-        std::filesystem::remove_all(testDir);
+        testDir = makeUniqueTempDir("frasy_test_discovery");
 
         // Create lua/user/ structure with products
         auto userDir = testDir / "lua" / "user";
