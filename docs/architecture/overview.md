@@ -127,6 +127,7 @@ flowchart TD
 - **Submodule-based**: The framework lives in `vendor/frasy/` as a git submodule, cleanly separating framework code from application-specific code.
 - **Template pattern**: Applications extend framework classes rather than modifying them, keeping upgrades simple.
 - **Multi-UUT concurrency**: The orchestrator runs test sequences in parallel across multiple units under test, with synchronization primitives (`Sync()`, `Exclusive()`, `Once()`) built into the Lua SDK.
+- **Headless & MCP execution**: Beyond the GUI, Frasy supports headless CLI execution (`--headless`) and an MCP server mode (`--mcp-server`) for AI agent integration. Both modes share orchestrator setup logic through the `ProductProvider` interface. See [Headless Mode](../getting-started/headless-mode.md) for usage and [Developer Guide](../developer-guide/headless-mode.md) for implementation.
 
 ---
 
