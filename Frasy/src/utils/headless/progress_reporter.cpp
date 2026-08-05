@@ -94,35 +94,46 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
         std::cout << j.dump() << "\n" << std::flush;
     }
     else {
+        // ANSI color codes
+        constexpr auto colorReset = "\033[0m";
+        constexpr auto colorGreen = "\033[32m";
+        constexpr auto colorRed   = "\033[31m";
+
+        // White (no color) for start events, green for pass, red for fail
+        const char* color = colorReset;
+        if (event.type != ProgressEvent::SequenceStart && event.type != ProgressEvent::TestStart) {
+            color = event.pass ? colorGreen : colorRed;
+        }
+
         switch (event.type) {
             case ProgressEvent::SequenceStart:
-                std::cout << std::format("[{}] [UUT{}] >> {} \n",
-                                         timestamp(), event.uut, event.name)
+                std::cout << std::format("{}[{}] [UUT{}] >> {}{}\n",
+                                         color, timestamp(), event.uut, event.name, colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::SequenceEnd:
-                std::cout << std::format("[{}] [UUT{}] {} << {}\n",
-                                         timestamp(), event.uut,
-                                         event.pass ? "[PASS]" : "[FAIL]", event.name)
+                std::cout << std::format("{}[{}] [UUT{}] {} << {}{}\n",
+                                         color, timestamp(), event.uut,
+                                         event.pass ? "[PASS]" : "[FAIL]", event.name, colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::TestStart:
-                std::cout << std::format("[{}] [UUT{}]   > {} > {}\n",
-                                         timestamp(), event.uut, event.sequence, event.name)
+                std::cout << std::format("{}[{}] [UUT{}]   > {} > {}{}\n",
+                                         color, timestamp(), event.uut, event.sequence, event.name, colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::TestEnd:
-                std::cout << std::format("[{}] [UUT{}]   {} {} > {}\n",
-                                         timestamp(), event.uut,
+                std::cout << std::format("{}[{}] [UUT{}]   {} {} > {}{}\n",
+                                         color, timestamp(), event.uut,
                                          event.pass ? "[PASS]" : "[FAIL]",
-                                         event.sequence, event.name)
+                                         event.sequence, event.name, colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::Expectation:
-                std::cout << std::format("[{}] [UUT{}]     {} {}\n",
-                                         timestamp(), event.uut,
+                std::cout << std::format("{}[{}] [UUT{}]     {} {}{}\n",
+                                         color, timestamp(), event.uut,
                                          event.pass ? "[PASS]" : "[FAIL]",
-                                         event.name)
+                                         event.name, colorReset)
                           << std::flush;
                 break;
         }
