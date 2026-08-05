@@ -608,6 +608,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/headless-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Headless Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1275,6 +1303,34 @@
     
   
     Building an Installer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/headless-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Headless Mode
   
 
     
@@ -2206,6 +2262,7 @@ flowchart TD
 <li><strong>Submodule-based</strong>: The framework lives in <code>vendor/frasy/</code> as a git submodule, cleanly separating framework code from application-specific code.</li>
 <li><strong>Template pattern</strong>: Applications extend framework classes rather than modifying them, keeping upgrades simple.</li>
 <li><strong>Multi-UUT concurrency</strong>: The orchestrator runs test sequences in parallel across multiple units under test, with synchronization primitives (<code>Sync()</code>, <code>Exclusive()</code>, <code>Once()</code>) built into the Lua SDK.</li>
+<li><strong>Headless &amp; MCP execution</strong>: Beyond the GUI, Frasy supports headless CLI execution (<code>--headless</code>) and an MCP server mode (<code>--mcp-server</code>) for AI agent integration. Both modes share orchestrator setup logic through the <code>ProductProvider</code> interface. See <a href="../../getting-started/headless-mode/">Headless Mode</a> for usage and <a href="../../developer-guide/headless-mode/">Developer Guide</a> for implementation.</li>
 </ul>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>

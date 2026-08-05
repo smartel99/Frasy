@@ -1,0 +1,2801 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generic Automated Hardware Testing Software">
+      
+      
+      
+        <link rel="canonical" href="https://frasy.rald.ca/planification/headless-mode/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/icon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Implementation Plan - Headless CLI Mode for Frasy - Frasy</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#implementation-plan-headless-cli-mode-for-frasy" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Frasy" class="md-header__button md-logo" aria-label="Frasy" data-md-component="logo">
+      
+  <img src="../../assets/icon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Frasy
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Implementation Plan - Headless CLI Mode for Frasy
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/smartel99/Frasy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    smartel99/Frasy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developer-guide/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../lua-reference/" class="md-tabs__link">
+          
+  
+  
+  Lua Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../panels/" class="md-tabs__link">
+          
+  
+  
+  Panels
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Frasy" class="md-nav__button md-logo" aria-label="Frasy" data-md-component="logo">
+      
+  <img src="../../assets/icon.png" alt="logo">
+
+    </a>
+    Frasy
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/smartel99/Frasy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    smartel99/Frasy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/building/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/cpp-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C++ Application Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/lua-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/headless-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Headless Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/cpp-layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C++ Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/lua-layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Communication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/test-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/creating-a-product/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a Product
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/teams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Teams
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/customizing-the-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customizing the UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/cpp-to-lua/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exposing C++ to Lua
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/custom-ibs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Instrumentation Boards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/installer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building an Installer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/headless-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Headless Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Lua Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/sequences-and-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequences & Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/expectations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Expectations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation & Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/popups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Popups
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Panels
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Panels
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Panels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/log-window/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log Window
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/device-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/result-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/result-analyzer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Analyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/test-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/canopen-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CANopen Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/lua-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-breakdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task Breakdown
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task Breakdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-cli-argument-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: CLI Argument Parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-entry-point-integration-and-interpreter-registration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Entry Point Integration and Interpreter Registration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-3-hidden-window-mode-in-brigerad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Hidden Window Mode in Brigerad
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-4-productprovider-interface-and-headlessrunner-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: ProductProvider Interface and HeadlessRunner Core
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-5-console-popup-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: Console Popup Handler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-6-mcp-server-mode-stdio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: MCP Server Mode (stdio)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-7-progress-reporter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 7: Progress Reporter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-8-report-summary-and-exit-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 8: Report Summary and Exit Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-9-demo-application-and-shared-logic-refactor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 9: Demo Application and Shared Logic Refactor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-10-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 10: Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="implementation-plan-headless-cli-mode-for-frasy">Implementation Plan - Headless CLI Mode for Frasy<a class="headerlink" href="#implementation-plan-headless-cli-mode-for-frasy" title="Permanent link">&para;</a></h1>
+<h2 id="problem-statement">Problem Statement<a class="headerlink" href="#problem-statement" title="Permanent link">&para;</a></h2>
+<p>Frasy currently requires a GUI window to run tests. We need a <code>--headless</code> mode at the framework level that enables running tests from the command line with console-based progress, text-based popup interaction (for CI/CD, operator scripting, and AI agents), and report examination.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ol>
+<li>CLI: <code>frasy.exe --headless --product "MyProduct" --operator "CI" --serial "SN001" --serial "SN002"</code></li>
+<li>Multiple UUT support via repeated <code>--serial</code> flags</li>
+<li>Config from <code>config.json</code> by default, overridable via <code>--config path</code></li>
+<li>CLI flags override config for product/operator/serial</li>
+<li>Console-based progress: human-readable default, JSON-lines via <code>--output-format json</code></li>
+<li>Text-based popup interaction: stdout prompts, stdin responses (numbered inputs, typed button labels)</li>
+<li>Full results saved to disk (existing formats), summary to stdout</li>
+<li>Exit codes: 0=all pass, 1=any failure, 2=error</li>
+<li>Framework-level: all Frasy apps get headless support</li>
+<li>Applications provide a <code>ProductProvider</code> that encapsulates product-specific orchestrator setup, shared between GUI and headless paths</li>
+<li>Serial number validation via <code>ProductProvider::validateSerialNumber</code></li>
+<li>Popup timeout via <code>--popup-timeout &lt;seconds&gt;</code> flag</li>
+</ol>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TD
+    MAIN["main(argc, argv)"]
+    PARSE["CliArgs::parse()"]
+    DETECT{headless?}
+    GUI["Normal GUI Mode&lt;br/&gt;(Application::run())"]
+    HR["HeadlessRunner::run()"]
+    PP["ProductProvider::setup()&lt;br/&gt;(app-provided)"]
+    ORC["Orchestrator"]
+    CPH["ConsolePopupHandler&lt;br/&gt;(stdout/stdin)"]
+    PROG["ProgressReporter&lt;br/&gt;(human or JSON-lines)"]
+    REPORT["Summary + Exit Code"]
+
+    MAIN --&gt; PARSE
+    PARSE --&gt; DETECT
+    DETECT --&gt;|no| GUI
+    DETECT --&gt;|yes| HR
+    HR --&gt; PP
+    PP --&gt; ORC
+    HR --&gt; CPH
+    HR --&gt; PROG
+    ORC --&gt; REPORT
+    GUI -.-&gt;|also calls| PP</code></pre>
+<h2 id="task-breakdown">Task Breakdown<a class="headerlink" href="#task-breakdown" title="Permanent link">&para;</a></h2>
+<h3 id="task-1-cli-argument-parser">Task 1: CLI Argument Parser<a class="headerlink" href="#task-1-cli-argument-parser" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Add a command-line argument parser to the Frasy framework that detects <code>--headless</code> and extracts all relevant flags before the application runs.</p>
+<p><strong>Implementation guidance:</strong></p>
+<ul>
+<li>Create <code>Frasy/src/utils/cli/cli_args.h</code> and <code>cli_args.cpp</code></li>
+<li>Define a <code>CliArgs</code> struct:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">struct</span><span class="w"> </span><span class="nc">CliArgs</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">headless</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">product</span><span class="p">;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">operatorName</span><span class="p">;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">serials</span><span class="p">;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">configPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;config.json&quot;</span><span class="p">;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">outputFormat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;human&quot;</span><span class="p">;</span><span class="w">  </span><span class="c1">// &quot;human&quot; or &quot;json&quot;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">outputDir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;logs&quot;</span><span class="p">;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">skipVerification</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">popupTimeoutSeconds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">  </span><span class="c1">// 0 = no timeout</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="n">CliArgs</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="n">CliArgs</span><span class="o">&amp;</span><span class="w"> </span><span class="nf">get</span><span class="p">();</span><span class="w">  </span><span class="c1">// global access after parse</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">};</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">}</span>
+</code></pre></div></li>
+<li>Use a simple hand-rolled parser (iterate argv, match <code>--flag</code> and <code>--flag value</code> patterns). No external dependency.</li>
+<li>Store the parsed result in a static/global accessible via <code>CliArgs::get()</code></li>
+<li>Validate in headless mode: <code>--product</code> is required; <code>--operator</code> and at least one <code>--serial</code> are required</li>
+<li>Print usage/help on <code>--help</code> and exit</li>
+<li>Non-headless mode ignores all headless-specific flags gracefully</li>
+<li>Supported flags:</li>
+<li><code>--headless</code> — enable headless mode</li>
+<li><code>--product &lt;name&gt;</code> — product to test</li>
+<li><code>--operator &lt;name&gt;</code> — operator name</li>
+<li><code>--serial &lt;sn&gt;</code> — serial number (repeatable, one per UUT)</li>
+<li><code>--config &lt;path&gt;</code> — config file path (default: config.json)</li>
+<li><code>--output-format &lt;human|json&gt;</code> — console output format</li>
+<li><code>--output-dir &lt;path&gt;</code> — output directory for reports</li>
+<li><code>--skip-verification</code> — skip hash verification stage</li>
+<li><code>--popup-timeout &lt;seconds&gt;</code> — auto-cancel popups after N seconds (0 = wait forever)</li>
+<li><code>--help</code> — print usage and exit</li>
+</ul>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Unit test: each flag is parsed correctly from a mock argv</li>
+<li>Unit test: missing required flags in headless mode produce clear error messages to stderr</li>
+<li>Unit test: repeated <code>--serial</code> flags accumulate into the vector</li>
+<li>Unit test: non-headless mode returns defaults even with extra flags present</li>
+<li>Unit test: <code>--help</code> outputs usage text</li>
+</ul>
+<hr />
+<h3 id="task-2-entry-point-integration-and-interpreter-registration">Task 2: Entry Point Integration and Interpreter Registration<a class="headerlink" href="#task-2-entry-point-integration-and-interpreter-registration" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Modify the Brigerad entry point to parse CLI args first and branch to headless mode, and add the <code>ProductProvider</code> registration mechanism to <code>Frasy::Interpreter</code> so applications can register their provider.</p>
+<p><strong>Implementation guidance:</strong></p>
+<p><strong>Modify <code>Frasy::Interpreter</code> (<code>Frasy/src/frasy_interpreter.h</code>):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;utils/headless/product_provider.h&quot;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;memory&gt;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">Interpreter</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Brigerad</span><span class="o">::</span><span class="n">Application</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="c1">// ... existing members ...</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">setProductProvider</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Headless</span><span class="o">::</span><span class="n">ProductProvider</span><span class="o">&gt;</span><span class="w"> </span><span class="n">provider</span><span class="p">);</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="n">Headless</span><span class="o">::</span><span class="n">ProductProvider</span><span class="o">*</span><span class="w"> </span><span class="nf">getProductProvider</span><span class="p">();</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="k">private</span><span class="o">:</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Headless</span><span class="o">::</span><span class="n">ProductProvider</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m_productProvider</span><span class="p">;</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="p">};</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Implement in <code>frasy_interpreter.cpp</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">Interpreter::setProductProvider</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Headless</span><span class="o">::</span><span class="n">ProductProvider</span><span class="o">&gt;</span><span class="w"> </span><span class="n">provider</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">m_productProvider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">provider</span><span class="p">);</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">}</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">Headless</span><span class="o">::</span><span class="n">ProductProvider</span><span class="o">*</span><span class="w"> </span><span class="nf">Interpreter::getProductProvider</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">m_productProvider</span><span class="p">.</span><span class="n">get</span><span class="p">();</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Modify <code>Brigerad/src/Brigerad/Core/EntryPoint.h</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;utils/cli/cli_args.h&gt;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">cliArgs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Frasy</span><span class="o">::</span><span class="n">CliArgs</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">BR_BEGIN_GUARDED_SCOPE</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">        </span><span class="n">BR_PROFILE_BEGIN_SESSION</span><span class="p">(</span><span class="s">&quot;Init&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;BrigeradProfile-Startup.json&quot;</span><span class="p">);</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">        </span><span class="n">cpptrace</span><span class="o">::</span><span class="n">register_terminate_handler</span><span class="p">();</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">        </span><span class="n">cpptrace</span><span class="o">::</span><span class="n">absorb_trace_exceptions</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">        </span><span class="n">Brigerad</span><span class="o">::</span><span class="n">Log</span><span class="o">::</span><span class="n">Init</span><span class="p">();</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">        </span><span class="n">Brigerad</span><span class="o">::</span><span class="n">_internalDoNotUse</span><span class="o">::</span><span class="n">initExceptionHandling</span><span class="p">();</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">        </span><span class="n">BR_PROFILE_END_SESSION</span><span class="p">();</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Brigerad</span><span class="o">::</span><span class="n">CreateApplication</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cliArgs</span><span class="p">.</span><span class="n">headless</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">            </span><span class="c1">// HeadlessRunner include and logic added in Task 4</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">            </span><span class="c1">// For now, just log and exit to enable testing</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">            </span><span class="n">BR_CORE_INFO</span><span class="p">(</span><span class="s">&quot;Headless mode activated for product: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">cliArgs</span><span class="p">.</span><span class="n">product</span><span class="p">);</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">            </span><span class="k">delete</span><span class="w"> </span><span class="n">app</span><span class="p">;</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">        </span><span class="n">app</span><span class="o">-&gt;</span><span class="n">run</span><span class="p">();</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">        </span><span class="n">BR_PROFILE_BEGIN_SESSION</span><span class="p">(</span><span class="s">&quot;Shutdown&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;BrigeradProfile-Shutdown.json&quot;</span><span class="p">);</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="w">        </span><span class="k">delete</span><span class="w"> </span><span class="n">app</span><span class="p">;</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">        </span><span class="n">BR_PROFILE_END_SESSION</span><span class="p">();</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">    </span><span class="n">BR_END_GUARDED_SCOPE</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="p">}</span>
+</code></pre></div>
+<p>Note: The <code>HeadlessRunner</code> call is stubbed initially (logs and exits). Task 4 fills in the real runner. This lets us immediately test that:
+- <code>--headless</code> flag is detected and branches correctly
+- Normal mode (no flags) works exactly as before
+- <code>ProductProvider</code> can be registered and retrieved</p>
+<p><strong>Why this must come early:</strong>
+- Without this, we can't test any headless behavior by running the exe
+- The hidden window (Task 3) needs the branch to be in place
+- The <code>ProductProvider</code> registration needs to exist before the runner (Task 4) can use it</p>
+<p><strong>Access pattern from application code:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Registration (in app&#39;s interpreter constructor):</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">setProductProvider</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">DemoProductProvider</span><span class="o">&gt;</span><span class="p">());</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1">// Retrieval (from MainApplicationLayer, entry point, etc.):</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">Frasy</span><span class="o">::</span><span class="n">Interpreter</span><span class="o">::</span><span class="n">Get</span><span class="p">().</span><span class="n">getProductProvider</span><span class="p">();</span>
+</code></pre></div>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Test: <code>frasy.exe --headless --product test --operator CI --serial SN001</code> hits the headless branch, prints log, exits 0</li>
+<li>Test: <code>frasy.exe</code> (no flags) launches normally in GUI mode</li>
+<li>Test: <code>setProductProvider</code> stores and <code>getProductProvider</code> retrieves correctly</li>
+<li>Test: calling <code>getProductProvider</code> before registration returns <code>nullptr</code></li>
+</ul>
+<hr />
+<h3 id="task-3-hidden-window-mode-in-brigerad">Task 3: Hidden Window Mode in Brigerad<a class="headerlink" href="#task-3-hidden-window-mode-in-brigerad" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Allow <code>Brigerad::Application</code> to create a hidden (invisible) GLFW window when headless mode is active, so the app initializes without showing UI.</p>
+<p><strong>Implementation guidance:</strong></p>
+<ul>
+<li>Add <code>bool visible = true</code> to <code>WindowProps</code></li>
+<li>In <code>WindowsWindow::Init()</code>, before <code>glfwCreateWindow</code>, add:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">props</span><span class="p">.</span><span class="n">visible</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">glfwWindowHint</span><span class="p">(</span><span class="n">GLFW_VISIBLE</span><span class="p">,</span><span class="w"> </span><span class="n">GLFW_FALSE</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div></li>
+<li>Modify <code>Brigerad::Application</code> constructor to read from <code>Frasy::CliArgs::get().headless</code> and pass <code>visible = !headless</code> to <code>WindowProps</code></li>
+<li>The OpenGL context still initializes (some framework code may depend on it), but no window is shown</li>
+<li>The <code>Application::run()</code> main loop still starts — it will be cut short by <code>HeadlessRunner</code> calling <code>close()</code> after tests complete</li>
+</ul>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Verify the application starts and shuts down cleanly with <code>visible = false</code></li>
+<li>Verify no window flashes on screen during headless startup and shutdown</li>
+<li>Verify that normal (non-headless) mode is completely unaffected</li>
+</ul>
+<hr />
+<h3 id="task-4-productprovider-interface-and-headlessrunner-core">Task 4: ProductProvider Interface and HeadlessRunner Core<a class="headerlink" href="#task-4-productprovider-interface-and-headlessrunner-core" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Define the <code>ProductProvider</code> interface that applications implement for product-specific orchestrator setup, and build the <code>HeadlessRunner</code> class that drives the full headless test lifecycle.</p>
+<p><strong>Implementation guidance:</strong></p>
+<p><strong>ProductProvider interface</strong> (<code>Frasy/src/utils/headless/product_provider.h</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="o">::</span><span class="nn">Headless</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">ProductProvider</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">ProductProvider</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="c1">/// Validate a serial number for this product.</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="c1">/// Returns true if the serial is valid, false otherwise.</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">validateSerialNumber</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">serial</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="c1">/// Set up the orchestrator and CANopen for the given product.</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="c1">/// Responsibilities:</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="c1">///   1. Select product-specific configuration</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">    </span><span class="c1">///   2. Call orchestrator.setLoadUserValues(...)</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="c1">///   3. Call orchestrator.loadUserFiles(envPath, testsDir)</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">    </span><span class="c1">///   4. Configure CANopen nodes from the IB map</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="c1">///   5. Start CANopen</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="c1">///   6. Call orchestrator.setLoadUserFunctions(...)</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span><span class="c1">/// Returns true on success.</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">,</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">                       </span><span class="n">CanOpen</span><span class="o">::</span><span class="n">CanOpen</span><span class="o">&amp;</span><span class="w"> </span><span class="n">canOpen</span><span class="p">,</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">product</span><span class="p">,</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">envPath</span><span class="p">,</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">testsDir</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">    </span><span class="c1">/// Called after test execution completes. Optional hook for</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">    </span><span class="c1">/// post-test actions (e.g., report sending, LED signaling).</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onTestComplete</span><span class="p">(</span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="p">};</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="p">}</span><span class="w"> </span><span class="c1">// namespace Frasy::Headless</span>
+</code></pre></div>
+<p><strong>HeadlessRunner</strong> (<code>Frasy/src/utils/headless/headless_runner.h</code> and <code>.cpp</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="o">::</span><span class="nn">Headless</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">HeadlessRunner</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="n">HeadlessRunner</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">CliArgs</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">,</span><span class="w"> </span><span class="n">ProductProvider</span><span class="o">&amp;</span><span class="w"> </span><span class="n">provider</span><span class="p">);</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="c1">/// Run the full headless test lifecycle. Returns exit code (0/1/2).</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="nf">run</span><span class="p">();</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="k">private</span><span class="o">:</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">ProductInfo</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">environmentPath</span><span class="p">;</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">testPath</span><span class="p">;</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">;</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="p">};</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ProductInfo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">discoverProducts</span><span class="p">();</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">validateArgs</span><span class="p">();</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">validateSerials</span><span class="p">();</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="nf">reportResults</span><span class="p">();</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">CliArgs</span><span class="o">&amp;</span><span class="w"> </span><span class="n">m_args</span><span class="p">;</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">    </span><span class="n">ProductProvider</span><span class="o">&amp;</span><span class="w"> </span><span class="n">m_provider</span><span class="p">;</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">    </span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="w"> </span><span class="n">m_orchestrator</span><span class="p">;</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">    </span><span class="n">CanOpen</span><span class="o">::</span><span class="n">CanOpen</span><span class="w"> </span><span class="n">m_canOpen</span><span class="p">;</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="p">};</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="p">}</span><span class="w"> </span><span class="c1">// namespace Frasy::Headless</span>
+</code></pre></div>
+<p><strong>HeadlessRunner::run() flow:</strong></p>
+<ol>
+<li>Load config from <code>m_args.configPath</code></li>
+<li>Discover products by scanning <code>lua/user/</code> (same pattern as existing <code>detectProducts</code>)</li>
+<li>Validate the requested product exists; if not, print available products and return 2</li>
+<li>Validate serial numbers via <code>m_provider.validateSerialNumber()</code> for each serial; print error and return 2 if any fail</li>
+<li>Call <code>m_provider.setup(m_orchestrator, m_canOpen, product, envPath, testsDir)</code>; return 2 on failure</li>
+<li>Validate serial count matches UUT count from loaded environment; return 2 on mismatch</li>
+<li>Install console popup handler (Task 5)</li>
+<li>Start progress reporter (Task 6)</li>
+<li>Call <code>m_orchestrator.runSolution(operator, serials, regenerate=true, skipVerification)</code> and wait for completion (poll <code>isRunning()</code> in a loop, drive popup handler during wait)</li>
+<li>Call <code>m_provider.onTestComplete(m_orchestrator)</code></li>
+<li>Report results and return exit code (Task 7)</li>
+</ol>
+<p><strong>Update <code>EntryPoint.h</code></strong> (replace the stub from Task 2):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cliArgs</span><span class="p">.</span><span class="n">headless</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">provider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Frasy</span><span class="o">::</span><span class="n">Interpreter</span><span class="o">::</span><span class="n">Get</span><span class="p">().</span><span class="n">getProductProvider</span><span class="p">();</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">provider</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">        </span><span class="n">BR_CORE_ERROR</span><span class="p">(</span><span class="s">&quot;No ProductProvider registered for headless mode&quot;</span><span class="p">);</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">        </span><span class="k">delete</span><span class="w"> </span><span class="n">app</span><span class="p">;</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="n">Frasy</span><span class="o">::</span><span class="n">Headless</span><span class="o">::</span><span class="n">HeadlessRunner</span><span class="w"> </span><span class="n">runner</span><span class="p">(</span><span class="n">cliArgs</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">provider</span><span class="p">);</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">exitCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">runner</span><span class="p">.</span><span class="n">run</span><span class="p">();</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="n">BR_PROFILE_BEGIN_SESSION</span><span class="p">(</span><span class="s">&quot;Shutdown&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;BrigeradProfile-Shutdown.json&quot;</span><span class="p">);</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="k">delete</span><span class="w"> </span><span class="n">app</span><span class="p">;</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="n">BR_PROFILE_END_SESSION</span><span class="p">();</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">exitCode</span><span class="p">;</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Note on orchestrator/canOpen ownership:</strong> In headless mode, the <code>HeadlessRunner</code> owns its own <code>Orchestrator</code> and <code>CanOpen</code> instances. The <code>MainApplicationLayer</code>'s instances are never used (the layer may be constructed by the app's interpreter but <code>onAttach</code> won't be called since <code>run()</code> is bypassed).</p>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Unit test: <code>discoverProducts()</code> finds products in a mock <code>lua/user/</code> directory</li>
+<li>Unit test: serial validation rejects invalid serials and reports which ones failed</li>
+<li>Unit test: serial count mismatch with UUT count is caught</li>
+<li>Unit test: a mock <code>ProductProvider</code> exercises the full <code>run()</code> flow</li>
+<li>Integration test: headless run with demo_mode product exercises generation and validation stages</li>
+</ul>
+<hr />
+<h3 id="task-5-console-popup-handler">Task 5: Console Popup Handler<a class="headerlink" href="#task-5-console-popup-handler" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Implement a headless popup handler that presents popup content via stdout and reads operator/agent input via stdin, with timeout support.</p>
+<p><strong>Implementation guidance:</strong></p>
+<ul>
+<li>Create <code>Frasy/src/utils/headless/console_popup_handler.h</code> and <code>.cpp</code></li>
+<li>Provides an alternative <code>importPopup</code> implementation for headless <code>Stage::execution</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">importHeadlessPopup</span><span class="p">(</span><span class="n">sol</span><span class="o">::</span><span class="n">state_view</span><span class="w"> </span><span class="n">lua</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">uut</span><span class="p">,</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">                         </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">outputFormat</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">                         </span><span class="kt">int</span><span class="w"> </span><span class="n">timeoutSeconds</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">                         </span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&amp;</span><span class="w"> </span><span class="n">ioMutex</span><span class="p">);</span>
+</code></pre></div></li>
+</ul>
+<p><strong>Popup presentation — Human format:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>╔══════════════════════════════════════╗
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>║ POPUP: &quot;Confirm Fixture&quot; (UUT 1)    ║
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>╠══════════════════════════════════════╣
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>║ Place the board in the fixture       ║
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>║ Ensure all pins are seated           ║
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>║                                      ║
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>║ Inputs:                              ║
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>║   [1] Serial Number: _               ║
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>║   [2] Batch Code: _                  ║
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>║                                      ║
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>║ Buttons: [OK] [Cancel]               ║
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>╚══════════════════════════════════════╝
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>Action&gt;
+</code></pre></div>
+<p><strong>Popup presentation — JSON format:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;popup&quot;</span><span class="p">,</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="s2">&quot;popup_UUT1_Confirm Fixture&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;Confirm Fixture&quot;</span><span class="p">,</span><span class="nt">&quot;texts&quot;</span><span class="p">:[</span><span class="s2">&quot;Place the board in the fixture&quot;</span><span class="p">,</span><span class="s2">&quot;Ensure all pins are seated&quot;</span><span class="p">],</span><span class="nt">&quot;inputs&quot;</span><span class="p">:[{</span><span class="nt">&quot;index&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;Serial Number&quot;</span><span class="p">,</span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">},{</span><span class="nt">&quot;index&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;Batch Code&quot;</span><span class="p">,</span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">}],</span><span class="nt">&quot;buttons&quot;</span><span class="p">:[</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span><span class="s2">&quot;Cancel&quot;</span><span class="p">]}</span>
+</code></pre></div>
+<p><strong>User interaction protocol (stdin):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;number&gt;=&lt;value&gt;</code></td>
+<td>Sets input field #number to value (e.g., <code>1=SN12345</code>)</td>
+</tr>
+<tr>
+<td><code>&lt;ButtonLabel&gt;</code></td>
+<td>Clicks the button with that label (case-insensitive)</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Re-displays the popup (human mode only, useful for dynamic text updates)</td>
+</tr>
+</tbody>
+</table>
+<p>Human mode example interaction:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Action&gt; 1=SN12345
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>  ✓ Input 1 (Serial Number) = &quot;SN12345&quot;
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Action&gt; 2=BATCH001
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>  ✓ Input 2 (Batch Code) = &quot;BATCH001&quot;
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>Action&gt; OK
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>  → Popup consumed.
+</code></pre></div>
+<p>JSON mode response (single line on stdin):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="s2">&quot;popup_UUT1_Confirm Fixture&quot;</span><span class="p">,</span><span class="nt">&quot;inputs&quot;</span><span class="p">:{</span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="s2">&quot;SN12345&quot;</span><span class="p">,</span><span class="nt">&quot;2&quot;</span><span class="p">:</span><span class="s2">&quot;BATCH001&quot;</span><span class="p">},</span><span class="nt">&quot;button&quot;</span><span class="p">:</span><span class="s2">&quot;OK&quot;</span><span class="p">}</span>
+</code></pre></div>
+<p><strong>Multi-UUT popup serialization:</strong></p>
+<ul>
+<li>Multiple UUTs can trigger popups simultaneously. They are queued and presented one at a time (protected by <code>ioMutex</code>).</li>
+<li>In human mode, show <code>[N more popups queued]</code> header if others are waiting.</li>
+<li>In JSON mode, each popup gets a unique <code>id</code>. Responses must match the <code>id</code> of the currently active popup.</li>
+</ul>
+<p><strong>Timeout behavior:</strong></p>
+<ul>
+<li>If <code>--popup-timeout &lt;seconds&gt;</code> is set and no response is received within that time:</li>
+<li>The popup is auto-cancelled (equivalent to clicking the cancel/consume button)</li>
+<li>Human mode: prints <code>⚠ Popup timed out after Ns, auto-cancelled.</code></li>
+<li>JSON mode: emits <code>{"type":"popup_timeout","id":"...","timeout_seconds":30}</code></li>
+<li>Timeout of 0 means wait forever (default)</li>
+</ul>
+<p><strong>Dynamic text (TextDynamic) handling:</strong></p>
+<ul>
+<li>The popup's <code>Routine</code> callback is called periodically while waiting for input</li>
+<li>In human mode: if dynamic text changes, reprint the popup on <code>?</code> command</li>
+<li>In JSON mode: emit periodic <code>{"type":"popup_update","id":"...","dynamic_texts":["current value"]}</code> lines (every ~1s if changed)</li>
+</ul>
+<p><strong>Thread safety:</strong></p>
+<ul>
+<li>The popup handler runs on the Lua worker thread for each UUT</li>
+<li>stdin/stdout access protected by the shared <code>ioMutex</code></li>
+<li>When a popup is active, the handler holds the mutex, blocking other UUTs' popups until it's consumed</li>
+</ul>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Unit test: popup text/input/button extraction from a mock sol::table builder</li>
+<li>Unit test: human-format output string matches expected format</li>
+<li>Unit test: JSON-format output is valid JSON with expected fields</li>
+<li>Unit test: timeout triggers auto-cancel after configured seconds</li>
+<li>Integration test with piped stdin: provide responses and verify popups consume correctly</li>
+<li>Test: multiple queued popups are serialized correctly</li>
+</ul>
+<hr />
+<h3 id="task-6-mcp-server-mode-stdio">Task 6: MCP Server Mode (stdio)<a class="headerlink" href="#task-6-mcp-server-mode-stdio" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Add <code>--mcp-server</code> mode where Frasy acts as an MCP tool server over stdio (JSON-RPC), enabling AI agents to launch tests, interact with popups, and retrieve results programmatically via Kiro's native MCP integration.</p>
+<p><strong>Implementation guidance:</strong></p>
+<p><strong>Launch mode:</strong></p>
+<ul>
+<li><code>frasy.exe --mcp-server</code> starts Frasy as an MCP stdio server</li>
+<li>stdout is exclusively JSON-RPC (MCP protocol messages)</li>
+<li>Logs go to stderr and/or file only</li>
+<li>The application is still created (for ProductProvider registration, framework init, hidden window)</li>
+<li>Frasy sits idle waiting for tool calls until the process is terminated</li>
+</ul>
+<p><strong>MCP protocol (stdio):</strong></p>
+<ul>
+<li>Client → Server: JSON-RPC requests on stdin (one per line)</li>
+<li>Server → Client: JSON-RPC responses on stdout (one per line)</li>
+<li>Server → Client: JSON-RPC notifications on stdout (for progress events)</li>
+</ul>
+<p><strong>Tools exposed:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Parameters</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list_products</code></td>
+<td>—</td>
+<td>Array of <code>{name, uut_count}</code></td>
+</tr>
+<tr>
+<td><code>run_tests</code></td>
+<td><code>product</code>, <code>operator</code>, <code>serials[]</code>, <code>skip_verification?</code></td>
+<td><code>{started: true}</code> or error</td>
+</tr>
+<tr>
+<td><code>get_status</code></td>
+<td>—</td>
+<td><code>{state, uuts: [{uut, serial, state}]}</code></td>
+</tr>
+<tr>
+<td><code>get_pending_popup</code></td>
+<td>—</td>
+<td>Popup object or <code>null</code></td>
+</tr>
+<tr>
+<td><code>respond_to_popup</code></td>
+<td><code>id</code>, <code>inputs?</code>, <code>button</code></td>
+<td><code>{ok: true}</code> or error</td>
+</tr>
+<tr>
+<td><code>get_results</code></td>
+<td>—</td>
+<td>Full results summary</td>
+</tr>
+<tr>
+<td><code>abort</code></td>
+<td>—</td>
+<td>Stops current test run</td>
+</tr>
+</tbody>
+</table>
+<p><strong>State machine:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>idle → running (on run_tests)
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>running → passed/failed/error (on completion)
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>passed/failed/error → idle (on next run_tests)
+</code></pre></div>
+<p><strong>Popup flow:</strong></p>
+<ul>
+<li>When a popup triggers during execution, it's queued</li>
+<li><code>get_pending_popup</code> returns the oldest queued popup</li>
+<li>The Lua thread blocks until <code>respond_to_popup</code> is called for that popup's ID</li>
+<li>Multiple popups from multiple UUTs queue up (FIFO)</li>
+</ul>
+<p><strong>Kiro agent configuration:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="p">{</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nt">&quot;frasy&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;C:/path/to/demo_mode.exe&quot;</span><span class="p">,</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;--mcp-server&quot;</span><span class="p">],</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Implementation details:</strong></p>
+<ol>
+<li>Add <code>--mcp-server</code> flag to <code>CliArgs</code></li>
+<li>In <code>EntryPoint.h</code>, branch on <code>--mcp-server</code> (similar to <code>--headless</code>)</li>
+<li>Create <code>Frasy/src/utils/mcp/mcp_server.h/.cpp</code>:</li>
+<li>JSON-RPC message parsing (request/response/notification)</li>
+<li>MCP initialize/initialized handshake</li>
+<li>Tool registration (tools/list)</li>
+<li>Tool call dispatch (tools/call)</li>
+<li>Create <code>Frasy/src/utils/mcp/mcp_popup_handler.h/.cpp</code>:</li>
+<li>Alternative popup import that queues popups for MCP retrieval</li>
+<li>Condition variable to wake Lua thread when response arrives</li>
+<li>Wire into a new <code>McpRunner</code> class that owns the orchestrator and drives execution</li>
+<li>Ensure stdout is exclusively JSON-RPC (no spdlog stdout sink)</li>
+</ol>
+<p><strong>MCP protocol messages (examples):</strong></p>
+<p>Client → Server (initialize):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="p">{</span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="s2">&quot;initialize&quot;</span><span class="p">,</span><span class="nt">&quot;params&quot;</span><span class="p">:{</span><span class="nt">&quot;protocolVersion&quot;</span><span class="p">:</span><span class="s2">&quot;2024-11-05&quot;</span><span class="p">,</span><span class="nt">&quot;capabilities&quot;</span><span class="p">:{},</span><span class="nt">&quot;clientInfo&quot;</span><span class="p">:{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;kiro&quot;</span><span class="p">,</span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="s2">&quot;1.0&quot;</span><span class="p">}}}</span>
+</code></pre></div></p>
+<p>Server → Client (initialize response):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;result&quot;</span><span class="p">:{</span><span class="nt">&quot;protocolVersion&quot;</span><span class="p">:</span><span class="s2">&quot;2024-11-05&quot;</span><span class="p">,</span><span class="nt">&quot;capabilities&quot;</span><span class="p">:{</span><span class="nt">&quot;tools&quot;</span><span class="p">:{}},</span><span class="nt">&quot;serverInfo&quot;</span><span class="p">:{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;frasy&quot;</span><span class="p">,</span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">}}}</span>
+</code></pre></div></p>
+<p>Client → Server (list tools):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="p">{</span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="s2">&quot;tools/list&quot;</span><span class="p">}</span>
+</code></pre></div></p>
+<p>Client → Server (call tool):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="p">{</span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="s2">&quot;tools/call&quot;</span><span class="p">,</span><span class="nt">&quot;params&quot;</span><span class="p">:{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;run_tests&quot;</span><span class="p">,</span><span class="nt">&quot;arguments&quot;</span><span class="p">:{</span><span class="nt">&quot;product&quot;</span><span class="p">:</span><span class="s2">&quot;CLI-tests&quot;</span><span class="p">,</span><span class="nt">&quot;operator&quot;</span><span class="p">:</span><span class="s2">&quot;AI&quot;</span><span class="p">,</span><span class="nt">&quot;serials&quot;</span><span class="p">:[</span><span class="s2">&quot;SN001&quot;</span><span class="p">]}}}</span>
+</code></pre></div></p>
+<p>Server → Client (tool result):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="p">{</span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="nt">&quot;result&quot;</span><span class="p">:{</span><span class="nt">&quot;content&quot;</span><span class="p">:[{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;text&quot;</span><span class="p">,</span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="s2">&quot;{\&quot;started\&quot;:true}&quot;</span><span class="p">}]}}</span>
+</code></pre></div></p>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Unit test: JSON-RPC message parsing/serialization</li>
+<li>Integration test: full MCP handshake + tool call via piped stdin/stdout</li>
+<li>Test: run_tests → get_status → get_results lifecycle</li>
+<li>Test: popup interaction via get_pending_popup / respond_to_popup</li>
+</ul>
+<hr />
+<h3 id="task-7-progress-reporter">Task 7: Progress Reporter<a class="headerlink" href="#task-7-progress-reporter" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Implement real-time progress output to the console showing test execution status per UUT.</p>
+<p><strong>Implementation guidance:</strong></p>
+<ul>
+<li>Create <code>Frasy/src/utils/headless/progress_reporter.h</code> and <code>.cpp</code></li>
+<li>The reporter runs as a polling thread started before <code>runSolution</code> and joined after completion</li>
+<li>Monitors:</li>
+<li>UUT state changes via <code>orchestrator.getUutState(uut)</code></li>
+<li>Expectation results via <code>orchestrator.getExpectationsMutex/Vector</code> (for per-test results)</li>
+<li>Polling interval: ~100ms</li>
+</ul>
+<p><strong>Human-readable format:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>[10:34:56] Starting: product=&quot;MyProduct&quot; operator=&quot;CI&quot; uuts=2
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>[10:34:56] [UUT1] SN001 — Running
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>[10:34:57] [UUT1] ✓ Power On &gt; Check Supply Voltage (PASS, 0.42s)
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>[10:34:57] [UUT2] ✗ Power On &gt; Check Supply Voltage (FAIL)
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>[10:34:58] [UUT1] ✓ Power On &gt; Check Current Draw (PASS, 0.31s)
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>[10:34:58] [UUT2] — Power On &gt; Check Current Draw (SKIPPED)
+</code></pre></div>
+<p><strong>JSON-lines format:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;run_start&quot;</span><span class="p">,</span><span class="nt">&quot;product&quot;</span><span class="p">:</span><span class="s2">&quot;MyProduct&quot;</span><span class="p">,</span><span class="nt">&quot;operator&quot;</span><span class="p">:</span><span class="s2">&quot;CI&quot;</span><span class="p">,</span><span class="nt">&quot;uuts&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;serials&quot;</span><span class="p">:[</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="s2">&quot;SN002&quot;</span><span class="p">],</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;2026-08-05T10:34:56&quot;</span><span class="p">}</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;uut_state&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="s2">&quot;running&quot;</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;test_result&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;sequence&quot;</span><span class="p">:</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="nt">&quot;test&quot;</span><span class="p">:</span><span class="s2">&quot;Check Supply Voltage&quot;</span><span class="p">,</span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="mf">0.42</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;test_result&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;sequence&quot;</span><span class="p">:</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="nt">&quot;test&quot;</span><span class="p">:</span><span class="s2">&quot;Check Supply Voltage&quot;</span><span class="p">,</span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="mf">0.38</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;uut_state&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="s2">&quot;passed&quot;</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;uut_state&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN002&quot;</span><span class="p">,</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="s2">&quot;failed&quot;</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+</code></pre></div>
+<p><strong>Implementation details:</strong></p>
+<ul>
+<li>Track expectation vector size per UUT to detect new test completions</li>
+<li>Use the Solution model to map expectation indices back to sequence/test names</li>
+<li>stdout output must not interfere with popup I/O — use the same <code>ioMutex</code> from the popup handler</li>
+<li>Lua <code>Log.I/W/E</code> messages already go through spdlog's stdout sink — verify they appear correctly interleaved with progress output</li>
+</ul>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Unit test: human-format strings are correct for various state transitions</li>
+<li>Unit test: JSON-format output is valid JSON with expected fields</li>
+<li>Test: concurrent UUT state changes produce interleaved but coherent output</li>
+<li>Test: progress output does not corrupt popup interaction (mutex works)</li>
+</ul>
+<hr />
+<h3 id="task-8-report-summary-and-exit-codes">Task 8: Report Summary and Exit Codes<a class="headerlink" href="#task-8-report-summary-and-exit-codes" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> After test execution, print a concise summary to stdout, ensure reports are on disk, and return the correct exit code.</p>
+<p><strong>Implementation guidance:</strong></p>
+<ul>
+<li>After <code>runSolution</code> completes and <code>onTestComplete</code> is called in <code>HeadlessRunner</code>:</li>
+<li>Read each UUT's JSON report from <code>{outputDir}/last/{uut}.json</code></li>
+<li>Determine overall result from UUT states</li>
+<li>Print summary</li>
+</ul>
+<p><strong>Human format:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>═══════════════════════════════════════
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a> Test Results: MyProduct
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>═══════════════════════════════════════
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a> UUT1 (SN001): PASS    [2/2 tests, 1.2s]
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a> UUT2 (SN002): FAIL    [1/2 tests, 1.3s]
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>───────────────────────────────────────
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a> Overall: FAIL
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a> Reports: logs/last/1.json, logs/last/2.json
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>═══════════════════════════════════════
+</code></pre></div>
+<p><strong>JSON format:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;run_end&quot;</span><span class="p">,</span><span class="nt">&quot;overall_pass&quot;</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span><span class="nt">&quot;uuts&quot;</span><span class="p">:[{</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">&quot;tests_passed&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;tests_total&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="mf">1.2</span><span class="p">,</span><span class="nt">&quot;report&quot;</span><span class="p">:</span><span class="s2">&quot;logs/last/1.json&quot;</span><span class="p">},{</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN002&quot;</span><span class="p">,</span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span><span class="nt">&quot;tests_passed&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;tests_total&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="mf">1.3</span><span class="p">,</span><span class="nt">&quot;report&quot;</span><span class="p">:</span><span class="s2">&quot;logs/last/2.json&quot;</span><span class="p">}]}</span>
+</code></pre></div>
+<p><strong>Exit codes:</strong></p>
+<ul>
+<li><code>0</code> — all enabled UUTs passed</li>
+<li><code>1</code> — one or more UUTs failed (test expectation failures)</li>
+<li><code>2</code> — error (orchestrator crash, generation/validation failure, hardware timeout, missing product, invalid serial, setup failure)</li>
+</ul>
+<p><strong>Reports on disk:</strong> The orchestrator's existing <code>checkResults</code> already copies reports to <code>logs/{title}/pass/</code> or <code>logs/{title}/fail/</code>. Verify this works in headless mode without changes.</p>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Unit test: exit code determination from various UUT state combinations</li>
+<li>Unit test: human summary format matches expected output</li>
+<li>Unit test: JSON summary is valid JSON with all fields</li>
+<li>Test: missing report file (orchestrator crashed mid-run) produces exit code 2</li>
+<li>Test: all-pass scenario returns 0, mixed returns 1</li>
+</ul>
+<hr />
+<h3 id="task-9-demo-application-and-shared-logic-refactor">Task 9: Demo Application and Shared Logic Refactor<a class="headerlink" href="#task-9-demo-application-and-shared-logic-refactor" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Update the demo_mode application to demonstrate headless support and show the shared-logic pattern where <code>ProductProvider::setup()</code> is used by both GUI and headless paths.</p>
+<p><strong>Implementation guidance:</strong></p>
+<p><strong>Update demo_mode application (<code>demo_mode/src/my_frasy_interpreter.cpp</code>):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;utils/headless/product_provider.h&gt;</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">DemoProductProvider</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Frasy</span><span class="o">::</span><span class="n">Headless</span><span class="o">::</span><span class="n">ProductProvider</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">validateSerialNumber</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">serial</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">!</span><span class="n">serial</span><span class="p">.</span><span class="n">empty</span><span class="p">();</span><span class="w">  </span><span class="c1">// Demo: any non-empty serial is valid</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">setup</span><span class="p">(</span><span class="n">Frasy</span><span class="o">::</span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">,</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="w">               </span><span class="n">Frasy</span><span class="o">::</span><span class="n">CanOpen</span><span class="o">::</span><span class="n">CanOpen</span><span class="o">&amp;</span><span class="w"> </span><span class="n">canOpen</span><span class="p">,</span>
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="w">               </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">product</span><span class="p">,</span>
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="w">               </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">envPath</span><span class="p">,</span>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="w">               </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">testsDir</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">orchestrator</span><span class="p">.</span><span class="n">loadUserFiles</span><span class="p">(</span><span class="n">envPath</span><span class="p">,</span><span class="w"> </span><span class="n">testsDir</span><span class="p">))</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a>
+<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a><span class="w">        </span><span class="n">canOpen</span><span class="p">.</span><span class="n">stop</span><span class="p">();</span>
+<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a><span class="w">        </span><span class="n">canOpen</span><span class="p">.</span><span class="n">clearNodes</span><span class="p">();</span>
+<a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a><span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="p">[</span><span class="n">ibs</span><span class="p">,</span><span class="w"> </span><span class="n">uuts</span><span class="p">,</span><span class="w"> </span><span class="n">teams</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">.</span><span class="n">getMap</span><span class="p">();</span>
+<a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="p">[</span><span class="n">kind</span><span class="p">,</span><span class="w"> </span><span class="n">nodeId</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">edsPath</span><span class="p">,</span><span class="w"> </span><span class="n">od</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">ibs</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a><span class="w">            </span><span class="n">canOpen</span><span class="p">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">nodeId</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">edsPath</span><span class="p">);</span>
+<a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a><span class="w">        </span><span class="n">canOpen</span><span class="p">.</span><span class="n">start</span><span class="p">();</span>
+<a id="__codelineno-25-23" name="__codelineno-25-23" href="#__codelineno-25-23"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<a id="__codelineno-25-24" name="__codelineno-25-24" href="#__codelineno-25-24"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-25-25" name="__codelineno-25-25" href="#__codelineno-25-25"></a><span class="p">};</span>
+<a id="__codelineno-25-26" name="__codelineno-25-26" href="#__codelineno-25-26"></a>
+<a id="__codelineno-25-27" name="__codelineno-25-27" href="#__codelineno-25-27"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyFrasyInterpreter</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Frasy</span><span class="o">::</span><span class="n">Interpreter</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-28" name="__codelineno-25-28" href="#__codelineno-25-28"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-25-29" name="__codelineno-25-29" href="#__codelineno-25-29"></a><span class="w">    </span><span class="n">MyFrasyInterpreter</span><span class="p">()</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">Interpreter</span><span class="p">(</span><span class="s">&quot;Frasy - Demo Mode&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-30" name="__codelineno-25-30" href="#__codelineno-25-30"></a><span class="w">        </span><span class="n">setProductProvider</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">DemoProductProvider</span><span class="o">&gt;</span><span class="p">());</span>
+<a id="__codelineno-25-31" name="__codelineno-25-31" href="#__codelineno-25-31"></a><span class="w">        </span><span class="n">pushLayer</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">MyMainApplicationLayer</span><span class="p">());</span>
+<a id="__codelineno-25-32" name="__codelineno-25-32" href="#__codelineno-25-32"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-25-33" name="__codelineno-25-33" href="#__codelineno-25-33"></a><span class="p">};</span>
+</code></pre></div>
+<p><strong>Refactor <code>MyMainApplicationLayer::makeOrchestrator</code></strong> to call the same provider:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">MyMainApplicationLayer::makeOrchestrator</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">,</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">                                              </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">envPath</span><span class="p">,</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="w">                                              </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">testPath</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="w">    </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">provider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Frasy</span><span class="o">::</span><span class="n">Interpreter</span><span class="o">::</span><span class="n">Get</span><span class="p">().</span><span class="n">getProductProvider</span><span class="p">();</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">provider</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">provider</span><span class="o">-&gt;</span><span class="n">setup</span><span class="p">(</span><span class="n">m_orchestrator</span><span class="p">,</span><span class="w"> </span><span class="n">m_canOpen</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">envPath</span><span class="p">,</span><span class="w"> </span><span class="n">testPath</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="w">        </span><span class="n">m_activeProduct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">name</span><span class="p">;</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="p">[</span><span class="n">ibs</span><span class="p">,</span><span class="w"> </span><span class="n">uuts</span><span class="p">,</span><span class="w"> </span><span class="n">teams</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_orchestrator</span><span class="p">.</span><span class="n">getMap</span><span class="p">();</span>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="w">        </span><span class="n">m_serials</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="w">        </span><span class="n">m_serials</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">uuts</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">{});</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="w">        </span><span class="n">m_serialsFields</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="w">        </span><span class="n">m_serialsFields</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">uuts</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">{});</span>
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a><span class="w">        </span><span class="n">Brigerad</span><span class="o">::</span><span class="n">warningDialog</span><span class="p">(</span><span class="s">&quot;Frasy&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Unable to initialize orchestrator!&quot;</span><span class="p">);</span>
+<a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a><span class="w">        </span><span class="n">makeLogWindowVisible</span><span class="p">();</span>
+<a id="__codelineno-26-15" name="__codelineno-26-15" href="#__codelineno-26-15"></a><span class="w">        </span><span class="n">BR_LOG_ERROR</span><span class="p">(</span><span class="s">&quot;APP&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Unable to initialize orchestrator!&quot;</span><span class="p">);</span>
+<a id="__codelineno-26-16" name="__codelineno-26-16" href="#__codelineno-26-16"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-26-17" name="__codelineno-26-17" href="#__codelineno-26-17"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>End-to-end test: <code>frasy.exe --headless --product popup --operator CI --serial SN001</code> runs the demo product</li>
+<li>Test: normal GUI mode (<code>frasy.exe</code> with no flags) works exactly as before</li>
+<li>Test: <code>--headless</code> without <code>--product</code> prints error and available products, returns 2</li>
+<li>Test: <code>--headless</code> with non-existent product prints available products, returns 2</li>
+<li>Test: <code>--headless</code> with invalid serial prints error, returns 2</li>
+<li>Test: application without a registered ProductProvider prints error, returns 2</li>
+</ul>
+<p><strong>Demo:</strong> The demo_mode application works in both modes:</p>
+<ul>
+<li><code>frasy.exe</code> → GUI as usual</li>
+<li><code>frasy.exe --headless --product popup --operator CI --serial SN001</code> → runs tests in console, prints results, exits with code 0 or 1</li>
+</ul>
+<hr />
+<h3 id="task-10-documentation">Task 10: Documentation<a class="headerlink" href="#task-10-documentation" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Document the headless CLI mode for end-users and developers.</p>
+<p><strong>Implementation guidance:</strong></p>
+<p><strong>Add <code>docs/getting-started/headless-mode.md</code>:</strong></p>
+<ul>
+<li>Full CLI flag reference table</li>
+<li>Example invocations for common scenarios (CI, operator scripting, AI agent)</li>
+<li>Output format examples (human + JSON-lines)</li>
+<li>Exit code meanings</li>
+<li>Popup interaction protocol:</li>
+<li>Human mode: numbered input commands, button label commands, <code>?</code> to refresh</li>
+<li>JSON mode: request/response format with <code>id</code> field</li>
+<li>Timeout behavior</li>
+<li>Example: driving Frasy from a Python script</li>
+<li>Example: driving Frasy from an AI agent (JSON mode)</li>
+</ul>
+<p><strong>Add <code>docs/developer-guide/headless-mode.md</code>:</strong></p>
+<ul>
+<li>How to implement <code>ProductProvider</code>:</li>
+<li><code>validateSerialNumber</code> — what to check</li>
+<li><code>setup</code> — responsibilities and order of operations</li>
+<li><code>onTestComplete</code> — post-test hooks</li>
+<li>How to register the provider in your application's interpreter</li>
+<li>How to refactor existing <code>makeOrchestrator</code> to use <code>ProductProvider::setup()</code> for both GUI and headless paths</li>
+<li>Migration guide with before/after code examples</li>
+<li>Testing headless mode during development</li>
+</ul>
+<p><strong>Update <code>mkdocs.yml</code> nav:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Getting Started</span><span class="p">:</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">    </span><span class="c1"># ... existing entries ...</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Headless Mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">getting-started/headless-mode.md</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Developer Guide</span><span class="p">:</span>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="w">    </span><span class="c1"># ... existing entries ...</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Headless Mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">developer-guide/headless-mode.md</span>
+</code></pre></div>
+<p><strong>Add brief mention in <code>docs/architecture/overview.md</code></strong> about the headless execution path as an alternative to the GUI main loop.</p>
+<p><strong>Test requirements:</strong></p>
+<ul>
+<li>Documentation builds without errors via <code>mkdocs build</code></li>
+<li>All code examples are syntactically valid C++/JSON/shell</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.highlight", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

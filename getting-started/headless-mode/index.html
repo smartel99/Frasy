@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://frasy.rald.ca/getting-started/lua-setup/">
+        <link rel="canonical" href="https://frasy.rald.ca/getting-started/headless-mode/">
       
       
-        <link rel="prev" href="../cpp-setup/">
+        <link rel="prev" href="../lua-setup/">
       
       
-        <link rel="next" href="../headless-mode/">
+        <link rel="next" href="../../architecture/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Lua Setup - Frasy</title>
+        <title>Headless Mode - Frasy</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#lua-setup" class="md-skip">
+        <a href="#headless-mode" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Lua Setup
+              Headless Mode
             
           </span>
         </div>
@@ -587,6 +587,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../lua-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -606,7 +634,7 @@
   <span class="md-ellipsis">
     
   
-    Lua Setup
+    Headless Mode
   
 
     
@@ -624,7 +652,7 @@
   <span class="md-ellipsis">
     
   
-    Lua Setup
+    Headless Mode
   
 
     
@@ -650,33 +678,111 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#product-directory-structure" class="md-nav__link">
+  <a href="#cli-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Product Directory Structure
+        CLI Mode
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="CLI Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI Flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exit-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exit Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#human-readable-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Human-Readable (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#json-lines-output-format-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Lines (--output-format json)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#environment-configuration" class="md-nav__link">
+  <a href="#popup-interaction-cli-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Environment Configuration
+        Popup Interaction (CLI Mode)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Environment Configuration">
+    <nav class="md-nav" aria-label="Popup Interaction (CLI Mode)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#minimal-environment" class="md-nav__link">
+  <a href="#human-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Minimal Environment
+        Human Format
       
     </span>
   </a>
@@ -684,10 +790,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#environment-api" class="md-nav__link">
+  <a href="#json-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Environment API
+        JSON Format
       
     </span>
   </a>
@@ -695,21 +801,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#adding-instrumentation-boards" class="md-nav__link">
+  <a href="#timeout" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adding Instrumentation Boards
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#execution-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Execution Policy
+        Timeout
       
     </span>
   </a>
@@ -722,22 +817,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#writing-test-sequences" class="md-nav__link">
+  <a href="#mcp-server-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Writing Test Sequences
+        MCP Server Mode
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Writing Test Sequences">
+    <nav class="md-nav" aria-label="MCP Server Mode">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-structure" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic Structure
+        Overview
       
     </span>
   </a>
@@ -745,10 +840,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sequencename-function" class="md-nav__link">
+  <a href="#kiro-agent-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sequence(name, function)
+        Kiro Agent Configuration
       
     </span>
   </a>
@@ -756,10 +851,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#testname-function" class="md-nav__link">
+  <a href="#available-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test(name, function)
+        Available Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-run_tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: run_tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-get_pending_popup-respond_to_popup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: get_pending_popup + respond_to_popup
       
     </span>
   </a>
@@ -772,110 +900,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#expectations" class="md-nav__link">
+  <a href="#reports" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Expectations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Expectations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#modifiers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Modifiers
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ordering-with-requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ordering with Requirements
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Ordering with Requirements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ordering-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ordering Examples
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#conditional-execution" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Conditional Execution
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#logging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Logging
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#complete-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Complete Example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#multi-uut-setups" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Multi-UUT Setups
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
+        Reports
       
     </span>
   </a>
@@ -886,34 +914,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../headless-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Headless Mode
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -2121,33 +2121,111 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#product-directory-structure" class="md-nav__link">
+  <a href="#cli-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Product Directory Structure
+        CLI Mode
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="CLI Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI Flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exit-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exit Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#human-readable-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Human-Readable (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#json-lines-output-format-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Lines (--output-format json)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#environment-configuration" class="md-nav__link">
+  <a href="#popup-interaction-cli-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Environment Configuration
+        Popup Interaction (CLI Mode)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Environment Configuration">
+    <nav class="md-nav" aria-label="Popup Interaction (CLI Mode)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#minimal-environment" class="md-nav__link">
+  <a href="#human-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Minimal Environment
+        Human Format
       
     </span>
   </a>
@@ -2155,10 +2233,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#environment-api" class="md-nav__link">
+  <a href="#json-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Environment API
+        JSON Format
       
     </span>
   </a>
@@ -2166,21 +2244,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#adding-instrumentation-boards" class="md-nav__link">
+  <a href="#timeout" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adding Instrumentation Boards
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#execution-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Execution Policy
+        Timeout
       
     </span>
   </a>
@@ -2193,22 +2260,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#writing-test-sequences" class="md-nav__link">
+  <a href="#mcp-server-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Writing Test Sequences
+        MCP Server Mode
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Writing Test Sequences">
+    <nav class="md-nav" aria-label="MCP Server Mode">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-structure" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic Structure
+        Overview
       
     </span>
   </a>
@@ -2216,10 +2283,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sequencename-function" class="md-nav__link">
+  <a href="#kiro-agent-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sequence(name, function)
+        Kiro Agent Configuration
       
     </span>
   </a>
@@ -2227,10 +2294,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#testname-function" class="md-nav__link">
+  <a href="#available-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test(name, function)
+        Available Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-run_tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: run_tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-get_pending_popup-respond_to_popup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: get_pending_popup + respond_to_popup
       
     </span>
   </a>
@@ -2243,110 +2343,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#expectations" class="md-nav__link">
+  <a href="#reports" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Expectations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Expectations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#modifiers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Modifiers
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ordering-with-requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ordering with Requirements
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Ordering with Requirements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ordering-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ordering Examples
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#conditional-execution" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Conditional Execution
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#logging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Logging
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#complete-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Complete Example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#multi-uut-setups" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Multi-UUT Setups
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
+        Reports
       
     </span>
   </a>
@@ -2373,286 +2373,287 @@
   
 
 
-<h1 id="lua-setup">Lua Setup<a class="headerlink" href="#lua-setup" title="Permanent link">&para;</a></h1>
-<p>This page covers how to create a product — the Lua side of a Frasy application. A product
-defines the test environment and the test sequences that run against your hardware.</p>
-<hr />
-<h2 id="product-directory-structure">Product Directory Structure<a class="headerlink" href="#product-directory-structure" title="Permanent link">&para;</a></h2>
-<p>Frasy discovers products by scanning the <code>lua/user/</code> directory at runtime. Each subdirectory
-that contains an <code>environment.lua</code> file is treated as a product. The directory name becomes the
-product name shown in the UI.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>src/lua/user/
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  &lt;product-name&gt;/
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    environment.lua       ← required: declares the test environment
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    tests/
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>      *.lua               ← one or more test files
-</code></pre></div>
-<p>For example, a product called "demo":</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>src/lua/user/
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  demo/
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    environment.lua
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    tests/
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>      power_on.lua
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>      functional.lua
-</code></pre></div>
-<p>All <code>.lua</code> files under <code>tests/</code> are loaded automatically. You can organize them however you like
-— by test phase, by board section, etc.</p>
-<hr />
-<h2 id="environment-configuration">Environment Configuration<a class="headerlink" href="#environment-configuration" title="Permanent link">&para;</a></h2>
-<p><code>environment.lua</code> declares the static configuration of your test setup: how many UUTs are tested,
-what hardware (instrumentation boards) the fixture uses, and the mapping between access points on
-the UUT and the test hardware. It must call <code>Environment.Make()</code> with a function that configures
-the environment.</p>
-<h3 id="minimal-environment">Minimal Environment<a class="headerlink" href="#minimal-environment" title="Permanent link">&para;</a></h3>
-<p>The simplest environment declares a script version and a single UUT:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="environment-api">Environment API<a class="headerlink" href="#environment-api" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Function</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Environment.ScriptVersion(version)</code></td>
-<td>Set the script version string (for traceability)</td>
-</tr>
-<tr>
-<td><code>Environment.Uut.Count(n)</code></td>
-<td>Declare how many UUTs are tested in parallel</td>
-</tr>
-<tr>
-<td><code>Environment.Ib.Add(board)</code></td>
-<td>Register an instrumentation board</td>
-</tr>
-<tr>
-<td><code>Environment.SetExecutionPolicy(policy)</code></td>
-<td><code>ExecutionPolicy.parallel</code> or <code>ExecutionPolicy.sequential</code></td>
-</tr>
-</tbody>
-</table>
-<h3 id="adding-instrumentation-boards">Adding Instrumentation Boards<a class="headerlink" href="#adding-instrumentation-boards" title="Permanent link">&para;</a></h3>
-<p>If your test fixture uses hardware boards (IBs) for measurement and control, declare them in the
-environment. Frasy provides predefined board types (like <code>DAQ</code>, <code>PIO</code>, <code>R8L</code>) that handle node
-IDs and EDS files automatically for existing SMarTest devices:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">MyDaq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_daq&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">})</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">MyDaq</span><span class="p">)</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<p>Once registered, the board is accessible in tests through <code>Context.ibs.my_daq</code>.</p>
-<p>If the predefined board types don't cover your hardware, you can define your own custom
-instrumentation boards. See <a href="../../developer-guide/custom-ibs/">Creating Custom Instrumentation Boards</a>.</p>
-<h3 id="execution-policy">Execution Policy<a class="headerlink" href="#execution-policy" title="Permanent link">&para;</a></h3>
-<p>By default, sequences run in parallel across UUTs. For single-UUT setups this has no effect. If
-you need strictly sequential execution:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">SetExecutionPolicy</span><span class="p">(</span><span class="nv">ExecutionPolicy</span><span class="p">.</span><span class="py">sequential</span><span class="p">)</span>
-</code></pre></div>
-<hr />
-<h2 id="writing-test-sequences">Writing Test Sequences<a class="headerlink" href="#writing-test-sequences" title="Permanent link">&para;</a></h2>
-<p>Test files define sequences and the tests within them. A sequence groups related tests, and each
-test contains the actual verification logic.</p>
-<h3 id="basic-structure">Basic Structure<a class="headerlink" href="#basic-structure" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Check Supply Voltage&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">voltage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">readVoltage</span><span class="p">()</span><span class="w">  </span><span class="c1">-- your measurement function</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">)</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Check Current Draw&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">readCurrent</span><span class="p">()</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">current</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Idle Current&quot;</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="sequencename-function"><code>Sequence(name, function)</code><a class="headerlink" href="#sequencename-function" title="Permanent link">&para;</a></h3>
-<p>Defines a named sequence. The name must be unique across all test files in the product. The
-function body should contain one or more <code>Test()</code> calls.</p>
-<h3 id="testname-function"><code>Test(name, function)</code><a class="headerlink" href="#testname-function" title="Permanent link">&para;</a></h3>
-<p>Defines a named test inside a sequence. The name must be unique within its parent sequence. The
-function body performs measurements and makes assertions using <code>Expect()</code>.</p>
-<hr />
-<h2 id="expectations">Expectations<a class="headerlink" href="#expectations" title="Permanent link">&para;</a></h2>
-<p><code>Expect(value, name)</code> creates an expectation. The <code>value</code> is what you measured, and <code>name</code> is a
-human-readable label that appears in test reports. Chain a matcher to assert the value:</p>
-<table>
-<thead>
-<tr>
-<th>Matcher</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>:ToBeTrue()</code></td>
-<td>Value is <code>true</code></td>
-</tr>
-<tr>
-<td><code>:ToBeFalse()</code></td>
-<td>Value is <code>false</code></td>
-</tr>
-<tr>
-<td><code>:ToBeEqual(expected)</code></td>
-<td>Value equals <code>expected</code></td>
-</tr>
-<tr>
-<td><code>:ToBeNear(expected, deviation)</code></td>
-<td>Value is within ±<code>deviation</code> of <code>expected</code></td>
-</tr>
-<tr>
-<td><code>:ToBeInRange(min, max)</code></td>
-<td>Value is between <code>min</code> and <code>max</code> (inclusive)</td>
-</tr>
-<tr>
-<td><code>:ToBeInPercentage(expected, pct)</code></td>
-<td>Value is within ±<code>pct</code>% of <code>expected</code></td>
-</tr>
-<tr>
-<td><code>:ToBeGreater(min)</code></td>
-<td>Value is strictly greater than <code>min</code></td>
-</tr>
-<tr>
-<td><code>:ToBeGreaterOrEqual(min)</code></td>
-<td>Value is greater than or equal to <code>min</code></td>
-</tr>
-<tr>
-<td><code>:ToBeLesser(max)</code></td>
-<td>Value is strictly less than <code>max</code></td>
-</tr>
-<tr>
-<td><code>:ToBeLesserOrEqual(max)</code></td>
-<td>Value is less than or equal to <code>max</code></td>
-</tr>
-<tr>
-<td><code>:ToBeType(type)</code></td>
-<td>Value is of Lua type <code>type</code> (e.g., <code>"number"</code>, <code>"string"</code>)</td>
-</tr>
-<tr>
-<td><code>:ToMatch(pattern)</code></td>
-<td>String value matches Lua pattern</td>
-</tr>
-</tbody>
-</table>
-<h3 id="modifiers">Modifiers<a class="headerlink" href="#modifiers" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Modifier</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>:Not()</code></td>
-<td>Inverts the expectation (e.g., <code>:Not():ToBeEqual(0)</code>)</td>
-</tr>
-<tr>
-<td><code>:Mandatory()</code></td>
-<td>If this expectation fails, skip the rest of the test immediately</td>
-</tr>
-</tbody>
-</table>
-<p>Modifiers are chainable and can appear before the matcher:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">status</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Device Status&quot;</span><span class="p">):</span><span class="nf">Not</span><span class="p">():</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Critical Voltage&quot;</span><span class="p">):</span><span class="nf">Mandatory</span><span class="p">():</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span><span class="w"> </span><span class="mf">3.6</span><span class="p">)</span>
-</code></pre></div>
-<hr />
-<h2 id="ordering-with-requirements">Ordering with Requirements<a class="headerlink" href="#ordering-with-requirements" title="Permanent link">&para;</a></h2>
-<p>Sequences and tests have no guaranteed execution order by default — they are stored in a hash
-map, so insertion order is not preserved. Use <code>Requires()</code> to express explicit ordering or
-conditional execution.</p>
-<h3 id="ordering-examples">Ordering Examples<a class="headerlink" href="#ordering-examples" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Setup&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Sequence</span><span class="p">():</span><span class="nf">ToBeFirst</span><span class="p">())</span><span class="w">  </span><span class="c1">-- always runs first</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Initialize&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">        </span><span class="c1">-- ...</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Teardown&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Sequence</span><span class="p">():</span><span class="nf">ToBeLast</span><span class="p">())</span><span class="w">  </span><span class="c1">-- always runs last</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Power Off&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">        </span><span class="c1">-- ...</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="conditional-execution">Conditional Execution<a class="headerlink" href="#conditional-execution" title="Permanent link">&para;</a></h3>
-<p>Skip a sequence or test based on the result of another:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Calibration&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Setup&quot;</span><span class="p">):</span><span class="nf">ToPass</span><span class="p">())</span><span class="w">  </span><span class="c1">-- skip if Setup failed</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Verify Offset&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">        </span><span class="c1">-- ...</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<p>Within a sequence, skip a test if a previous one failed:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Communication&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Basic Link&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">        </span><span class="c1">-- ...</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Data Transfer&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">        </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Basic Link&quot;</span><span class="p">):</span><span class="nf">ToPass</span><span class="p">())</span><span class="w">  </span><span class="c1">-- skip if Basic Link failed</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">        </span><span class="c1">-- ...</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<p>For the full requirements system, see <a href="../../lua-reference/requirements/">Requirements</a>.</p>
-<hr />
-<h2 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h2>
-<p>Use the <code>Log</code> global to write messages to the application's log panel:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">D</span><span class="p">(</span><span class="s2">&quot;Debug message&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1">-- debug level</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">I</span><span class="p">(</span><span class="s2">&quot;Info message&quot;</span><span class="p">)</span><span class="w">      </span><span class="c1">-- info level</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">W</span><span class="p">(</span><span class="s2">&quot;Warning message&quot;</span><span class="p">)</span><span class="w">   </span><span class="c1">-- warning level</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="nv">Log</span><span class="p">.</span><span class="nf">E</span><span class="p">(</span><span class="s2">&quot;Error message&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1">-- error level</span>
-</code></pre></div>
-<hr />
-<h2 id="complete-example">Complete Example<a class="headerlink" href="#complete-example" title="Permanent link">&para;</a></h2>
-<p>Here is a minimal but complete product:</p>
-<p><strong><code>src/lua/user/my_product/environment.lua</code></strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">Environment</span><span class="p">.</span><span class="nf">Make</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="nf">ScriptVersion</span><span class="p">(</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nv">Environment</span><span class="p">.</span><span class="py">Uut</span><span class="p">.</span><span class="nf">Count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<p><strong><code>src/lua/user/my_product/tests/basic.lua</code></strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nf">Sequence</span><span class="p">(</span><span class="s2">&quot;Self Test&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="nf">Requires</span><span class="p">(</span><span class="nf">Sequence</span><span class="p">():</span><span class="nf">ToBeFirst</span><span class="p">())</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Always Passes&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Sanity Check&quot;</span><span class="p">):</span><span class="nf">ToBeTrue</span><span class="p">()</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Math Works&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="mi">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Addition&quot;</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
-<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">        </span><span class="nf">Expect</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Range Check&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">9.5</span><span class="p">,</span><span class="w"> </span><span class="mf">10.5</span><span class="p">)</span>
-<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<p>This product will appear as "my_product" in the UI dropdown and can be run immediately.</p>
-<hr />
-<h2 id="multi-uut-setups">Multi-UUT Setups<a class="headerlink" href="#multi-uut-setups" title="Permanent link">&para;</a></h2>
-<p>If your environment declares more than one UUT (<code>Environment.Uut.Count(2)</code> or more), Frasy runs
-test sequences concurrently across all UUTs. This introduces coordination primitives like
-<code>Sync()</code> and <code>Exclusive()</code> for synchronization and mutual exclusion.</p>
-<p>For details on multi-UUT coordination, see the <a href="../../lua-reference/">Lua Reference</a>.
-For grouping UUTs that share resources, see <a href="../../developer-guide/teams/">Teams</a>.</p>
-<hr />
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<h1 id="headless-mode">Headless Mode<a class="headerlink" href="#headless-mode" title="Permanent link">&para;</a></h1>
+<p>Frasy can run tests without a GUI using two headless execution modes:</p>
 <ul>
-<li><a href="../../lua-reference/expectations/">Expectations</a> — full matcher reference</li>
-<li><a href="../../lua-reference/requirements/">Requirements</a> — complete ordering and runtime requirement system</li>
+<li><strong>CLI mode</strong> (<code>--headless</code>) — run tests from the command line with progress output and stdin-based popup interaction</li>
+<li><strong>MCP server mode</strong> (<code>--mcp-server</code>) — run as a <a href="https://modelcontextprotocol.io">Model Context Protocol</a> tool server for AI agent integration</li>
 </ul>
+<hr />
+<h2 id="cli-mode">CLI Mode<a class="headerlink" href="#cli-mode" title="Permanent link">&para;</a></h2>
+<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>frasy.exe<span class="w"> </span>--headless<span class="w"> </span>--product<span class="w"> </span>MyProduct<span class="w"> </span>--operator<span class="w"> </span><span class="s2">&quot;John&quot;</span><span class="w"> </span>--serial<span class="w"> </span>SN001
+</code></pre></div>
+<p>Multiple UUTs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>frasy.exe<span class="w"> </span>--headless<span class="w"> </span>--product<span class="w"> </span>MyProduct<span class="w"> </span>--operator<span class="w"> </span><span class="s2">&quot;John&quot;</span><span class="w"> </span>--serial<span class="w"> </span>SN001<span class="w"> </span>--serial<span class="w"> </span>SN002
+</code></pre></div>
+<h3 id="cli-flags">CLI Flags<a class="headerlink" href="#cli-flags" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--headless</code></td>
+<td>Enable headless CLI mode</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>--mcp-server</code></td>
+<td>Run as MCP tool server (stdio JSON-RPC)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>--product &lt;name&gt;</code></td>
+<td>Product to test (required)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>--operator &lt;name&gt;</code></td>
+<td>Operator name (required)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>--serial &lt;sn&gt;</code></td>
+<td>Serial number per UUT (repeatable, required)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>--config &lt;path&gt;</code></td>
+<td>Config file path</td>
+<td><code>config.json</code></td>
+</tr>
+<tr>
+<td><code>--output-format &lt;fmt&gt;</code></td>
+<td>Output format: <code>human</code> or <code>json</code></td>
+<td><code>human</code></td>
+</tr>
+<tr>
+<td><code>--output-dir &lt;path&gt;</code></td>
+<td>Output directory for reports</td>
+<td><code>logs</code></td>
+</tr>
+<tr>
+<td><code>--skip-verification</code></td>
+<td>Skip hash verification stage</td>
+<td>false</td>
+</tr>
+<tr>
+<td><code>--popup-timeout &lt;secs&gt;</code></td>
+<td>Auto-cancel popups after N seconds (0 = wait forever)</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>--verbose</code></td>
+<td>Show logs on stderr</td>
+<td>false</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>Show usage and exit</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>--headless</code> and <code>--mcp-server</code> are mutually exclusive.</p>
+</div>
+<h3 id="exit-codes">Exit Codes<a class="headerlink" href="#exit-codes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>All UUTs passed</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>One or more UUTs failed (expectation failures)</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>Error (setup failure, invalid arguments, missing product, etc.)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h3>
+<h4 id="human-readable-default">Human-Readable (default)<a class="headerlink" href="#human-readable-default" title="Permanent link">&para;</a></h4>
+<p>Progress is displayed as a colored indented tree:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>[10:34:56.001] Starting: product=&quot;MyProduct&quot; uuts=1
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>[10:34:56.050] [UUT1] &gt;&gt; Power On
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>[10:34:56.051] [UUT1]   &gt; Power On &gt; Check Voltage
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>[10:34:56.052] [UUT1]     [PASS] Supply Voltage
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>[10:34:56.052] [UUT1]   [PASS] Power On &gt; Check Voltage
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>[10:34:56.053] [UUT1] [PASS] &lt;&lt; Power On
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>==================================================
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a> Test Results: MyProduct
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>==================================================
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a> [PASS] UUT1 (SN001): PASS    [5/5 tests, 0.01s]
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>--------------------------------------------------
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a> Overall: PASS
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a> Reports: logs/last/1.json
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>==================================================
+</code></pre></div>
+<p>Colors: green for PASS, red for FAIL, white for start events.</p>
+<h4 id="json-lines-output-format-json">JSON Lines (<code>--output-format json</code>)<a class="headerlink" href="#json-lines-output-format-json" title="Permanent link">&para;</a></h4>
+<p>Each event is a newline-delimited JSON object:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;run_start&quot;</span><span class="p">,</span><span class="nt">&quot;product&quot;</span><span class="p">:</span><span class="s2">&quot;MyProduct&quot;</span><span class="p">,</span><span class="nt">&quot;serials&quot;</span><span class="p">:[</span><span class="s2">&quot;SN001&quot;</span><span class="p">],</span><span class="nt">&quot;uuts&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;10:34:56.001&quot;</span><span class="p">}</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;sequence_start&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;sequence&quot;</span><span class="p">:</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;test_start&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;sequence&quot;</span><span class="p">:</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="nt">&quot;test&quot;</span><span class="p">:</span><span class="s2">&quot;Check Voltage&quot;</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;expectation&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;sequence&quot;</span><span class="p">:</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="nt">&quot;test&quot;</span><span class="p">:</span><span class="s2">&quot;Check Voltage&quot;</span><span class="p">,</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">,</span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;test_end&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;sequence&quot;</span><span class="p">:</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="nt">&quot;test&quot;</span><span class="p">:</span><span class="s2">&quot;Check Voltage&quot;</span><span class="p">,</span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;sequence_end&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;sequence&quot;</span><span class="p">:</span><span class="s2">&quot;Power On&quot;</span><span class="p">,</span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;run_end&quot;</span><span class="p">,</span><span class="nt">&quot;overall_pass&quot;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">&quot;product&quot;</span><span class="p">:</span><span class="s2">&quot;MyProduct&quot;</span><span class="p">,</span><span class="nt">&quot;uuts&quot;</span><span class="p">:[{</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;serial&quot;</span><span class="p">:</span><span class="s2">&quot;SN001&quot;</span><span class="p">,</span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="s2">&quot;PASS&quot;</span><span class="p">,</span><span class="nt">&quot;tests_passed&quot;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span><span class="nt">&quot;tests_total&quot;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="mf">0.01</span><span class="p">,</span><span class="nt">&quot;report&quot;</span><span class="p">:</span><span class="s2">&quot;logs/last/1.json&quot;</span><span class="p">}]}</span>
+</code></pre></div>
+<hr />
+<h2 id="popup-interaction-cli-mode">Popup Interaction (CLI Mode)<a class="headerlink" href="#popup-interaction-cli-mode" title="Permanent link">&para;</a></h2>
+<p>When a test triggers a popup in headless mode, it's presented on stdout and the process waits for input on stdin.</p>
+<h3 id="human-format">Human Format<a class="headerlink" href="#human-format" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>==================================================
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a> POPUP: &quot;Confirm Fixture&quot; (UUT 1)
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>--------------------------------------------------
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a> Place the board in the fixture
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a> Ensure all pins are seated
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a> Inputs:
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>   [1] Serial Number: _
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>   [2] Batch Code: _
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a> Buttons: [OK] [Cancel]
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>==================================================
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>Action&gt;
+</code></pre></div>
+<p><strong>Commands:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;number&gt;=&lt;value&gt;</code></td>
+<td>Set input field (e.g., <code>1=SN12345</code>)</td>
+</tr>
+<tr>
+<td><code>&lt;ButtonLabel&gt;</code></td>
+<td>Press a button (case-insensitive)</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Re-display the popup</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example interaction:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Action&gt; 1=SN12345
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  [OK] Input 1 (Serial Number) = &quot;SN12345&quot;
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Action&gt; 2=BATCH001
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  [OK] Input 2 (Batch Code) = &quot;BATCH001&quot;
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Action&gt; OK
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  -&gt; Popup consumed.
+</code></pre></div>
+<h3 id="json-format">JSON Format<a class="headerlink" href="#json-format" title="Permanent link">&para;</a></h3>
+<p>The popup is emitted as a JSON object:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;popup&quot;</span><span class="p">,</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="s2">&quot;popup_UUT1_Confirm Fixture&quot;</span><span class="p">,</span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;Confirm Fixture&quot;</span><span class="p">,</span><span class="nt">&quot;texts&quot;</span><span class="p">:[</span><span class="s2">&quot;Place the board...&quot;</span><span class="p">],</span><span class="nt">&quot;inputs&quot;</span><span class="p">:[{</span><span class="nt">&quot;index&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;Serial Number&quot;</span><span class="p">,</span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">}],</span><span class="nt">&quot;buttons&quot;</span><span class="p">:[</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span><span class="s2">&quot;Cancel&quot;</span><span class="p">]}</span>
+</code></pre></div>
+<p>Respond with a single JSON line on stdin:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="s2">&quot;popup_UUT1_Confirm Fixture&quot;</span><span class="p">,</span><span class="nt">&quot;inputs&quot;</span><span class="p">:{</span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="s2">&quot;SN12345&quot;</span><span class="p">,</span><span class="nt">&quot;2&quot;</span><span class="p">:</span><span class="s2">&quot;BATCH001&quot;</span><span class="p">},</span><span class="nt">&quot;button&quot;</span><span class="p">:</span><span class="s2">&quot;OK&quot;</span><span class="p">}</span>
+</code></pre></div>
+<h3 id="timeout">Timeout<a class="headerlink" href="#timeout" title="Permanent link">&para;</a></h3>
+<p>With <code>--popup-timeout 30</code>, popups auto-cancel after 30 seconds if no response is received.</p>
+<hr />
+<h2 id="mcp-server-mode">MCP Server Mode<a class="headerlink" href="#mcp-server-mode" title="Permanent link">&para;</a></h2>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h3>
+<p>With <code>--mcp-server</code>, Frasy runs as a <a href="https://modelcontextprotocol.io">Model Context Protocol</a> stdio server. AI agents (via Kiro or any MCP client) can discover products, launch tests, interact with popups, and retrieve results using native tool calls.</p>
+<h3 id="kiro-agent-configuration">Kiro Agent Configuration<a class="headerlink" href="#kiro-agent-configuration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">&quot;frasy&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cmd&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;/c&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;cd /d C:\\path\\to\\bin &amp;&amp; frasy.exe --mcp-server&quot;</span><span class="p">]</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="available-tools">Available Tools<a class="headerlink" href="#available-tools" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list_products</code></td>
+<td>List available test products</td>
+</tr>
+<tr>
+<td><code>run_tests</code></td>
+<td>Start a test run (async)</td>
+</tr>
+<tr>
+<td><code>get_status</code></td>
+<td>Get current execution state and per-UUT states</td>
+</tr>
+<tr>
+<td><code>get_pending_popup</code></td>
+<td>Get the next popup waiting for interaction</td>
+</tr>
+<tr>
+<td><code>respond_to_popup</code></td>
+<td>Send inputs and press a button on a pending popup</td>
+</tr>
+<tr>
+<td><code>get_results</code></td>
+<td>Get test results summary after completion</td>
+</tr>
+</tbody>
+</table>
+<h3 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Call <code>list_products</code> to see available products</li>
+<li>Call <code>run_tests</code> with product, operator, and serials</li>
+<li>Poll <code>get_status</code> until state is <code>"passed"</code>, <code>"failed"</code>, or <code>"error"</code></li>
+<li>If <code>get_pending_popup</code> returns a popup, read it and call <code>respond_to_popup</code></li>
+<li>Call <code>get_results</code> for the full summary</li>
+</ol>
+<h3 id="example-run_tests">Example: run_tests<a class="headerlink" href="#example-run_tests" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// Request</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;run_tests&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;arguments&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;product&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MyProduct&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;operator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AI&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;serials&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;SN001&quot;</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;skip_verification&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}}</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1">// Response</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="p">{</span><span class="nt">&quot;started&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+</code></pre></div>
+<h3 id="example-get_pending_popup-respond_to_popup">Example: get_pending_popup + respond_to_popup<a class="headerlink" href="#example-get_pending_popup-respond_to_popup" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">// get_pending_popup response</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;popup_UUT1_Enter Value&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enter Value&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;uut&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;texts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Enter serial:&quot;</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;index&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Serial&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">}],</span><span class="w"> </span><span class="nt">&quot;buttons&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Submit&quot;</span><span class="p">]}</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1">// respond_to_popup request</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;respond_to_popup&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;arguments&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;popup_UUT1_Enter Value&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SN12345&quot;</span><span class="p">},</span><span class="w"> </span><span class="nt">&quot;button&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Submit&quot;</span><span class="p">}}</span>
+</code></pre></div>
+<hr />
+<h2 id="reports">Reports<a class="headerlink" href="#reports" title="Permanent link">&para;</a></h2>
+<p>Test reports are saved to disk regardless of mode:</p>
+<ul>
+<li><code>logs/last/{uut}.json</code> — always overwritten with the latest run</li>
+<li><code>logs/{product}/pass/</code> — passed reports (timestamped)</li>
+<li><code>logs/{product}/fail/</code> — failed reports (timestamped)</li>
+</ul>
+<p>Reports contain full details: timing, expectations, IB info, operator, serial.</p>
 
 
 
@@ -2688,7 +2689,7 @@ For grouping UUTs that share resources, see <a href="../../developer-guide/teams
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../cpp-setup/" class="md-footer__link md-footer__link--prev" aria-label="Previous: C++ Application Setup">
+          <a href="../lua-setup/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Lua Setup">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2698,20 +2699,20 @@ For grouping UUTs that share resources, see <a href="../../developer-guide/teams
                 Previous
               </span>
               <div class="md-ellipsis">
-                C++ Application Setup
+                Lua Setup
               </div>
             </div>
           </a>
         
         
           
-          <a href="../headless-mode/" class="md-footer__link md-footer__link--next" aria-label="Next: Headless Mode">
+          <a href="../../architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Headless Mode
+                Architecture
               </div>
             </div>
             <div class="md-footer__button md-icon">
