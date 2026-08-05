@@ -257,32 +257,14 @@ void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
                                               const std::string& envPath,
                                               const std::string& testPath)
 {
-
-    if (m_orchestrator.loadUserFiles(envPath, testPath)) {
-
-        m_canOpen.stop();
-        m_canOpen.clearNodes();
+    auto* provider = Frasy::Interpreter::Get().getProductProvider();
+    if (provider && provider->setup(m_orchestrator, m_canOpen, name, envPath, testPath)) {
         m_activeProduct                = name;
         const auto& [ibs, uuts, teams] = m_orchestrator.getMap();
         m_serials.clear();
         m_serials.resize(uuts.size() + 1, {});
         m_serialsFields.clear();
         m_serialsFields.resize(uuts.size() + 1, {});
-        for (const auto& ib : ibs | std::views::values) {
-            const auto& [kind, nodeId, name, edsPath, od] = ib;
-            m_canOpen.addNode(nodeId, name, edsPath);
-            if (const uint16_t period = od["Producer heartbeat time"]["value"].get_or<uint16_t>(0); period != 0) {
-                // Make frasy aware of a new heartbeat producer, if this node is such a thing.
-                // We add a grace period to the beat's period to compensate for the inevitable variability in
-                // timing.
-                // m_canOpen.setNodeHeartbeatProdTime(ib.nodeId, static_cast<uint16_t>(10 * period));
-            }
-            else {
-                BR_APP_WARN("Node {} ('{}') is not a heartbeat producer!", nodeId, name);
-            }
-        }
-        m_canOpen.start();    // CANopen needs to be reloaded on environment changes.
-        m_orchestrator.setLoadUserFunctions([&](const sol::state_view& lua) { loadLuaFunctions(lua); });
     }
     else {
         Brigerad::warningDialog("Frasy", "Unable to initialize orchestrator!");
