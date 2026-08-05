@@ -32,6 +32,7 @@ struct CliArgs {
     std::string              outputFormat         = "human";    // "human" or "json"
     std::string              outputDir            = "logs";
     bool                     skipVerification    = false;
+    bool                     verbose             = false;
     int                      popupTimeoutSeconds = 0;    // 0 = no timeout
 
     /// Parse command-line arguments. Stores the result globally accessible via get().

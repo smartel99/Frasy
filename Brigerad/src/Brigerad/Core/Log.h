@@ -16,7 +16,7 @@ class BRIGERAD_API Log
 public:
     using Logger = std::shared_ptr<spdlog::logger>;
 
-    static void Init(bool useStderr = false);
+    static void Init(bool useStderr = false, bool silent = false);
 
     static Logger& GetCoreLogger() { return GetLogger(s_coreLoggerName); }
     static Logger& GetClientLogger() { return GetLogger(s_clientLoggerName); }
