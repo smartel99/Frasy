@@ -150,6 +150,7 @@ public:
     void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
     void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
     void                      setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback);
+    void                      setProgressCallback(std::function<void(const std::string& type, std::size_t uut, const std::string& name, const std::string& parentA, const std::string& parentB, bool pass)> callback);
     [[nodiscard]] std::string getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
@@ -219,6 +220,7 @@ private:
         return lua.create_table();
     };
     std::function<void(sol::state_view, std::size_t, Stage)> m_popupImport;
+    std::function<void(const std::string& type, std::size_t uut, const std::string& name, const std::string& parentA, const std::string& parentB, bool pass)> m_progressCallback;
     Models::Solution                         m_solution = {};
     std::vector<std::vector<Expectation>>    m_expectationsVectors;
     std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes;
