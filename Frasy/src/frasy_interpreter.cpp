@@ -66,6 +66,16 @@ void Interpreter::saveConfig() const
     }
 }
 
+void Interpreter::setProductProvider(std::unique_ptr<Headless::ProductProvider> provider)
+{
+    m_productProvider = std::move(provider);
+}
+
+Headless::ProductProvider* Interpreter::getProductProvider()
+{
+    return m_productProvider.get();
+}
+
 
 
 }    // namespace Frasy

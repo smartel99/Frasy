@@ -65,8 +65,9 @@ void MyMainApplicationLayer::renderControlRoom()
 
     if (m_activeProduct == "expectation") {
         ImGui::BeginChild("Expectations", ImVec2(800.0f, 300.0f));
-        auto [mutex, expectations] = m_orchestrator.getExpectations(1);
-        std::lock_guard lock(mutex);
+        auto* mutex = m_orchestrator.getExpectationsMutex(1);
+        std::lock_guard lock(*mutex);
+        const auto& expectations = m_orchestrator.getExpectationsVector(1);
         renderExpectations(expectations);
         ImGui::EndChild();
     }
