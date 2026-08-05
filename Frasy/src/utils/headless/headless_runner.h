@@ -55,6 +55,7 @@ private:
     ProductProvider&  m_provider;
     Lua::Orchestrator m_orchestrator;
     CanOpen::CanOpen  m_canOpen;
+    std::mutex        m_ioMutex;
 };
 
 }    // namespace Frasy::Headless

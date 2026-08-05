@@ -51,7 +51,7 @@ spdlog::file_event_handlers Log::s_eventHandlers = []()
     return handlers;
 }();
 
-void Log::Init()
+void Log::Init(bool useStderr)
 {
     // %T -> Timestamp
     // %n -> Name of the logger
@@ -59,9 +59,16 @@ void Log::Init()
     spdlog::set_pattern("%^[%T] %n: %v%$");
     s_sinks = std::make_shared<decltype(s_sinks)::element_type>();
 
-    auto stdSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    stdSink->set_pattern("%^%L[%T.%e] %n: %v%$");
-    s_sinks->add_sink(stdSink);
+    if (useStderr) {
+        auto stderrSink = std::make_shared<spdlog::sinks::stderr_color_sink_mt>();
+        stderrSink->set_pattern("%^%L[%T.%e] %n: %v%$");
+        s_sinks->add_sink(stderrSink);
+    }
+    else {
+        auto stdSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        stdSink->set_pattern("%^%L[%T.%e] %n: %v%$");
+        s_sinks->add_sink(stdSink);
+    }
 
     static constexpr size_t maxSize = 1024 * 1024 * 1;    //!< 1MB max
     auto rotatingFileSink           = std::make_shared<LogRotatingSanitizedFileSinkMt>(

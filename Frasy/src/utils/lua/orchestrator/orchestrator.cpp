@@ -350,7 +350,12 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         };
         lua.require_file("Json", "lua/core/vendor/json.lua");
         importLog(lua, uut, stage);
-        importPopup(lua, uut, stage);
+        if (m_popupImport) {
+            m_popupImport(lua, uut, stage);
+        }
+        else {
+            importPopup(lua, uut, stage);
+        }
         importExclusive(lua, stage);
         importOnce(lua, stage);
         lua.script_file("lua/core/framework/exception.lua");
@@ -991,6 +996,9 @@ void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_v
 
 void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback)
 { m_loadUserValues = callback; }
+
+void Orchestrator::setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback)
+{ m_popupImport = std::move(callback); }
 #pragma endregion
 
 #pragma region Exclusive
