@@ -450,7 +450,119 @@ JSON mode response (single line on stdin):
 
 ---
 
-### Task 6: Progress Reporter
+### Task 6: MCP Server Mode (stdio)
+
+**Objective:** Add `--mcp-server` mode where Frasy acts as an MCP tool server over stdio (JSON-RPC), enabling AI agents to launch tests, interact with popups, and retrieve results programmatically via Kiro's native MCP integration.
+
+**Implementation guidance:**
+
+**Launch mode:**
+
+- `frasy.exe --mcp-server` starts Frasy as an MCP stdio server
+- stdout is exclusively JSON-RPC (MCP protocol messages)
+- Logs go to stderr and/or file only
+- The application is still created (for ProductProvider registration, framework init, hidden window)
+- Frasy sits idle waiting for tool calls until the process is terminated
+
+**MCP protocol (stdio):**
+
+- Client → Server: JSON-RPC requests on stdin (one per line)
+- Server → Client: JSON-RPC responses on stdout (one per line)
+- Server → Client: JSON-RPC notifications on stdout (for progress events)
+
+**Tools exposed:**
+
+| Tool | Parameters | Returns |
+|---|---|---|
+| `list_products` | — | Array of `{name, uut_count}` |
+| `run_tests` | `product`, `operator`, `serials[]`, `skip_verification?` | `{started: true}` or error |
+| `get_status` | — | `{state, uuts: [{uut, serial, state}]}` |
+| `get_pending_popup` | — | Popup object or `null` |
+| `respond_to_popup` | `id`, `inputs?`, `button` | `{ok: true}` or error |
+| `get_results` | — | Full results summary |
+| `abort` | — | Stops current test run |
+
+**State machine:**
+
+```
+idle → running (on run_tests)
+running → passed/failed/error (on completion)
+passed/failed/error → idle (on next run_tests)
+```
+
+**Popup flow:**
+
+- When a popup triggers during execution, it's queued
+- `get_pending_popup` returns the oldest queued popup
+- The Lua thread blocks until `respond_to_popup` is called for that popup's ID
+- Multiple popups from multiple UUTs queue up (FIFO)
+
+**Kiro agent configuration:**
+
+```json
+{
+  "mcpServers": {
+    "frasy": {
+      "command": "C:/path/to/demo_mode.exe",
+      "args": ["--mcp-server"],
+      "env": {}
+    }
+  }
+}
+```
+
+**Implementation details:**
+
+1. Add `--mcp-server` flag to `CliArgs`
+2. In `EntryPoint.h`, branch on `--mcp-server` (similar to `--headless`)
+3. Create `Frasy/src/utils/mcp/mcp_server.h/.cpp`:
+   - JSON-RPC message parsing (request/response/notification)
+   - MCP initialize/initialized handshake
+   - Tool registration (tools/list)
+   - Tool call dispatch (tools/call)
+4. Create `Frasy/src/utils/mcp/mcp_popup_handler.h/.cpp`:
+   - Alternative popup import that queues popups for MCP retrieval
+   - Condition variable to wake Lua thread when response arrives
+5. Wire into a new `McpRunner` class that owns the orchestrator and drives execution
+6. Ensure stdout is exclusively JSON-RPC (no spdlog stdout sink)
+
+**MCP protocol messages (examples):**
+
+Client → Server (initialize):
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"kiro","version":"1.0"}}}
+```
+
+Server → Client (initialize response):
+```json
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"frasy","version":"1.0.0"}}}
+```
+
+Client → Server (list tools):
+```json
+{"jsonrpc":"2.0","id":2,"method":"tools/list"}
+```
+
+Client → Server (call tool):
+```json
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"run_tests","arguments":{"product":"CLI-tests","operator":"AI","serials":["SN001"]}}}
+```
+
+Server → Client (tool result):
+```json
+{"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{\"started\":true}"}]}}
+```
+
+**Test requirements:**
+
+- Unit test: JSON-RPC message parsing/serialization
+- Integration test: full MCP handshake + tool call via piped stdin/stdout
+- Test: run_tests → get_status → get_results lifecycle
+- Test: popup interaction via get_pending_popup / respond_to_popup
+
+---
+
+### Task 7: Progress Reporter
 
 **Objective:** Implement real-time progress output to the console showing test execution status per UUT.
 
@@ -501,7 +613,7 @@ JSON mode response (single line on stdin):
 
 ---
 
-### Task 7: Report Summary and Exit Codes
+### Task 8: Report Summary and Exit Codes
 
 **Objective:** After test execution, print a concise summary to stdout, ensure reports are on disk, and return the correct exit code.
 
@@ -550,7 +662,7 @@ JSON mode response (single line on stdin):
 
 ---
 
-### Task 8: Demo Application and Shared Logic Refactor
+### Task 9: Demo Application and Shared Logic Refactor
 
 **Objective:** Update the demo_mode application to demonstrate headless support and show the shared-logic pattern where `ProductProvider::setup()` is used by both GUI and headless paths.
 
@@ -632,7 +744,7 @@ void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
 
 ---
 
-### Task 9: Documentation
+### Task 10: Documentation
 
 **Objective:** Document the headless CLI mode for end-users and developers.
 
