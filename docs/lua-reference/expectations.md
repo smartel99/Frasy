@@ -28,8 +28,11 @@ Expect(voltage, "Supply Voltage"):ToBeInRange(4.9, 5.1)
 
 | Field | Type | Description |
 |---|---|---|
-| `opt.note` | `string?` | Additional note attached to the result (defaults to `name`) |
-| `opt.extra` | `table?` | Extra data stored alongside the result for debugging |
+| `note` | `string?` | Additional note attached to the result (defaults to `name`) |
+| `extra` | `table?` | Extra data stored alongside the result for debugging |
+| `onErrorExtra` | `table?` | Extra data to be added only if test fails |
+| `policy` | `ErrorPolicy?` | Set Policy modifier (default to `nil`) |
+| `inverted` | `boolean?` | Set Inverted modifier (default to `false`) |
 
 ---
 
@@ -38,34 +41,37 @@ Expect(voltage, "Supply Voltage"):ToBeInRange(4.9, 5.1)
 Modifiers change how the expectation behaves. They are chainable and should appear **before**
 the matcher.
 
-### `:Not()`
+### `Inverted`
 
 Inverts the expectation. The assertion passes when the matcher would normally fail, and
 vice versa.
 
 ```lua
-Expect(status, "Status"):Not():ToBeEqual(0)     -- passes if status ≠ 0
+Expect(status, "Status", { inverted = true }):ToBeEqual(0)     -- passes if status ≠ 0
 ```
 
-### `:Mandatory()`
+### `Policy`
 
-If this expectation fails, the **entire test stops immediately**. Remaining expectations in the
-test are not evaluated.
+Tells the orchestrator to halt testing when an expectation fails.
+
+`ErrorPolicy.stopCurrent` will stop the current test.
+
+`ErrorPolicy.stopAll` will stop all tests.
+
+Does nothing if not provided.
 
 ```lua
-Expect(connected, "Device Connected"):Mandatory():ToBeTrue()
+Expect(connected, "Device Connected", { policy =  ErrorPolicy.stopCurrent }):ToBeTrue()
 -- If connected is false, test stops here with "Unmet Expectation"
 ```
-
-Without `:Mandatory()`, a failing expectation marks the test as failed but allows subsequent
-expectations to still run.
 
 ---
 
 ## Matchers
 
-Each matcher asserts the value against a specific criterion. Only one matcher can be called per
-`Expect()`.
+Each matcher asserts the value against a specific criterion.
+
+They all returns an `ExpectationResult`
 
 ### `:ToBeTrue()`
 
@@ -325,7 +331,7 @@ Expect(version, "Version Format"):ToMatch("%d+%.%d+%.%d+")
 
 ## Post-Assertion Methods
 
-These methods can be called **after** the matcher.
+These methods can be called on the `ExpectationResult`
 
 ### `:ExportAs(name)`
 
@@ -335,25 +341,6 @@ via `Orchestrator.GetValue()`.
 ```lua
 Expect(voltage, "Reference"):ToBeInRange(4.9, 5.1):ExportAs("ref_voltage")
 ```
-
-### `:OnErrorExtra(extra)`
-
-Attaches additional debugging data to the expectation result — but only if the expectation
-**fails**. Useful for capturing context that helps diagnose failures.
-
-```lua
-Expect(response, "Command Response"):ToBeEqual(0x06):OnErrorExtra({
-    raw_bytes = rawData,
-    retry_count = retries,
-    timestamp = os.clock(),
-})
-```
-
-**Parameters:**
-
-| Name | Type | Description |
-|---|---|---|
-| `extra` | `table` | Key-value pairs to attach to the result on failure |
 
 ### `:Show()`
 
@@ -397,9 +384,6 @@ Each expectation produces a result entry in the test report:
     "inverted": false
 }
 ```
-
-When `:Not()` is used, `inverted` is `true` and the logical pass/fail is the opposite of
-what the raw comparison produced.
 
 ---
 

@@ -13,7 +13,7 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 
-local Expectation = require("lua/core/framework/expectation/module")
+local Expectation = require("lua/core/framework/expectation/expectation")
 local RuntimeRequirement = require("lua/core/framework/runtime_requirement")
 
 
@@ -121,7 +121,7 @@ end
 --- Expect
 --- @param value any
 --- @param name string
---- @param opt ExpectationResultOpt?
+--- @param opt ExpectationOpt?
 --- @return Expectation
 function Expect(value, name, opt)
     return Expectation:New(value, name, opt)

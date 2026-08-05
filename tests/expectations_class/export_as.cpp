@@ -10,8 +10,8 @@ protected:
         OrchestratorTestFixture::SetUp();
         createTest("Seq", "T1", true);
         setStage("execution");
-        lua.script("Expectation = require('lua/core/framework/expectation/execution')");
-        lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/common.lua");
+        lua.script("Expectation = require('lua/core/framework/expectation/expectation')");
+        lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/utils.lua");
     }
 };
 

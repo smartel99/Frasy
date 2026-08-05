@@ -2,8 +2,7 @@
 
 #include <gtest/gtest.h>
 
-class ExpectationClassTest : public OrchestratorTestFixture
-{
+class ExpectationClassTest : public OrchestratorTestFixture {
 protected:
     void SetUp() override
     {
@@ -12,9 +11,9 @@ protected:
         createTest("Seq", "T1", true);
         setStage("execution");
         // Load the expectation execution module
-        lua.script("Expectation = require('lua/core/framework/expectation/execution')");
+        lua.script("Expectation = require('lua/core/framework/expectation/expectation')");
         // Load common expectation functions
-        lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/common.lua");
+        lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/utils.lua");
     }
 };
 
@@ -22,8 +21,8 @@ TEST_F(ExpectationClassTest, New_CreatesWithValueAndName)
 {
     lua.script(R"(
         local e = Expectation:New(42, "voltage")
-        __value = e.result.value
-        __name = e.result.name
+        __value = e.value
+        __name = e.name
     )");
     EXPECT_EQ(lua.script("return __value").get<int>(), 42);
     EXPECT_EQ(lua.script("return __name").get<std::string>(), "voltage");
@@ -31,45 +30,44 @@ TEST_F(ExpectationClassTest, New_CreatesWithValueAndName)
 
 TEST_F(ExpectationClassTest, New_DefaultsInvertedToFalse)
 {
-    auto inverted = lua.script(R"(
+    auto inverted = lua
+                      .script(R"(
         local e = Expectation:New(1, "x")
-        return e.result.inverted
-    )").get<bool>();
+        return e.inverted
+    )")
+                      .get<bool>();
     EXPECT_FALSE(inverted);
 }
 
 TEST_F(ExpectationClassTest, New_DefaultsMandatoryToFalse)
 {
-    auto mandatory = lua.script(R"(
+    std::optional<int> policy = lua
+                                  .script(R"(
         local e = Expectation:New(1, "x")
-        return e.mandatory
-    )").get<bool>();
-    EXPECT_FALSE(mandatory);
-}
-
-TEST_F(ExpectationClassTest, New_PassIsNilInitially)
-{
-    auto isNil = lua.script(R"(
-        local e = Expectation:New(1, "x")
-        return e.result.pass == nil
-    )").get<bool>();
-    EXPECT_TRUE(isNil);
+        return e.policy
+    )")
+                                  .get<std::optional<int>>();
+    EXPECT_FALSE(policy.has_value());
 }
 
 TEST_F(ExpectationClassTest, New_WithOptNote)
 {
-    auto note = lua.script(R"(
+    auto note = lua
+                  .script(R"(
         local e = Expectation:New(1, "x", { note = "custom note" })
-        return e.result.note
-    )").get<std::string>();
+        return e.note
+    )")
+                  .get<std::string>();
     EXPECT_EQ(note, "custom note");
 }
 
 TEST_F(ExpectationClassTest, New_WithOptExtra)
 {
-    auto hasExtra = lua.script(R"(
+    auto hasExtra = lua
+                      .script(R"(
         local e = Expectation:New(1, "x", { extra = { key = "val" } })
-        return e.result.extra.key
-    )").get<std::string>();
+        return e.extra.key
+    )")
+                      .get<std::string>();
     EXPECT_EQ(hasExtra, "val");
 }

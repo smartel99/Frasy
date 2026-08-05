@@ -176,6 +176,11 @@ function Orchestrator.RunTest(scope)
             elseif err.code == UnmetExpectation().code then
                 test.result.pass = false
                 test.result.reason = err.what
+                if err.policy == ErrorPolicy.stopAll then
+                    reportEnd()
+                    Team.Sync(test.result)
+                    error(err)
+                end
             elseif err.code == UnmetRequirement().code then
                 test.result.skipped = true
                 test.result.reason = err.what
@@ -189,7 +194,7 @@ function Orchestrator.RunTest(scope)
         else
             test.result.pass = true
             for _, expectation in ipairs(test.expectations) do
-                if expectation.pass == expectation.inverted then
+                if not expectation.pass then
                     test.result.pass = false
                     test.result.reason = "Unmet expectation"
                 end

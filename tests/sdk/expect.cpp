@@ -11,10 +11,10 @@ protected:
         createTest("Seq", "T1", true);
         setStage("execution");
         // Load execution expectation (needed for Expect() to work)
-        lua.script("package.loaded['lua/core/framework/expectation/module'] = nil");
-        lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/common.lua");
+        lua.script("package.loaded['lua/core/framework/expectation/expectation'] = nil");
+        lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/utils.lua");
         // Reload the SDK's Expect which uses the expectation module
-        lua.script("Expectation = require('lua/core/framework/expectation/execution')");
+        lua.script("Expectation = require('lua/core/framework/expectation/expectation')");
         // Re-define Expect to use the execution Expectation
         lua.script(R"(
             function Expect(value, name, opt)
