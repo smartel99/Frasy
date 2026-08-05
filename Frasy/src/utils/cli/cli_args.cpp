@@ -32,6 +32,7 @@ void printUsage(const char* programName)
               << "\n"
               << "Options:\n"
               << "  --headless              Run in headless (CLI) mode\n"
+              << "  --mcp-server            Run as MCP tool server (stdio JSON-RPC)\n"
               << "  --product <name>        Product to test (required in headless mode)\n"
               << "  --operator <name>       Operator name (required in headless mode)\n"
               << "  --serial <sn>           Serial number for a UUT (repeatable, required in headless mode)\n"
@@ -78,6 +79,9 @@ CliArgs CliArgs::parse(int argc, char** argv)
         }
         else if (arg == "--headless") {
             args.headless = true;
+        }
+        else if (arg == "--mcp-server") {
+            args.mcpServer = true;
         }
         else if (arg == "--skip-verification") {
             args.skipVerification = true;
@@ -139,6 +143,12 @@ CliArgs CliArgs::parse(int argc, char** argv)
             ++i;
         }
         // Ignore unknown flags silently (they may be for the application or Brigerad)
+    }
+
+    // Validate mutual exclusivity
+    if (args.headless && args.mcpServer) {
+        std::cerr << "Error: --headless and --mcp-server are mutually exclusive\n";
+        std::exit(2);
     }
 
     // Validate required flags in headless mode
