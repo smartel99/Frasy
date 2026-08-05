@@ -14,12 +14,19 @@
 #include <format>
 #include <cstddef>
 
+#include <utils/cli/cli_args.h>
+#include <frasy_interpreter.h>
+
 #if defined(BR_PLATFORM_WINDOWS) || defined(BR_PLATFORM_LINUX)
 
 extern Brigerad::Application* Brigerad::CreateApplication(int argc, char** argv);
 
 int main(int argc, char** argv)
 {
+    Frasy::CliArgs::parse(argc, argv);
+    const auto& cliArgs = Frasy::CliArgs::get();
+    int exitCode = 0;
+
     BR_BEGIN_GUARDED_SCOPE
         {
             BR_PROFILE_BEGIN_SESSION("Init", "BrigeradProfile-Startup.json");
@@ -30,13 +37,31 @@ int main(int argc, char** argv)
 
             BR_PROFILE_END_SESSION();
             auto app = Brigerad::CreateApplication(argc, argv);
-            app->run();
+
+            if (cliArgs.headless) {
+                auto* provider = Frasy::Interpreter::Get().getProductProvider();
+                if (!provider) {
+                    BR_CORE_ERROR("No ProductProvider registered for headless mode");
+                    exitCode = 2;
+                }
+                else {
+                    // TODO: HeadlessRunner will be wired here in Task 4
+                    BR_CORE_INFO("Headless mode: product='{}' operator='{}' serials={}",
+                                 cliArgs.product, cliArgs.operatorName, cliArgs.serials.size());
+                    exitCode = 0;
+                }
+            }
+            else {
+                app->run();
+            }
 
             BR_PROFILE_BEGIN_SESSION("Shutdown", "BrigeradProfile-Shutdown.json");
             delete app;
             BR_PROFILE_END_SESSION();
         }
     BR_END_GUARDED_SCOPE
+
+    return exitCode;
 }
 
 #endif

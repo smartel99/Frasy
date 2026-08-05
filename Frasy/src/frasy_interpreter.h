@@ -10,8 +10,10 @@
 
 #include "Brigerad.h"
 #include "utils/communication/serial/device_map.h"
+#include "utils/headless/product_provider.h"
 
 #include <json.hpp>
+#include <memory>
 #include <string>
 
 namespace Frasy
@@ -40,12 +42,16 @@ namespace Frasy
 
         void saveConfig() const;
 
+        void setProductProvider(std::unique_ptr<Headless::ProductProvider> provider);
+        Headless::ProductProvider* getProductProvider();
+
     protected:
         inline static Interpreter* s_instance = nullptr;
 
 
         nlohmann::json m_config;
         Serial::DeviceMap m_deviceMap;
+        std::unique_ptr<Headless::ProductProvider> m_productProvider;
 
     private:
         static nlohmann::json loadConfig();
