@@ -1,0 +1,28 @@
+--- @file    test.lua
+--- @brief   CLI-tests — simple test sequences for headless mode validation.
+
+Sequence("Basic", function()
+    Test("Always Pass", function()
+        Expect(true, "Truth"):ToBeTrue()
+    end)
+
+    Test("Math Check", function()
+        Expect(2 + 2, "Addition"):ToBeEqual(4)
+    end)
+
+    Test("String Match", function()
+        Expect("hello", "Greeting"):ToBeEqual("hello")
+    end)
+end)
+
+Sequence("Validation", function()
+    Requires(Sequence("Basic"):ToPass())
+
+    Test("Range Check", function()
+        Expect(3.3, "Voltage"):ToBeInRange(3.0, 3.6)
+    end)
+
+    Test("Percentage Check", function()
+        Expect(5.1, "Value"):ToBeInPercentage(5.0, 5.0)
+    end)
+end)

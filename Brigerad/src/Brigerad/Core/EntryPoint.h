@@ -15,6 +15,7 @@
 #include <cstddef>
 
 #include <utils/cli/cli_args.h>
+#include <utils/headless/headless_runner.h>
 #include <frasy_interpreter.h>
 
 #if defined(BR_PLATFORM_WINDOWS) || defined(BR_PLATFORM_LINUX)
@@ -45,10 +46,8 @@ int main(int argc, char** argv)
                     exitCode = 2;
                 }
                 else {
-                    // TODO: HeadlessRunner will be wired here in Task 4
-                    BR_CORE_INFO("Headless mode: product='{}' operator='{}' serials={}",
-                                 cliArgs.product, cliArgs.operatorName, cliArgs.serials.size());
-                    exitCode = 0;
+                    Frasy::Headless::HeadlessRunner runner(cliArgs, *provider);
+                    exitCode = runner.run();
                 }
             }
             else {
