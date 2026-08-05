@@ -10,12 +10,14 @@ struct WindowProps {
     unsigned int width;
     unsigned int height;
     bool         maximized = true;
+    bool         visible   = true;
 
     WindowProps(const std::string& t         = "Brigerad Engine",
                 bool               maximized = true,
                 unsigned int       w         = 1920,
-                unsigned int       h         = 1080)
-    : title(t), width(w), height(h), maximized(maximized)
+                unsigned int       h         = 1080,
+                bool               visible   = true)
+    : title(t), width(w), height(h), maximized(maximized), visible(visible)
     {
     }
 };

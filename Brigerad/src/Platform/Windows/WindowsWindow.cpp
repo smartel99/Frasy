@@ -284,6 +284,7 @@ void WindowsWindow::Init(const WindowProps& props)
         if (Renderer::GetAPI() == RendererAPI::API::OpenGL) { glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE); }
 #endif
         if (props.maximized) { glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE); }
+        if (!props.visible) { glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); }
         m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
         ++s_GLFWWindowCount;
     }
