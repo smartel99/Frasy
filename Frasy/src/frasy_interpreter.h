@@ -9,6 +9,7 @@
 #define FRASY_INTERPRETER_H
 
 #include "Brigerad.h"
+#include "utils/cli/cli_args.h"
 #include "utils/communication/serial/device_map.h"
 #include "utils/headless/product_provider.h"
 
@@ -21,7 +22,8 @@ namespace Frasy
     class Interpreter : public Brigerad::Application
     {
     public:
-        explicit Interpreter(const std::string& name) : Application(name), m_config(loadConfig())
+        explicit Interpreter(const std::string& name)
+        : Application(name, true, !CliArgs::get().headless), m_config(loadConfig())
         {
             if (s_instance != nullptr) { throw std::runtime_error("Interpreter instance already created!"); }
             s_instance = this;
