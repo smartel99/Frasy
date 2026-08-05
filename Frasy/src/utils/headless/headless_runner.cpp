@@ -183,33 +183,124 @@ bool HeadlessRunner::validateSerials()
 
 int HeadlessRunner::reportResults()
 {
-    const auto& map = m_orchestrator.getMap();
+    const auto& map       = m_orchestrator.getMap();
     bool        anyFailed = false;
     bool        anyError  = false;
 
+    struct UutResult {
+        std::size_t uut;
+        std::string serial;
+        std::string state;
+        bool        pass;
+        int         testsPassed = 0;
+        int         testsTotal  = 0;
+        double      duration    = 0.0;
+        std::string reportPath;
+    };
+
+    std::vector<UutResult> results;
+
     for (const auto& uut : map.uuts) {
-        auto state = m_orchestrator.getUutState(uut);
-        switch (state) {
-            case UutState::Passed:
-                BR_LOG_INFO(s_tag, "UUT {} ({}): PASSED", uut, m_args.serials[uut - 1]);
-                break;
-            case UutState::Failed:
-                BR_LOG_ERROR(s_tag, "UUT {} ({}): FAILED", uut, m_args.serials[uut - 1]);
-                anyFailed = true;
-                break;
-            case UutState::Error:
-                BR_LOG_ERROR(s_tag, "UUT {} ({}): ERROR", uut, m_args.serials[uut - 1]);
-                anyError = true;
-                break;
-            default:
-                BR_LOG_WARN(s_tag, "UUT {} ({}): unexpected state {}", uut, m_args.serials[uut - 1],
-                            static_cast<int>(state));
-                anyError = true;
-                break;
+        UutResult r;
+        r.uut    = uut;
+        r.serial = (uut >= 1 && uut <= m_args.serials.size()) ? m_args.serials[uut - 1] : "?";
+
+        auto uutState = m_orchestrator.getUutState(uut);
+        switch (uutState) {
+            case UutState::Passed: r.state = "PASS"; r.pass = true; break;
+            case UutState::Failed: r.state = "FAIL"; r.pass = false; anyFailed = true; break;
+            case UutState::Error: r.state = "ERROR"; r.pass = false; anyError = true; break;
+            default: r.state = "UNKNOWN"; r.pass = false; anyError = true; break;
         }
+
+        // Read the report JSON for detailed info
+        r.reportPath = std::format("{}/last/{}.json", m_args.outputDir, uut);
+        if (std::filesystem::exists(r.reportPath)) {
+            try {
+                std::ifstream ifs(r.reportPath);
+                auto          report = nlohmann::json::parse(ifs);
+                if (report.contains("info")) {
+                    r.duration = report["info"].value("time", nlohmann::json::object()).value("elapsed", 0.0);
+                }
+                if (report.contains("sequences")) {
+                    for (auto& [seqName, seq] : report["sequences"].items()) {
+                        if (seq.contains("tests")) {
+                            for (auto& [testName, test] : seq["tests"].items()) {
+                                r.testsTotal++;
+                                if (test.value("pass", false)) { r.testsPassed++; }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (...) {
+                // Report parsing failed — leave counts at 0
+            }
+        }
+        else {
+            if (uutState != UutState::Disabled) { anyError = true; }
+        }
+
+        results.push_back(r);
     }
 
-    // TODO: Task 7 will add full summary output (human/json format)
+    // Determine overall result
+    bool overallPass = !anyFailed && !anyError;
+
+    // Print summary
+    std::lock_guard lock(m_ioMutex);
+    if (m_args.outputFormat == "json") {
+        nlohmann::json summary;
+        summary["type"]         = "run_end";
+        summary["overall_pass"] = overallPass;
+        summary["product"]      = m_args.product;
+
+        nlohmann::json uutArray = nlohmann::json::array();
+        for (const auto& r : results) {
+            nlohmann::json u;
+            u["uut"]          = r.uut;
+            u["serial"]       = r.serial;
+            u["pass"]         = r.pass;
+            u["state"]        = r.state;
+            u["tests_passed"] = r.testsPassed;
+            u["tests_total"]  = r.testsTotal;
+            u["duration"]     = r.duration;
+            u["report"]       = r.reportPath;
+            uutArray.push_back(u);
+        }
+        summary["uuts"] = uutArray;
+        std::cout << summary.dump() << "\n" << std::flush;
+    }
+    else {
+        constexpr auto colorReset = "\033[0m";
+        constexpr auto colorGreen = "\033[32m";
+        constexpr auto colorRed   = "\033[31m";
+        constexpr auto colorBold  = "\033[1m";
+
+        std::cout << "\n";
+        std::cout << std::format("{:=<50}\n", "");
+        std::cout << std::format("{} Test Results: {}{}\n", colorBold, m_args.product, colorReset);
+        std::cout << std::format("{:=<50}\n", "");
+
+        for (const auto& r : results) {
+            const char* color = r.pass ? colorGreen : colorRed;
+            std::cout << std::format(" {}{} UUT{} ({}): {}    [{}/{} tests, {:.2f}s]{}\n",
+                                     color, r.pass ? "[PASS]" : "[FAIL]",
+                                     r.uut, r.serial, r.state,
+                                     r.testsPassed, r.testsTotal, r.duration, colorReset);
+        }
+
+        std::cout << std::format("{:-<50}\n", "");
+        const char* overallColor = overallPass ? colorGreen : colorRed;
+        std::cout << std::format(" {}Overall: {}{}\n", overallColor, overallPass ? "PASS" : "FAIL", colorReset);
+        std::cout << " Reports:";
+        for (const auto& r : results) {
+            std::cout << " " << r.reportPath;
+        }
+        std::cout << "\n";
+        std::cout << std::format("{:=<50}\n", "");
+        std::cout << std::flush;
+    }
 
     if (anyError) { return 2; }
     if (anyFailed) { return 1; }
