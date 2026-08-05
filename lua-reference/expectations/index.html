@@ -1360,10 +1360,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#not" class="md-nav__link">
+  <a href="#inverted" class="md-nav__link">
     <span class="md-ellipsis">
       
-        :Not()
+        Inverted
       
     </span>
   </a>
@@ -1371,10 +1371,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#mandatory" class="md-nav__link">
+  <a href="#policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        :Mandatory()
+        Policy
       
     </span>
   </a>
@@ -1552,17 +1552,6 @@
     <span class="md-ellipsis">
       
         :ExportAs(name)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#onerrorextraextra" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        :OnErrorExtra(extra)
       
     </span>
   </a>
@@ -2148,10 +2137,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#not" class="md-nav__link">
+  <a href="#inverted" class="md-nav__link">
     <span class="md-ellipsis">
       
-        :Not()
+        Inverted
       
     </span>
   </a>
@@ -2159,10 +2148,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#mandatory" class="md-nav__link">
+  <a href="#policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        :Mandatory()
+        Policy
       
     </span>
   </a>
@@ -2347,17 +2336,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#onerrorextraextra" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        :OnErrorExtra(extra)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#show" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2485,14 +2463,29 @@ pass/fail results that appear in test reports.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>opt.note</code></td>
+<td><code>note</code></td>
 <td><code>string?</code></td>
 <td>Additional note attached to the result (defaults to <code>name</code>)</td>
 </tr>
 <tr>
-<td><code>opt.extra</code></td>
+<td><code>extra</code></td>
 <td><code>table?</code></td>
 <td>Extra data stored alongside the result for debugging</td>
+</tr>
+<tr>
+<td><code>onErrorExtra</code></td>
+<td><code>table?</code></td>
+<td>Extra data to be added only if test fails</td>
+</tr>
+<tr>
+<td><code>policy</code></td>
+<td><code>ErrorPolicy?</code></td>
+<td>Set Policy modifier (default to <code>nil</code>)</td>
+</tr>
+<tr>
+<td><code>inverted</code></td>
+<td><code>boolean?</code></td>
+<td>Set Inverted modifier (default to <code>false</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -2500,23 +2493,23 @@ pass/fail results that appear in test reports.</p>
 <h2 id="modifiers">Modifiers<a class="headerlink" href="#modifiers" title="Permanent link">&para;</a></h2>
 <p>Modifiers change how the expectation behaves. They are chainable and should appear <strong>before</strong>
 the matcher.</p>
-<h3 id="not"><code>:Not()</code><a class="headerlink" href="#not" title="Permanent link">&para;</a></h3>
+<h3 id="inverted"><code>Inverted</code><a class="headerlink" href="#inverted" title="Permanent link">&para;</a></h3>
 <p>Inverts the expectation. The assertion passes when the matcher would normally fail, and
 vice versa.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">status</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Status&quot;</span><span class="p">):</span><span class="nf">Not</span><span class="p">():</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w">     </span><span class="c1">-- passes if status ≠ 0</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">status</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Status&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">inverted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w">     </span><span class="c1">-- passes if status ≠ 0</span>
 </code></pre></div>
-<h3 id="mandatory"><code>:Mandatory()</code><a class="headerlink" href="#mandatory" title="Permanent link">&para;</a></h3>
-<p>If this expectation fails, the <strong>entire test stops immediately</strong>. Remaining expectations in the
-test are not evaluated.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">connected</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Device Connected&quot;</span><span class="p">):</span><span class="nf">Mandatory</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
+<h3 id="policy"><code>Policy</code><a class="headerlink" href="#policy" title="Permanent link">&para;</a></h3>
+<p>Tells the orchestrator to halt testing when an expectation fails.</p>
+<p><code>ErrorPolicy.stopCurrent</code> will stop the current test.</p>
+<p><code>ErrorPolicy.stopAll</code> will stop all tests.</p>
+<p>Does nothing if not provided.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">connected</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Device Connected&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">policy</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="nv">ErrorPolicy</span><span class="p">.</span><span class="py">stopCurrent</span><span class="w"> </span><span class="p">}):</span><span class="nf">ToBeTrue</span><span class="p">()</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">-- If connected is false, test stops here with &quot;Unmet Expectation&quot;</span>
 </code></pre></div>
-<p>Without <code>:Mandatory()</code>, a failing expectation marks the test as failed but allows subsequent
-expectations to still run.</p>
 <hr />
 <h2 id="matchers">Matchers<a class="headerlink" href="#matchers" title="Permanent link">&para;</a></h2>
-<p>Each matcher asserts the value against a specific criterion. Only one matcher can be called per
-<code>Expect()</code>.</p>
+<p>Each matcher asserts the value against a specific criterion.</p>
+<p>They all returns an <code>ExpectationResult</code></p>
 <h3 id="tobetrue"><code>:ToBeTrue()</code><a class="headerlink" href="#tobetrue" title="Permanent link">&para;</a></h3>
 <p>Asserts that the value is boolean <code>true</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">flag</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Enable Flag&quot;</span><span class="p">):</span><span class="nf">ToBeTrue</span><span class="p">()</span>
@@ -3019,42 +3012,16 @@ expectations to still run.</p>
 </table>
 <hr />
 <h2 id="post-assertion-methods">Post-Assertion Methods<a class="headerlink" href="#post-assertion-methods" title="Permanent link">&para;</a></h2>
-<p>These methods can be called <strong>after</strong> the matcher.</p>
+<p>These methods can be called on the <code>ExpectationResult</code></p>
 <h3 id="exportasname"><code>:ExportAs(name)</code><a class="headerlink" href="#exportasname" title="Permanent link">&para;</a></h3>
 <p>Stores the measured value in the orchestrator's value store, making it available to other tests
 via <code>Orchestrator.GetValue()</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Reference&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">):</span><span class="nf">ExportAs</span><span class="p">(</span><span class="s2">&quot;ref_voltage&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="onerrorextraextra"><code>:OnErrorExtra(extra)</code><a class="headerlink" href="#onerrorextraextra" title="Permanent link">&para;</a></h3>
-<p>Attaches additional debugging data to the expectation result — but only if the expectation
-<strong>fails</strong>. Useful for capturing context that helps diagnose failures.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">response</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Command Response&quot;</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mh">0x06</span><span class="p">):</span><span class="nf">OnErrorExtra</span><span class="p">({</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">    </span><span class="nv">raw_bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">rawData</span><span class="p">,</span>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="nv">retry_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">retries</span><span class="p">,</span>
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="nv">timestamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">os.clock</span><span class="p">(),</span>
-<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="p">})</span>
-</code></pre></div>
-<p><strong>Parameters:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>extra</code></td>
-<td><code>table</code></td>
-<td>Key-value pairs to attach to the result on failure</td>
-</tr>
-</tbody>
-</table>
 <h3 id="show"><code>:Show()</code><a class="headerlink" href="#show" title="Permanent link">&para;</a></h3>
 <p>Sends the expectation result to the C++ side for live display in the UI. Useful for real-time
 monitoring during long test sequences.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Live Voltage&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">):</span><span class="nf">Show</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Live Voltage&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">):</span><span class="nf">Show</span><span class="p">()</span>
 </code></pre></div>
 <hr />
 <h2 id="stage-behavior">Stage Behavior<a class="headerlink" href="#stage-behavior" title="Permanent link">&para;</a></h2>
@@ -3085,53 +3052,51 @@ requirements) without triggering false failures.</p>
 <hr />
 <h2 id="how-results-appear-in-reports">How Results Appear in Reports<a class="headerlink" href="#how-results-appear-in-reports" title="Permanent link">&para;</a></h2>
 <p>Each expectation produces a result entry in the test report:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="p">{</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">,</span>
-<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ToBeInPercentage&quot;</span><span class="p">,</span>
-<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.28</span><span class="p">,</span>
-<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nt">&quot;expected&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.3</span><span class="p">,</span>
-<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="nt">&quot;percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
-<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="nt">&quot;deviation&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.165</span><span class="p">,</span>
-<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.135</span><span class="p">,</span>
-<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">    </span><span class="nt">&quot;max&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.465</span><span class="p">,</span>
-<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">    </span><span class="nt">&quot;inverted&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
-<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ToBeInPercentage&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.28</span><span class="p">,</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="nt">&quot;expected&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.3</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="nt">&quot;percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">    </span><span class="nt">&quot;deviation&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.165</span><span class="p">,</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">    </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.135</span><span class="p">,</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">&quot;max&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.465</span><span class="p">,</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">&quot;inverted&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="p">}</span>
 </code></pre></div>
-<p>When <code>:Not()</code> is used, <code>inverted</code> is <code>true</code> and the logical pass/fail is the opposite of
-what the raw comparison produced.</p>
 <hr />
 <h2 id="complete-example">Complete Example<a class="headerlink" href="#complete-example" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Full Validation&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="w"> </span><span class="cm">--[[@as DAQ]]</span>
-<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
-<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="c1">-- Mandatory check — stops the test if it fails</span>
-<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">connected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">checkConnection</span><span class="p">()</span>
-<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">connected</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Board Connected&quot;</span><span class="p">):</span><span class="nf">Mandatory</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
-<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
-<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">    </span><span class="c1">-- Voltage within percentage</span>
-<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">vcc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">vcc</span><span class="p">)</span>
-<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">vcc</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;VCC&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
-<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>
-<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="w">    </span><span class="c1">-- Current below threshold</span>
-<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureCurrent</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">supply</span><span class="p">)</span>
-<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">current</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Idle Current&quot;</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.100</span><span class="p">)</span>
-<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>
-<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="w">    </span><span class="c1">-- Inverted check — ensure no error condition</span>
-<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">errorBit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">readStatus</span><span class="p">()</span>
-<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">errorBit</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Error Bit&quot;</span><span class="p">):</span><span class="nf">Not</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
-<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>
-<a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a><span class="w">    </span><span class="c1">-- String pattern matching</span>
-<a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">fw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">readFirmwareVersion</span><span class="p">()</span>
-<a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">fw</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;FW Version&quot;</span><span class="p">):</span><span class="nf">ToMatch</span><span class="p">(</span><span class="s2">&quot;%d+%.%d+%.%d+&quot;</span><span class="p">)</span>
-<a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a>
-<a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a><span class="w">    </span><span class="c1">-- With extra debug info on failure</span>
-<a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sendCommand</span><span class="p">(</span><span class="mh">0x01</span><span class="p">)</span>
-<a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">response</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ACK&quot;</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mh">0x06</span><span class="p">):</span><span class="nf">OnErrorExtra</span><span class="p">({</span>
-<a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a><span class="w">        </span><span class="nv">raw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">response</span><span class="p">,</span>
-<a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a><span class="w">        </span><span class="nv">expected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x06</span><span class="p">,</span>
-<a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a><span class="w">    </span><span class="p">})</span>
-<a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a><span class="kr">end</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Full Validation&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="w"> </span><span class="cm">--[[@as DAQ]]</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="c1">-- Mandatory check — stops the test if it fails</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">connected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">checkConnection</span><span class="p">()</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">connected</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Board Connected&quot;</span><span class="p">):</span><span class="nf">Mandatory</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="c1">-- Voltage within percentage</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">vcc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">vcc</span><span class="p">)</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">vcc</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;VCC&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">    </span><span class="c1">-- Current below threshold</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureCurrent</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">supply</span><span class="p">)</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">current</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Idle Current&quot;</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.100</span><span class="p">)</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="w">    </span><span class="c1">-- Inverted check — ensure no error condition</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">errorBit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">readStatus</span><span class="p">()</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">errorBit</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Error Bit&quot;</span><span class="p">):</span><span class="nf">Not</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="w">    </span><span class="c1">-- String pattern matching</span>
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">fw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">readFirmwareVersion</span><span class="p">()</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">fw</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;FW Version&quot;</span><span class="p">):</span><span class="nf">ToMatch</span><span class="p">(</span><span class="s2">&quot;%d+%.%d+%.%d+&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>
+<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="w">    </span><span class="c1">-- With extra debug info on failure</span>
+<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sendCommand</span><span class="p">(</span><span class="mh">0x01</span><span class="p">)</span>
+<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">response</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ACK&quot;</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mh">0x06</span><span class="p">):</span><span class="nf">OnErrorExtra</span><span class="p">({</span>
+<a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a><span class="w">        </span><span class="nv">raw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">response</span><span class="p">,</span>
+<a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a><span class="w">        </span><span class="nv">expected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x06</span><span class="p">,</span>
+<a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a><span class="w">    </span><span class="p">})</span>
+<a id="__codelineno-18-30" name="__codelineno-18-30" href="#__codelineno-18-30"></a><span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
