@@ -141,10 +141,12 @@ void presentJson(const PopupInfo& info)
     std::cout << j.dump() << "\n" << std::flush;
 }
 
-struct ParsedResponse {
-    std::string              button;
-    std::map<int, std::string> inputs;    // 1-indexed
-};
+}    // anonymous namespace
+
+}    // namespace Frasy::Headless
+
+// Implementation of parsing functions declared in header
+namespace Frasy::Headless {
 
 ParsedResponse parseHumanLine(const std::string& line)
 {
@@ -178,8 +180,8 @@ ParsedResponse parseJsonLine(const std::string& line)
             }
         }
     }
-    catch (const std::exception& e) {
-        BR_LOG_ERROR(s_tag, "Failed to parse JSON response: {}", e.what());
+    catch (const std::exception&) {
+        // Parse failure — return empty response
     }
     return resp;
 }
@@ -198,8 +200,6 @@ int findButton(const std::string& name, const PopupInfo& info)
     if (lower(info.consumeButtonText) == lowerName) { return -1; }    // Cancel/consume button
     return -2;    // Not found
 }
-
-}    // namespace
 
 void importHeadlessPopup(sol::state_view    lua,
                          std::size_t        uut,

@@ -17,11 +17,26 @@
 #ifndef FRASY_UTILS_HEADLESS_CONSOLE_POPUP_HANDLER_H
 #define FRASY_UTILS_HEADLESS_CONSOLE_POPUP_HANDLER_H
 
+#include <map>
 #include <mutex>
 #include <sol/sol.hpp>
 #include <string>
 
 namespace Frasy::Headless {
+
+/**
+ * @brief Parsed response from stdin for popup interaction.
+ */
+struct ParsedResponse {
+    std::string                button;
+    std::map<int, std::string> inputs;    // 1-indexed
+};
+
+/// Parse a human-format stdin line (e.g., "1=value" or "OK")
+ParsedResponse parseHumanLine(const std::string& line);
+
+/// Parse a JSON-format stdin line (e.g., {"button":"OK","inputs":{"1":"value"}})
+ParsedResponse parseJsonLine(const std::string& line);
 
 /**
  * @brief Installs a console-based popup handler into the Lua state.
