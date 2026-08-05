@@ -80,6 +80,7 @@ function Orchestrator.RunSequence(sIndex, scope)
     if sequence.time == nil then
         Context.orchestrator.values[scope.sequence] = {}
         Log.I("Start sequence: " .. scope.sequence)
+        __progress.report("sequence_start", Context.info.uut, scope.sequence, "", "", true)
         sequence.result.enabled = IsScopeEnabled(scope)
         if sequence.result.enabled then
             local status, err = xpcall(sequence.func, ErrorHandler)
@@ -130,8 +131,10 @@ function Orchestrator.RunSequence(sIndex, scope)
         if not incomplete then
             if sequence.result.pass then
                 Log.I(string.format("Sequence %s PASSED", scope.sequence))
+                __progress.report("sequence_end", Context.info.uut, scope.sequence, "", "", true)
             else
                 Log.E(string.format("Sequence %s FAILED", scope.sequence))
+                __progress.report("sequence_end", Context.info.uut, scope.sequence, "", "", false)
             end
         end
     elseif sequence.time == nil then
@@ -152,6 +155,7 @@ function Orchestrator.RunTest(scope)
     Context.orchestrator.values[scope.sequence][scope.test] = {}
     Context.orchestrator.scope = scope
     Log.I("Start test: " .. scope.test)
+    __progress.report("test_start", Context.info.uut, scope.test, scope.sequence, "", true)
     test.expectations = {}
     test.result.time = {}
     test.result.time.start = os.clock()
@@ -205,11 +209,14 @@ function Orchestrator.RunTest(scope)
     if test.result.skipped then
         Log.W(string.format("Test %s SKIPPED\r\nReason: %s", scope.test,
             test.result.reason))
+        __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", true)
     elseif not test.result.pass then
         Log.E(string.format("Test %s FAILED\r\nReason: %s", scope.test,
             test.result.reason))
+        __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", false)
     else
         Log.I(string.format("Test %s PASSED", scope.test))
+        __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", true)
     end
 end
 
@@ -615,6 +622,7 @@ function Orchestrator.AddExpectationResult(result)
     else
         Log.E(string.format("%s - FAILED", getName()))
     end
+    __progress.report("expectation", Context.info.uut, getName(), scope.sequence, scope.test, result.pass)
 end
 
 function Orchestrator.GetScope()

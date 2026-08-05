@@ -16,6 +16,7 @@
  */
 #include "headless_runner.h"
 #include "console_popup_handler.h"
+#include "progress_reporter.h"
 
 #include <Brigerad/Core/Log.h>
 
@@ -94,7 +95,27 @@ int HeadlessRunner::run()
           importHeadlessPopup(lua, uut, m_args.outputFormat, m_args.popupTimeoutSeconds, m_ioMutex);
       });
 
-    // 8. Run the solution
+    // 8. Start progress reporter
+    ProgressReporter progressReporter(m_args.outputFormat, product.name, m_args.serials, m_ioMutex);
+    progressReporter.reportStart();
+
+    m_orchestrator.setProgressCallback(
+      [&progressReporter](const std::string& type, std::size_t uut, const std::string& name,
+                           const std::string& parentA, const std::string& parentB, bool pass) {
+          ProgressEvent event;
+          event.uut  = uut;
+          event.name = name;
+          event.pass = pass;
+          if (type == "sequence_start") { event.type = ProgressEvent::SequenceStart; }
+          else if (type == "sequence_end") { event.type = ProgressEvent::SequenceEnd; }
+          else if (type == "test_start") { event.type = ProgressEvent::TestStart; event.sequence = parentA; }
+          else if (type == "test_end") { event.type = ProgressEvent::TestEnd; event.sequence = parentA; }
+          else if (type == "expectation") { event.type = ProgressEvent::Expectation; event.sequence = parentA; event.test = parentB; }
+          else { return; }
+          progressReporter.onEvent(event);
+      });
+
+    // 9. Run the solution
     BR_LOG_INFO(s_tag, "Running tests: product='{}' operator='{}' uuts={}",
                 product.name, m_args.operatorName, uutCount);
 
@@ -106,13 +127,13 @@ int HeadlessRunner::run()
       m_args.skipVerification,
       [&done] { done = true; });
 
-    // 9. Wait for completion (poll)
+    // 10. Wait for completion (poll)
     while (!done) {
         std::this_thread::sleep_for(100ms);
         // TODO: Task 6 will add progress reporting here
     }
 
-    // 10. Post-test hook
+    // 11. Post-test hook
     m_provider.onTestComplete(m_orchestrator);
 
     // 11. Report results
