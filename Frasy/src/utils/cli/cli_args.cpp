@@ -40,6 +40,7 @@ void printUsage(const char* programName)
               << "  --output-format <fmt>   Output format: human or json (default: human)\n"
               << "  --output-dir <path>     Output directory for reports (default: logs)\n"
               << "  --skip-verification     Skip hash verification stage\n"
+              << "  --verbose               Show logs on stderr (headless/MCP mode only)\n"
               << "  --popup-timeout <secs>  Auto-cancel popups after N seconds (default: 0 = no timeout)\n"
               << "  --help                  Show this help message and exit\n"
               << "\n"
@@ -85,6 +86,9 @@ CliArgs CliArgs::parse(int argc, char** argv)
         }
         else if (arg == "--skip-verification") {
             args.skipVerification = true;
+        }
+        else if (arg == "--verbose") {
+            args.verbose = true;
         }
         else if (arg == "--product") {
             const char* val = peekNextArg(i, argc, argv, "--product");
