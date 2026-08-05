@@ -15,6 +15,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 #include "headless_runner.h"
+#include "console_popup_handler.h"
 
 #include <Brigerad/Core/Log.h>
 
@@ -87,7 +88,13 @@ int HeadlessRunner::run()
         serials.push_back(sn);
     }
 
-    // 7. Run the solution
+    // 7. Install console popup handler
+    m_orchestrator.setPopupImport(
+      [this](sol::state_view lua, std::size_t uut, Lua::Orchestrator::Stage stage) {
+          importHeadlessPopup(lua, uut, m_args.outputFormat, m_args.popupTimeoutSeconds, m_ioMutex);
+      });
+
+    // 8. Run the solution
     BR_LOG_INFO(s_tag, "Running tests: product='{}' operator='{}' uuts={}",
                 product.name, m_args.operatorName, uutCount);
 
@@ -99,17 +106,16 @@ int HeadlessRunner::run()
       m_args.skipVerification,
       [&done] { done = true; });
 
-    // 8. Wait for completion (poll)
+    // 9. Wait for completion (poll)
     while (!done) {
         std::this_thread::sleep_for(100ms);
-        // TODO: Task 5 will add popup handling here
         // TODO: Task 6 will add progress reporting here
     }
 
-    // 9. Post-test hook
+    // 10. Post-test hook
     m_provider.onTestComplete(m_orchestrator);
 
-    // 10. Report results
+    // 11. Report results
     return reportResults();
 }
 

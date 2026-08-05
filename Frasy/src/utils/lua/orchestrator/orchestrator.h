@@ -149,6 +149,7 @@ public:
     void                      setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
     void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
     void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
+    void                      setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback);
     [[nodiscard]] std::string getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
@@ -217,6 +218,7 @@ private:
         // Values will be available at Context.values.gui
         return lua.create_table();
     };
+    std::function<void(sol::state_view, std::size_t, Stage)> m_popupImport;
     Models::Solution                         m_solution = {};
     std::vector<std::vector<Expectation>>    m_expectationsVectors;
     std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes;
