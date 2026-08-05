@@ -84,6 +84,13 @@ protected:
             end
         )");
 
+        // Progress reporting mock
+        lua.script(R"(
+            __progress = {
+                report = function(type, uut, name, parentA, parentB, pass) end
+            }
+        )");
+
         // Profiling mocks
         lua.set_function("__profileStartEvent", [](const std::string&, const std::string&, int) {});
         lua.set_function("__profileEndEvent", [](const std::string&, const std::string&, int) {});
