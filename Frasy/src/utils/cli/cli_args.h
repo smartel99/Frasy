@@ -24,6 +24,7 @@ namespace Frasy {
 
 struct CliArgs {
     bool                     headless            = false;
+    bool                     mcpServer           = false;
     std::string              product;
     std::string              operatorName;
     std::vector<std::string> serials;

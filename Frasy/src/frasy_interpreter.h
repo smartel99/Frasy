@@ -23,7 +23,7 @@ namespace Frasy
     {
     public:
         explicit Interpreter(const std::string& name)
-        : Application(name, true, !CliArgs::get().headless), m_config(loadConfig())
+        : Application(name, true, !(CliArgs::get().headless || CliArgs::get().mcpServer)), m_config(loadConfig())
         {
             if (s_instance != nullptr) { throw std::runtime_error("Interpreter instance already created!"); }
             s_instance = this;
