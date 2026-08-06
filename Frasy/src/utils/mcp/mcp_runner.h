@@ -41,14 +41,8 @@ public:
     int run();
 
 private:
-    struct ProductInfo {
-        std::string environmentPath;
-        std::string testPath;
-        std::string name;
-    };
-
-    std::vector<ProductInfo> discoverProducts();
-    void                     registerTools();
+    std::vector<Headless::ProductInfo> discoverProducts();
+    void                               registerTools();
 
     // Tool handlers
     nlohmann::json handleListProducts(const nlohmann::json& args);

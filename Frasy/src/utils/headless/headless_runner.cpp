@@ -140,8 +140,13 @@ int HeadlessRunner::run()
     return reportResults();
 }
 
-std::vector<HeadlessRunner::ProductInfo> HeadlessRunner::discoverProducts()
+std::vector<ProductInfo> HeadlessRunner::discoverProducts()
 {
+    // Check if the provider defines an explicit product list
+    auto providerProducts = m_provider.listProducts();
+    if (!providerProducts.empty()) { return providerProducts; }
+
+    // Fallback: filesystem discovery
     namespace fs = std::filesystem;
     std::vector<ProductInfo> products;
 
@@ -156,9 +161,9 @@ std::vector<HeadlessRunner::ProductInfo> HeadlessRunner::discoverProducts()
             std::string productName = entry.path().filename().string();
 
             products.emplace_back(ProductInfo {
+              .name            = productName,
               .environmentPath = envPath.string(),
               .testPath        = entry.path().string(),
-              .name            = productName,
             });
         }
     }

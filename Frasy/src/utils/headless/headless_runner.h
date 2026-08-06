@@ -41,12 +41,6 @@ public:
     int run();
 
 private:
-    struct ProductInfo {
-        std::string environmentPath;
-        std::string testPath;
-        std::string name;
-    };
-
     std::vector<ProductInfo> discoverProducts();
     bool                     validateSerials();
     int                      reportResults();

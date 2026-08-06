@@ -18,6 +18,7 @@
 #define FRASY_UTILS_HEADLESS_PRODUCT_PROVIDER_H
 
 #include <string>
+#include <vector>
 
 namespace Frasy {
 namespace Lua {
@@ -30,6 +31,19 @@ class CanOpen;
 namespace Headless {
 
 /**
+ * @brief Describes a product available for testing.
+ *
+ * Used by ProductProvider::listProducts() to define explicit product-name-to-directory
+ * mappings, allowing multiple product names to share test directories.
+ * Also used internally by HeadlessRunner and McpRunner for product discovery.
+ */
+struct ProductInfo {
+    std::string name;            ///< User-facing product name (e.g., "KR35626")
+    std::string environmentPath; ///< Path to environment file without .lua extension
+    std::string testPath;        ///< Path to the test directory
+};
+
+/**
  * @brief Interface that applications implement to provide product-specific orchestrator setup.
  *
  * This interface is shared between the GUI path and the headless runner. Applications register
@@ -39,6 +53,19 @@ namespace Headless {
 class ProductProvider {
 public:
     virtual ~ProductProvider() = default;
+
+    /**
+     * @brief Provide an explicit list of available products.
+     *
+     * Override this to define product-name-to-directory mappings. When non-empty,
+     * headless and MCP runners use this list instead of filesystem discovery.
+     * This allows multiple product names to map to the same test directory.
+     *
+     * Default implementation returns empty (runners fall back to filesystem scan).
+     *
+     * @return Vector of product entries, or empty to use filesystem discovery.
+     */
+    virtual std::vector<ProductInfo> listProducts() { return {}; }
 
     /**
      * @brief Validate a serial number for the current product.
@@ -60,7 +87,7 @@ public:
      *
      * @param orchestrator The orchestrator instance to configure.
      * @param canOpen The CANopen instance to configure.
-     * @param product The product name (directory name under lua/user/).
+     * @param product The product name (as returned by listProducts or directory name).
      * @param envPath Path to the environment file (without .lua extension).
      * @param testsDir Path to the tests directory for this product.
      * @return true on success, false on failure.

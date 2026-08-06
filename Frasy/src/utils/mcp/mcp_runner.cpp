@@ -52,10 +52,15 @@ int McpRunner::run()
     return 0;
 }
 
-std::vector<McpRunner::ProductInfo> McpRunner::discoverProducts()
+std::vector<Headless::ProductInfo> McpRunner::discoverProducts()
 {
+    // Check if the provider defines an explicit product list
+    auto providerProducts = m_provider.listProducts();
+    if (!providerProducts.empty()) { return providerProducts; }
+
+    // Fallback: filesystem discovery
     namespace fs = std::filesystem;
-    std::vector<ProductInfo> products;
+    std::vector<Headless::ProductInfo> products;
 
     try {
         for (const auto& entry : fs::recursive_directory_iterator("lua/user")) {
@@ -67,10 +72,10 @@ std::vector<McpRunner::ProductInfo> McpRunner::discoverProducts()
             envPath.replace_extension();
             std::string productName = entry.path().filename().string();
 
-            products.emplace_back(ProductInfo {
+            products.emplace_back(Headless::ProductInfo {
+              .name            = productName,
               .environmentPath = envPath.string(),
               .testPath        = entry.path().string(),
-              .name            = productName,
             });
         }
     }
@@ -187,7 +192,7 @@ nlohmann::json McpRunner::handleRunTests(const nlohmann::json& args)
 
     // Find product
     auto products = discoverProducts();
-    auto it       = std::ranges::find_if(products, [&](const ProductInfo& p) { return p.name == product; });
+    auto it       = std::ranges::find_if(products, [&](const Headless::ProductInfo& p) { return p.name == product; });
     if (it == products.end()) {
         nlohmann::json available = nlohmann::json::array();
         for (const auto& p : products) { available.push_back(p.name); }
