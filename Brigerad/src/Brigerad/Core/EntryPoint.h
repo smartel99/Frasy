@@ -34,9 +34,9 @@ int main(int argc, char** argv)
             BR_PROFILE_BEGIN_SESSION("Init", "BrigeradProfile-Startup.json");
             cpptrace::register_terminate_handler();
             cpptrace::absorb_trace_exceptions(true);
+            Brigerad::_internalDoNotUse::initExceptionHandling();
             Brigerad::Log::Init(cliArgs.headless || cliArgs.mcpServer,
                                (cliArgs.headless || cliArgs.mcpServer) && !cliArgs.verbose);
-            Brigerad::_internalDoNotUse::initExceptionHandling();
 
             BR_PROFILE_END_SESSION();
             auto app = Brigerad::CreateApplication(argc, argv);

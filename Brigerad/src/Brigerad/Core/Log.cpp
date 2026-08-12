@@ -6,35 +6,31 @@
 #include <spdlog/fmt/chrono.h>
 
 #include <algorithm>
-#include <fstream>
 #include <format>
+#include <fstream>
 
-namespace Brigerad
-{
-spdlog::file_event_handlers Log::s_eventHandlers = []()
-{
+namespace Brigerad {
+spdlog::file_event_handlers Log::s_eventHandlers = []() {
     spdlog::file_event_handlers handlers;
 
     handlers.before_open = []([[maybe_unused]] const spdlog::filename_t& path) {
 
     };
 
-    handlers.after_open = [=]([[maybe_unused]] const spdlog::filename_t& path, std::FILE* file)
-    {
-        spdlog::source_loc loc =
-          Brigerad::Log::FormatSourceLocation(std::source_location::current());
-        std::string header = std::format(
+    handlers.after_open = [=]([[maybe_unused]] const spdlog::filename_t& path, std::FILE* file) {
+        spdlog::source_loc loc    = Brigerad::Log::FormatSourceLocation(std::source_location::current());
+        std::string        header = std::format(
           "[{{"
-          "\"timestamp\": \"{:%Y-%m-%dT%T.000Z}\","
-          "\"level\": \"trace\","
-          "\"from\": \"system\","
-          "\"message\": \"Initialized Log File\","
-          "\"where\": {{"
-          "\"file\": \"{}\","
-          "\"line\": \"{}\","
-          "\"function\": \"{}\""
-          "}}"
-          "}}\n",
+                 "\"timestamp\": \"{:%Y-%m-%dT%T.000Z}\","
+                 "\"level\": \"trace\","
+                 "\"from\": \"system\","
+                 "\"message\": \"Initialized Log File\","
+                 "\"where\": {{"
+                 "\"file\": \"{}\","
+                 "\"line\": \"{}\","
+                 "\"function\": \"{}\""
+                 "}}"
+                 "}}\n",
           std::chrono::system_clock::now(),
           loc.filename,
           loc.line,
@@ -43,8 +39,9 @@ spdlog::file_event_handlers Log::s_eventHandlers = []()
         std::fputs(header.c_str(), file);
     };
 
-    handlers.before_close = [=]([[maybe_unused]] const spdlog::filename_t& path, std::FILE* file)
-    { std::fputc(']', file); };
+    handlers.before_close = [=]([[maybe_unused]] const spdlog::filename_t& path, std::FILE* file) {
+        std::fputc(']', file);
+    };
 
     handlers.after_close = []([[maybe_unused]] const spdlog::filename_t& path) {};
 
@@ -72,9 +69,13 @@ void Log::Init(bool useStderr, bool silent)
         }
     }
 
-    static constexpr size_t maxSize = 1024 * 1024 * 1;    //!< 1MB max
-    auto rotatingFileSink           = std::make_shared<LogRotatingSanitizedFileSinkMt>(
-      "logs/frasy/log.json", maxSize, 5, true, s_eventHandlers);
+    static constexpr size_t maxSize          = 1024 * 1024 * 1;    //!< 1MB max
+    auto                    rotatingFileSink = std::make_shared<LogRotatingSanitizedFileSinkMt>(
+      std::format("logs/frasy/log_{}.json", std::chrono::steady_clock::now().time_since_epoch().count()),
+      maxSize,
+      5,
+      true,
+      s_eventHandlers);
 
     // clang-format off
     static constexpr const char* pattern =
@@ -120,8 +121,7 @@ spdlog::source_loc Log::FormatSourceLocation(const std::source_location& loc)
     static std::string filename;
     filename = loc.file_name();
 
-    std::ranges::replace_if(
-      filename, [](auto c) { return c == '\\'; }, '/');
+    std::ranges::replace_if(filename, [](auto c) { return c == '\\'; }, '/');
 
     return {filename.c_str(), static_cast<int>(loc.line()), loc.function_name()};
 }
