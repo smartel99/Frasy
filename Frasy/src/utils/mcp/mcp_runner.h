@@ -17,6 +17,7 @@
 #ifndef FRASY_UTILS_MCP_RUNNER_H
 #define FRASY_UTILS_MCP_RUNNER_H
 
+#include "layers/device_viewer.h"
 #include "mcp_popup_handler.h"
 #include "mcp_server.h"
 #include "utils/cli/cli_args.h"
@@ -25,6 +26,7 @@
 #include "utils/lua/orchestrator/orchestrator.h"
 
 #include <atomic>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -59,6 +61,8 @@ private:
     CanOpen::CanOpen           m_canOpen;
     McpServer                  m_server;
     McpPopupHandler            m_popupHandler;
+
+    std::unique_ptr<DeviceViewer> m_deviceViewer;
 
     std::atomic<bool>        m_running = false;
     std::vector<std::string> m_serials;

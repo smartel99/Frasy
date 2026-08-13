@@ -29,14 +29,16 @@ namespace {
 constexpr auto s_tag = "MCP-Runner";
 }
 
-McpRunner::McpRunner(Headless::ProductProvider& provider)
-: m_provider(provider), m_server("frasy", "1.0.0")
+McpRunner::McpRunner(Headless::ProductProvider& provider) : m_provider(provider), m_server("frasy", "1.0.0")
 {
 }
 
 int McpRunner::run()
 {
     registerTools();
+    m_deviceViewer = std::make_unique<DeviceViewer>(m_canOpen);
+    m_deviceViewer->onAttach();
+
     m_server.run();
 
     // Wait for orchestrator to finish if tests are still running
@@ -48,6 +50,7 @@ int McpRunner::run()
     }
 
     // Clean shutdown
+    m_deviceViewer->onDetach();
     m_canOpen.stop();
     return 0;
 }

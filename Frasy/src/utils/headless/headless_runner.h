@@ -21,7 +21,9 @@
 #include "utils/cli/cli_args.h"
 #include "utils/communication/can_open/can_open.h"
 #include "utils/lua/orchestrator/orchestrator.h"
+#include "layers/device_viewer.h"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -50,6 +52,8 @@ private:
     Lua::Orchestrator m_orchestrator;
     CanOpen::CanOpen  m_canOpen;
     std::mutex        m_ioMutex;
+
+    std::unique_ptr<DeviceViewer> m_deviceViewer;
 };
 
 }    // namespace Frasy::Headless

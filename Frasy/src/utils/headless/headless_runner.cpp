@@ -65,6 +65,9 @@ int HeadlessRunner::run()
         return 2;
     }
 
+    m_deviceViewer   = std::make_unique<DeviceViewer>(m_canOpen);
+    m_deviceViewer->onAttach();
+
     // 4. Set up orchestrator via ProductProvider
     BR_LOG_INFO(s_tag, "Setting up product '{}'...", product.name);
     if (!m_provider.setup(m_orchestrator, m_canOpen, product.name, product.environmentPath, product.testPath)) {
@@ -91,7 +94,7 @@ int HeadlessRunner::run()
 
     // 7. Install console popup handler
     m_orchestrator.setPopupImport(
-      [this](sol::state_view lua, std::size_t uut, Lua::Orchestrator::Stage stage) {
+      [this](sol::state_view lua, std::size_t uut, Lua::Orchestrator::Stage) {
           importHeadlessPopup(lua, uut, m_args.outputFormat, m_args.popupTimeoutSeconds, m_ioMutex);
       });
 
