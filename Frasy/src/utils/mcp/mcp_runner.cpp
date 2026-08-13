@@ -16,6 +16,8 @@
  */
 #include "mcp_runner.h"
 
+#include "utils/misc/deserializer.h"
+
 #include <Brigerad/Core/Log.h>
 
 #include <chrono>
@@ -94,11 +96,21 @@ void McpRunner::registerTools()
     using json = nlohmann::json;
 
     // list_products
-    m_server.registerTool(
-      "list_products",
-      "List available test products",
-      json({{"type", "object"}, {"properties", json::object()}}),
-      [this](const json& args) { return handleListProducts(args); });
+    m_server.registerTool("list_products",
+                          "List available test products",
+                          json({{"type", "object"}, {"properties", json::object()}}),
+                          [this](const json& args) { return handleListProducts(args); });
+
+    // load_product
+    m_server.registerTool("load_product",
+                          "Load a test product into the orchestrator.",
+                          json({{"type", "object"},
+                                {"properties",
+                                 {
+                                   {"product", {{"type", "string"}, {"description", "Product name to test"}}},
+                                 }},
+                                {"required", json::array({"product", "operator", "serials"})}}),
+                          [this](const json& args) { return handleLoadProduct(args); });
 
     // run_tests
     m_server.registerTool(
@@ -108,43 +120,72 @@ void McpRunner::registerTools()
             {"properties",
              {{"product", {{"type", "string"}, {"description", "Product name to test"}}},
               {"operator", {{"type", "string"}, {"description", "Operator name"}}},
-              {"serials", {{"type", "array"}, {"items", {{"type", "string"}}}, {"description", "Serial numbers, one per UUT"}}},
-              {"skip_verification", {{"type", "boolean"}, {"description", "Skip hash verification (optional, default false)"}}}}},
+              {"serials",
+               {{"type", "array"}, {"items", {{"type", "string"}}}, {"description", "Serial numbers, one per UUT"}}},
+              {"skip_verification",
+               {{"type", "boolean"}, {"description", "Skip hash verification (optional, default false)"}}}}},
             {"required", json::array({"product", "operator", "serials"})}}),
       [this](const json& args) { return handleRunTests(args); });
 
     // get_status
-    m_server.registerTool(
-      "get_status",
-      "Get the current test execution status and per-UUT states.",
-      json({{"type", "object"}, {"properties", json::object()}}),
-      [this](const json& args) { return handleGetStatus(args); });
+    m_server.registerTool("get_status",
+                          "Get the current test execution status and per-UUT states.",
+                          json({{"type", "object"}, {"properties", json::object()}}),
+                          [this](const json& args) { return handleGetStatus(args); });
 
     // get_results
-    m_server.registerTool(
-      "get_results",
-      "Get the test results summary after execution completes.",
-      json({{"type", "object"}, {"properties", json::object()}}),
-      [this](const json& args) { return handleGetResults(args); });
+    m_server.registerTool("get_results",
+                          "Get the test results summary after execution completes.",
+                          json({{"type", "object"}, {"properties", json::object()}}),
+                          [this](const json& args) { return handleGetResults(args); });
 
     // get_pending_popup
-    m_server.registerTool(
-      "get_pending_popup",
-      "Get the next popup waiting for operator interaction. Returns null if none pending.",
-      json({{"type", "object"}, {"properties", json::object()}}),
-      [this](const json& args) { return handleGetPendingPopup(args); });
+    m_server.registerTool("get_pending_popup",
+                          "Get the next popup waiting for operator interaction. Returns null if none pending.",
+                          json({{"type", "object"}, {"properties", json::object()}}),
+                          [this](const json& args) { return handleGetPendingPopup(args); });
 
     // respond_to_popup
     m_server.registerTool(
       "respond_to_popup",
       "Respond to a pending popup by providing inputs and pressing a button.",
-      json({{"type", "object"},
-            {"properties",
-             {{"id", {{"type", "string"}, {"description", "Popup ID from get_pending_popup"}}},
-              {"inputs", {{"type", "object"}, {"description", "Input values keyed by index (e.g. {\"1\": \"value\"})"}}},
-              {"button", {{"type", "string"}, {"description", "Button label to press"}}}}},
-            {"required", json::array({"id", "button"})}}),
+      json(
+        {{"type", "object"},
+         {"properties",
+          {{"id", {{"type", "string"}, {"description", "Popup ID from get_pending_popup"}}},
+           {"inputs", {{"type", "object"}, {"description", "Input values keyed by index (e.g. {\"1\": \"value\"})"}}},
+           {"button", {{"type", "string"}, {"description", "Button label to press"}}}}},
+         {"required", json::array({"id", "button"})}}),
       [this](const json& args) { return handleRespondToPopup(args); });
+
+    // list_nodes
+    m_server.registerTool(
+      "list_nodes",
+      "Get a list of CANOpen nodes in the network. Must run load_product for the desired product before calling.",
+      json({{"type", "object"}, {"properties", json::object()}}),
+      [this](const json& args) { return handleListNodes(args); });
+
+    // list_devices
+    m_server.registerTool(
+      "list_devices",
+      "Get a list of the COM ports for each connected devices. Useful for debugging when communication fails.",
+      json({{"type", "object"}, {"properties", json::object()}}),
+      [this](const json& args) { return handleListDevices(args); });
+
+    // upload_sdo
+    m_server.registerTool(
+      "upload_sdo",
+      "Upload a value to a CANOpen SDO. Must run load_product for the desired product before calling. Read the string "
+      "at index 0x1008, sub-index 0x0 to get the node's name.",
+      json(
+        {{"type", "object"},
+         {"properties",
+          {{"nodeId", {{"type", "number"}, {"description", "Node ID"}}},
+           {"index", {{"type", "number"}, {"description", "SDO index"}}},
+           {"sub-index", {{"type", "number"}, {"description", "SDO sub-index"}}},
+           {"type", {{"type", "string"}, {"description", "Type of the value to get. Must be a valid CANOpen type."}}}}},
+         {"required", json::array({"nodeId", "index", "sub-index", "type"})}}),
+      [this](const json& args) { return handleUploadSdo(args); });
 }
 
 nlohmann::json McpRunner::makeToolResult(const std::string& text, bool isError)
@@ -171,16 +212,39 @@ nlohmann::json McpRunner::handleListProducts(const nlohmann::json& /*args*/)
     return makeToolResult(response.dump());
 }
 
-nlohmann::json McpRunner::handleRunTests(const nlohmann::json& args)
+nlohmann::json McpRunner::handleLoadProduct(const nlohmann::json& args)
 {
-    if (m_running) {
-        return makeToolResult("{\"error\":\"Tests are already running\"}", true);
+    if (m_running) { return makeToolResult("{\"error\":\"Tests are already running\"}", true); }
+    std::string product = args.value("product", "");
+    if (product.empty()) { return makeToolResult("{\"error\":\"product is required\"}", true); }
+
+    // Find product
+    auto products = discoverProducts();
+    auto it       = std::ranges::find_if(products, [&](const Headless::ProductInfo& p) { return p.name == product; });
+    if (it == products.end()) {
+        nlohmann::json available = nlohmann::json::array();
+        for (const auto& p : products) {
+            available.push_back(p.name);
+        }
+        return makeToolResult(nlohmann::json({{"error", "Product not found"}, {"available", available}}).dump(), true);
     }
 
-    std::string product           = args.value("product", "");
-    std::string operatorName      = args.value("operator", "");
-    auto        serials           = args.value("serials", std::vector<std::string> {});
-    bool        skipVerification  = args.value("skip_verification", false);
+    // Setup orchestrator
+    if (!m_provider.setup(m_orchestrator, m_canOpen, it->name, it->environmentPath, it->testPath)) {
+        return makeToolResult("{\"error\":\"ProductProvider::setup() failed\"}", true);
+    }
+
+    return makeToolResult("{\"started\":true}");
+}
+
+nlohmann::json McpRunner::handleRunTests(const nlohmann::json& args)
+{
+    if (m_running) { return makeToolResult("{\"error\":\"Tests are already running\"}", true); }
+
+    std::string product          = args.value("product", "");
+    std::string operatorName     = args.value("operator", "");
+    auto        serials          = args.value("serials", std::vector<std::string> {});
+    bool        skipVerification = args.value("skip_verification", false);
 
     if (product.empty() || operatorName.empty() || serials.empty()) {
         return makeToolResult("{\"error\":\"product, operator, and serials are required\"}", true);
@@ -189,7 +253,8 @@ nlohmann::json McpRunner::handleRunTests(const nlohmann::json& args)
     // Validate serials
     for (const auto& sn : serials) {
         if (!m_provider.validateSerialNumber(sn)) {
-            return makeToolResult(nlohmann::json({{"error", "Invalid serial number: " + sn}}).dump(), true);
+            return makeToolResult(nlohmann::json({{"error", std::format("Invalid serial number: {}", sn)}}).dump(),
+                                  true);
         }
     }
 
@@ -198,9 +263,10 @@ nlohmann::json McpRunner::handleRunTests(const nlohmann::json& args)
     auto it       = std::ranges::find_if(products, [&](const Headless::ProductInfo& p) { return p.name == product; });
     if (it == products.end()) {
         nlohmann::json available = nlohmann::json::array();
-        for (const auto& p : products) { available.push_back(p.name); }
-        return makeToolResult(
-          nlohmann::json({{"error", "Product not found"}, {"available", available}}).dump(), true);
+        for (const auto& p : products) {
+            available.push_back(p.name);
+        }
+        return makeToolResult(nlohmann::json({{"error", "Product not found"}, {"available", available}}).dump(), true);
     }
 
     // Setup orchestrator
@@ -212,18 +278,16 @@ nlohmann::json McpRunner::handleRunTests(const nlohmann::json& args)
     const auto& map = m_orchestrator.getMap();
     if (serials.size() != map.uuts.size()) {
         return makeToolResult(
-          nlohmann::json({{"error", "Serial count mismatch"},
-                          {"provided", serials.size()},
-                          {"expected", map.uuts.size()}})
+          nlohmann::json(
+            {{"error", "Serial count mismatch"}, {"provided", serials.size()}, {"expected", map.uuts.size()}})
             .dump(),
           true);
     }
 
     // Install MCP popup handler
-    m_orchestrator.setPopupImport(
-      [this](sol::state_view lua, std::size_t uut, Lua::Orchestrator::Stage /*stage*/) {
-          m_popupHandler.importPopup(lua, uut);
-      });
+    m_orchestrator.setPopupImport([this](sol::state_view lua, std::size_t uut, Lua::Orchestrator::Stage /*stage*/) {
+        m_popupHandler.importPopup(lua, uut);
+    });
 
     // Build serials vector (index 0 = copy of index 1)
     m_serials.clear();
@@ -237,15 +301,14 @@ nlohmann::json McpRunner::handleRunTests(const nlohmann::json& args)
     m_running       = true;
 
     // Launch async
-    m_orchestrator.runSolution(
-      operatorName,
-      m_serials,
-      true,    // regenerate
-      skipVerification,
-      [this] {
-          m_running = false;
-          m_provider.onTestComplete(m_orchestrator);
-      });
+    m_orchestrator.runSolution(operatorName,
+                               m_serials,
+                               true,    // regenerate
+                               skipVerification,
+                               [this] {
+                                   m_running = false;
+                                   m_provider.onTestComplete(m_orchestrator);
+                               });
 
     return makeToolResult("{\"started\":true}");
 }
@@ -254,9 +317,7 @@ nlohmann::json McpRunner::handleGetStatus(const nlohmann::json& /*args*/)
 {
     nlohmann::json status;
 
-    if (m_running) {
-        status["state"] = "running";
-    }
+    if (m_running) { status["state"] = "running"; }
     else if (m_activeProduct.empty()) {
         status["state"] = "idle";
     }
@@ -267,19 +328,23 @@ nlohmann::json McpRunner::handleGetStatus(const nlohmann::json& /*args*/)
         bool        anyErr  = false;
         for (const auto& uut : map.uuts) {
             auto s = m_orchestrator.getUutState(uut);
-            if (s == UutState::Failed) anyFail = true;
-            if (s == UutState::Error) anyErr = true;
+            if (s == UutState::Failed) { anyFail = true; }
+            if (s == UutState::Error) { anyErr = true; }
         }
-        if (anyErr) status["state"] = "error";
-        else if (anyFail) status["state"] = "failed";
-        else status["state"] = "passed";
+        if (anyErr) { status["state"] = "error"; }
+        else if (anyFail) {
+            status["state"] = "failed";
+        }
+        else {
+            status["state"] = "passed";
+        }
     }
 
     // Per-UUT states
-    const auto& map = m_orchestrator.getMap();
+    const auto&    map  = m_orchestrator.getMap();
     nlohmann::json uuts = nlohmann::json::array();
     for (const auto& uut : map.uuts) {
-        auto state = m_orchestrator.getUutState(uut);
+        auto        state = m_orchestrator.getUutState(uut);
         std::string stateStr;
         switch (state) {
             case UutState::Disabled: stateStr = "disabled"; break;
@@ -304,14 +369,12 @@ nlohmann::json McpRunner::handleGetStatus(const nlohmann::json& /*args*/)
 
 nlohmann::json McpRunner::handleGetResults(const nlohmann::json& /*args*/)
 {
-    if (m_running) {
-        return makeToolResult("{\"error\":\"Tests are still running\"}", true);
-    }
+    if (m_running) { return makeToolResult("{\"error\":\"Tests are still running\"}", true); }
     if (m_activeProduct.empty()) {
         return makeToolResult("{\"error\":\"No test results available (no tests have been run)\"}", true);
     }
 
-    const auto& map = m_orchestrator.getMap();
+    const auto&    map = m_orchestrator.getMap();
     nlohmann::json results;
     results["product"]      = m_activeProduct;
     results["overall_pass"] = true;
@@ -320,7 +383,7 @@ nlohmann::json McpRunner::handleGetResults(const nlohmann::json& /*args*/)
     for (const auto& uut : map.uuts) {
         auto state = m_orchestrator.getUutState(uut);
         bool pass  = (state == UutState::Passed);
-        if (!pass) results["overall_pass"] = false;
+        if (!pass) { results["overall_pass"] = false; }
 
         nlohmann::json uutResult;
         uutResult["uut"]    = uut;
@@ -344,7 +407,8 @@ nlohmann::json McpRunner::handleGetResults(const nlohmann::json& /*args*/)
                 std::ifstream ifs(reportPath);
                 auto          report = nlohmann::json::parse(ifs);
                 if (report.contains("info")) {
-                    uutResult["duration"] = report["info"].value("time", nlohmann::json::object()).value("elapsed", 0.0);
+                    uutResult["duration"] =
+                      report["info"].value("time", nlohmann::json::object()).value("elapsed", 0.0);
                 }
                 // Count tests
                 int totalTests  = 0;
@@ -354,7 +418,7 @@ nlohmann::json McpRunner::handleGetResults(const nlohmann::json& /*args*/)
                         if (seq.contains("tests")) {
                             for (auto& [testName, test] : seq["tests"].items()) {
                                 totalTests++;
-                                if (test.value("pass", false)) passedTests++;
+                                if (test.value("pass", false)) { passedTests++; }
                             }
                         }
                     }
@@ -377,9 +441,7 @@ nlohmann::json McpRunner::handleGetResults(const nlohmann::json& /*args*/)
 nlohmann::json McpRunner::handleGetPendingPopup(const nlohmann::json& /*args*/)
 {
     auto popup = m_popupHandler.getPendingPopup();
-    if (popup.has_value()) {
-        return makeToolResult(popup->dump());
-    }
+    if (popup.has_value()) { return makeToolResult(popup->dump()); }
     return makeToolResult("{\"popup\":null}");
 }
 
@@ -388,9 +450,7 @@ nlohmann::json McpRunner::handleRespondToPopup(const nlohmann::json& args)
     std::string id     = args.value("id", "");
     std::string button = args.value("button", "");
 
-    if (id.empty() || button.empty()) {
-        return makeToolResult("{\"error\":\"id and button are required\"}", true);
-    }
+    if (id.empty() || button.empty()) { return makeToolResult("{\"error\":\"id and button are required\"}", true); }
 
     std::map<int, std::string> inputs;
     if (args.contains("inputs") && args["inputs"].is_object()) {
@@ -404,10 +464,148 @@ nlohmann::json McpRunner::handleRespondToPopup(const nlohmann::json& args)
         }
     }
 
-    if (m_popupHandler.respondToPopup(id, inputs, button)) {
-        return makeToolResult("{\"ok\":true}");
-    }
-    return makeToolResult("{\"error\":\"Popup not found with id: " + id + "\"}", true);
+    if (m_popupHandler.respondToPopup(id, inputs, button)) { return makeToolResult("{\"ok\":true}"); }
+    return makeToolResult(std::format("{{\"error\":\"Popup not found with id: {}\"}}", id), true);
 }
+
+nlohmann::json McpRunner::handleListNodes([[maybe_unused]] const nlohmann::json& args)
+{
+    auto&          nodes    = m_canOpen.getNodes();
+    nlohmann::json nodeList = nlohmann::json::array();
+    for (const auto& n : nodes) {
+        nodeList.push_back({{"id", n.nodeId()}, {"name", n.name()}});
+    }
+    return makeToolResult(nodeList.dump());
+}
+
+nlohmann::json McpRunner::handleListDevices([[maybe_unused]] const nlohmann::json& args)
+{
+    nlohmann::json deviceList = nlohmann::json::array();
+    for (const auto& [name, _] : m_canOpen.m_devices.devices) {
+        deviceList.push_back({{"name", name}});
+    }
+    return makeToolResult(deviceList.dump());
+}
+
+nlohmann::json McpRunner::handleUploadSdo(const nlohmann::json& args)
+{
+    uint8_t     nodeId   = 0;
+    uint16_t    index    = 0;
+    uint8_t     subIndex = 0;
+    std::string type;
+    try {
+        nodeId   = args["nodeId"].get<uint8_t>();
+        index    = args["index"].get<uint16_t>();
+        subIndex = args["sub-index"].get<uint8_t>();
+        type     = args["type"].get<std::string>();
+    }
+    catch (std::exception&) {
+        return makeToolResult("{\"error\":\"nodeId, index, sub-index and type are required\"}", true);
+    }
+
+    auto maybeNode = m_canOpen.getNode(nodeId);
+    if (!maybeNode.has_value()) {
+        return makeToolResult(nlohmann::json({{"error", "Node not found"}, {"nodeId", nodeId}}).dump(), true);
+    }
+
+    CanOpen::VarType varType = CanOpen::VarType::Undefined;
+    if (type == "bool") { varType = CanOpen::VarType::Boolean; }
+    else if (type == "signed8") {
+        varType = CanOpen::VarType::Signed8;
+    }
+    else if (type == "signed16") {
+        varType = CanOpen::VarType::Signed16;
+    }
+    else if (type == "signed32") {
+        varType = CanOpen::VarType::Signed32;
+    }
+    else if (type == "signed64") {
+        varType = CanOpen::VarType::Signed64;
+    }
+    else if (type == "unsigned8") {
+        varType = CanOpen::VarType::Unsigned8;
+    }
+    else if (type == "unsigned16") {
+        varType = CanOpen::VarType::Unsigned16;
+    }
+    else if (type == "unsigned32") {
+        varType = CanOpen::VarType::Unsigned32;
+    }
+    else if (type == "unsigned64") {
+        varType = CanOpen::VarType::Unsigned64;
+    }
+    else if (type == "real32") {
+        varType = CanOpen::VarType::Real32;
+    }
+    else if (type == "real64") {
+        varType = CanOpen::VarType::Real64;
+    }
+    else if (type == "string") {
+        varType = CanOpen::VarType::String;
+    }
+
+    if (varType == CanOpen::VarType::Undefined) {
+        return makeToolResult(nlohmann::json({{"error", "Invalid type"}, {"type", type}}).dump(), true);
+    }
+
+    auto& node = maybeNode.value();
+    auto* sdo  = node->sdoInterface();
+
+    auto request = sdo->uploadData(index, subIndex, 500, 3, false, varType);
+
+    auto result = request.future.get();
+    if (request.status() != CanOpen::SdoRequestStatus::Complete &&
+        request.status() != CanOpen::SdoRequestStatus::Cancelled) {
+        return makeToolResult(
+          nlohmann::json({{"error", "SDO upload failed"}, {"status", std::format("{}", request.status())}}).dump(),
+          true);
+    }
+
+    if (!result.has_value()) {
+        return makeToolResult(nlohmann::json({{"error", "SDO upload failed"},
+                                              {"status", std::format("{}", result.error())},
+                                              {"extra", std::format("{}", request.abortCode())}})
+                                .dump(),
+                              true);
+    }
+
+    auto& v = result.value();
+    switch (varType) {
+        case CanOpen::VarType::Boolean:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<bool>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Signed8:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<int8_t>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Signed16:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<int16_t>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Signed32:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<int32_t>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Signed64:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<int64_t>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Unsigned8:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<uint8_t>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Unsigned16:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<uint16_t>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Unsigned32:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<uint32_t>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Unsigned64:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<uint64_t>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Real32:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<float>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::Real64:
+            return makeToolResult(nlohmann::json({{"value", Frasy::Deserialize<double>(v.begin(), v.end())}}).dump());
+        case CanOpen::VarType::String:
+            return makeToolResult(
+              nlohmann::json({{"value",
+                               std::string_view(reinterpret_cast<const char*>(v.data()),
+                                                reinterpret_cast<const char*>(v.data() + v.size()))}})
+                .dump());
+        case CanOpen::VarType::Undefined:
+        case CanOpen::VarType::Max:
+        default: return makeToolResult("{\"error\":\"Invalid type\"}", true);
+    }
+}
+
+nlohmann::json McpRunner::handleDownloadSdo([[maybe_unused]] const nlohmann::json& args)
+{ return makeToolResult("{\"error\":\"Not implemented\"}", true); }
 
 }    // namespace Frasy::Mcp

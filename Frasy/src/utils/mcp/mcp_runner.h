@@ -48,11 +48,16 @@ private:
 
     // Tool handlers
     nlohmann::json handleListProducts(const nlohmann::json& args);
+    nlohmann::json handleLoadProduct(const nlohmann::json& args);
     nlohmann::json handleRunTests(const nlohmann::json& args);
     nlohmann::json handleGetStatus(const nlohmann::json& args);
     nlohmann::json handleGetResults(const nlohmann::json& args);
     nlohmann::json handleGetPendingPopup(const nlohmann::json& args);
     nlohmann::json handleRespondToPopup(const nlohmann::json& args);
+    nlohmann::json handleListNodes(const nlohmann::json& args);
+    nlohmann::json handleListDevices(const nlohmann::json& args);
+    nlohmann::json handleUploadSdo(const nlohmann::json& args);
+    nlohmann::json handleDownloadSdo(const nlohmann::json& args);
 
     nlohmann::json makeToolResult(const std::string& text, bool isError = false);
 
