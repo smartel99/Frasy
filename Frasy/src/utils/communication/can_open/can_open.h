@@ -46,6 +46,9 @@
 #include <vector>
 
 namespace Frasy {
+namespace Mcp {
+class McpRunner;
+}
 class DeviceViewer;
 
 namespace CanOpenViewer {
@@ -273,6 +276,7 @@ private:
 
     friend DeviceViewer;
     friend CanOpenViewer::Layer;
+    friend Mcp::McpRunner;
 
     Interfaces_t m_devices;
 
@@ -323,6 +327,8 @@ private:
     std::vector<OD_entry_t> m_sdoClientODEntries;
 
     std::vector<EmergencyMessageCallback> m_emCallbacks;
+
+    std::atomic_bool m_nodeServicesInitialized = false;
 };
 }    // namespace Frasy::CanOpen
 

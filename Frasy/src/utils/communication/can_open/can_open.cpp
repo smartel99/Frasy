@@ -100,18 +100,14 @@ std::string_view canOpenLssMasterReturnToStr(CO_LSSmaster_return_t val)
         default: return "Unknown"sv;
     }
 }
-} // namespace
+}    // namespace
 
 
 CanOpen::CanOpen()
-{
-    start();
-}
+{ start(); }
 
 CanOpen::~CanOpen()
-{
-    stop();
-}
+{ stop(); }
 
 bool CanOpen::addDevice(const std::string& port)
 {
@@ -121,8 +117,8 @@ bool CanOpen::addDevice(const std::string& port)
     }
 
     try {
-        std::lock_guard l{m_devices.mutex};
-        SlCan::Device dev = SlCan::Device{port};
+        std::lock_guard l {m_devices.mutex};
+        SlCan::Device   dev = SlCan::Device {port};
         dev.setRxCallbackFunc([this] { rxReadyCallback(); });
         if (dev.isOpen()) {
             m_devices.devices[port] = std::move(dev);
@@ -137,7 +133,7 @@ bool CanOpen::addDevice(const std::string& port)
 
 bool CanOpen::removeDevice(const std::string& port)
 {
-    std::lock_guard l{m_devices.mutex};
+    std::lock_guard l {m_devices.mutex};
     return m_devices.devices.erase(port) == 1;
 }
 
@@ -162,7 +158,7 @@ bool CanOpen::removeDevice(const std::string& port)
 
 void CanOpen::reopen()
 {
-    std::lock_guard l{m_devices.mutex};
+    std::lock_guard l {m_devices.mutex};
     for (auto&& [port, dev] : m_devices.devices) {
         try {
             if (dev.isOpen()) { dev.close(); }
@@ -188,6 +184,7 @@ void CanOpen::reset()
 
 void CanOpen::start()
 {
+    m_nodeServicesInitialized = false;
     if (m_devices.devices.empty()) {
         BR_LOG_WARN(m_tag, "Ignoring CanOpen Start with no associated devices");
         return;
@@ -200,10 +197,11 @@ void CanOpen::start()
         if (!Brigerad::SetThreadPriority(Brigerad::GetCurrentThread(), THREAD_PRIORITY_HIGHEST)) {
             BR_LOG_ERROR("CANOpen", "Unable to set thread priority!");
         }
-        addNode(0x01, "Frasy", "frasy.eds"); // TODO set the right path for the EDS.
+        addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the EDS.
         canOpenTask(m_stopSource.get_token());
         removeNode(0x01);
     });
+    m_nodeServicesInitialized.wait(false);
 }
 
 void CanOpen::stop()
@@ -212,16 +210,14 @@ void CanOpen::stop()
     if (m_coThread.joinable()) { m_coThread.join(); }
 }
 
-#pragma region     Nodes
+#pragma region Nodes
 std::vector<Node>& CanOpen::getNodes()
-{
-    return m_nodes;
-}
+{ return m_nodes; }
 
 std::optional<Node*> CanOpen::getNode(uint8_t nodeId)
 {
     auto it = std::ranges::find_if(m_nodes, [nodeId](const auto& node) { return node.nodeId() == nodeId; });
-    return it == m_nodes.end() ? std::optional<Node*>{} : std::optional{&*it};
+    return it == m_nodes.end() ? std::optional<Node*> {} : std::optional {&*it};
 }
 
 Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view edsPath)
@@ -243,21 +239,17 @@ Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view e
 
 void CanOpen::removeNode(uint8_t nodeId)
 {
-    std::erase_if(m_sdoClientODEntries,
-                  [nodeId](const OD_entry_t& entry) {
-                      return (entry.index >= s_sdoClientBaseAddress) && (entry.index - s_sdoClientBaseAddress) ==
-                             nodeId;
-                  });
+    std::erase_if(m_sdoClientODEntries, [nodeId](const OD_entry_t& entry) {
+        return (entry.index >= s_sdoClientBaseAddress) && (entry.index - s_sdoClientBaseAddress) == nodeId;
+    });
     std::erase_if(m_nodes, [nodeId](const Node& node) { return node.nodeId() == nodeId; });
 }
 
 void CanOpen::removeNode(const Node& node)
 {
-    std::erase_if(m_sdoClientODEntries,
-                  [nodeId = node.nodeId()](const OD_entry_t& entry) {
-                      return (entry.index >= s_sdoClientBaseAddress) && (entry.index - s_sdoClientBaseAddress) ==
-                             nodeId;
-                  });
+    std::erase_if(m_sdoClientODEntries, [nodeId = node.nodeId()](const OD_entry_t& entry) {
+        return (entry.index >= s_sdoClientBaseAddress) && (entry.index - s_sdoClientBaseAddress) == nodeId;
+    });
     std::erase(m_nodes, node);
 }
 
@@ -269,13 +261,11 @@ void CanOpen::clearNodes()
 
 void CanOpen::resetNodes() const
 {
-    resetNode(0); // 0 is broadcast to all nodes
+    resetNode(0);    // 0 is broadcast to all nodes
 }
 
 void CanOpen::resetNode(uint8_t nodeId) const
-{
-    CO_NMT_sendCommand(m_co->NMT, CO_NMT_RESET_NODE, nodeId);
-}
+{ CO_NMT_sendCommand(m_co->NMT, CO_NMT_RESET_NODE, nodeId); }
 
 bool CanOpen::isNodeRegistered(uint8_t nodeId)
 {
@@ -283,9 +273,7 @@ bool CanOpen::isNodeRegistered(uint8_t nodeId)
 }
 
 bool CanOpen::isNodeOnNetwork([[maybe_unused]] uint8_t nodeId)
-{
-    throw std::runtime_error("Not implemented");
-}
+{ throw std::runtime_error("Not implemented"); }
 #pragma endregion
 
 void CanOpen::addEmergencyMessageCallback(const EmergencyMessageCallback& callback)
@@ -294,14 +282,10 @@ void CanOpen::addEmergencyMessageCallback(const EmergencyMessageCallback& callba
 }
 
 void CanOpen::reportError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code, uint32_t infoCode)
-{
-    CO_errorReport(m_co->em, static_cast<uint8_t>(kind), static_cast<uint16_t>(code), infoCode);
-}
+{ CO_errorReport(m_co->em, static_cast<uint8_t>(kind), static_cast<uint16_t>(code), infoCode); }
 
 void CanOpen::clearError(CO_EM_errorStatusBits_t kind, CO_EM_errorCode_t code)
-{
-    CO_errorReset(m_co->em, static_cast<uint8_t>(kind), code);
-}
+{ CO_errorReset(m_co->em, static_cast<uint8_t>(kind), code); }
 
 void CanOpen::scanForDevices()
 {
@@ -325,10 +309,10 @@ void CanOpen::scanForDevices()
 
     size_t                  passes  = 0;
     CO_LSSmaster_return_t   scanRes = CO_LSSmaster_WAIT_SLAVE;
-    CO_LSSmaster_fastscan_t scanPass{
-        .scan = {CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SKIP, CO_LSSmaster_FS_SCAN},
-        .match = {},
-        .found = {},
+    CO_LSSmaster_fastscan_t scanPass {
+      .scan  = {CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SCAN, CO_LSSmaster_FS_SKIP, CO_LSSmaster_FS_SCAN},
+      .match = {},
+      .found = {},
     };
     while (isOpen() && scanRes == CO_LSSmaster_WAIT_SLAVE) {
         ++passes;
@@ -341,7 +325,7 @@ void CanOpen::scanForDevices()
 
         delta = static_cast<uint32_t>(duration_cast<microseconds>(steady_clock::now() - last).count());
         last  = steady_clock::now();
-        std::this_thread::sleep_for(microseconds{100});
+        std::this_thread::sleep_for(microseconds {100});
     }
 
     auto taken = static_cast<float>(duration_cast<milliseconds>(steady_clock::now() - start).count()) / 1000.0f;
@@ -356,7 +340,7 @@ void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
     // Increment the number of producers.
     // If heartbeatTimeMs is 0, the entry needs to be deleted.
 
-#define ENTRY_ID(entry) (uint8_t)(((entry)&0x00FF0000) >> 16)
+#define ENTRY_ID(entry) (uint8_t)(((entry) & 0x00FF0000) >> 16)
     if (heartbeatTimeMs == 0) {
         size_t pos = 0;
         // Find the entry:
@@ -367,8 +351,8 @@ void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
                 // Fill the void left by this violent removal.
                 --OD_PERSIST_COMM.x1016_consumerHeartbeatTime_sub0;
                 std::swap(
-                    OD_PERSIST_COMM.x1016_consumerHeartbeatTime[pos],
-                    OD_PERSIST_COMM.x1016_consumerHeartbeatTime[OD_PERSIST_COMM.x1016_consumerHeartbeatTime_sub0]);
+                  OD_PERSIST_COMM.x1016_consumerHeartbeatTime[pos],
+                  OD_PERSIST_COMM.x1016_consumerHeartbeatTime[OD_PERSIST_COMM.x1016_consumerHeartbeatTime_sub0]);
                 break;
             }
         }
@@ -393,11 +377,7 @@ void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
         }
         if (heartbeatSet) {
             BR_LOG_DEBUG(
-                m_tag,
-                "{} node {}'s heartbeat time to {} ms",
-                updatedEntry ? "Updated" : "Set",
-                nodeId,
-                heartbeatTimeMs);
+              m_tag, "{} node {}'s heartbeat time to {} ms", updatedEntry ? "Updated" : "Set", nodeId, heartbeatTimeMs);
         }
         else {
             BR_LOG_ERROR(m_tag, "Unable to find a producer slot for node {}'s heartbeat!", nodeId);
@@ -409,7 +389,7 @@ void CanOpen::setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs)
 void CanOpen::canOpenTask(std::stop_token stopToken)
 {
     if (!initialInit()) {
-        std::lock_guard l{m_devices.mutex};
+        std::lock_guard l {m_devices.mutex};
         for (auto&& [port, dev] : m_devices.devices) {
             dev.close();
         }
@@ -432,25 +412,18 @@ void CanOpen::canOpenTask(std::stop_token stopToken)
             // Since std::condition_variable requires a lock, we give it a fake lock so it's happy and we're not losing
             // any time acquiring and releasing it.
             struct {
-                void lock()
-                {
-                }
+                void lock() {}
 
-                void unlock()
-                {
-                }
+                void unlock() {}
             } fakeLock;
             m_sleepOrTimeout.wait_for(
-                fakeLock,
-                stopToken,
-                std::chrono::microseconds(std::max(m_sleepForUs, 1U)),
-                [this] {
-                    if (m_wakeupNeeded) {
-                        m_wakeupNeeded = false;
-                        return true;
-                    }
-                    return false;
-                });
+              fakeLock, stopToken, std::chrono::microseconds(std::max(m_sleepForUs, 1U)), [this] {
+                  if (m_wakeupNeeded) {
+                      m_wakeupNeeded = false;
+                      return true;
+                  }
+                  return false;
+              });
             reset = mainLoop();
         }
     }
@@ -504,7 +477,7 @@ bool CanOpen::initialInit()
     if (err == CO_ERROR_DATA_CORRUPT) { BR_LOG_WARN(m_tag, "Persistence data corrupted!"); }
     else if (err != CO_ERROR_NO) {
         const char* filename =
-            storageInitError < m_storageEntries.size() ? &m_storageEntries[storageInitError].filename[0] : "???";
+          storageInitError < m_storageEntries.size() ? &m_storageEntries[storageInitError].filename[0] : "???";
         BR_LOG_ERROR(m_tag, "Error with storage '{}'", filename);
         return false;
     }
@@ -622,8 +595,8 @@ bool CanOpen::initTime()
 
     static constexpr auto msInADay = 24 * 60 * 60 * 1000;
     auto                  days     = static_cast<uint16_t>(now / msInADay);
-    days                           -= 5113; // Difference between POSIX epoch and CANopen epoch.
-    auto ms                        = static_cast<uint32_t>(now % msInADay); // Number of ms since midnight today.
+    days -= 5113;                                       // Difference between POSIX epoch and CANopen epoch.
+    auto ms = static_cast<uint32_t>(now % msInADay);    // Number of ms since midnight today.
 
     CO_TIME_set(m_co->TIME, ms, days, 1000);
 
@@ -681,6 +654,8 @@ void CanOpen::initNodeServices()
         node.setHbConsumer(m_co->HBcons);
         node.setSdoClient(findSdoClientHandle(node.nodeId()));
     }
+    m_nodeServicesInitialized = true;
+    m_nodeServicesInitialized.notify_all();
 }
 
 void CanOpen::deinitNodeServices()
@@ -715,16 +690,14 @@ void CanOpen::emRxCallback(void*          arg,
 {
     BR_CORE_ASSERT(arg != nullptr, "arg is null in emRxCallback");
     BR_PROFILE_FUNCTION();
-    EmergencyMessage emergencyMessage{
-        static_cast<uint8_t>(ident & 0x7F),
-        static_cast<CO_EM_errorCode_t>(errorCode),
-        static_cast<CO_errorRegister_t>(errorRegister),
-        static_cast<CO_EM_errorStatusBits_t>(errorBit),
-        infoCode,
-        EmergencyMessage::timestamp_t::clock::now(),
-        true,
-        {}
-    };
+    EmergencyMessage emergencyMessage {static_cast<uint8_t>(ident & 0x7F),
+                                       static_cast<CO_EM_errorCode_t>(errorCode),
+                                       static_cast<CO_errorRegister_t>(errorRegister),
+                                       static_cast<CO_EM_errorStatusBits_t>(errorBit),
+                                       infoCode,
+                                       EmergencyMessage::timestamp_t::clock::now(),
+                                       true,
+                                       {}};
 
     // TODO propagate errors to orchestrator.
 
@@ -737,9 +710,7 @@ void CanOpen::emRxCallback(void*          arg,
         }
         // Panic the fuck out of this aaaaaaa
         Brigerad::warningDialog(
-            "CANOpen doesn't",
-            "Received emergency message, but there's no CANOpen instance!\n\r{}",
-            emergencyMessage);
+          "CANOpen doesn't", "Received emergency message, but there's no CANOpen instance!\n\r{}", emergencyMessage);
     }
 
     for (auto&& cb : that->m_emCallbacks) {
@@ -754,16 +725,13 @@ void CanOpen::emRxCallback(void*          arg,
     }
 
     auto it = std::ranges::find_if(
-        that->m_nodes,
-        [&emergencyMessage](const auto& node) { return node.nodeId() == emergencyMessage.nodeId; });
+      that->m_nodes, [&emergencyMessage](const auto& node) { return node.nodeId() == emergencyMessage.nodeId; });
 
     if (it == that->m_nodes.end()) {
         if (!emergencyMessage.isCritical()) { return; }
         // Panic the fuck out of this aaaaaaa
         Brigerad::warningDialog(
-            "EMERGENCY",
-            "Received emergency message from unregistered node\n\r{}",
-            emergencyMessage);
+          "EMERGENCY", "Received emergency message from unregistered node\n\r{}", emergencyMessage);
         return;
     }
 
@@ -813,9 +781,7 @@ void CanOpen::nmtPreCallback(void* arg)
 }
 
 void CanOpen::nmtChangedCallback(CO_NMT_internalState_t state)
-{
-    BR_LOG_DEBUG(s_tag, "NMT state changed to {}", state);
-}
+{ BR_LOG_DEBUG(s_tag, "NMT state changed to {}", state); }
 
 void CanOpen::pdoPreCallback(void* arg)
 {
@@ -863,4 +829,4 @@ void CanOpen::timePreCallback(void* arg)
 
 
 #undef EARLY_EXIT
-} // namespace Frasy::CanOpen
+}    // namespace Frasy::CanOpen
