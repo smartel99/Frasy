@@ -166,6 +166,12 @@ public:
         return m_expectationsVectors[uut];
     }
 
+    /// Access the popup map (for MCP dual-path popup handling).
+    [[nodiscard]] std::map<std::string, Popup>& getPopups() { return m_popups; }
+
+    /// Access the popup mutex (for MCP dual-path popup handling).
+    [[nodiscard]] std::mutex* getPopupMutex() { return m_popupMutex.get(); }
+
 private:
     bool        createOutputDirs();
     bool        initLua(sol::state_view lua, std::size_t uut = 0, Stage stage = Stage::generation);

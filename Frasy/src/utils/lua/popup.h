@@ -198,6 +198,16 @@ public:
         m_consumed = true;
     }
     void Render();
+
+    /// Access the element list (for MCP popup inspection).
+    const std::vector<std::unique_ptr<Element>>& getElements() const { return m_elements; }
+
+    /// Set an input field value by input index (0-based among Input elements).
+    void setInput(std::size_t index, const std::string& value);
+
+    /// Find and invoke a button by label. Returns true if found and clicked.
+    /// Calls the button's action with current inputs and consumes the popup if button.consume is true.
+    bool clickButton(const std::string& label);
 };
 
 }    // namespace Frasy::Lua
