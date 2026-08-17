@@ -50,6 +50,7 @@ namespace Mcp {
 class McpRunner;
 }
 class DeviceViewer;
+class McpHttpServerLayer;
 
 namespace CanOpenViewer {
 class Layer;
@@ -277,6 +278,7 @@ private:
     friend DeviceViewer;
     friend CanOpenViewer::Layer;
     friend Mcp::McpRunner;
+    friend McpHttpServerLayer;
 
     Interfaces_t m_devices;
 
