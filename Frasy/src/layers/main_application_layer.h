@@ -18,6 +18,7 @@
 #    include "can_open_viewer.h"
 #    include "device_viewer.h"
 #    include "log_window.h"
+#    include "mcp_http_server_layer.h"
 #    include "result_analyzer.h"
 #    include "result_viewer.h"
 #    include "test_viewer.h"
@@ -118,6 +119,9 @@ protected:
 
     CanOpen::CanOpen  m_canOpen;
     Lua::Orchestrator m_orchestrator;
+
+    /// MCP HTTP server layer (created when --mcp-port is specified).
+    std::unique_ptr<McpHttpServerLayer> m_mcpHttpServer;
 
 private:
     struct ProfileEventInfo {

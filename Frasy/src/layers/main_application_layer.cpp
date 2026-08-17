@@ -12,12 +12,14 @@
 
 #include "../../version.h"
 #include "log_window.h"
+#include "mcp_http_server_layer.h"
 #include "result_analyzer.h"
 
 #include <Brigerad/Renderer/asset_manager.h>
 #include <frasy_interpreter.h>
 #include <imgui.h>
 #include <implot.h>
+#include <utils/cli/cli_args.h>
 #include <utils/imgui/table.h>
 
 #define CREATE_TEXTURE(texture, name, path)                                                                            \
@@ -26,6 +28,7 @@
     } while (0)
 
 namespace Frasy {
+
 void MainApplicationLayer::onAttach()
 {
     BR_PROFILE_FUNCTION();
@@ -67,6 +70,24 @@ void MainApplicationLayer::onAttach()
     m_orchestrator.setCanOpen(&m_canOpen);
 
     m_logWindow->SetVisibility(true);
+
+    // Start MCP HTTP server if --mcp-port was specified
+    const auto& cliArgs = CliArgs::get();
+    if (cliArgs.mcpPort >= 0) {
+        auto* provider = Interpreter::Get().getProductProvider();
+        if (provider) {
+            m_mcpHttpServer = std::make_unique<McpHttpServerLayer>(
+              cliArgs.mcpPort, m_orchestrator, m_canOpen, *provider);
+            m_mcpHttpServer->setProductCallbacks(
+              [this]() { return getActiveProduct(); },
+              [this](const std::string& name) { return loadProduct(name); });
+            m_mcpHttpServer->onAttach();
+            BR_LOG_INFO("APP", "MCP HTTP server started on port {}", m_mcpHttpServer->getListeningPort());
+        }
+        else {
+            BR_LOG_WARN("APP", "No ProductProvider registered, MCP HTTP server not started");
+        }
+    }
 }
 
 
@@ -74,6 +95,7 @@ void MainApplicationLayer::onDetach()
 {
     BR_PROFILE_FUNCTION();
 
+    if (m_mcpHttpServer) { m_mcpHttpServer->onDetach(); }
     m_logWindow->onDetach();
     m_deviceViewer->onDetach();
     m_canOpenViewer->onDetach();
@@ -100,6 +122,7 @@ void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
     m_resultViewer->onUpdate(ts);
     m_testViewer->onUpdate(ts);
     m_resultAnalyzer->onUpdate(ts);
+    if (m_mcpHttpServer) { m_mcpHttpServer->onUpdate(ts); }
 }
 
 
