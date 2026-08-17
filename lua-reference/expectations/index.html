@@ -2478,7 +2478,7 @@ pass/fail results that appear in test reports.</p>
 <hr />
 <h2 id="expectvalue-name-opt"><code>Expect(value, name, opt?)</code><a class="headerlink" href="#expectvalue-name-opt" title="Permanent link">&para;</a></h2>
 <p>Creates an expectation object. Chain a <strong>matcher</strong> method to perform the assertion.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">"Supply Voltage"</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -2552,15 +2552,15 @@ the matcher.</p>
 <h3 id="inverted"><code>Inverted</code><a class="headerlink" href="#inverted" title="Permanent link">&para;</a></h3>
 <p>Inverts the expectation. The assertion passes when the matcher would normally fail, and
 vice versa.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">status</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Status&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">inverted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w">     </span><span class="c1">-- passes if status ≠ 0</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">status</span><span class="p">,</span><span class="w"> </span><span class="s2">"Status"</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">inverted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w">     </span><span class="c1">-- passes if status ≠ 0</span>
 </code></pre></div>
 <h3 id="policy"><code>Policy</code><a class="headerlink" href="#policy" title="Permanent link">&para;</a></h3>
 <p>Tells the orchestrator to halt testing when an expectation fails.</p>
 <p><code>ErrorPolicy.stopCurrent</code> will stop the current test.</p>
 <p><code>ErrorPolicy.stopAll</code> will stop all tests.</p>
 <p>Does nothing if not provided.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">connected</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Device Connected&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">policy</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="nv">ErrorPolicy</span><span class="p">.</span><span class="py">stopCurrent</span><span class="w"> </span><span class="p">}):</span><span class="nf">ToBeTrue</span><span class="p">()</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">-- If connected is false, test stops here with &quot;Unmet Expectation&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">connected</span><span class="p">,</span><span class="w"> </span><span class="s2">"Device Connected"</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">policy</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="nv">ErrorPolicy</span><span class="p">.</span><span class="py">stopCurrent</span><span class="w"> </span><span class="p">}):</span><span class="nf">ToBeTrue</span><span class="p">()</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">-- If connected is false, test stops here with "Unmet Expectation"</span>
 </code></pre></div>
 <hr />
 <h2 id="matchers">Matchers<a class="headerlink" href="#matchers" title="Permanent link">&para;</a></h2>
@@ -2568,7 +2568,7 @@ vice versa.</p>
 <p>They all returns an <code>ExpectationResult</code></p>
 <h3 id="tobetrue"><code>:ToBeTrue()</code><a class="headerlink" href="#tobetrue" title="Permanent link">&para;</a></h3>
 <p>Asserts that the value is boolean <code>true</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">flag</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Enable Flag&quot;</span><span class="p">):</span><span class="nf">ToBeTrue</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">flag</span><span class="p">,</span><span class="w"> </span><span class="s2">"Enable Flag"</span><span class="p">):</span><span class="nf">ToBeTrue</span><span class="p">()</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2591,7 +2591,7 @@ vice versa.</p>
 <hr />
 <h3 id="tobefalse"><code>:ToBeFalse()</code><a class="headerlink" href="#tobefalse" title="Permanent link">&para;</a></h3>
 <p>Asserts that the value is boolean <code>false</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">errorFlag</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Error Flag&quot;</span><span class="p">):</span><span class="nf">ToBeFalse</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">errorFlag</span><span class="p">,</span><span class="w"> </span><span class="s2">"Error Flag"</span><span class="p">):</span><span class="nf">ToBeFalse</span><span class="p">()</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2614,8 +2614,8 @@ vice versa.</p>
 <hr />
 <h3 id="tobeequalexpected"><code>:ToBeEqual(expected)</code><a class="headerlink" href="#tobeequalexpected" title="Permanent link">&para;</a></h3>
 <p>Asserts that the value equals <code>expected</code> (same type and value).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">response</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ACK Byte&quot;</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mh">0x06</span><span class="p">)</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">name</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Device Name&quot;</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="s2">&quot;SensorV2&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">response</span><span class="p">,</span><span class="w"> </span><span class="s2">"ACK Byte"</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mh">0x06</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">name</span><span class="p">,</span><span class="w"> </span><span class="s2">"Device Name"</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="s2">"SensorV2"</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -2655,7 +2655,7 @@ vice versa.</p>
 <hr />
 <h3 id="tobenearexpected-deviation"><code>:ToBeNear(expected, deviation)</code><a class="headerlink" href="#tobenearexpected-deviation" title="Permanent link">&para;</a></h3>
 <p>Asserts that a numeric value is within ±<code>deviation</code> of <code>expected</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;VCC&quot;</span><span class="p">):</span><span class="nf">ToBeNear</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">)</span><span class="w">  </span><span class="c1">-- passes if 3.0 ≤ voltage ≤ 3.6</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">"VCC"</span><span class="p">):</span><span class="nf">ToBeNear</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">)</span><span class="w">  </span><span class="c1">-- passes if 3.0 ≤ voltage ≤ 3.6</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -2712,7 +2712,7 @@ vice versa.</p>
 <hr />
 <h3 id="tobeinrangemin-max"><code>:ToBeInRange(min, max)</code><a class="headerlink" href="#tobeinrangemin-max" title="Permanent link">&para;</a></h3>
 <p>Asserts that a numeric value is between <code>min</code> and <code>max</code> (inclusive).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">temperature</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Board Temp&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">temperature</span><span class="p">,</span><span class="w"> </span><span class="s2">"Board Temp"</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -2761,7 +2761,7 @@ vice versa.</p>
 <hr />
 <h3 id="tobeinpercentageexpected-percentage"><code>:ToBeInPercentage(expected, percentage)</code><a class="headerlink" href="#tobeinpercentageexpected-percentage" title="Permanent link">&para;</a></h3>
 <p>Asserts that a numeric value is within ±<code>percentage</code>% of <code>expected</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;VCC&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span><span class="w">  </span><span class="c1">-- passes if within ±5% of 3.3</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">"VCC"</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span><span class="w">  </span><span class="c1">-- passes if within ±5% of 3.3</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1">-- i.e., 3.135 ≤ voltage ≤ 3.465</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
@@ -2823,7 +2823,7 @@ vice versa.</p>
 <hr />
 <h3 id="tobegreatermin"><code>:ToBeGreater(min)</code><a class="headerlink" href="#tobegreatermin" title="Permanent link">&para;</a></h3>
 <p>Asserts that a numeric value is <strong>strictly greater than</strong> <code>min</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">current</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Active Current&quot;</span><span class="p">):</span><span class="nf">ToBeGreater</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">current</span><span class="p">,</span><span class="w"> </span><span class="s2">"Active Current"</span><span class="p">):</span><span class="nf">ToBeGreater</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -2863,7 +2863,7 @@ vice versa.</p>
 <hr />
 <h3 id="tobegreaterorequalmin"><code>:ToBeGreaterOrEqual(min)</code><a class="headerlink" href="#tobegreaterorequalmin" title="Permanent link">&para;</a></h3>
 <p>Asserts that a numeric value is <strong>greater than or equal to</strong> <code>min</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">count</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Sample Count&quot;</span><span class="p">):</span><span class="nf">ToBeGreaterOrEqual</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">count</span><span class="p">,</span><span class="w"> </span><span class="s2">"Sample Count"</span><span class="p">):</span><span class="nf">ToBeGreaterOrEqual</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -2903,7 +2903,7 @@ vice versa.</p>
 <hr />
 <h3 id="tobelessermax"><code>:ToBeLesser(max)</code><a class="headerlink" href="#tobelessermax" title="Permanent link">&para;</a></h3>
 <p>Asserts that a numeric value is <strong>strictly less than</strong> <code>max</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">leakage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Leakage Current&quot;</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">leakage</span><span class="p">,</span><span class="w"> </span><span class="s2">"Leakage Current"</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -2943,7 +2943,7 @@ vice versa.</p>
 <hr />
 <h3 id="tobelesserorequalmax"><code>:ToBeLesserOrEqual(max)</code><a class="headerlink" href="#tobelesserorequalmax" title="Permanent link">&para;</a></h3>
 <p>Asserts that a numeric value is <strong>less than or equal to</strong> <code>max</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">ripple</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Ripple&quot;</span><span class="p">):</span><span class="nf">ToBeLesserOrEqual</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">ripple</span><span class="p">,</span><span class="w"> </span><span class="s2">"Ripple"</span><span class="p">):</span><span class="nf">ToBeLesserOrEqual</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -2983,8 +2983,8 @@ vice versa.</p>
 <hr />
 <h3 id="tobetypeexpected"><code>:ToBeType(expected)</code><a class="headerlink" href="#tobetypeexpected" title="Permanent link">&para;</a></h3>
 <p>Asserts that the Lua type of the value matches <code>expected</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">result</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Result Type&quot;</span><span class="p">):</span><span class="nf">ToBeType</span><span class="p">(</span><span class="s2">&quot;table&quot;</span><span class="p">)</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">version</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Version Type&quot;</span><span class="p">):</span><span class="nf">ToBeType</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">result</span><span class="p">,</span><span class="w"> </span><span class="s2">"Result Type"</span><span class="p">):</span><span class="nf">ToBeType</span><span class="p">(</span><span class="s2">"table"</span><span class="p">)</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">version</span><span class="p">,</span><span class="w"> </span><span class="s2">"Version Type"</span><span class="p">):</span><span class="nf">ToBeType</span><span class="p">(</span><span class="s2">"string"</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -3028,8 +3028,8 @@ vice versa.</p>
 <hr />
 <h3 id="tomatchpattern"><code>:ToMatch(pattern)</code><a class="headerlink" href="#tomatchpattern" title="Permanent link">&para;</a></h3>
 <p>Asserts that a string value matches a Lua pattern.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">serial</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Serial Format&quot;</span><span class="p">):</span><span class="nf">ToMatch</span><span class="p">(</span><span class="s2">&quot;^%d%d%-%d%d%d%d%d%d$&quot;</span><span class="p">)</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">version</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Version Format&quot;</span><span class="p">):</span><span class="nf">ToMatch</span><span class="p">(</span><span class="s2">&quot;%d+%.%d+%.%d+&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">serial</span><span class="p">,</span><span class="w"> </span><span class="s2">"Serial Format"</span><span class="p">):</span><span class="nf">ToMatch</span><span class="p">(</span><span class="s2">"^%d%d%-%d%d%d%d%d%d$"</span><span class="p">)</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">version</span><span class="p">,</span><span class="w"> </span><span class="s2">"Version Format"</span><span class="p">):</span><span class="nf">ToMatch</span><span class="p">(</span><span class="s2">"%d+%.%d+%.%d+"</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -3072,12 +3072,12 @@ vice versa.</p>
 <h3 id="exportasname"><code>:ExportAs(name)</code><a class="headerlink" href="#exportasname" title="Permanent link">&para;</a></h3>
 <p>Stores the measured value in the orchestrator's value store, making it available to other tests
 via <code>Orchestrator.GetValue()</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Reference&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">):</span><span class="nf">ExportAs</span><span class="p">(</span><span class="s2">&quot;ref_voltage&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">"Reference"</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">):</span><span class="nf">ExportAs</span><span class="p">(</span><span class="s2">"ref_voltage"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="show"><code>:Show()</code><a class="headerlink" href="#show" title="Permanent link">&para;</a></h3>
 <p>Sends the expectation result to the C++ side for live display in the UI. Useful for real-time
 monitoring during long test sequences.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Live Voltage&quot;</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">):</span><span class="nf">Show</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nf">Expect</span><span class="p">(</span><span class="nv">voltage</span><span class="p">,</span><span class="w"> </span><span class="s2">"Live Voltage"</span><span class="p">):</span><span class="nf">ToBeInRange</span><span class="p">(</span><span class="mf">4.9</span><span class="p">,</span><span class="w"> </span><span class="mf">5.1</span><span class="p">):</span><span class="nf">Show</span><span class="p">()</span>
 </code></pre></div>
 <hr />
 <h2 id="stage-behavior">Stage Behavior<a class="headerlink" href="#stage-behavior" title="Permanent link">&para;</a></h2>
@@ -3109,46 +3109,46 @@ requirements) without triggering false failures.</p>
 <h2 id="how-results-appear-in-reports">How Results Appear in Reports<a class="headerlink" href="#how-results-appear-in-reports" title="Permanent link">&para;</a></h2>
 <p>Each expectation produces a result entry in the test report:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Supply Voltage&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ToBeInPercentage&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.28</span><span class="p">,</span>
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="nt">&quot;expected&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.3</span><span class="p">,</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="nt">&quot;percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
-<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">    </span><span class="nt">&quot;deviation&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.165</span><span class="p">,</span>
-<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">    </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.135</span><span class="p">,</span>
-<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">&quot;max&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.465</span><span class="p">,</span>
-<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="nt">&quot;pass&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">&quot;inverted&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Supply Voltage"</span><span class="p">,</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nt">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ToBeInPercentage"</span><span class="p">,</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.28</span><span class="p">,</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="nt">"expected"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.3</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="nt">"percentage"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">    </span><span class="nt">"deviation"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.165</span><span class="p">,</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">    </span><span class="nt">"min"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.135</span><span class="p">,</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">"max"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.465</span><span class="p">,</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="nt">"pass"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">"inverted"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="p">}</span>
 </code></pre></div>
 <hr />
 <h2 id="complete-example">Complete Example<a class="headerlink" href="#complete-example" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">&quot;Full Validation&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nf">Test</span><span class="p">(</span><span class="s2">"Full Validation"</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
 <a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">daq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Context</span><span class="p">.</span><span class="py">map</span><span class="p">.</span><span class="py">ibs</span><span class="p">.</span><span class="py">daq</span><span class="w"> </span><span class="cm">--[[@as DAQ]]</span>
 <a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
 <a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="c1">-- Mandatory check — stops the test if it fails</span>
 <a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">connected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">checkConnection</span><span class="p">()</span>
-<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">connected</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Board Connected&quot;</span><span class="p">):</span><span class="nf">Mandatory</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">connected</span><span class="p">,</span><span class="w"> </span><span class="s2">"Board Connected"</span><span class="p">):</span><span class="nf">Mandatory</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
 <a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
 <a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="c1">-- Voltage within percentage</span>
 <a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">vcc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureVoltage</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">vcc</span><span class="p">)</span>
-<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">vcc</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;VCC&quot;</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">vcc</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">"VCC"</span><span class="p">):</span><span class="nf">ToBeInPercentage</span><span class="p">(</span><span class="mf">3.3</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
 <a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
 <a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">    </span><span class="c1">-- Current below threshold</span>
 <a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">daq</span><span class="p">:</span><span class="nf">MeasureCurrent</span><span class="p">(</span><span class="nv">Context</span><span class="p">.</span><span class="py">values</span><span class="p">.</span><span class="py">route</span><span class="p">.</span><span class="py">supply</span><span class="p">)</span>
-<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">current</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Idle Current&quot;</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.100</span><span class="p">)</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">current</span><span class="p">.</span><span class="py">average</span><span class="p">,</span><span class="w"> </span><span class="s2">"Idle Current"</span><span class="p">):</span><span class="nf">ToBeLesser</span><span class="p">(</span><span class="mf">0.100</span><span class="p">)</span>
 <a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>
 <a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="w">    </span><span class="c1">-- Inverted check — ensure no error condition</span>
 <a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">errorBit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">readStatus</span><span class="p">()</span>
-<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">errorBit</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Error Bit&quot;</span><span class="p">):</span><span class="nf">Not</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">errorBit</span><span class="p">,</span><span class="w"> </span><span class="s2">"Error Bit"</span><span class="p">):</span><span class="nf">Not</span><span class="p">():</span><span class="nf">ToBeTrue</span><span class="p">()</span>
 <a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>
 <a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="w">    </span><span class="c1">-- String pattern matching</span>
 <a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">fw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">readFirmwareVersion</span><span class="p">()</span>
-<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">fw</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;FW Version&quot;</span><span class="p">):</span><span class="nf">ToMatch</span><span class="p">(</span><span class="s2">&quot;%d+%.%d+%.%d+&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">fw</span><span class="p">,</span><span class="w"> </span><span class="s2">"FW Version"</span><span class="p">):</span><span class="nf">ToMatch</span><span class="p">(</span><span class="s2">"%d+%.%d+%.%d+"</span><span class="p">)</span>
 <a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>
 <a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="w">    </span><span class="c1">-- With extra debug info on failure</span>
 <a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sendCommand</span><span class="p">(</span><span class="mh">0x01</span><span class="p">)</span>
-<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">response</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ACK&quot;</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mh">0x06</span><span class="p">):</span><span class="nf">OnErrorExtra</span><span class="p">({</span>
+<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">    </span><span class="nf">Expect</span><span class="p">(</span><span class="nv">response</span><span class="p">,</span><span class="w"> </span><span class="s2">"ACK"</span><span class="p">):</span><span class="nf">ToBeEqual</span><span class="p">(</span><span class="mh">0x06</span><span class="p">):</span><span class="nf">OnErrorExtra</span><span class="p">({</span>
 <a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a><span class="w">        </span><span class="nv">raw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">response</span><span class="p">,</span>
 <a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a><span class="w">        </span><span class="nv">expected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x06</span><span class="p">,</span>
 <a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a><span class="w">    </span><span class="p">})</span>

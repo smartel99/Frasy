@@ -2339,9 +2339,9 @@ crashes. A pure <code>Release</code> build will produce unusable crash reports.<
 annotated version:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>; --- Preprocessor Definitions ---
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>; Adjust these to match your build output
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>#define AppName &quot;MyApp&quot;
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>#define AppVersion &quot;1.0.0&quot;
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>#define BinDir &quot;cmake-build-relwithdebinfo-visual-studio\bin\&quot; + AppName + &quot;_v&quot; + AppVersion
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>#define AppName "MyApp"
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>#define AppVersion "1.0.0"
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>#define BinDir "cmake-build-relwithdebinfo-visual-studio\bin\" + AppName + "_v" + AppVersion
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>#define ExeName AppName
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>[Setup]
@@ -2366,30 +2366,30 @@ annotated version:</p>
 <a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>
 <a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>[Files]
 <a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>; Application executable and debug symbols
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>Source: &quot;{#BinDir}\{#ExeName}.exe&quot;; DestDir: &quot;{app}&quot;; Flags: ignoreversion
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>Source: &quot;{#BinDir}\{#ExeName}.pdb&quot;; DestDir: &quot;{app}&quot;; Flags: ignoreversion
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>Source: "{#BinDir}\{#ExeName}.exe"; DestDir: "{app}"; Flags: ignoreversion
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>Source: "{#BinDir}\{#ExeName}.pdb"; DestDir: "{app}"; Flags: ignoreversion
 <a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
 <a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>; Required DLLs
-<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>Source: &quot;{#BinDir}\wkhtmltox.dll&quot;; DestDir: &quot;{app}&quot;; Flags: ignoreversion
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>Source: "{#BinDir}\wkhtmltox.dll"; DestDir: "{app}"; Flags: ignoreversion
 <a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>
 <a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>; Configuration
-<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>Source: &quot;{#BinDir}\config.json&quot;; DestDir: &quot;{app}&quot;; Flags: onlyifdoesntexist
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>Source: "{#BinDir}\config.json"; DestDir: "{app}"; Flags: onlyifdoesntexist
 <a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>
 <a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>; Assets and Lua scripts
-<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>Source: &quot;{#BinDir}\assets\*&quot;; DestDir: &quot;{app}\assets&quot;; Flags: recursesubdirs createallsubdirs ignoreversion
-<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>Source: &quot;{#BinDir}\lua\*&quot;; DestDir: &quot;{app}\lua&quot;; Flags: recursesubdirs createallsubdirs ignoreversion
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>Source: "{#BinDir}\assets\*"; DestDir: "{app}\assets"; Flags: recursesubdirs createallsubdirs ignoreversion
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>Source: "{#BinDir}\lua\*"; DestDir: "{app}\lua"; Flags: recursesubdirs createallsubdirs ignoreversion
 <a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>
 <a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>; Visual C++ Redistributable (place in a known location)
-<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>Source: &quot;redist\VC_redist.x64.exe&quot;; DestDir: &quot;{tmp}&quot;; Flags: deleteafterinstall
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>Source: "redist\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 <a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>
 <a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>[Icons]
 <a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>; Start menu and desktop shortcuts
-<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>Name: &quot;{userstartmenu}\{#AppName}&quot;; Filename: &quot;{app}\{#ExeName}.exe&quot;; WorkingDir: &quot;{app}&quot;
-<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>Name: &quot;{userdesktop}\{#AppName}&quot;; Filename: &quot;{app}\{#ExeName}.exe&quot;; WorkingDir: &quot;{app}&quot;
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>Name: "{userstartmenu}\{#AppName}"; Filename: "{app}\{#ExeName}.exe"; WorkingDir: "{app}"
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>Name: "{userdesktop}\{#AppName}"; Filename: "{app}\{#ExeName}.exe"; WorkingDir: "{app}"
 <a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>
 <a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>[Run]
 <a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>; Install the VC++ redistributable silently
-<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a>Filename: &quot;{tmp}\VC_redist.x64.exe&quot;; Parameters: &quot;/install /quiet /norestart&quot;; StatusMsg: &quot;Installing Microsoft Visual C++ Redistributable...&quot;
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a>Filename: "{tmp}\VC_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft Visual C++ Redistributable..."
 </code></pre></div>
 <hr />
 <h2 id="step-by-step-instructions">Step-by-Step Instructions<a class="headerlink" href="#step-by-step-instructions" title="Permanent link">&para;</a></h2>
@@ -2414,10 +2414,10 @@ software. Generate one using PowerShell:</p>
 <p>Replace <code>YOUR-UNIQUE-GUID-HERE</code> in the script with the generated GUID.</p>
 <h3 id="4-customize-the-script">4. Customize the Script<a class="headerlink" href="#4-customize-the-script" title="Permanent link">&para;</a></h3>
 <p>Update the preprocessor definitions at the top:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>#define AppName &quot;YourAppName&quot;
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>#define AppVersion &quot;1.0.0&quot;
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>#define BinDir &quot;cmake-build-relwithdebinfo-visual-studio\bin\YourAppName_v1.0.0&quot;
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>#define ExeName &quot;YourAppName&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>#define AppName "YourAppName"
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>#define AppVersion "1.0.0"
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>#define BinDir "cmake-build-relwithdebinfo-visual-studio\bin\YourAppName_v1.0.0"
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>#define ExeName "YourAppName"
 </code></pre></div>
 <p>Update the <code>[Setup]</code> section with your company information.</p>
 <h3 id="5-compile-the-installer">5. Compile the Installer<a class="headerlink" href="#5-compile-the-installer" title="Permanent link">&para;</a></h3>
@@ -2474,7 +2474,7 @@ copying, or run in debug mode (<span class="keys"><kbd class="key-f10">F10</kbd>
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>cmake --build build --config RelWithDebInfo
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="p">:</span><span class="c1">: Verify output exists</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="k">if</span> <span class="k">not</span> <span class="k">exist</span> <span class="s2">&quot;build\bin\</span><span class="nv">%APP_NAME%</span><span class="s2">_v</span><span class="nv">%APP_VERSION%</span><span class="s2">\</span><span class="nv">%APP_NAME%</span><span class="s2">.exe&quot;</span> <span class="p">(</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="k">if</span> <span class="k">not</span> <span class="k">exist</span> <span class="s2">"build\bin\</span><span class="nv">%APP_NAME%</span><span class="s2">_v</span><span class="nv">%APP_VERSION%</span><span class="s2">\</span><span class="nv">%APP_NAME%</span><span class="s2">.exe"</span> <span class="p">(</span>
 <a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="k">echo</span> ERROR: Build output not found
 <a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="k">exit</span> /b 1
 <a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="p">)</span>
