@@ -1,9 +1,11 @@
 # Headless Mode
 
-Frasy can run tests without a GUI using two headless execution modes:
+Frasy can run tests without a GUI using several execution modes:
 
 - **CLI mode** (`--headless`) — run tests from the command line with progress output and stdin-based popup interaction
-- **MCP server mode** (`--mcp-server`) — run as a [Model Context Protocol](https://modelcontextprotocol.io) tool server for AI agent integration
+- **MCP server mode** (`--mcp-server`) — run as a [Model Context Protocol](https://modelcontextprotocol.io) tool server over stdio for AI agent integration (deprecated in favor of `--mcp-port`)
+- **Embedded MCP HTTP server** (`--mcp-port <port>`) — host a [MCP Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) server alongside the GUI, sharing the same hardware and orchestrator
+- **MCP client relay** (`--mcp-client --port <port>`) — lightweight stdio-to-HTTP bridge for connecting an AI agent to a running Frasy instance
 
 ---
 
@@ -26,7 +28,11 @@ frasy.exe --headless --product MyProduct --operator "John" --serial SN001 --seri
 | Flag | Description | Default |
 |---|---|---|
 | `--headless` | Enable headless CLI mode | — |
-| `--mcp-server` | Run as MCP tool server (stdio JSON-RPC) | — |
+| `--mcp-server` | Run as MCP tool server (stdio JSON-RPC, deprecated) | — |
+| `--mcp-port <port>` | Host MCP HTTP server on this port (0 = auto) | — |
+| `--mcp-client` | Run as stdio-to-HTTP relay to a running instance | — |
+| `--address <addr>` | Target address for `--mcp-client` | `127.0.0.1` |
+| `--port <port>` | Target port for `--mcp-client` (required) | — |
 | `--product <name>` | Product to test (required) | — |
 | `--operator <name>` | Operator name (required) | — |
 | `--serial <sn>` | Serial number per UUT (repeatable, required) | — |
@@ -221,3 +227,153 @@ Test reports are saved to disk regardless of mode:
 - `logs/{product}/fail/` — failed reports (timestamped)
 
 Reports contain full details: timing, expectations, IB info, operator, serial.
+
+---
+
+## Embedded MCP HTTP Server (`--mcp-port`)
+
+### Overview
+
+With `--mcp-port <port>`, the GUI process hosts a [MCP Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) server on the specified port. This allows AI agents to interact with the same orchestrator and hardware the operator uses — without fighting over USB device access.
+
+```bash
+# Start the GUI with MCP server on port 8080
+frasy.exe --mcp-port 8080
+
+# Auto-select an available port (printed to log)
+frasy.exe --mcp-port 0
+```
+
+The MCP server shares the GUI's orchestrator and CanOpen instances. When an agent starts a test run via MCP, the operator sees progress in the GUI panels in real-time. Popups are visible to both — either the operator or the agent can respond (first responder wins).
+
+### HTTP Endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/mcp` | JSON-RPC tool calls (initialize, tools/list, tools/call) |
+| GET | `/mcp` | Server-Sent Events stream for notifications |
+| DELETE | `/mcp` | Terminate the MCP session |
+
+### Available Tools
+
+| Tool | Description |
+|---|---|
+| `list_products` | List available test products |
+| `load_product` | Load a product into the orchestrator |
+| `run_tests` | Start a test run (async) |
+| `get_status` | Get current execution state and per-UUT states |
+| `get_results` | Get test results summary after completion |
+| `get_pending_popup` | Get the next popup waiting for interaction |
+| `respond_to_popup` | Send inputs and press a button on a pending popup |
+| `abort` | Abort the current test run |
+| `list_nodes` | List CANOpen nodes in the network |
+| `list_devices` | List connected COM port devices |
+| `upload_sdo` | Read a value from a CANOpen SDO |
+
+### Kiro Agent Configuration
+
+```json
+{
+  "mcpServers": {
+    "frasy": {
+      "command": "cmd",
+      "args": ["/c", "cd /d C:\\path\\to\\bin && frasy.exe --mcp-client --port 8080"]
+    }
+  }
+}
+```
+
+Or, if your MCP client supports Streamable HTTP natively:
+
+```json
+{
+  "mcpServers": {
+    "frasy": {
+      "type": "streamable-http",
+      "url": "http://127.0.0.1:8080/mcp"
+    }
+  }
+}
+```
+
+### SSE Notifications
+
+When connected via `GET /mcp`, the server pushes real-time notifications:
+
+- `notifications/popup` — a new popup appeared
+- `notifications/popup_consumed` — a popup was responded to (by GUI or agent)
+
+### Dual-Path Popup Interaction
+
+Popups triggered during test execution are visible both in the GUI (ImGui window) and to the MCP agent (`get_pending_popup`). Either can respond:
+
+- If the **operator** clicks a button in the GUI → the popup is consumed, the agent sees it disappear
+- If the **agent** calls `respond_to_popup` → the popup is consumed, the GUI popup disappears
+
+This enables collaborative workflows where the agent drives tests but the operator handles physical actions (fixture confirmations, visual inspections).
+
+---
+
+## MCP Client Relay (`--mcp-client`)
+
+### Overview
+
+The MCP client relay is a lightweight process that bridges an AI agent's stdio connection to a running Frasy instance's HTTP endpoint. It does not create a GUI window, does not initialize OpenGL, and does not open USB devices.
+
+```bash
+# Connect to a local instance
+frasy.exe --mcp-client --port 8080
+
+# Connect to a remote instance
+frasy.exe --mcp-client --address 192.168.0.105 --port 69
+```
+
+### How It Works
+
+```
+┌──────────┐ stdin  ┌───────────┐ POST /mcp  ┌──────────────┐
+│ AI Agent │ ─────→ │ McpRelay  │ ─────────→ │ Primary GUI  │
+│ (Kiro)   │ ←───── │           │ ←───────── │ HTTP Server  │
+└──────────┘ stdout └───────────┘  response   └──────────────┘
+```
+
+1. The agent sends JSON-RPC messages on stdin
+2. The relay POSTs them to `http://{address}:{port}/mcp`
+3. The relay writes HTTP responses to stdout
+4. A background SSE connection receives server notifications and forwards them to stdout
+
+### Kiro Agent Configuration
+
+```json
+{
+  "mcpServers": {
+    "frasy": {
+      "command": "cmd",
+      "args": ["/c", "cd /d C:\\path\\to\\bin && frasy.exe --mcp-client --port 8080"]
+    }
+  }
+}
+```
+
+### When to Use
+
+- The Frasy GUI is already running (started by the operator)
+- You want to connect an AI agent without restarting Frasy
+- You need remote access to a Frasy instance on another machine
+- Multiple AI agents need to connect to the same instance
+
+---
+
+## Mode Compatibility
+
+All execution mode flags are mutually exclusive:
+
+| Flag | Compatible with |
+|------|----------------|
+| `--headless` | None of the others |
+| `--mcp-server` | None of the others |
+| `--mcp-port` | Normal GUI mode (enhances it) |
+| `--mcp-client` | None of the others |
+
+!!! note
+    `--mcp-port` is the only flag that can be combined with normal GUI operation. All other modes replace the GUI entirely.

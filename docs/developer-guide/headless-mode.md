@@ -253,3 +253,118 @@ Configure as an MCP server in your Kiro agent and use the tools interactively:
 ```
 
 Then use `list_products`, `run_tests`, `get_status`, `get_pending_popup`, `respond_to_popup`, and `get_results` tools from the agent.
+
+---
+
+## Embedded MCP HTTP Server
+
+### How It Works
+
+When `--mcp-port <port>` is passed, `MainApplicationLayer::onAttach()` creates a `McpHttpServerLayer` that:
+
+1. Starts an HTTP server on a background thread (using cpp-httplib)
+2. Registers the same MCP tools as the standalone `--mcp-server` mode
+3. Shares the GUI's `m_orchestrator` and `m_canOpen` — no separate instances
+4. Processes mutating operations (run_tests, load_product) via a command queue drained each frame on the main thread
+5. Serves read-only operations (get_status, list_nodes, upload_sdo) directly from the HTTP handler threads
+
+### Thread Safety Model
+
+```
+HTTP handler threads                Main thread (GUI)
+─────────────────────              ─────────────────────
+get_status()         → direct      onUpdate() drains:
+list_nodes()         → direct        - load_product commands
+upload_sdo()         → direct        - run_tests commands
+get_pending_popup()  → direct        - popup sync
+respond_to_popup()   → direct
+load_product()       → enqueue ─→  main thread executes
+run_tests()          → enqueue ─→  main thread executes
+```
+
+### Popup Dual-Path
+
+The `UnifiedPopupHandler` observes the orchestrator's popup map each frame:
+
+- Detects new popups → makes them available via `get_pending_popup`
+- Detects consumed popups (GUI operator responded) → cleans up tracking
+- `respond_to_popup` sets inputs and calls `Popup::clickButton()` under the popup mutex
+
+Both the ImGui rendering and the MCP handler can consume the same popup. The `Popup::m_consumed` atomic ensures first-responder-wins semantics.
+
+### Adding the MCP Server to Your Application
+
+The framework handles this automatically. If you've registered a `ProductProvider` (which you already do for headless mode), the MCP server will work out of the box with `--mcp-port`:
+
+```cpp
+// No changes needed — MainApplicationLayer does this for you:
+if (CliArgs::get().mcpPort >= 0) {
+    m_mcpHttpServer = std::make_unique<McpHttpServerLayer>(
+      port, m_orchestrator, m_canOpen, *provider);
+    m_mcpHttpServer->setProductCallbacks(
+      [this]() { return getActiveProduct(); },
+      [this](const std::string& name) { return loadProduct(name); });
+    m_mcpHttpServer->onAttach();
+}
+```
+
+To make `load_product` work from MCP, override `getActiveProduct()` and `loadProduct()` in your derived layer:
+
+```cpp
+class MyMainApplicationLayer : public Frasy::MainApplicationLayer {
+protected:
+    std::string getActiveProduct() const override { return m_activeProduct; }
+    bool loadProduct(const std::string& name) override {
+        // Find product, set m_activeProduct, call your existing loadProduct()
+        m_activeProduct = name;
+        loadProduct();  // your no-arg version
+        return !m_orchestrator.getMap().uuts.empty();
+    }
+};
+```
+
+### Testing the Embedded MCP Server
+
+```bash
+# Start with MCP server
+frasy.exe --mcp-port 8080
+
+# In another terminal, test with curl:
+curl -X POST http://127.0.0.1:8080/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+
+# List products:
+curl -X POST http://127.0.0.1:8080/mcp \
+  -H "Content-Type: application/json" \
+  -H "Mcp-Session-Id: <session-id-from-initialize>" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"list_products","arguments":{}}}'
+```
+
+### Testing the MCP Client Relay
+
+```bash
+# Start the GUI with MCP server
+frasy.exe --mcp-port 8080
+
+# In another terminal, start the relay
+frasy.exe --mcp-client --port 8080
+
+# The relay reads from stdin and writes to stdout — pipe JSON-RPC:
+echo {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}} | frasy.exe --mcp-client --port 8080
+```
+
+---
+
+## RunOwner
+
+The `RunOwner` enum (`Frasy/src/utils/run_owner.h`) tracks who initiated the current test run:
+
+```cpp
+enum class RunOwner { None, Gui, Mcp };
+```
+
+When `run_tests` is called via MCP, the layer sets `RunOwner::Mcp`. Your GUI layer should set `RunOwner::Gui` when the operator clicks Run. Both sides check `isRunning()` before starting — first caller wins.
+
+The `get_status` tool response includes an `"initiated_by"` field (`"gui"`, `"mcp"`, or `"none"`) so agents can understand who is controlling the current run.

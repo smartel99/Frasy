@@ -25,6 +25,7 @@ block-beta
         D["Frasy::MainApplicationLayer<br/>(panels, menu, hotkeys)"]
         E["Frasy::Lua::Orchestrator<br/>(test engine)"]
         F["Frasy::CanOpen::CanOpen<br/>(hardware bus)"]
+        I["Frasy::McpHttpServerLayer<br/>(MCP Streamable HTTP)"]
     end
     block:brigerad
         columns 1
@@ -62,6 +63,7 @@ The bulk of the system:
 | `Frasy::MainApplicationLayer` | Base UI layer with built-in panels (log, results, CANopen viewer, etc.) and the menu bar. |
 | `Frasy::Lua::Orchestrator` | Test engine. Manages generation, validation, and execution of Lua test scripts across multiple UUTs. |
 | `Frasy::CanOpen::CanOpen` | Hardware communication. Drives CANopen over SLCAN to talk to instrumentation boards. |
+| `Frasy::McpHttpServerLayer` | Embedded MCP HTTP server. Exposes orchestrator tools to AI agents via the MCP Streamable HTTP transport. Created automatically when `--mcp-port` is specified. |
 
 ### Brigerad Engine
 
@@ -127,7 +129,7 @@ flowchart TD
 - **Submodule-based**: The framework lives in `vendor/frasy/` as a git submodule, cleanly separating framework code from application-specific code.
 - **Template pattern**: Applications extend framework classes rather than modifying them, keeping upgrades simple.
 - **Multi-UUT concurrency**: The orchestrator runs test sequences in parallel across multiple units under test, with synchronization primitives (`Sync()`, `Exclusive()`, `Once()`) built into the Lua SDK.
-- **Headless & MCP execution**: Beyond the GUI, Frasy supports headless CLI execution (`--headless`) and an MCP server mode (`--mcp-server`) for AI agent integration. Both modes share orchestrator setup logic through the `ProductProvider` interface. See [Headless Mode](../getting-started/headless-mode.md) for usage and [Developer Guide](../developer-guide/headless-mode.md) for implementation.
+- **Headless & MCP execution**: Beyond the GUI, Frasy supports headless CLI execution (`--headless`), a standalone MCP server (`--mcp-server`), and an embedded MCP HTTP server (`--mcp-port`) that shares the GUI's orchestrator and hardware. A lightweight relay (`--mcp-client`) bridges AI agents to a running instance over the network. All modes share orchestrator setup logic through the `ProductProvider` interface. See [Headless Mode](../getting-started/headless-mode.md) for usage and [Developer Guide](../developer-guide/headless-mode.md) for implementation.
 
 ---
 
