@@ -47,14 +47,6 @@
 namespace Frasy::Lua {
 #pragma region Orchestrator
 
-const std::vector<HashDir::Filter> Orchestrator::s_coreFilters = {
-  HashDir::Filter {
-    .kind    = HashDir::Filter::include,
-    .target  = HashDir::Filter::file,
-    .pattern = ".+\\.lua",
-  },
-};
-
 std::string Orchestrator::stage2str(Stage stage)
 {
     switch (stage) {
@@ -130,8 +122,7 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
 }
 
 bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
-                              const std::filesystem::path&        hashfile,
-                              const std::vector<HashDir::Filter>& filters)
+                              const std::filesystem::path&        hashfile)
 {
 #ifndef BR_DEBUG
     if (!exists(hashfile)) {
@@ -149,7 +140,7 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
         return false;
     }
 
-    if (const auto hash = hashDir(folder, filters); hash != expectedHash) {
+    if (const auto hash = HashDir::hashDir(folder); hash != expectedHash) {
         BR_LOG_ERROR(s_tag, "{} hash mismatch", folder.string());
         return false;
     }
@@ -490,7 +481,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         // Validation of hashes must happen after everything is loaded, in case code that is executed anyways uses our
         // stuff.
         if (!verifyHash("lua/core", "lua/core/hash")) { return false; }
-        if (!verifyHash("lua/user", "lua/user/hash", m_filters)) { return false; }
+        if (!verifyHash("lua/user", "lua/user/hash")) { return false; }
 
         // User content
         lua["Context"]["values"]["gui"] = m_loadUserValues(lua);
