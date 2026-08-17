@@ -16,6 +16,7 @@
 
 #include <utils/cli/cli_args.h>
 #include <utils/headless/headless_runner.h>
+#include <utils/mcp/mcp_relay.h>
 #include <utils/mcp/mcp_runner.h>
 #include <frasy_interpreter.h>
 
@@ -33,10 +34,8 @@ int main(int argc, char** argv)
     if (cliArgs.mcpClient) {
         BR_BEGIN_GUARDED_SCOPE
             {
-                // TODO: Frasy::Mcp::McpRelay relay(cliArgs.address, cliArgs.port);
-                // exitCode = relay.run();
-                std::cerr << "MCP client relay mode not yet implemented\n";
-                exitCode = 2;
+                Frasy::Mcp::McpRelay relay(cliArgs.address, cliArgs.port);
+                exitCode = relay.run();
             }
         BR_END_GUARDED_SCOPE
         return exitCode;
