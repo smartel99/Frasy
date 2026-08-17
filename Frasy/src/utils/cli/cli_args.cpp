@@ -32,7 +32,11 @@ void printUsage(const char* programName)
               << "\n"
               << "Options:\n"
               << "  --headless              Run in headless (CLI) mode\n"
-              << "  --mcp-server            Run as MCP tool server (stdio JSON-RPC)\n"
+              << "  --mcp-server            Run as MCP tool server (stdio JSON-RPC, deprecated)\n"
+              << "  --mcp-port <port>       Host MCP HTTP server on this port (0 = auto)\n"
+              << "  --mcp-client            Run as stdio-to-HTTP relay connecting to a running instance\n"
+              << "  --address <addr>        Target address for --mcp-client (default: 127.0.0.1)\n"
+              << "  --port <port>           Target port for --mcp-client (required with --mcp-client)\n"
               << "  --product <name>        Product to test (required in headless mode)\n"
               << "  --operator <name>       Operator name (required in headless mode)\n"
               << "  --serial <sn>           Serial number for a UUT (repeatable, required in headless mode)\n"
@@ -46,9 +50,9 @@ void printUsage(const char* programName)
               << "\n"
               << "Examples:\n"
               << "  " << programName << " --headless --product MyProduct --operator CI --serial SN001\n"
-              << "  " << programName << " --headless --product MyProduct --operator CI --serial SN001 --serial SN002\n"
-              << "  " << programName
-              << " --headless --product MyProduct --operator CI --serial SN001 --output-format json\n"
+              << "  " << programName << " --mcp-port 8080\n"
+              << "  " << programName << " --mcp-client --port 8080\n"
+              << "  " << programName << " --mcp-client --address 192.168.0.105 --port 69\n"
               << "\n"
               << "Exit codes (headless mode):\n"
               << "  0  All UUTs passed\n"
@@ -83,6 +87,47 @@ CliArgs CliArgs::parse(int argc, char** argv)
         }
         else if (arg == "--mcp-server") {
             args.mcpServer = true;
+        }
+        else if (arg == "--mcp-client") {
+            args.mcpClient = true;
+        }
+        else if (arg == "--mcp-port") {
+            const char* val = peekNextArg(i, argc, argv, "--mcp-port");
+            if (!val) { std::exit(2); }
+            try {
+                args.mcpPort = std::stoi(val);
+                if (args.mcpPort < 0) {
+                    std::cerr << "Error: --mcp-port must be a non-negative integer\n";
+                    std::exit(2);
+                }
+            }
+            catch (...) {
+                std::cerr << "Error: --mcp-port must be a valid integer, got '" << val << "'\n";
+                std::exit(2);
+            }
+            ++i;
+        }
+        else if (arg == "--address") {
+            const char* val = peekNextArg(i, argc, argv, "--address");
+            if (!val) { std::exit(2); }
+            args.address = val;
+            ++i;
+        }
+        else if (arg == "--port") {
+            const char* val = peekNextArg(i, argc, argv, "--port");
+            if (!val) { std::exit(2); }
+            try {
+                args.port = std::stoi(val);
+                if (args.port <= 0) {
+                    std::cerr << "Error: --port must be a positive integer\n";
+                    std::exit(2);
+                }
+            }
+            catch (...) {
+                std::cerr << "Error: --port must be a valid integer, got '" << val << "'\n";
+                std::exit(2);
+            }
+            ++i;
         }
         else if (arg == "--skip-verification") {
             args.skipVerification = true;
@@ -152,6 +197,32 @@ CliArgs CliArgs::parse(int argc, char** argv)
     // Validate mutual exclusivity
     if (args.headless && args.mcpServer) {
         std::cerr << "Error: --headless and --mcp-server are mutually exclusive\n";
+        std::exit(2);
+    }
+    if (args.headless && args.mcpClient) {
+        std::cerr << "Error: --headless and --mcp-client are mutually exclusive\n";
+        std::exit(2);
+    }
+    if (args.headless && args.mcpPort >= 0) {
+        std::cerr << "Error: --headless and --mcp-port are mutually exclusive\n";
+        std::exit(2);
+    }
+    if (args.mcpServer && args.mcpClient) {
+        std::cerr << "Error: --mcp-server and --mcp-client are mutually exclusive\n";
+        std::exit(2);
+    }
+    if (args.mcpServer && args.mcpPort >= 0) {
+        std::cerr << "Error: --mcp-server and --mcp-port are mutually exclusive\n";
+        std::exit(2);
+    }
+    if (args.mcpClient && args.mcpPort >= 0) {
+        std::cerr << "Error: --mcp-client and --mcp-port are mutually exclusive\n";
+        std::exit(2);
+    }
+
+    // Validate --mcp-client requires --port
+    if (args.mcpClient && args.port <= 0) {
+        std::cerr << "Error: --mcp-client requires --port <port>\n";
         std::exit(2);
     }
 

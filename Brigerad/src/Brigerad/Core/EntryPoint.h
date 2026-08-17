@@ -29,6 +29,19 @@ int main(int argc, char** argv)
     const auto& cliArgs = Frasy::CliArgs::get();
     int exitCode = 0;
 
+    // --mcp-client: lightweight relay process, no app/GUI needed
+    if (cliArgs.mcpClient) {
+        BR_BEGIN_GUARDED_SCOPE
+            {
+                // TODO: Frasy::Mcp::McpRelay relay(cliArgs.address, cliArgs.port);
+                // exitCode = relay.run();
+                std::cerr << "MCP client relay mode not yet implemented\n";
+                exitCode = 2;
+            }
+        BR_END_GUARDED_SCOPE
+        return exitCode;
+    }
+
     BR_BEGIN_GUARDED_SCOPE
         {
             BR_PROFILE_BEGIN_SESSION("Init", "BrigeradProfile-Startup.json");

@@ -25,6 +25,10 @@ namespace Frasy {
 struct CliArgs {
     bool                     headless            = false;
     bool                     mcpServer           = false;
+    bool                     mcpClient           = false;
+    int                      mcpPort             = -1;    // --mcp-port: host HTTP MCP server (-1=off, 0=auto, >0=port)
+    std::string              address             = "127.0.0.1";  // --address: target for --mcp-client
+    int                      port                = 0;     // --port: target port for --mcp-client
     std::string              product;
     std::string              operatorName;
     std::vector<std::string> serials;
