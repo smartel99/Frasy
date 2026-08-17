@@ -25,12 +25,12 @@
 #include <CO_ODinterface.h>
 #include <CO_SDOclient.h>
 
-#include <atomic>
 #include <condition_variable>
 #include <cstdint>
 #include <expected>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <queue>
 #include <span>
 #include <string>
@@ -172,9 +172,6 @@ private:
 
     SdoClientInfo                    m_clientInfo;
     std::unique_ptr<OD_obj_record_t[]> m_odObjRecord;
-
-    //! Used to atomize SDO transactions.
-    std::atomic_bool                                m_isWorkerWorking = false;
     std::queue<std::shared_ptr<SdoUploadRequest>>   m_pendingUploadRequests;
     std::queue<std::shared_ptr<SdoDownloadRequest>> m_pendingDownloadRequests;
 
@@ -192,6 +189,9 @@ private:
 
     static constexpr const char* s_cliTag = "SDO Client";
     static constexpr const char* s_srvTag = "SDO Server";
+
+    //! Global mutex to serialize access to the single shared CO_SDOclient_t across all nodes.
+    static std::mutex s_sdoClientMutex;
 };
 }    // namespace Frasy::CanOpen
 

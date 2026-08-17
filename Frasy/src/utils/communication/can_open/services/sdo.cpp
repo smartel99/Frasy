@@ -35,6 +35,8 @@
 
 namespace Frasy::CanOpen {
 
+std::mutex SdoManager::s_sdoClientMutex;
+
 SdoManager::SdoManager()
     : SdoManager(s_noNodeId)
 {
@@ -134,9 +136,6 @@ SdoUploadDataResult SdoManager::uploadData(
 void SdoManager::startWorkers()
 {
     m_stopSource = {};
-    auto ret     =
-        CO_SDOclient_setup(m_sdoClient, m_clientInfo.cobIdClientToServer, m_clientInfo.cobIdServerToClient, m_nodeId);
-    if (ret != CO_SDO_RT_ok_communicationEnd) { return; }
 
     m_uploadWorkerThread =
         Brigerad::MakeThread([this](std::stop_source source) { uploadWorkerThread(source.get_token()); }, m_stopSource);
@@ -192,11 +191,7 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
         for (int i = 0; i <= request->retries; ++i) {
             FRASY_PROFILE_SCOPE("Upload Request Retries");
 
-            m_isWorkerWorking.wait(true);      // Wait until it's false lol
-            m_isWorkerWorking          = true; // "Lock" the workers.
             auto [handlerCode, coCode] = handleUploadRequest(*request);
-            m_isWorkerWorking          = false;
-            m_isWorkerWorking.notify_one();
 
             lastReturn = coCode;
             if (handlerCode == HandlerReturnCode::ok) {
@@ -226,6 +221,10 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
 std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUploadRequest(SdoUploadRequest& request)
 {
     FRASY_PROFILE_FUNCTION();
+    // Configure the shared SDO client for this node before the transaction.
+    std::lock_guard lock {s_sdoClientMutex};
+    CO_SDOclient_setup(m_sdoClient, m_clientInfo.cobIdClientToServer, m_clientInfo.cobIdServerToClient, m_nodeId);
+
     // Initiate the upload.
     auto ret =
         CO_SDOclientUploadInitiate(m_sdoClient, request.index, request.subIndex, request.sdoTimeoutMs, request.isBlock);
@@ -320,11 +319,7 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
 
         request->status = SdoRequestStatus::OnGoing;
         for (uint8_t i = 0; i <= request->retries; ++i) {
-            m_isWorkerWorking.wait(true);      // Wait until it's false lol
-            m_isWorkerWorking          = true; // "Lock" the workers.
             auto [handlerCode, coCode] = handleDownloadRequest(*request);
-            m_isWorkerWorking          = false;
-            m_isWorkerWorking.notify_one();
 
             if (handlerCode == HandlerReturnCode::ok) {
                 request->markAsComplete(coCode);
@@ -354,6 +349,10 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
     SdoDownloadRequest& request)
 {
     FRASY_PROFILE_FUNCTION();
+    // Configure the shared SDO client for this node before the transaction.
+    std::lock_guard lock {s_sdoClientMutex};
+    CO_SDOclient_setup(m_sdoClient, m_clientInfo.cobIdClientToServer, m_clientInfo.cobIdServerToClient, m_nodeId);
+
     // Initiate the download.
     auto ret = CO_SDOclientDownloadInitiate(
         m_sdoClient,
