@@ -72,7 +72,7 @@ void McpHttpServerLayer::onAttach()
         handlePost(req, res);
     });
 
-    // GET /mcp — SSE stream (placeholder for now)
+    // GET /mcp — SSE stream
     m_httpServer->Get(s_mcpEndpoint, [this](const httplib::Request& req, httplib::Response& res) {
         handleGet(req, res);
     });
@@ -80,6 +80,24 @@ void McpHttpServerLayer::onAttach()
     // DELETE /mcp — session termination
     m_httpServer->Delete(s_mcpEndpoint, [this](const httplib::Request& req, httplib::Response& res) {
         handleDelete(req, res);
+    });
+
+    // Prevent MCP clients from triggering OAuth discovery.
+    // Return 404 (not 401) for well-known endpoints so clients know auth is not required.
+    m_httpServer->Get("/.well-known/oauth-authorization-server", [](const httplib::Request&, httplib::Response& res) {
+        res.status = 404;
+        res.set_content("Not found", "text/plain");
+    });
+    m_httpServer->Get("/.well-known/openid-configuration", [](const httplib::Request&, httplib::Response& res) {
+        res.status = 404;
+        res.set_content("Not found", "text/plain");
+    });
+
+    // Catch-all error handler — never return 401 (which triggers OAuth in MCP clients)
+    m_httpServer->set_error_handler([](const httplib::Request&, httplib::Response& res) {
+        if (res.status == 404) {
+            res.set_content("Not found", "text/plain");
+        }
     });
 
     // Start the server on a background thread
