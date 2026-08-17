@@ -113,6 +113,16 @@ void McpHttpServerLayer::onAttach()
 
 void McpHttpServerLayer::onDetach()
 {
+    // Close all SSE connections
+    {
+        std::lock_guard lock(m_sseMutex);
+        for (auto& conn : m_sseConnections) {
+            conn->closed = true;
+            conn->cv.notify_all();
+        }
+        m_sseConnections.clear();
+    }
+
     if (m_httpServer) {
         m_httpServer->stop();
     }
@@ -125,19 +135,73 @@ void McpHttpServerLayer::onDetach()
 void McpHttpServerLayer::onUpdate(Brigerad::Timestep /*ts*/)
 {
     // Drain command queue on main thread
-    std::lock_guard lock(m_commandMutex);
-    while (!m_commandQueue.empty()) {
-        auto cmd = std::move(m_commandQueue.front());
-        m_commandQueue.pop();
-        try {
-            cmd.result.set_value(cmd.execute());
-        }
-        catch (const std::exception& e) {
-            nlohmann::json err;
-            err["error"] = e.what();
-            cmd.result.set_value(err);
+    {
+        std::lock_guard lock(m_commandMutex);
+        while (!m_commandQueue.empty()) {
+            auto cmd = std::move(m_commandQueue.front());
+            m_commandQueue.pop();
+            try {
+                cmd.result.set_value(cmd.execute());
+            }
+            catch (const std::exception& e) {
+                nlohmann::json err;
+                err["error"] = e.what();
+                cmd.result.set_value(err);
+            }
         }
     }
+
+    // Sync popup state with orchestrator
+    m_popupHandler.sync(m_orchestrator);
+
+    // Push SSE notifications for new/consumed popups
+    for (const auto& popup : m_popupHandler.consumeNewPopups()) {
+        nlohmann::json event;
+        event["jsonrpc"]         = "2.0";
+        event["method"]          = "notifications/popup";
+        event["params"]["id"]    = popup.id;
+        event["params"]["texts"] = popup.texts;
+
+        nlohmann::json inputs = nlohmann::json::array();
+        for (std::size_t i = 0; i < popup.inputTitles.size(); ++i) {
+            inputs.push_back({{"index", i}, {"title", popup.inputTitles[i]}});
+        }
+        event["params"]["inputs"]  = inputs;
+        event["params"]["buttons"] = popup.buttons;
+        pushSseEvent(event);
+    }
+
+    for (const auto& id : m_popupHandler.consumeRemovedPopups()) {
+        nlohmann::json event;
+        event["jsonrpc"]       = "2.0";
+        event["method"]        = "notifications/popup_consumed";
+        event["params"]["id"]  = id;
+        pushSseEvent(event);
+    }
+
+    // Clean up closed SSE connections periodically
+    cleanClosedSseConnections();
+}
+
+// --- SSE helpers ---
+
+void McpHttpServerLayer::pushSseEvent(const nlohmann::json& event)
+{
+    std::string serialized = event.dump();
+    std::lock_guard lock(m_sseMutex);
+    for (auto& conn : m_sseConnections) {
+        if (!conn->closed) {
+            std::lock_guard connLock(conn->mutex);
+            conn->events.push(serialized);
+            conn->cv.notify_one();
+        }
+    }
+}
+
+void McpHttpServerLayer::cleanClosedSseConnections()
+{
+    std::lock_guard lock(m_sseMutex);
+    std::erase_if(m_sseConnections, [](const auto& conn) { return conn->closed.load(); });
 }
 
 // --- Command queue ---
@@ -206,10 +270,40 @@ void McpHttpServerLayer::handlePost(const httplib::Request& req, httplib::Respon
 
 void McpHttpServerLayer::handleGet(const httplib::Request& /*req*/, httplib::Response& res)
 {
-    // SSE stream — placeholder for Task 6
-    // For now, return 405 to indicate SSE is not yet supported
-    res.status = 405;
-    res.set_content("SSE not yet implemented", "text/plain");
+    // SSE stream — server-to-client notifications
+    auto conn = std::make_shared<SseConnection>();
+    {
+        std::lock_guard lock(m_sseMutex);
+        m_sseConnections.push_back(conn);
+    }
+
+    res.set_header("Cache-Control", "no-cache");
+    res.set_header("Connection", "keep-alive");
+
+    res.set_chunked_content_provider("text/event-stream",
+        [conn](size_t /*offset*/, httplib::DataSink& sink) {
+            // Wait for events or closure
+            std::unique_lock lock(conn->mutex);
+            conn->cv.wait(lock, [&conn] {
+                return !conn->events.empty() || conn->closed;
+            });
+
+            if (conn->closed) { return false; }
+
+            // Drain event queue
+            while (!conn->events.empty()) {
+                auto event = std::move(conn->events.front());
+                conn->events.pop();
+                std::string sseData = "data: " + event + "\n\n";
+                sink.write(sseData.c_str(), sseData.size());
+            }
+            return true;
+        },
+        [conn](bool /*success*/) {
+            // On close
+            conn->closed = true;
+            conn->cv.notify_all();
+        });
 }
 
 void McpHttpServerLayer::handleDelete(const httplib::Request& req, httplib::Response& res)
@@ -734,52 +828,8 @@ nlohmann::json McpHttpServerLayer::handleGetResults(const nlohmann::json& /*args
 
 nlohmann::json McpHttpServerLayer::handleGetPendingPopup(const nlohmann::json& /*args*/)
 {
-    // Access the orchestrator's popup map via the new accessors
-    std::lock_guard lock(*m_orchestrator.getPopupMutex());
-    auto&           popups = m_orchestrator.getPopups();
-
-    if (popups.empty()) { return makeToolResult(R"({"popup":null})"); }
-
-    // Return the first popup's info
-    for (auto& [name, popup] : popups) {
-        nlohmann::json j;
-        j["id"]   = name;
-        j["name"] = name;
-
-        // Extract texts, inputs, buttons from elements
-        nlohmann::json texts   = nlohmann::json::array();
-        nlohmann::json inputs  = nlohmann::json::array();
-        nlohmann::json buttons = nlohmann::json::array();
-
-        std::size_t inputIdx = 0;
-        for (const auto& elem : popup.getElements()) {
-            switch (elem->kind) {
-                case Lua::Popup::Element::Kind::Text: {
-                    auto* t = static_cast<const Lua::Popup::Text*>(elem.get());
-                    texts.push_back(t->text);
-                    break;
-                }
-                case Lua::Popup::Element::Kind::Input: {
-                    auto* inp = static_cast<const Lua::Popup::Input*>(elem.get());
-                    inputs.push_back({{"index", inputIdx}, {"title", inp->title}, {"value", std::string(inp->buffer.data())}});
-                    inputIdx++;
-                    break;
-                }
-                case Lua::Popup::Element::Kind::Button: {
-                    auto* btn = static_cast<const Lua::Popup::Button*>(elem.get());
-                    buttons.push_back(btn->label);
-                    break;
-                }
-                default: break;
-            }
-        }
-
-        j["texts"]   = texts;
-        j["inputs"]  = inputs;
-        j["buttons"] = buttons;
-        return makeToolResult(j.dump());
-    }
-
+    auto popup = m_popupHandler.getPendingPopup();
+    if (popup.has_value()) { return makeToolResult(popup->dump()); }
     return makeToolResult(R"({"popup":null})");
 }
 
@@ -792,7 +842,7 @@ nlohmann::json McpHttpServerLayer::handleRespondToPopup(const nlohmann::json& ar
         return makeToolResult(R"({"error":"id and button are required"})", true);
     }
 
-    // Set inputs if provided
+    // Parse inputs
     std::map<std::size_t, std::string> inputValues;
     if (args.contains("inputs") && args["inputs"].is_object()) {
         for (auto& [key, value] : args["inputs"].items()) {
@@ -803,28 +853,10 @@ nlohmann::json McpHttpServerLayer::handleRespondToPopup(const nlohmann::json& ar
         }
     }
 
-    // Access popup under mutex
-    std::lock_guard lock(*m_orchestrator.getPopupMutex());
-    auto&           popups = m_orchestrator.getPopups();
-    auto            it     = popups.find(id);
-    if (it == popups.end()) {
-        return makeToolResult(std::format(R"({{"error":"Popup not found with id: {}"}})", id), true);
+    if (m_popupHandler.respondToPopup(id, inputValues, button, m_orchestrator)) {
+        return makeToolResult(R"({"ok":true})");
     }
-
-    auto& popup = it->second;
-
-    // Set input values
-    for (auto& [idx, value] : inputValues) {
-        popup.setInput(idx, value);
-    }
-
-    // Click the button
-    if (!popup.clickButton(button)) {
-        // Button not found — just consume the popup
-        popup.Consume();
-    }
-
-    return makeToolResult(R"({"ok":true})");
+    return makeToolResult(std::format(R"({{"error":"Popup not found with id: {}"}})", id), true);
 }
 
 nlohmann::json McpHttpServerLayer::handleAbort(const nlohmann::json& /*args*/)

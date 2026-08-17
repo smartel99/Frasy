@@ -20,10 +20,13 @@
 #include "utils/communication/can_open/can_open.h"
 #include "utils/headless/product_provider.h"
 #include "utils/lua/orchestrator/orchestrator.h"
+#include "utils/mcp/unified_popup_handler.h"
+#include "utils/run_owner.h"
 
 #include <Brigerad.h>
 
 #include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <json.hpp>
 #include <mutex>
@@ -40,8 +43,6 @@ class Response;
 }    // namespace httplib
 
 namespace Frasy {
-
-enum class RunOwner { None, Gui, Mcp };
 
 /**
  * @brief Brigerad Layer that hosts an MCP HTTP server alongside the GUI.
@@ -162,6 +163,22 @@ private:
     // --- Product state callbacks ---
     ActiveProductGetter m_getActiveProduct;
     ProductLoader       m_loadProduct;
+
+    // --- Popup handler ---
+    Mcp::UnifiedPopupHandler m_popupHandler;
+
+    // --- SSE connections ---
+    struct SseConnection {
+        std::mutex              mutex;
+        std::queue<std::string> events;
+        std::condition_variable cv;
+        std::atomic<bool>       closed = false;
+    };
+    std::mutex                                    m_sseMutex;
+    std::vector<std::shared_ptr<SseConnection>>   m_sseConnections;
+
+    void pushSseEvent(const nlohmann::json& event);
+    void cleanClosedSseConnections();
 
     static constexpr const char* s_tag = "MCP-HTTP";
 };
