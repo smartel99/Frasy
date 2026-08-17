@@ -19,6 +19,7 @@ include(Frasy/vendor/cmake/canopennode.cmake)
 include(Frasy/vendor/cmake/json.cmake)
 add_subdirectory(Frasy/vendor/hashdir)
 include(Frasy/vendor/cmake/wkhtmltox.cmake)
+include(Frasy/vendor/cmake/cpp-httplib.cmake)
 
 add_library(${PROJECT_NAME} STATIC ${FRASY_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -28,6 +29,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         libhashdir
         json
         wkhtmltox
+        cpp-httplib
         Ws2_32.lib
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
