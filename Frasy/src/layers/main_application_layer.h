@@ -71,6 +71,16 @@ protected:
     virtual void makeTestViewerVisible();
     virtual void appendToMainTabBar() {}
 
+    /// Get the currently active product name. Override in derived class.
+    [[nodiscard]] virtual std::string getActiveProduct() const { return ""; }
+
+    /// Load a product by name. Override in derived class. Returns true on success.
+    virtual bool loadProduct(const std::string& /*name*/) { return false; }
+
+    /// Get references to the orchestrator and CanOpen (for MCP layer integration).
+    [[nodiscard]] Lua::Orchestrator& getOrchestrator() { return m_orchestrator; }
+    [[nodiscard]] CanOpen::CanOpen&  getCanOpen() { return m_canOpen; }
+
     void renderAbout();
     void renderProfiler();
     void renderProfilerTable(const std::thread::id& id, const ProfilerDetails& details);

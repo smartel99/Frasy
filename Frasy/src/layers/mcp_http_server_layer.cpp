@@ -514,6 +514,17 @@ nlohmann::json McpHttpServerLayer::handleLoadProduct(const nlohmann::json& args)
     return enqueueAndWait([this, product]() -> nlohmann::json {
         if (m_running) { return makeToolResult(R"({"error":"Tests are already running"})", true); }
 
+        // Use the application's loadProduct callback if available
+        if (m_loadProduct) {
+            if (!m_loadProduct(product)) {
+                return makeToolResult(
+                  nlohmann::json({{"error", "Failed to load product"}, {"product", product}}).dump(), true);
+            }
+            m_activeProduct = product;
+            return makeToolResult(R"({"loaded":true})");
+        }
+
+        // Fallback: direct setup via ProductProvider
         auto products = discoverProducts();
         auto it = std::ranges::find_if(products, [&](const Headless::ProductInfo& p) { return p.name == product; });
         if (it == products.end()) {
@@ -651,7 +662,7 @@ nlohmann::json McpHttpServerLayer::handleGetStatus(const nlohmann::json& /*args*
         uuts.push_back(uutInfo);
     }
     status["uuts"]    = uuts;
-    status["product"] = m_activeProduct;
+    status["product"] = m_getActiveProduct ? m_getActiveProduct() : m_activeProduct;
 
     return makeToolResult(status.dump());
 }

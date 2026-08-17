@@ -71,6 +71,16 @@ public:
     /// Set the run owner (called by GUI when operator starts a run).
     void setRunOwner(RunOwner owner) { m_runOwner.store(owner); }
 
+    /// Set callbacks for product state (called during integration wiring).
+    using ActiveProductGetter = std::function<std::string()>;
+    using ProductLoader       = std::function<bool(const std::string&)>;
+
+    void setProductCallbacks(ActiveProductGetter getter, ProductLoader loader)
+    {
+        m_getActiveProduct = std::move(getter);
+        m_loadProduct      = std::move(loader);
+    }
+
 private:
     // --- HTTP handlers ---
     void handlePost(const httplib::Request& req, httplib::Response& res);
@@ -148,6 +158,10 @@ private:
     std::atomic<bool>     m_running  = false;
     std::string           m_activeProduct;
     std::vector<std::string> m_serials;
+
+    // --- Product state callbacks ---
+    ActiveProductGetter m_getActiveProduct;
+    ProductLoader       m_loadProduct;
 
     static constexpr const char* s_tag = "MCP-HTTP";
 };
