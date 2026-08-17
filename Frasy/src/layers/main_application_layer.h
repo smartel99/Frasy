@@ -23,6 +23,7 @@
 #    include "test_viewer.h"
 #    include "utils/communication/can_open/can_open.h"
 #    include "utils/lua/orchestrator/orchestrator.h"
+#    include "utils/run_owner.h"
 
 #    include <Brigerad.h>
 #    include <Brigerad/Renderer/Texture.h>
