@@ -15060,7 +15060,7 @@ inline bool ClientImpl::process_request(Stream &strm, Request &req,
   // timeout, send the body anyway (matching curl's behavior).
   auto status_line_read = false;
   if (expect_100_continue && write_request_success) {
-    if (CPPHTTPLIB_EXPECT_100_TIMEOUT_MSECOND > 0) {
+    if constexpr (CPPHTTPLIB_EXPECT_100_TIMEOUT_MSECOND > 0) {
       time_t sec = CPPHTTPLIB_EXPECT_100_TIMEOUT_MSECOND / 1000;
       time_t usec = (CPPHTTPLIB_EXPECT_100_TIMEOUT_MSECOND % 1000) * 1000;
       strm.set_read_timeout(sec, usec);

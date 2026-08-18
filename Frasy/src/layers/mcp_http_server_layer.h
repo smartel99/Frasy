@@ -38,8 +38,8 @@
 // Forward-declare httplib types to avoid including the large header here
 namespace httplib {
 class Server;
-class Request;
-class Response;
+struct Request;
+struct Response;
 }    // namespace httplib
 
 namespace Frasy {
