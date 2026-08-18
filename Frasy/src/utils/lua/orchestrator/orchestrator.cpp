@@ -147,7 +147,6 @@ bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
 #else
     (void)folder;
     (void)hashfile;
-    (void)filters;
 #endif
     return true;
 }
