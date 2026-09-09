@@ -82,6 +82,7 @@ private:
     static std::map<std::string, SequenceResult> LoadSequences(const nlohmann::json& sequences);
     static std::map<std::string, TestResult>     LoadTests(const nlohmann::json& tests);
     static std::vector<ExpectationDetails>       LoadExpectations(const nlohmann::json& expectations);
+    static nlohmann::json                        SanitizeExpectation(const nlohmann::json& expectation);
 
     static std::string MakeStringFromJson(const std::string& key, const nlohmann::json& value);
 

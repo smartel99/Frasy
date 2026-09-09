@@ -22,6 +22,8 @@ namespace Frasy {
 
 ResultViewer::ResultViewer() noexcept : m_logs(LoadLogs(true))
 {
+    m_isFirstPassOfLogs.resize(m_logs.size());
+    std::ranges::fill(m_isFirstPassOfLogs, true);
 }
 
 void ResultViewer::onImGuiRender()
@@ -124,7 +126,15 @@ void ResultViewer::RenderTest(const TestResult& test, std::size_t index)
                 ImGui::SetNextItemOpen(!passed, ImGuiCond_Always);
             }
             std::string label = std::format("Expectation {}", at);
-            if (expectation.contains("note")) { label = expectation.at("note").get<std::string>(); }
+            if (expectation.contains("note")) {
+                // Multi-line notes are stored as an array of lines by SanitizeExpectation, and only the
+                // first one can fit on the node anyway.
+                const auto& note = expectation.at("note");
+                if (note.is_string()) { label = note.get<std::string>(); }
+                else if (note.is_array() && !note.empty() && note.front().is_string()) {
+                    label = std::format("{}...", note.front().get<std::string>());
+                }
+            }
             if (ImGui::TreeNode(&expectation, "%s", label.c_str())) {
                 RenderExpectation(expectation);
                 ImGui::TreePop();
@@ -268,6 +278,7 @@ std::map<std::string, ResultViewer::TestResult> ResultViewer::LoadTests(const nl
 
     return testResults;
 }
+
 std::vector<ResultViewer::ExpectationDetails> ResultViewer::LoadExpectations(const nlohmann::json& expectations)
 {
     std::vector<ExpectationDetails> expectationDetails = {};
@@ -275,12 +286,67 @@ std::vector<ResultViewer::ExpectationDetails> ResultViewer::LoadExpectations(con
     for (const auto& [expName, expDetails] : expectations.items()) {
         ExpectationDetails details;
         for (const auto& [fieldName, fieldVal] : expDetails.items()) {
-            details[fieldName] = fieldVal;
+            details[fieldName] = SanitizeExpectation(fieldVal);
         }
         expectationDetails.push_back(details);
     }
 
     return expectationDetails;
+}
+
+nlohmann::json ResultViewer::SanitizeExpectation(const nlohmann::json& expectation)
+{
+    auto           sanitize = [](this auto&& self, const nlohmann::json& field) -> nlohmann::json {
+        nlohmann::json sanitized;
+        if (field.is_object() || field.is_array()) {
+            for (const auto& [fieldName, fieldVal] : field.items()) {
+                sanitized[fieldName] = self(fieldVal);
+            }
+        }
+        else if (field.is_string()) {
+            auto                    sv                = field.get<std::string_view>();
+            static constexpr size_t s_maxStringLength = 1024;
+            std::string             str;
+            if (sv.size() > s_maxStringLength) {
+                str = std::format(
+                  "{}... \n\n(truncated {} bytes)", sv.substr(0, s_maxStringLength), sv.size() - s_maxStringLength);
+            }
+            else {
+                str = sv;
+            }
+
+            // Turn string into an array of strings split by lines so that it's prettier in the render.
+            if (!str.contains('\n')) {
+                // Single line, keep it as-is rather than wrapping it in a one-element array.
+                sanitized = std::move(str);
+            }
+            else {
+                sanitized = std::views::split(std::string_view {str}, '\n') |
+                            std::views::transform([](auto&& line) {
+                                std::string_view sanitizedLine {line};
+                                // Don't keep the carriage returns of CRLF line endings, they render as garbage.
+                                if (sanitizedLine.ends_with('\r')) { sanitizedLine.remove_suffix(1); }
+                                return std::string {sanitizedLine};
+                            }) |
+                            std::ranges::to<std::vector<std::string>>();
+            }
+        }
+        else {
+            return field;
+        }
+        return sanitized;
+    };
+
+    if (!expectation.is_object() && !expectation.is_array()) {
+        return sanitize(expectation);
+    }
+
+    nlohmann::json exp;
+    for (const auto& [fieldName, fieldVal] : expectation.items()) {
+        exp[fieldName] = sanitize(fieldVal);
+    }
+
+    return exp;
 }
 
 std::string ResultViewer::MakeStringFromJson(const std::string& key, const nlohmann::json& value)
