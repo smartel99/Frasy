@@ -68,12 +68,6 @@ public:
     bool loadUserFiles(const std::string& environment, const std::string& testsDir, const std::string& title = "");
 
     /**
-     * Update filters to use when verifying user files
-     * @param filters
-     */
-    void setVerifyFilters(const std::vector<HashDir::Filter>& filters) { m_filters = filters; }
-
-    /**
      * Async request to generate the solution
      * Success will be reported through Interface::OnGenerated() callback
      */
@@ -186,9 +180,7 @@ private:
     void runStageExecute(sol::state_view team, const std::vector<std::string>& serials);
     void checkResults(const std::vector<std::size_t>& devices);
 
-    static bool verifyHash(const std::filesystem::path&        folder,
-                           const std::filesystem::path&        hashfile,
-                           const std::vector<HashDir::Filter>& filters = std::vector<HashDir::Filter>());
+    static bool verifyHash(const std::filesystem::path& folder, const std::filesystem::path& hashfile);
 
     std::unique_ptr<sol::state> m_state = nullptr;
     std::vector<UutState>       m_uutStates;
@@ -224,9 +216,6 @@ private:
     Models::Solution                         m_solution = {};
     std::vector<std::vector<Expectation>>    m_expectationsVectors;
     std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes;
-
-    static const std::vector<HashDir::Filter> s_coreFilters;
-    std::vector<HashDir::Filter>              m_filters;
 
     CanOpen::CanOpen* m_canOpen = nullptr;
 

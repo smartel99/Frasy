@@ -40,9 +40,7 @@
 namespace Frasy::Analyzers {
 namespace {
 float Percent(size_t v, size_t tot)
-{
-    return (static_cast<float>(v) / static_cast<float>(tot)) * 100.0f;
-}
+{ return (static_cast<float>(v) / static_cast<float>(tot)) * 100.0f; }
 
 nlohmann::json LoadJson(const std::string& path)
 {
@@ -249,9 +247,7 @@ void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResul
 
 void ResultAnalyzer::AnalyzeExpectation(const nlohmann::json&                                expectation,
                                         std::shared_ptr<ResultAnalysisResults::Expectation>& results)
-{
-    results->AddValue(expectation);
-}
+{ results->AddValue(expectation); }
 
 std::shared_ptr<ResultAnalysisResults::Expectation> ResultAnalyzer::MakeExpectationFromDetails(
   const nlohmann::json& expectation)
@@ -260,65 +256,53 @@ std::shared_ptr<ResultAnalysisResults::Expectation> ResultAnalyzer::MakeExpectat
 
     std::string method = expectation.at("method").get<std::string>();
 
-    if (method == "ToBeTrue"s) {
-        ToBeTrueExpectation* exp = new ToBeTrueExpectation();
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    std::shared_ptr<ResultAnalysisResults::Expectation> exp;
+
+    if (method == "ToBeTrue"s) { exp = std::make_shared<ToBeTrueExpectation>(); }
+    else if (method == "ToBeFalse"s) {
+        exp = std::make_shared<ToBeFalseExpectation>();
     }
-    if (method == "ToBeFalse"s) {
-        ToBeFalseExpectation* exp = new ToBeFalseExpectation();
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeEqual"s) {
+        exp = std::make_shared<ToBeEqualExpectation>(expectation.at("expected"));
     }
-    if (method == "ToBeEqual"s) {
-        ToBeEqualExpectation* exp = new ToBeEqualExpectation(expectation.at("expected"));
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeNear"s) {
+        exp = std::make_shared<ToBeNearExpectation>(expectation.at("expected").get<float>(),
+                                                    expectation.at("deviation").get<float>());
     }
-    if (method == "ToBeNear"s) {
-        ToBeNearExpectation* exp =
-          new ToBeNearExpectation(expectation.at("expected").get<float>(), expectation.at("deviation").get<float>());
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeInRange"s) {
+        exp = std::make_shared<ToBeInRangeExpectation>(expectation.at("min").get<float>(),
+                                                       expectation.at("max").get<float>());
     }
-    if (method == "ToBeInRange"s) {
-        ToBeInRangeExpectation* exp =
-          new ToBeInRangeExpectation(expectation.at("min").get<float>(), expectation.at("max").get<float>());
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeInPercentage"s) {
+        exp = std::make_shared<ToBeInPercentageExpectation>(expectation.at("expected").get<float>(),
+                                                            expectation.at("percentage").get<float>());
     }
-    if (method == "ToBeInPercentage"s) {
-        ToBeInPercentageExpectation* exp = new ToBeInPercentageExpectation(expectation.at("expected").get<float>(),
-                                                                           expectation.at("percentage").get<float>());
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeGreater"s) {
+        exp = std::make_shared<ToBeGreaterExpectation>(expectation.at("min").get<float>());
     }
-    if (method == "ToBeGreater"s) {
-        ToBeGreaterExpectation* exp = new ToBeGreaterExpectation(expectation.at("min").get<float>());
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeGreaterOrEqual"s) {
+        exp = std::make_shared<ToBeGreaterOrEqualExpectation>(expectation.at("min").get<float>());
     }
-    if (method == "ToBeGreaterOrEqual"s) {
-        ToBeGreaterOrEqualExpectation* exp = new ToBeGreaterOrEqualExpectation(expectation.at("min").get<float>());
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeLesser"s) {
+        exp = std::make_shared<ToBeLesserExpectation>(expectation.at("max").get<float>());
     }
-    if (method == "ToBeLesser"s) {
-        ToBeLesserExpectation* exp = new ToBeLesserExpectation(expectation.at("max").get<float>());
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeLesserOrEqual"s) {
+        exp = std::make_shared<ToBeLesserOrEqualExpectation>(expectation.at("max").get<float>());
     }
-    if (method == "ToBeLesserOrEqual"s) {
-        ToBeLesserOrEqualExpectation* exp = new ToBeLesserOrEqualExpectation(expectation.at("max").get<float>());
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToBeType"s) {
+        exp = std::make_shared<ToBeTypeExpectation>(expectation.at("expected").get<std::string>());
     }
-    if (method == "ToBeType"s) {
-        ToBeTypeExpectation* exp = new ToBeTypeExpectation(expectation.at("expected").get<std::string>());
-        exp->Name = expectation.at("name").get<std::string>();
-        return std::shared_ptr<ResultAnalysisResults::Expectation>(exp);
+    else if (method == "ToMatch"s) {
+        BR_LOG_WARN("Analyzer", "ToMatch is not supported yet");
+        throw std::runtime_error(std::format("Unsupported method {}", method));
     }
-    if (method == "ToMatch"s) { BR_LOG_WARN("Analyzer", "ToMatch is not supported yet"); }
-    throw std::runtime_error(std::format("Invalid method {}", method));
+    else {
+        throw std::runtime_error(std::format("Invalid method {}", method));
+    }
+
+    std::string name = expectation.at("name").get<std::string>();
+    std::string note = expectation.at("note").get<std::string>();
+    exp->Name        = name == note ? name : std::format("{} - {}", name, note);
+    return exp;
 }
 }    // namespace Frasy::Analyzers

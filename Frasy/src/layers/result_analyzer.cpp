@@ -352,7 +352,7 @@ void ResultAnalyzer::renderTestAnalysisResults(const Analyzers::ResultAnalysisRe
     ImGui::SameLine();
     if (ImGui::BeginCombo("##test", m_currentExpectation->Name.c_str())) {
         for (auto&& [name, expectation] : test.Expectations) {
-            if (ImGui::Selectable(name.c_str(), m_currentExpectation->Name.c_str())) {
+            if (ImGui::Selectable(expectation->Name.c_str(), m_currentExpectation->Name.c_str())) {
                 m_currentExpectation = expectation.get();
             }
         }
