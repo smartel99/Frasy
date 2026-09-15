@@ -18,11 +18,13 @@
 #    include "can_open_viewer.h"
 #    include "device_viewer.h"
 #    include "log_window.h"
+#    include "mcp_http_server_layer.h"
 #    include "result_analyzer.h"
 #    include "result_viewer.h"
 #    include "test_viewer.h"
 #    include "utils/communication/can_open/can_open.h"
 #    include "utils/lua/orchestrator/orchestrator.h"
+#    include "utils/run_owner.h"
 
 #    include <Brigerad.h>
 #    include <Brigerad/Renderer/Texture.h>
@@ -71,6 +73,16 @@ protected:
     virtual void makeTestViewerVisible();
     virtual void appendToMainTabBar() {}
 
+    /// Get the currently active product name. Override in derived class.
+    [[nodiscard]] virtual std::string getActiveProduct() const { return ""; }
+
+    /// Load a product by name. Override in derived class. Returns true on success.
+    virtual bool loadProduct(const std::string& /*name*/) { return false; }
+
+    /// Get references to the orchestrator and CanOpen (for MCP layer integration).
+    [[nodiscard]] Lua::Orchestrator& getOrchestrator() { return m_orchestrator; }
+    [[nodiscard]] CanOpen::CanOpen&  getCanOpen() { return m_canOpen; }
+
     void renderAbout();
     void renderProfiler();
     void renderProfilerTable(const std::thread::id& id, const ProfilerDetails& details);
@@ -107,6 +119,9 @@ protected:
 
     CanOpen::CanOpen  m_canOpen;
     Lua::Orchestrator m_orchestrator;
+
+    /// MCP HTTP server layer (created when --mcp-port is specified).
+    std::unique_ptr<McpHttpServerLayer> m_mcpHttpServer;
 
 private:
     struct ProfileEventInfo {

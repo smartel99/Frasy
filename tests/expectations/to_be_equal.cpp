@@ -42,3 +42,9 @@ TEST_F(ExpectationsTest, ToBeEqual_Method)
     auto method = lua.script("return ExpectToBeEqual(1, 1).method").get<std::string>();
     EXPECT_EQ(method, "ToBeEqual");
 }
+
+TEST_F(ExpectationsTest, ToBeEqual_Table)
+{
+    EXPECT_TRUE(lua.script("return ExpectToBeEqual({42}, {42}).pass").get<bool>());
+    EXPECT_FALSE(lua.script("return ExpectToBeEqual({42}, {69}).pass").get<bool>());
+}

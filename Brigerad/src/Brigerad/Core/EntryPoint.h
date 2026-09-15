@@ -16,6 +16,7 @@
 
 #include <utils/cli/cli_args.h>
 #include <utils/headless/headless_runner.h>
+#include <utils/mcp/mcp_relay.h>
 #include <utils/mcp/mcp_runner.h>
 #include <frasy_interpreter.h>
 
@@ -28,6 +29,17 @@ int main(int argc, char** argv)
     Frasy::CliArgs::parse(argc, argv);
     const auto& cliArgs = Frasy::CliArgs::get();
     int exitCode = 0;
+
+    // --mcp-client: lightweight relay process, no app/GUI needed
+    if (cliArgs.mcpClient) {
+        BR_BEGIN_GUARDED_SCOPE
+            {
+                Frasy::Mcp::McpRelay relay(cliArgs.address, cliArgs.port);
+                exitCode = relay.run();
+            }
+        BR_END_GUARDED_SCOPE
+        return exitCode;
+    }
 
     BR_BEGIN_GUARDED_SCOPE
         {

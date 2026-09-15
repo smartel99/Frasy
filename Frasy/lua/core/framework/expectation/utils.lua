@@ -21,7 +21,7 @@ function ExpectToBeEqual(value, expected)
     local result = {}
     result.method = "ToBeEqual"
     result.expected = expected
-    result.pass = type(value) == type(expected) and value == result.expected
+    result.pass = type(value) == type(expected) and Equals(value, result.expected)
     return result
 end
 

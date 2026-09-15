@@ -266,4 +266,45 @@ void Popup::Render()
     ImGui::End();
 }
 
+void Popup::setInput(std::size_t index, const std::string& value)
+{
+    std::size_t inputIdx = 0;
+    for (auto& elem : m_elements) {
+        if (elem->kind == Element::Kind::Input) {
+            if (inputIdx == index) {
+                auto* input = static_cast<Input*>(elem.get());
+                auto  len   = std::min(value.size(), input->buffer.size() - 1);
+                std::copy_n(value.begin(), len, input->buffer.begin());
+                input->buffer[len] = '\0';
+                m_inputs[input->index] = value;
+                if (input->onChange) { input->onChange(value, input->index); }
+                return;
+            }
+            inputIdx++;
+        }
+    }
+}
+
+bool Popup::clickButton(const std::string& label)
+{
+    for (auto& elem : m_elements) {
+        if (elem->kind == Element::Kind::Button) {
+            auto* btn = static_cast<Button*>(elem.get());
+            if (btn->label == label) {
+                std::lock_guard lock {m_luaMutex};
+                if (btn->action.valid()) {
+                    auto result = btn->action(m_inputs);
+                    if (!result.valid()) {
+                        sol::error err = result;
+                        BR_LUA_ERROR("Button '{}' action error: {}", label, err.what());
+                    }
+                }
+                if (btn->consume) { Consume(); }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 }    // namespace Frasy::Lua

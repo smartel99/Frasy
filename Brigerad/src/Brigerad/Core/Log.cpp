@@ -71,11 +71,7 @@ void Log::Init(bool useStderr, bool silent)
 
     static constexpr size_t maxSize          = 1024 * 1024 * 1;    //!< 1MB max
     auto                    rotatingFileSink = std::make_shared<LogRotatingSanitizedFileSinkMt>(
-      std::format("logs/frasy/log_{}.json", std::chrono::steady_clock::now().time_since_epoch().count()),
-      maxSize,
-      5,
-      true,
-      s_eventHandlers);
+      std::format("logs/frasy/log.json"), maxSize, 5, true, s_eventHandlers);
 
     // clang-format off
     static constexpr const char* pattern =
