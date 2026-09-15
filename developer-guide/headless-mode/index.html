@@ -1419,6 +1419,100 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#embedded-mcp-http-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Embedded MCP HTTP Server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Embedded MCP HTTP Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#thread-safety-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Thread Safety Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popup-dual-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Popup Dual-Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-the-mcp-server-to-your-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding the MCP Server to Your Application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-the-embedded-mcp-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing the Embedded MCP Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-the-mcp-client-relay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing the MCP Client Relay
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runowner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunOwner
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2287,6 +2381,100 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#embedded-mcp-http-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Embedded MCP HTTP Server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Embedded MCP HTTP Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#thread-safety-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Thread Safety Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popup-dual-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Popup Dual-Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-the-mcp-server-to-your-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding the MCP Server to Your Application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-the-embedded-mcp-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing the Embedded MCP Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-the-mcp-client-relay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing the MCP Client Relay
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runowner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunOwner
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2510,6 +2698,93 @@
 <a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="p">}</span>
 </code></pre></div>
 <p>Then use <code>list_products</code>, <code>run_tests</code>, <code>get_status</code>, <code>get_pending_popup</code>, <code>respond_to_popup</code>, and <code>get_results</code> tools from the agent.</p>
+<hr />
+<h2 id="embedded-mcp-http-server">Embedded MCP HTTP Server<a class="headerlink" href="#embedded-mcp-http-server" title="Permanent link">&para;</a></h2>
+<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
+<p>When <code>--mcp-port &lt;port&gt;</code> is passed, <code>MainApplicationLayer::onAttach()</code> creates a <code>McpHttpServerLayer</code> that:</p>
+<ol>
+<li>Starts an HTTP server on a background thread (using cpp-httplib)</li>
+<li>Registers the same MCP tools as the standalone <code>--mcp-server</code> mode</li>
+<li>Shares the GUI's <code>m_orchestrator</code> and <code>m_canOpen</code> — no separate instances</li>
+<li>Processes mutating operations (run_tests, load_product) via a command queue drained each frame on the main thread</li>
+<li>Serves read-only operations (get_status, list_nodes, upload_sdo) directly from the HTTP handler threads</li>
+</ol>
+<h3 id="thread-safety-model">Thread Safety Model<a class="headerlink" href="#thread-safety-model" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>HTTP handler threads                Main thread (GUI)
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>─────────────────────              ─────────────────────
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>get_status()         → direct      onUpdate() drains:
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>list_nodes()         → direct        - load_product commands
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>upload_sdo()         → direct        - run_tests commands
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>get_pending_popup()  → direct        - popup sync
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>respond_to_popup()   → direct
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>load_product()       → enqueue ─→  main thread executes
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>run_tests()          → enqueue ─→  main thread executes
+</code></pre></div>
+<h3 id="popup-dual-path">Popup Dual-Path<a class="headerlink" href="#popup-dual-path" title="Permanent link">&para;</a></h3>
+<p>The <code>UnifiedPopupHandler</code> observes the orchestrator's popup map each frame:</p>
+<ul>
+<li>Detects new popups → makes them available via <code>get_pending_popup</code></li>
+<li>Detects consumed popups (GUI operator responded) → cleans up tracking</li>
+<li><code>respond_to_popup</code> sets inputs and calls <code>Popup::clickButton()</code> under the popup mutex</li>
+</ul>
+<p>Both the ImGui rendering and the MCP handler can consume the same popup. The <code>Popup::m_consumed</code> atomic ensures first-responder-wins semantics.</p>
+<h3 id="adding-the-mcp-server-to-your-application">Adding the MCP Server to Your Application<a class="headerlink" href="#adding-the-mcp-server-to-your-application" title="Permanent link">&para;</a></h3>
+<p>The framework handles this automatically. If you've registered a <code>ProductProvider</code> (which you already do for headless mode), the MCP server will work out of the box with <code>--mcp-port</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// No changes needed — MainApplicationLayer does this for you:</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">CliArgs</span><span class="o">::</span><span class="n">get</span><span class="p">().</span><span class="n">mcpPort</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="n">m_mcpHttpServer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">McpHttpServerLayer</span><span class="o">&gt;</span><span class="p">(</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">      </span><span class="n">port</span><span class="p">,</span><span class="w"> </span><span class="n">m_orchestrator</span><span class="p">,</span><span class="w"> </span><span class="n">m_canOpen</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">provider</span><span class="p">);</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="n">m_mcpHttpServer</span><span class="o">-&gt;</span><span class="n">setProductCallbacks</span><span class="p">(</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">      </span><span class="p">[</span><span class="k">this</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">getActiveProduct</span><span class="p">();</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">      </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">loadProduct</span><span class="p">(</span><span class="n">name</span><span class="p">);</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="n">m_mcpHttpServer</span><span class="o">-&gt;</span><span class="n">onAttach</span><span class="p">();</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="p">}</span>
+</code></pre></div>
+<p>To make <code>load_product</code> work from MCP, override <code>getActiveProduct()</code> and <code>loadProduct()</code> in your derived layer:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMainApplicationLayer</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Frasy</span><span class="o">::</span><span class="n">MainApplicationLayer</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">protected</span><span class="o">:</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">getActiveProduct</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">m_activeProduct</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">loadProduct</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">        </span><span class="c1">// Find product, set m_activeProduct, call your existing loadProduct()</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">        </span><span class="n">m_activeProduct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">name</span><span class="p">;</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">        </span><span class="n">loadProduct</span><span class="p">();</span><span class="w">  </span><span class="c1">// your no-arg version</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">!</span><span class="n">m_orchestrator</span><span class="p">.</span><span class="n">getMap</span><span class="p">().</span><span class="n">uuts</span><span class="p">.</span><span class="n">empty</span><span class="p">();</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="p">};</span>
+</code></pre></div>
+<h3 id="testing-the-embedded-mcp-server">Testing the Embedded MCP Server<a class="headerlink" href="#testing-the-embedded-mcp-server" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Start with MCP server</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>frasy.exe<span class="w"> </span>--mcp-port<span class="w"> </span><span class="m">8080</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># In another terminal, test with curl:</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://127.0.0.1:8080/mcp<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Accept: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="c1"># List products:</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://127.0.0.1:8080/mcp<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Mcp-Session-Id: &lt;session-id-from-initialize&gt;"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"list_products","arguments":{}}}'</span>
+</code></pre></div>
+<h3 id="testing-the-mcp-client-relay">Testing the MCP Client Relay<a class="headerlink" href="#testing-the-mcp-client-relay" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Start the GUI with MCP server</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>frasy.exe<span class="w"> </span>--mcp-port<span class="w"> </span><span class="m">8080</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># In another terminal, start the relay</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>frasy.exe<span class="w"> </span>--mcp-client<span class="w"> </span>--port<span class="w"> </span><span class="m">8080</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># The relay reads from stdin and writes to stdout — pipe JSON-RPC:</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="nb">echo</span><span class="w"> </span><span class="o">{</span><span class="s2">"jsonrpc"</span>:<span class="s2">"2.0"</span>,<span class="s2">"id"</span>:1,<span class="s2">"method"</span>:<span class="s2">"initialize"</span>,<span class="s2">"params"</span>:<span class="o">{</span><span class="s2">"protocolVersion"</span>:<span class="s2">"2024-11-05"</span>,<span class="s2">"capabilities"</span>:<span class="o">{}</span>,<span class="s2">"clientInfo"</span>:<span class="o">{</span><span class="s2">"name"</span>:<span class="s2">"test"</span>,<span class="s2">"version"</span>:<span class="s2">"1.0"</span><span class="o">}}}</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>frasy.exe<span class="w"> </span>--mcp-client<span class="w"> </span>--port<span class="w"> </span><span class="m">8080</span>
+</code></pre></div>
+<hr />
+<h2 id="runowner">RunOwner<a class="headerlink" href="#runowner" title="Permanent link">&para;</a></h2>
+<p>The <code>RunOwner</code> enum (<code>Frasy/src/utils/run_owner.h</code>) tracks who initiated the current test run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">RunOwner</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">Gui</span><span class="p">,</span><span class="w"> </span><span class="n">Mcp</span><span class="w"> </span><span class="p">};</span>
+</code></pre></div>
+<p>When <code>run_tests</code> is called via MCP, the layer sets <code>RunOwner::Mcp</code>. Your GUI layer should set <code>RunOwner::Gui</code> when the operator clicks Run. Both sides check <code>isRunning()</code> before starting — first caller wins.</p>
+<p>The <code>get_status</code> tool response includes an <code>"initiated_by"</code> field (<code>"gui"</code>, <code>"mcp"</code>, or <code>"none"</code>) so agents can understand who is controlling the current run.</p>
 
 
 

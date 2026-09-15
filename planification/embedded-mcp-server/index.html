@@ -1,0 +1,3457 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generic Automated Hardware Testing Software">
+      
+      
+      
+        <link rel="canonical" href="https://frasy.rald.ca/planification/embedded-mcp-server/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/icon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Implementation Plan — Embedded MCP Server in GUI - Frasy</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#implementation-plan-embedded-mcp-server-in-gui" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Frasy" class="md-header__button md-logo" aria-label="Frasy" data-md-component="logo">
+      
+  <img src="../../assets/icon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Frasy
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Implementation Plan — Embedded MCP Server in GUI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/smartel99/Frasy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    smartel99/Frasy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developer-guide/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../lua-reference/" class="md-tabs__link">
+          
+  
+  
+  Lua Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../panels/" class="md-tabs__link">
+          
+  
+  
+  Panels
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Frasy" class="md-nav__button md-logo" aria-label="Frasy" data-md-component="logo">
+      
+  <img src="../../assets/icon.png" alt="logo">
+
+    </a>
+    Frasy
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/smartel99/Frasy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    smartel99/Frasy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/building/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/cpp-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C++ Application Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/lua-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/headless-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Headless Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/cpp-layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C++ Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/lua-layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Communication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/test-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/creating-a-product/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a Product
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/teams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Teams
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/customizing-the-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customizing the UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/cpp-to-lua/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exposing C++ to Lua
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/custom-ibs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Instrumentation Boards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/installer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building an Installer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/headless-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Headless Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Lua Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/sequences-and-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequences & Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/expectations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Expectations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation & Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/popups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Popups
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lua-reference/utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Panels
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Panels
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Panels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/log-window/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log Window
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/device-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/result-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/result-analyzer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Analyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/test-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/canopen-viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CANopen Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/lua-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-design-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Design Decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#target-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target State
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remote-client-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remote Client Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launch-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Launch Modes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport-mcp-streamable-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transport: MCP Streamable HTTP
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transport: MCP Streamable HTTP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-http-over-stdio-for-the-embedded-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why HTTP over Stdio for the embedded case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-library-cpp-httplib" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTTP Library: cpp-httplib
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-breakdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task Breakdown
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task Breakdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-add-cpp-httplib-dependency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Add cpp-httplib Dependency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-cli-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: CLI Flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-3-mcp-http-server-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: MCP HTTP Server Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-4-command-queue-for-thread-safe-mutating-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: Command Queue for Thread-Safe Mutating Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-5-dual-path-unified-popup-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: Dual-Path Unified Popup Handler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-6-sse-progress-notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: SSE Progress Notifications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-7-run-ownership-and-conflict-prevention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 7: Run Ownership and Conflict Prevention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-8-product-state-sharing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 8: Product State Sharing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-9-mcp-clientrelay-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 9: MCP Client/Relay Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-10-orchestrator-popup-access-refactor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 10: Orchestrator Popup Access Refactor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-11-integration-framework-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 11: Integration — Framework Level
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-12-integration-application-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 12: Integration — Application Level
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-13-backward-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 13: Backward Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detailed-interaction-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Interaction Flows
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detailed Interaction Flows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flow-a-mcp-agent-starts-a-test-run-operator-watches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow A: MCP Agent Starts a Test Run (Operator Watches)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flow-b-popup-agent-responds-before-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow B: Popup — Agent Responds Before Operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flow-c-popup-operator-responds-before-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow C: Popup — Operator Responds Before Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flow-d-remote-agent-connects-via-relay-mcp-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow D: Remote Agent Connects via Relay (--mcp-client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risk-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risk Assessment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-questions-resolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open Questions (Resolved)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remaining-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remaining Open Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="implementation-plan-embedded-mcp-server-in-gui">Implementation Plan — Embedded MCP Server in GUI<a class="headerlink" href="#implementation-plan-embedded-mcp-server-in-gui" title="Permanent link">&para;</a></h1>
+<h2 id="problem-statement">Problem Statement<a class="headerlink" href="#problem-statement" title="Permanent link">&para;</a></h2>
+<p>The current MCP server mode (<code>--mcp-server</code>) runs as a separate execution path that creates its own <code>CanOpen::CanOpen</code> and <code>Lua::Orchestrator</code> instances. Since only one process can have USB SLCAN devices open at a time, this makes it impossible to use the MCP server while the GUI is running — the two paths fight over USB device access.</p>
+<p><strong>Goal:</strong> Embed the MCP server inside the GUI process so that a single Frasy instance can simultaneously display the GUI for operators AND serve MCP tool calls for AI agents — sharing the same <code>CanOpen</code> and <code>Orchestrator</code> instances. The operator can follow test progress in real-time regardless of whether the run was triggered from the GUI or by an AI agent.</p>
+<hr />
+<h2 id="key-design-decisions">Key Design Decisions<a class="headerlink" href="#key-design-decisions" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p><strong>Shared orchestrator and CanOpen</strong> — The GUI and MCP server share the exact same instances. When the MCP agent starts a run, the operator sees progress in the GUI panels (test viewer, result viewer, profiler, popups). When the operator starts a run, the MCP agent can query status and results.</p>
+</li>
+<li>
+<p><strong>Dual-path popup handling from day one</strong> — Popups are visible both in the GUI (ImGui) and to the MCP agent (<code>get_pending_popup</code>). Either the operator or the agent can respond; first responder wins.</p>
+</li>
+<li>
+<p><strong>MCP over Streamable HTTP</strong> — The GUI process hosts an HTTP server on a configurable port. A separate process (or remote machine) can connect to it. This also enables a "client mode" where a second Frasy instance connects to the first one's HTTP endpoint.</p>
+</li>
+<li>
+<p><strong><code>--mcp-client</code> for remote connection</strong> — <code>frasy.exe --mcp-client --address 192.168.0.105 --port 69</code> launches a lightweight relay process that connects to a running Frasy instance's HTTP endpoint and bridges it over stdio for AI agents.</p>
+</li>
+</ol>
+<hr />
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<h3 id="target-state">Target State<a class="headerlink" href="#target-state" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌───────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│ frasy.exe (Primary Instance — GUI + MCP HTTP Server)          │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│                                                               │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  Main Thread (GUI + Brigerad loop)                            │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  ┌──────────────────────────────────┐                         │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  │ Application::run()              │                         │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  │  → onUpdate() / onImGuiRender()│                         │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  │  → renderPopups() (dual-path)  │                         │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  │  → process MCP command queue   │                         │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  └──────────────────────────────────┘                         │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│                                                               │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  HTTP Server Thread (background)                              │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  ┌──────────────────────────────────┐                         │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  │ httplib::Server on port N        │                         │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  │  POST /mcp → JSON-RPC dispatch  │                         │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  │  GET  /mcp → SSE stream         │                         │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  └──────────────────────────────────┘                         │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│                                                               │
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│  Shared State (owned by MainApplicationLayer)                 │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  ┌──────────────────────────────────┐                         │
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  │ m_canOpen ────────────── ← USB  │                         │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│  │ m_orchestrator                  │                         │
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  └──────────────────────────────────┘                         │
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│                                                               │
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│  Lua Worker Threads (spawned by orchestrator)                 │
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│  ┌──────────────────────────────────┐                         │
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│  │ Test execution, popup blocking  │                         │
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│  └──────────────────────────────────┘                         │
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>└───────────────────────────────────────────────────────────────┘
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>         ↕ USB (single owner)               ↕ HTTP (port N)
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    ┌──────────┐                   ┌─────────────────────────┐
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    │ Hardware │                   │ Remote MCP Clients       │
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    └──────────┘                   │  - AI agent (Kiro)       │
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                                   │  - frasy --mcp-client    │
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                                   │    --address x --port N  │
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                                   └─────────────────────────┘
+</code></pre></div>
+<h3 id="remote-client-mode">Remote Client Mode<a class="headerlink" href="#remote-client-mode" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>┌────────────────────────────────────────┐
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│ frasy.exe --mcp-client                 │
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>│          --address 192.168.0.105       │
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>│          --port 69                     │
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>│                                        │
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>│  stdio ←→ MCP-over-HTTP bridge         │
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│                                        │
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│  AI Agent (Kiro) connects via stdio    │
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│  This process connects to the primary  │
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│  instance's HTTP endpoint and relays   │
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>│  JSON-RPC messages.                    │
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>└────────────────────────────────────────┘
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>         ↕ stdio (AI agent)
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    ┌──────────┐
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    │ Kiro CLI │
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    └──────────┘
+</code></pre></div>
+<hr />
+<h2 id="launch-modes">Launch Modes<a class="headerlink" href="#launch-modes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>frasy.exe</code></td>
+<td>Normal GUI, no MCP server</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-port 8080</code></td>
+<td>GUI + MCP HTTP server on port 8080</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-port 0</code></td>
+<td>GUI + MCP HTTP server on random available port (printed to stderr)</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-server</code></td>
+<td>Standalone MCP over stdio (existing behavior, own orchestrator — <strong>deprecated but kept for compat</strong>)</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-client --port 8080</code></td>
+<td>Client/relay mode: bridges stdio ↔ HTTP to a running primary instance on localhost</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-client --address 192.168.0.105 --port 69</code></td>
+<td>Client/relay mode: bridges stdio ↔ HTTP to a remote primary instance</td>
+</tr>
+<tr>
+<td><code>frasy.exe --headless ...</code></td>
+<td>Headless CLI mode (existing, unchanged)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Kiro agent configurations:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>// Option A: Direct stdio connection (existing standalone mode, deprecated)
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>{
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  "mcpServers": {
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    "frasy": {
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>      "command": "cmd",
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>      "args": ["/c", "cd /d C:\\path\\to\\bin &amp;&amp; frasy.exe --mcp-server"]
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    }
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>  }
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>}
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>// Option B: Connect to an already-running GUI instance via relay
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>{
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>  "mcpServers": {
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    "frasy": {
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>      "command": "cmd",
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>      "args": ["/c", "cd /d C:\\path\\to\\bin &amp;&amp; frasy.exe --mcp-client --port 8080"]
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    }
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>  }
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>}
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>// Option C: Connect to a remote instance
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>{
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>  "mcpServers": {
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    "frasy": {
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>      "command": "cmd",
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>      "args": ["/c", "cd /d C:\\path\\to\\bin &amp;&amp; frasy.exe --mcp-client --address 192.168.0.105 --port 69"]
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>    }
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>  }
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>}
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>// Option D: Streamable HTTP (if the MCP client supports it natively)
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>{
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>  "mcpServers": {
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>    "frasy": {
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>      "type": "streamable-http",
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a>      "url": "http://127.0.0.1:8080/mcp"
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>    }
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>  }
+<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a>}
+</code></pre></div>
+<hr />
+<h2 id="transport-mcp-streamable-http">Transport: MCP Streamable HTTP<a class="headerlink" href="#transport-mcp-streamable-http" title="Permanent link">&para;</a></h2>
+<p>The MCP spec (2025-03-26) defines Streamable HTTP as the standard transport for remote connections. It uses a single HTTP endpoint (<code>/mcp</code>) that supports:</p>
+<ul>
+<li><strong>POST /mcp</strong> — Client sends JSON-RPC requests/notifications. Server responds with either <code>application/json</code> (single response) or <code>text/event-stream</code> (SSE stream for streaming responses + server-initiated messages).</li>
+<li><strong>GET /mcp</strong> — Client opens an SSE stream for server-to-client notifications (used for progress events, popup notifications).</li>
+</ul>
+<h3 id="why-http-over-stdio-for-the-embedded-case">Why HTTP over Stdio for the embedded case<a class="headerlink" href="#why-http-over-stdio-for-the-embedded-case" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Stdio</th>
+<th>HTTP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multiple clients</td>
+<td>❌ Single</td>
+<td>✅ Multiple</td>
+</tr>
+<tr>
+<td>GUI app on Windows</td>
+<td>❌ Needs console alloc</td>
+<td>✅ No console needed</td>
+</tr>
+<tr>
+<td>Remote connections</td>
+<td>❌ Local only</td>
+<td>✅ Network accessible</td>
+</tr>
+<tr>
+<td>Runtime toggle</td>
+<td>❌ Fixed at launch</td>
+<td>✅ Can start/stop server</td>
+</tr>
+<tr>
+<td>MCP spec support</td>
+<td>✅ Universal</td>
+<td>✅ Streamable HTTP spec</td>
+</tr>
+<tr>
+<td>Dependency</td>
+<td>None</td>
+<td>cpp-httplib (header-only)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="http-library-cpp-httplib">HTTP Library: cpp-httplib<a class="headerlink" href="#http-library-cpp-httplib" title="Permanent link">&para;</a></h3>
+<p><a href="https://github.com/yhirose/cpp-httplib">cpp-httplib</a> — single-header, C++11, MIT license. It provides:
+- Blocking HTTP server with thread pool
+- SSE support via chunked transfer encoding
+- No external dependencies (no OpenSSL needed for localhost)
+- Already proven in similar embedded scenarios</p>
+<hr />
+<h2 id="task-breakdown">Task Breakdown<a class="headerlink" href="#task-breakdown" title="Permanent link">&para;</a></h2>
+<h3 id="task-1-add-cpp-httplib-dependency">Task 1: Add cpp-httplib Dependency<a class="headerlink" href="#task-1-add-cpp-httplib-dependency" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Add the <code>cpp-httplib</code> header-only library to the vendor tree.</p>
+<p><strong>Implementation:</strong>
+1. Add <code>httplib.h</code> to <code>Frasy/vendor/cpp-httplib/</code> (or as a git submodule).
+2. Add to CMakeLists.txt as an interface library.
+3. Verify it compiles with the project's MSVC C++23 settings.</p>
+<p><strong>Changes:</strong>
+- <code>Frasy/vendor/cpp-httplib/httplib.h</code> (single header, ~30KB)
+- <code>Frasy/CMakeLists.txt</code> — add include path</p>
+<hr />
+<h3 id="task-2-cli-flags">Task 2: CLI Flags<a class="headerlink" href="#task-2-cli-flags" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Add <code>--mcp-port</code>, <code>--mcp-client</code>, <code>--address</code>, and <code>--port</code> flags to <code>CliArgs</code>.</p>
+<p><strong>New flags:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--mcp-port &lt;port&gt;</code></td>
+<td>Start HTTP MCP server on this port (0 = random)</td>
+<td>Not set (no server)</td>
+</tr>
+<tr>
+<td><code>--mcp-client</code></td>
+<td>Run as a stdio ↔ HTTP relay connecting to a primary instance</td>
+<td>false</td>
+</tr>
+<tr>
+<td><code>--address &lt;addr&gt;</code></td>
+<td>For <code>--mcp-client</code>: address of the primary instance</td>
+<td><code>127.0.0.1</code></td>
+</tr>
+<tr>
+<td><code>--port &lt;port&gt;</code></td>
+<td>For <code>--mcp-client</code>: port of the primary instance</td>
+<td>Required with <code>--mcp-client</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Behavioral logic in entry point:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cliArgs</span><span class="p">.</span><span class="n">mcpClient</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="c1">// Client/relay mode: bridge stdio ↔ HTTP</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">Mcp</span><span class="o">::</span><span class="n">McpRelay</span><span class="w"> </span><span class="nf">relay</span><span class="p">(</span><span class="n">cliArgs</span><span class="p">.</span><span class="n">address</span><span class="p">,</span><span class="w"> </span><span class="n">cliArgs</span><span class="p">.</span><span class="n">port</span><span class="p">);</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">relay</span><span class="p">.</span><span class="n">run</span><span class="p">();</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">}</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cliArgs</span><span class="p">.</span><span class="n">mcpServer</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="c1">// Standalone mode (deprecated, backward compat)</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="c1">// ... existing behavior ...</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="c1">// GUI mode</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">app</span><span class="o">-&gt;</span><span class="n">run</span><span class="p">();</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="c1">// If --mcp-port was specified, McpHttpServerLayer starts the HTTP server</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Validation:</strong>
+- <code>--mcp-port</code> can only be used in GUI mode (error if combined with <code>--headless</code>, <code>--mcp-server</code>, or <code>--mcp-client</code>).
+- <code>--mcp-client</code> requires <code>--port</code>. <code>--address</code> defaults to <code>127.0.0.1</code> if not specified.
+- <code>--mcp-client</code> is mutually exclusive with <code>--mcp-server</code>, <code>--headless</code>, and <code>--mcp-port</code>.
+- <code>--mcp-server</code> (standalone, deprecated) still works exactly as before when used alone.</p>
+<p><strong>Changes:</strong>
+- <code>Frasy/src/utils/cli/cli_args.h</code> — add <code>mcpClient</code>, <code>address</code>, <code>port</code> fields
+- <code>Brigerad/src/Brigerad/Core/EntryPoint.h</code> — branching logic for <code>--mcp-client</code></p>
+<hr />
+<h3 id="task-3-mcp-http-server-layer">Task 3: MCP HTTP Server Layer<a class="headerlink" href="#task-3-mcp-http-server-layer" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Create <code>McpHttpServerLayer</code> — a Brigerad Layer that hosts the HTTP server and dispatches MCP tool calls using the shared orchestrator and CanOpen.</p>
+<p><strong>Implementation:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Frasy/src/layers/mcp_http_server_layer.h</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">McpHttpServerLayer</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Brigerad</span><span class="o">::</span><span class="n">Layer</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="n">McpHttpServerLayer</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">port</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">                       </span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">                       </span><span class="n">CanOpen</span><span class="o">::</span><span class="n">CanOpen</span><span class="o">&amp;</span><span class="w"> </span><span class="n">canOpen</span><span class="p">,</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">                       </span><span class="n">Headless</span><span class="o">::</span><span class="n">ProductProvider</span><span class="o">&amp;</span><span class="w"> </span><span class="n">provider</span><span class="p">);</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">onAttach</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span><span class="w">   </span><span class="c1">// Start HTTP server thread</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">onDetach</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span><span class="w">   </span><span class="c1">// Stop HTTP server</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">onUpdate</span><span class="p">(</span><span class="n">Brigerad</span><span class="o">::</span><span class="n">Timestep</span><span class="w"> </span><span class="n">ts</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span><span class="w">  </span><span class="c1">// Process command queue + sync popups</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="k">private</span><span class="o">:</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="c1">// HTTP handlers</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">handlePost</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">httplib</span><span class="o">::</span><span class="n">Request</span><span class="o">&amp;</span><span class="w"> </span><span class="n">req</span><span class="p">,</span><span class="w"> </span><span class="n">httplib</span><span class="o">::</span><span class="n">Response</span><span class="o">&amp;</span><span class="w"> </span><span class="n">res</span><span class="p">);</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">handleGet</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">httplib</span><span class="o">::</span><span class="n">Request</span><span class="o">&amp;</span><span class="w"> </span><span class="n">req</span><span class="p">,</span><span class="w"> </span><span class="n">httplib</span><span class="o">::</span><span class="n">Response</span><span class="o">&amp;</span><span class="w"> </span><span class="n">res</span><span class="p">);</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">    </span><span class="c1">// JSON-RPC dispatch (reused from existing McpServer logic)</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">dispatch</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">message</span><span class="p">);</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">    </span><span class="c1">// Tool handlers (same interface as McpRunner)</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">registerTools</span><span class="p">();</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleListProducts</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleLoadProduct</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleRunTests</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleGetStatus</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleGetResults</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleGetPendingPopup</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleRespondToPopup</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleListNodes</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleListDevices</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleUploadSdo</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">handleDownloadSdo</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a>
+<a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="w">    </span><span class="c1">// Command queue for main-thread execution</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Command</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="n">execute</span><span class="p">;</span>
+<a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">promise</span><span class="o">&lt;</span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="w">    </span><span class="p">};</span>
+<a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="w"> </span><span class="n">m_commandMutex</span><span class="p">;</span>
+<a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">queue</span><span class="o">&lt;</span><span class="n">Command</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m_commandQueue</span><span class="p">;</span>
+<a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a>
+<a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a><span class="w">    </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">enqueueAndWait</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="n">fn</span><span class="p">);</span>
+<a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a>
+<a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a><span class="w">    </span><span class="c1">// Server</span>
+<a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a><span class="w">    </span><span class="n">httplib</span><span class="o">::</span><span class="n">Server</span><span class="w"> </span><span class="n">m_httpServer</span><span class="p">;</span>
+<a id="__codelineno-4-48" name="__codelineno-4-48" href="#__codelineno-4-48"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">jthread</span><span class="w"> </span><span class="n">m_serverThread</span><span class="p">;</span>
+<a id="__codelineno-4-49" name="__codelineno-4-49" href="#__codelineno-4-49"></a><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">m_port</span><span class="p">;</span>
+<a id="__codelineno-4-50" name="__codelineno-4-50" href="#__codelineno-4-50"></a>
+<a id="__codelineno-4-51" name="__codelineno-4-51" href="#__codelineno-4-51"></a><span class="w">    </span><span class="c1">// Shared state</span>
+<a id="__codelineno-4-52" name="__codelineno-4-52" href="#__codelineno-4-52"></a><span class="w">    </span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">m_orchestrator</span><span class="p">;</span>
+<a id="__codelineno-4-53" name="__codelineno-4-53" href="#__codelineno-4-53"></a><span class="w">    </span><span class="n">CanOpen</span><span class="o">::</span><span class="n">CanOpen</span><span class="o">&amp;</span><span class="w"> </span><span class="n">m_canOpen</span><span class="p">;</span>
+<a id="__codelineno-4-54" name="__codelineno-4-54" href="#__codelineno-4-54"></a><span class="w">    </span><span class="n">Headless</span><span class="o">::</span><span class="n">ProductProvider</span><span class="o">&amp;</span><span class="w"> </span><span class="n">m_provider</span><span class="p">;</span>
+<a id="__codelineno-4-55" name="__codelineno-4-55" href="#__codelineno-4-55"></a>
+<a id="__codelineno-4-56" name="__codelineno-4-56" href="#__codelineno-4-56"></a><span class="w">    </span><span class="c1">// Popup dual-path handler</span>
+<a id="__codelineno-4-57" name="__codelineno-4-57" href="#__codelineno-4-57"></a><span class="w">    </span><span class="n">Mcp</span><span class="o">::</span><span class="n">UnifiedPopupHandler</span><span class="w"> </span><span class="n">m_popupHandler</span><span class="p">;</span>
+<a id="__codelineno-4-58" name="__codelineno-4-58" href="#__codelineno-4-58"></a>
+<a id="__codelineno-4-59" name="__codelineno-4-59" href="#__codelineno-4-59"></a><span class="w">    </span><span class="c1">// Session management</span>
+<a id="__codelineno-4-60" name="__codelineno-4-60" href="#__codelineno-4-60"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">m_sessionId</span><span class="p">;</span>
+<a id="__codelineno-4-61" name="__codelineno-4-61" href="#__codelineno-4-61"></a>
+<a id="__codelineno-4-62" name="__codelineno-4-62" href="#__codelineno-4-62"></a><span class="w">    </span><span class="c1">// Run ownership</span>
+<a id="__codelineno-4-63" name="__codelineno-4-63" href="#__codelineno-4-63"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="n">RunOwner</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m_runOwner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RunOwner</span><span class="o">::</span><span class="n">None</span><span class="p">;</span>
+<a id="__codelineno-4-64" name="__codelineno-4-64" href="#__codelineno-4-64"></a><span class="p">};</span>
+<a id="__codelineno-4-65" name="__codelineno-4-65" href="#__codelineno-4-65"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>HTTP endpoint behavior (per MCP Streamable HTTP spec):</strong></p>
+<ul>
+<li><code>POST /mcp</code>:</li>
+<li>Accepts JSON-RPC request body.</li>
+<li>Returns <code>Content-Type: application/json</code> with the JSON-RPC response.</li>
+<li>For <code>initialize</code>: also sets <code>Mcp-Session-Id</code> response header.</li>
+<li>Validates <code>Mcp-Session-Id</code> header on subsequent requests.</li>
+<li>
+<p>Validates <code>Origin</code> header to prevent DNS rebinding (accept only localhost origins or configured origins).</p>
+</li>
+<li>
+<p><code>GET /mcp</code>:</p>
+</li>
+<li>Opens SSE stream for server-to-client notifications.</li>
+<li>Used to push progress events and popup notifications to the MCP client proactively.</li>
+<li>
+<p>Returns <code>Content-Type: text/event-stream</code>.</p>
+</li>
+<li>
+<p><code>DELETE /mcp</code>:</p>
+</li>
+<li>Client terminates the session.</li>
+<li>Server cleans up session state.</li>
+</ul>
+<p><strong>Changes:</strong>
+- New: <code>Frasy/src/layers/mcp_http_server_layer.h/.cpp</code>
+- New: <code>Frasy/src/utils/mcp/mcp_http_dispatch.h/.cpp</code> (shared JSON-RPC dispatch logic)</p>
+<hr />
+<h3 id="task-4-command-queue-for-thread-safe-mutating-operations">Task 4: Command Queue for Thread-Safe Mutating Operations<a class="headerlink" href="#task-4-command-queue-for-thread-safe-mutating-operations" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> HTTP server handler threads call mutating orchestrator methods indirectly via a command queue that the main thread processes each frame.</p>
+<p><strong>Implementation:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">McpHttpServerLayer::enqueueAndWait</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="n">fn</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="p">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="n">Command</span><span class="w"> </span><span class="n">cmd</span><span class="p">;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="n">cmd</span><span class="p">.</span><span class="n">execute</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">fn</span><span class="p">);</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cmd</span><span class="p">.</span><span class="n">result</span><span class="p">.</span><span class="n">get_future</span><span class="p">();</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">m_commandMutex</span><span class="p">);</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="n">m_commandQueue</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">cmd</span><span class="p">));</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">();</span><span class="w">  </span><span class="c1">// Block HTTP handler thread until main thread executes</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="p">}</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="kt">void</span><span class="w"> </span><span class="nf">McpHttpServerLayer::onUpdate</span><span class="p">(</span><span class="n">Brigerad</span><span class="o">::</span><span class="n">Timestep</span><span class="w"> </span><span class="n">ts</span><span class="p">)</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="p">{</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="c1">// Drain command queue on main thread</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">m_commandMutex</span><span class="p">);</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">m_commandQueue</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">cmd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">m_commandQueue</span><span class="p">.</span><span class="n">front</span><span class="p">());</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">        </span><span class="n">m_commandQueue</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">            </span><span class="n">cmd</span><span class="p">.</span><span class="n">result</span><span class="p">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">cmd</span><span class="p">.</span><span class="n">execute</span><span class="p">());</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">            </span><span class="n">cmd</span><span class="p">.</span><span class="n">result</span><span class="p">.</span><span class="n">set_value</span><span class="p">({{</span><span class="s">"error"</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()}});</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="w">    </span><span class="c1">// Sync popup state (Task 5)</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="w">    </span><span class="n">m_popupHandler</span><span class="p">.</span><span class="n">sync</span><span class="p">();</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Classification of operations:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Thread Safety</th>
+<th>Execution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list_products</code></td>
+<td>Read-only</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>get_status</code></td>
+<td>Read-only (atomics/futures)</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>get_results</code></td>
+<td>Read-only (file reads)</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>list_nodes</code></td>
+<td>Read-only</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>list_devices</code></td>
+<td>Read-only</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>get_pending_popup</code></td>
+<td>Read (mutex-protected queue)</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>upload_sdo</code></td>
+<td>Thread-safe (SDO queue)</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>download_sdo</code></td>
+<td>Thread-safe (SDO queue)</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>respond_to_popup</code></td>
+<td>Sets data + notifies CV</td>
+<td>Direct on HTTP thread</td>
+</tr>
+<tr>
+<td><code>load_product</code></td>
+<td><strong>Mutates</strong> orchestrator</td>
+<td><strong>Command queue → main thread</strong></td>
+</tr>
+<tr>
+<td><code>run_tests</code></td>
+<td><strong>Mutates</strong> orchestrator</td>
+<td><strong>Command queue → main thread</strong></td>
+</tr>
+<tr>
+<td><code>set_test_enable</code></td>
+<td><strong>Mutates</strong> solution</td>
+<td><strong>Command queue → main thread</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Changes:</strong>
+- Part of <code>Frasy/src/layers/mcp_http_server_layer.cpp</code></p>
+<hr />
+<h3 id="task-5-dual-path-unified-popup-handler">Task 5: Dual-Path Unified Popup Handler<a class="headerlink" href="#task-5-dual-path-unified-popup-handler" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Popups triggered during test execution are visible simultaneously in the GUI (ImGui) and to the MCP agent. Either can respond; first responder wins.</p>
+<p><strong>How the existing GUI popup system works:</strong></p>
+<ol>
+<li>Lua worker calls <code>__popup.Show(builder)</code> → creates a <code>Popup</code> object, inserts into <code>m_popups</code> map (under <code>m_popupMutex</code>).</li>
+<li>Worker calls <code>popup.Routine()</code> which <strong>blocks</strong> — it loops calling <code>std::this_thread::yield()</code> checking <code>m_consumed</code>.</li>
+<li>Main thread calls <code>orchestrator.renderPopups()</code> each frame → renders ImGui, including buttons.</li>
+<li>Button click sets <code>m_consumed = true</code> → Routine() exits → worker continues.</li>
+<li>Worker reads inputs from the <code>Popup</code>, removes it from the map.</li>
+</ol>
+<p><strong>How the MCP popup system works (standalone):</strong></p>
+<ol>
+<li>Custom <code>importPopup</code> overrides the default → creates a <code>PendingPopup</code> with condition_variable.</li>
+<li>Worker blocks on <code>cv.wait()</code>.</li>
+<li>MCP client calls <code>respond_to_popup</code> → fills response, notifies CV.</li>
+<li>Worker wakes, reads response.</li>
+</ol>
+<p><strong>Unified approach — Observer pattern on the existing GUI popups:</strong></p>
+<p>Keep the existing GUI popup system (it works). Layer an MCP observation mechanism on top:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// Frasy/src/utils/mcp/unified_popup_handler.h</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="o">::</span><span class="nn">Mcp</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">UnifiedPopupHandler</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="c1">/// Register a new popup that just appeared in the orchestrator's popup map.</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="c1">/// Called when we detect a new popup during sync().</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">trackPopup</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">uut</span><span class="p">,</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">                    </span><span class="k">const</span><span class="w"> </span><span class="n">Lua</span><span class="o">::</span><span class="n">Popup</span><span class="o">&amp;</span><span class="w"> </span><span class="n">popup</span><span class="p">);</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="c1">/// Remove tracking for a popup that was consumed (by GUI or MCP).</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">untrackPopup</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">id</span><span class="p">);</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">    </span><span class="c1">/// Called each frame from onUpdate(). Detects new/consumed popups.</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">);</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="c1">/// MCP: get the next pending popup as JSON.</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">optional</span><span class="o">&lt;</span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getPendingPopup</span><span class="p">();</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">    </span><span class="c1">/// MCP: respond to a popup.</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">    </span><span class="c1">/// Sets input values on the Popup object and calls Consume().</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">respondToPopup</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">id</span><span class="p">,</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">                        </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">inputs</span><span class="p">,</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">                        </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">button</span><span class="p">,</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">                        </span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">);</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="k">private</span><span class="o">:</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">TrackedPopup</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">id</span><span class="p">;</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">uut</span><span class="p">;</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">texts</span><span class="p">;</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">inputTitles</span><span class="p">;</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buttons</span><span class="p">;</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">        </span><span class="kt">bool</span><span class="w"> </span><span class="n">consumed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="w">    </span><span class="p">};</span>
+<a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a>
+<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="w"> </span><span class="n">m_mutex</span><span class="p">;</span>
+<a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TrackedPopup</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m_tracked</span><span class="p">;</span>
+<a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m_knownPopups</span><span class="p">;</span><span class="w">  </span><span class="c1">// IDs we've already seen</span>
+<a id="__codelineno-6-40" name="__codelineno-6-40" href="#__codelineno-6-40"></a><span class="p">};</span>
+<a id="__codelineno-6-41" name="__codelineno-6-41" href="#__codelineno-6-41"></a>
+<a id="__codelineno-6-42" name="__codelineno-6-42" href="#__codelineno-6-42"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>sync() logic (called every frame on main thread):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">UnifiedPopupHandler::sync</span><span class="p">(</span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="w"> </span><span class="n">popupLock</span><span class="p">(</span><span class="o">*</span><span class="n">orchestrator</span><span class="p">.</span><span class="n">getPopupMutex</span><span class="p">());</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">popups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">.</span><span class="n">getPopups</span><span class="p">();</span><span class="w">  </span><span class="c1">// Need to expose this</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">m_mutex</span><span class="p">);</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="c1">// Detect new popups</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="p">[</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">popup</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">popups</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">m_knownPopups</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">name</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">            </span><span class="n">m_knownPopups</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">name</span><span class="p">);</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">            </span><span class="n">TrackedPopup</span><span class="w"> </span><span class="n">tracked</span><span class="p">;</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">            </span><span class="n">tracked</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">name</span><span class="p">;</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">            </span><span class="c1">// Extract text/input/button info from popup elements...</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">            </span><span class="n">m_tracked</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">tracked</span><span class="p">));</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">    </span><span class="c1">// Detect consumed popups (GUI operator responded)</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">erase_if</span><span class="p">(</span><span class="n">m_tracked</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">TrackedPopup</span><span class="o">&amp;</span><span class="w"> </span><span class="n">tp</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">!</span><span class="n">popups</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">tp</span><span class="p">.</span><span class="n">id</span><span class="p">);</span><span class="w">  </span><span class="c1">// Popup removed from map = consumed</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">    </span><span class="p">});</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">    </span><span class="c1">// Clean known set</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">erase_if</span><span class="p">(</span><span class="n">m_knownPopups</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">!</span><span class="n">popups</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">id</span><span class="p">);</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">    </span><span class="p">});</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>respondToPopup() logic (called from HTTP handler thread):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kt">bool</span><span class="w"> </span><span class="nf">UnifiedPopupHandler::respondToPopup</span><span class="p">(</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">id</span><span class="p">,</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">inputs</span><span class="p">,</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">button</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="n">Lua</span><span class="o">::</span><span class="n">Orchestrator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">{</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="c1">// This needs to:</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="c1">// 1. Find the Popup in orchestrator's m_popups map</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="c1">// 2. Set the input values on the Popup's Input elements</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="c1">// 3. Invoke the button action (if any)</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="c1">// 4. Call Consume() on the popup</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="c1">// Since this touches the Popup object (which the Lua worker is blocking on),</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="c1">// we need the popup mutex. The worker is in Routine() yielding,</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="c1">// so accessing the popup is safe under the mutex.</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="w"> </span><span class="n">popupLock</span><span class="p">(</span><span class="o">*</span><span class="n">orchestrator</span><span class="p">.</span><span class="n">getPopupMutex</span><span class="p">());</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">popups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orchestrator</span><span class="p">.</span><span class="n">getPopups</span><span class="p">();</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">popups</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">id</span><span class="p">);</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">popups</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">popup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">;</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">    </span><span class="c1">// Set inputs</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">    </span><span class="c1">// ... access popup elements, find Input elements, set buffer values ...</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">    </span><span class="c1">// Click the button (call action + consume)</span>
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="w">    </span><span class="c1">// ... find Button element matching label, invoke action ...</span>
+<a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a><span class="w">    </span><span class="n">popup</span><span class="p">.</span><span class="n">Consume</span><span class="p">();</span>
+<a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a>
+<a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Key insight:</strong> The Popup's <code>Routine()</code> method just loops checking <code>m_consumed</code>. It doesn't hold any lock while doing so. The main thread's <code>renderPopups()</code> holds <code>m_popupMutex</code> while rendering. So <code>respondToPopup</code> can safely:
+1. Lock <code>m_popupMutex</code>
+2. Modify inputs on the Popup
+3. Call the button action
+4. Set <code>m_consumed = true</code></p>
+<p>After that, the Lua worker's <code>Routine()</code> loop sees <code>m_consumed == true</code>, exits, reads the inputs, and removes the popup from the map.</p>
+<p><strong>What needs to be exposed on Orchestrator:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// Add to orchestrator.h:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">Popup</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">getPopups</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">m_popups</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">*</span><span class="w"> </span><span class="n">getPopupMutex</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">m_popupMutex</span><span class="p">.</span><span class="n">get</span><span class="p">();</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<p><strong>Changes:</strong>
+- New: <code>Frasy/src/utils/mcp/unified_popup_handler.h/.cpp</code>
+- Modified: <code>Frasy/src/utils/lua/orchestrator/orchestrator.h</code> — expose <code>getPopups()</code> and <code>getPopupMutex()</code></p>
+<hr />
+<h3 id="task-6-sse-progress-notifications">Task 6: SSE Progress Notifications<a class="headerlink" href="#task-6-sse-progress-notifications" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> When a client opens a <code>GET /mcp</code> SSE stream, push real-time progress events and popup notifications proactively (server-to-client).</p>
+<p><strong>Implementation:</strong></p>
+<p>The <code>GET /mcp</code> handler keeps the connection open as an SSE stream. The main thread's <code>onUpdate()</code> detects state changes and pushes events to all connected SSE clients.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">// SSE event types</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="c1">// Server → Client notifications (JSON-RPC notifications, no id)</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1">// Progress</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="p">{</span><span class="s">"jsonrpc"</span><span class="o">:</span><span class="s">"2.0"</span><span class="p">,</span><span class="s">"method"</span><span class="o">:</span><span class="s">"notifications/progress"</span><span class="p">,</span><span class="s">"params"</span><span class="o">:</span><span class="p">{</span><span class="s">"type"</span><span class="o">:</span><span class="s">"test_start"</span><span class="p">,</span><span class="s">"uut"</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span><span class="s">"sequence"</span><span class="o">:</span><span class="s">"Power On"</span><span class="p">,</span><span class="s">"test"</span><span class="o">:</span><span class="s">"Check Voltage"</span><span class="p">}}</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1">// Popup appeared</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="p">{</span><span class="s">"jsonrpc"</span><span class="o">:</span><span class="s">"2.0"</span><span class="p">,</span><span class="s">"method"</span><span class="o">:</span><span class="s">"notifications/popup"</span><span class="p">,</span><span class="s">"params"</span><span class="o">:</span><span class="p">{</span><span class="s">"id"</span><span class="o">:</span><span class="s">"UUT1_Confirm Fixture"</span><span class="p">,</span><span class="s">"uut"</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span><span class="s">"name"</span><span class="o">:</span><span class="s">"Confirm Fixture"</span><span class="p">,</span><span class="s">"texts"</span><span class="o">:</span><span class="p">[...],</span><span class="s">"inputs"</span><span class="o">:</span><span class="p">[...],</span><span class="s">"buttons"</span><span class="o">:</span><span class="p">[...]}}</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1">// Popup consumed</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="p">{</span><span class="s">"jsonrpc"</span><span class="o">:</span><span class="s">"2.0"</span><span class="p">,</span><span class="s">"method"</span><span class="o">:</span><span class="s">"notifications/popup_consumed"</span><span class="p">,</span><span class="s">"params"</span><span class="o">:</span><span class="p">{</span><span class="s">"id"</span><span class="o">:</span><span class="s">"UUT1_Confirm Fixture"</span><span class="p">,</span><span class="s">"responded_by"</span><span class="o">:</span><span class="s">"gui"</span><span class="p">}}</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="c1">// Run state change</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="p">{</span><span class="s">"jsonrpc"</span><span class="o">:</span><span class="s">"2.0"</span><span class="p">,</span><span class="s">"method"</span><span class="o">:</span><span class="s">"notifications/state_change"</span><span class="p">,</span><span class="s">"params"</span><span class="o">:</span><span class="p">{</span><span class="s">"state"</span><span class="o">:</span><span class="s">"running"</span><span class="p">,</span><span class="s">"initiated_by"</span><span class="o">:</span><span class="s">"mcp"</span><span class="p">}}</span>
+</code></pre></div>
+<p><strong>cpp-httplib SSE support:</strong></p>
+<p>cpp-httplib doesn't have built-in SSE, but it supports chunked responses which we can use:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">m_httpServer</span><span class="p">.</span><span class="n">Get</span><span class="p">(</span><span class="s">"/mcp"</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">httplib</span><span class="o">::</span><span class="n">Request</span><span class="o">&amp;</span><span class="w"> </span><span class="n">req</span><span class="p">,</span><span class="w"> </span><span class="n">httplib</span><span class="o">::</span><span class="n">Response</span><span class="o">&amp;</span><span class="w"> </span><span class="n">res</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="n">res</span><span class="p">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">"Content-Type"</span><span class="p">,</span><span class="w"> </span><span class="s">"text/event-stream"</span><span class="p">);</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="n">res</span><span class="p">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">"Cache-Control"</span><span class="p">,</span><span class="w"> </span><span class="s">"no-cache"</span><span class="p">);</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="n">res</span><span class="p">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">"Connection"</span><span class="p">,</span><span class="w"> </span><span class="s">"keep-alive"</span><span class="p">);</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="n">res</span><span class="p">.</span><span class="n">set_chunked_content_provider</span><span class="p">(</span><span class="s">"text/event-stream"</span><span class="p">,</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">        </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="kt">size_t</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">httplib</span><span class="o">::</span><span class="n">DataSink</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sink</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">            </span><span class="c1">// Block here, writing SSE events as they come</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">            </span><span class="c1">// Use a condition variable to wake when new events arrive</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">            </span><span class="c1">// Return false to close the stream</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">        </span><span class="p">});</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="p">});</span>
+</code></pre></div>
+<p><strong>Event queue per SSE connection:</strong></p>
+<p>Each connected SSE client gets its own event queue. The main thread pushes events to all queues. The SSE handler thread drains its queue and writes to the stream.</p>
+<p><strong>Changes:</strong>
+- Part of <code>Frasy/src/layers/mcp_http_server_layer.cpp</code>
+- May need a <code>SseConnectionManager</code> helper class</p>
+<hr />
+<h3 id="task-7-run-ownership-and-conflict-prevention">Task 7: Run Ownership and Conflict Prevention<a class="headerlink" href="#task-7-run-ownership-and-conflict-prevention" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Track who started the current test run and prevent conflicts.</p>
+<p><strong>Implementation:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">RunOwner</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">Gui</span><span class="p">,</span><span class="w"> </span><span class="n">Mcp</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1">// In McpHttpServerLayer (or shared via Interpreter)</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="k">struct</span><span class="w"> </span><span class="nc">RunState</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="n">RunOwner</span><span class="o">&gt;</span><span class="w"> </span><span class="n">owner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RunOwner</span><span class="o">::</span><span class="n">None</span><span class="p">;</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">initiator</span><span class="p">;</span><span class="w">  </span><span class="c1">// operator name or MCP session ID</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="p">};</span>
+</code></pre></div>
+<p><strong>Rules:</strong>
+1. <code>m_orchestrator.isRunning()</code> is the single source of truth for "is a run active."
+2. Before starting a run (GUI or MCP), check <code>isRunning()</code>. If already running, reject.
+3. Set <code>RunState::owner</code> when a run starts. Reset to <code>None</code> when the run completes (in the <code>onDone</code> callback).
+4. <code>get_status</code> response includes <code>"initiated_by": "gui"</code> or <code>"initiated_by": "mcp"</code>.
+5. GUI: if MCP started the run, show progress normally but indicate "Remote run in progress" instead of showing the operator's run button as active.
+6. MCP: if GUI started the run, <code>run_tests</code> returns <code>{"error": "Tests already running (initiated by GUI operator)"}</code>.
+7. Both GUI and MCP can abort any run via the abort button / <code>abort</code> tool.</p>
+<p><strong>Changes:</strong>
+- Add <code>RunState</code> to <code>McpHttpServerLayer</code> (or a shared location)
+- Modify GUI <code>doTests()</code> to set owner
+- Modify MCP <code>handleRunTests</code> to set owner
+- Add <code>abort</code> tool to MCP
+- GUI: show indicator when MCP is controlling a run</p>
+<hr />
+<h3 id="task-8-product-state-sharing">Task 8: Product State Sharing<a class="headerlink" href="#task-8-product-state-sharing" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> The MCP layer needs to know what product is loaded and what products are available, using the same state as the GUI.</p>
+<p><strong>Implementation:</strong></p>
+<p>The <code>ProductProvider::listProducts()</code> already provides the canonical product list. The active product is tracked by the application's <code>MyMainApplicationLayer::m_activeProduct</code>.</p>
+<p><strong>Approach:</strong> The <code>McpHttpServerLayer</code> receives a callback or reference to query the active product:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">using</span><span class="w"> </span><span class="n">ActiveProductGetter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">()</span><span class="o">&gt;</span><span class="p">;</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">using</span><span class="w"> </span><span class="n">ProductLoader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">productName</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1">// Set during layer binding:</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">m_getActiveProduct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="n">layer</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">layer</span><span class="p">.</span><span class="n">getActiveProduct</span><span class="p">();</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="n">m_loadProduct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="n">layer</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">layer</span><span class="p">.</span><span class="n">loadProduct</span><span class="p">(</span><span class="n">name</span><span class="p">);</span><span class="w"> </span><span class="cm">/* main-thread only */</span><span class="w"> </span><span class="p">};</span>
+</code></pre></div>
+<p>For <code>load_product</code> (MCP tool): enqueue via command queue → main thread calls the application's <code>loadProduct()</code> → GUI updates product dropdown, device viewer reinitializes, etc.</p>
+<p>For <code>list_products</code>: call <code>m_provider.listProducts()</code> directly (read-only).</p>
+<p><strong>Changes:</strong>
+- Add <code>getActiveProduct()</code> getter to application layer (or expose via a shared interface)
+- MCP <code>load_product</code> handler uses command queue</p>
+<hr />
+<h3 id="task-9-mcp-clientrelay-mode">Task 9: MCP Client/Relay Mode<a class="headerlink" href="#task-9-mcp-clientrelay-mode" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> <code>frasy.exe --mcp-client --address &lt;addr&gt; --port &lt;port&gt;</code> launches a lightweight process that bridges stdio ↔ HTTP, allowing AI agents to connect to a running GUI instance.</p>
+<p><strong>Implementation:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">// Frasy/src/utils/mcp/mcp_relay.h</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">namespace</span><span class="w"> </span><span class="nn">Frasy</span><span class="o">::</span><span class="nn">Mcp</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">McpRelay</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="n">McpRelay</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">address</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">port</span><span class="p">);</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="c1">/// Run the relay. Reads JSON-RPC from stdin, POSTs to HTTP,</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="c1">/// returns responses to stdout. Blocks until stdin closes.</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="nf">run</span><span class="p">();</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="k">private</span><span class="o">:</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">m_url</span><span class="p">;</span><span class="w">  </span><span class="c1">// e.g., "http://192.168.0.105:69/mcp"</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">    </span><span class="n">httplib</span><span class="o">::</span><span class="n">Client</span><span class="w"> </span><span class="n">m_client</span><span class="p">;</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="p">};</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Relay logic:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>┌──────────┐ stdin  ┌───────────┐ POST /mcp  ┌──────────────┐
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>│ AI Agent │ ─────→ │ McpRelay  │ ─────────→ │ Primary GUI  │
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>│ (Kiro)   │ ←───── │           │ ←───────── │ HTTP Server  │
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>└──────────┘ stdout └───────────┘  response   └──────────────┘
+</code></pre></div>
+<ol>
+<li>Read line from stdin (JSON-RPC message).</li>
+<li>HTTP POST to <code>http://{address}:{port}/mcp</code> with the message as body.</li>
+<li>Read HTTP response body (JSON-RPC response).</li>
+<li>Write response to stdout.</li>
+<li>Optionally: maintain a background SSE connection (<code>GET /mcp</code>) to receive server notifications and forward them to stdout.</li>
+</ol>
+<p><strong>SSE relay (for proactive notifications):</strong>
+- Spawn a background thread that connects <code>GET /mcp</code> as SSE.
+- When SSE events arrive (progress, popups), write them to stdout as JSON-RPC notifications.
+- This allows the AI agent to receive progress updates without polling.</p>
+<p><strong>Note on process weight:</strong> The <code>--mcp-client</code> process does NOT create an Application, does NOT initialize OpenGL, and does NOT register a ProductProvider. It's a minimal relay that only needs <code>cpp-httplib</code> and basic I/O. It exits the entry point before <code>CreateApplication()</code> is called.</p>
+<p><strong>Changes:</strong>
+- New: <code>Frasy/src/utils/mcp/mcp_relay.h/.cpp</code>
+- Modified: <code>Brigerad/src/Brigerad/Core/EntryPoint.h</code> — early exit for <code>--mcp-client</code> before app creation</p>
+<hr />
+<h3 id="task-10-orchestrator-popup-access-refactor">Task 10: Orchestrator Popup Access Refactor<a class="headerlink" href="#task-10-orchestrator-popup-access-refactor" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Expose the necessary popup internals so the unified popup handler can read popup state and inject responses.</p>
+<p><strong>Current state:</strong> <code>Popup</code> stores elements as <code>std::vector&lt;std::unique_ptr&lt;Element&gt;&gt;</code> with specific subtypes (<code>Text</code>, <code>Input</code>, <code>Button</code>). The MCP handler needs to:
+1. Read text/input/button info from a Popup (for <code>get_pending_popup</code>).
+2. Set input values (for <code>respond_to_popup</code>).
+3. Trigger a button action + consume (for <code>respond_to_popup</code>).</p>
+<p><strong>Implementation:</strong></p>
+<p>Add accessor methods to <code>Popup</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1">// In popup.h</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Popup</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="k">public</span><span class="o">:</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="c1">// ... existing ...</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="c1">// New accessors for MCP integration:</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Element</span><span class="o">&gt;&gt;&amp;</span><span class="w"> </span><span class="n">getElements</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">m_elements</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">setInput</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">value</span><span class="p">);</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">clickButton</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">label</span><span class="p">);</span><span class="w">  </span><span class="c1">// Calls action + Consume if button.consume</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="p">};</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">// In popup.cpp</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kt">void</span><span class="w"> </span><span class="nf">Popup::setInput</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="p">{</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">inputIdx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">m_elements</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">elem</span><span class="o">-&gt;</span><span class="n">kind</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Element</span><span class="o">::</span><span class="n">Kind</span><span class="o">::</span><span class="n">Input</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">inputIdx</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">index</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">                </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">Input</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">elem</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">                </span><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">input</span><span class="o">-&gt;</span><span class="n">buffer</span><span class="p">.</span><span class="n">begin</span><span class="p">());</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">                </span><span class="n">input</span><span class="o">-&gt;</span><span class="n">buffer</span><span class="p">[</span><span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span><span class="w"> </span><span class="n">input</span><span class="o">-&gt;</span><span class="n">buffer</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">'\0'</span><span class="p">;</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">input</span><span class="o">-&gt;</span><span class="n">onChange</span><span class="p">)</span><span class="w"> </span><span class="n">input</span><span class="o">-&gt;</span><span class="n">onChange</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">input</span><span class="o">-&gt;</span><span class="n">index</span><span class="p">);</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">                </span><span class="n">m_inputs</span><span class="p">[</span><span class="n">input</span><span class="o">-&gt;</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">value</span><span class="p">;</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">                </span><span class="k">return</span><span class="p">;</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">            </span><span class="n">inputIdx</span><span class="o">++</span><span class="p">;</span>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="p">}</span>
+<a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a>
+<a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a><span class="kt">bool</span><span class="w"> </span><span class="nf">Popup::clickButton</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+<a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a><span class="p">{</span>
+<a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">m_elements</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">elem</span><span class="o">-&gt;</span><span class="n">kind</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Element</span><span class="o">::</span><span class="n">Kind</span><span class="o">::</span><span class="n">Button</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a><span class="w">            </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">btn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">Button</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">elem</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">btn</span><span class="o">-&gt;</span><span class="n">label</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">label</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-26" name="__codelineno-17-26" href="#__codelineno-17-26"></a><span class="w">                </span><span class="n">std</span><span class="o">::</span><span class="n">shared_lock</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">m_luaMutex</span><span class="p">);</span>
+<a id="__codelineno-17-27" name="__codelineno-17-27" href="#__codelineno-17-27"></a><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">btn</span><span class="o">-&gt;</span><span class="n">action</span><span class="p">.</span><span class="n">valid</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-28" name="__codelineno-17-28" href="#__codelineno-17-28"></a><span class="w">                    </span><span class="n">btn</span><span class="o">-&gt;</span><span class="n">action</span><span class="p">(</span><span class="n">m_inputs</span><span class="p">);</span>
+<a id="__codelineno-17-29" name="__codelineno-17-29" href="#__codelineno-17-29"></a><span class="w">                </span><span class="p">}</span>
+<a id="__codelineno-17-30" name="__codelineno-17-30" href="#__codelineno-17-30"></a><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">btn</span><span class="o">-&gt;</span><span class="n">consume</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-31" name="__codelineno-17-31" href="#__codelineno-17-31"></a><span class="w">                    </span><span class="n">Consume</span><span class="p">();</span>
+<a id="__codelineno-17-32" name="__codelineno-17-32" href="#__codelineno-17-32"></a><span class="w">                </span><span class="p">}</span>
+<a id="__codelineno-17-33" name="__codelineno-17-33" href="#__codelineno-17-33"></a><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<a id="__codelineno-17-34" name="__codelineno-17-34" href="#__codelineno-17-34"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-17-35" name="__codelineno-17-35" href="#__codelineno-17-35"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-17-36" name="__codelineno-17-36" href="#__codelineno-17-36"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-17-37" name="__codelineno-17-37" href="#__codelineno-17-37"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<a id="__codelineno-17-38" name="__codelineno-17-38" href="#__codelineno-17-38"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Changes:</strong>
+- Modified: <code>Frasy/src/utils/lua/popup.h</code> — add <code>getElements()</code>, <code>setInput()</code>, <code>clickButton()</code>
+- Modified: <code>Frasy/src/utils/lua/popup.cpp</code> — implement new methods
+- Modified: <code>Frasy/src/utils/lua/orchestrator/orchestrator.h</code> — expose <code>getPopups()</code>, <code>getPopupMutex()</code></p>
+<hr />
+<h3 id="task-11-integration-framework-level">Task 11: Integration — Framework Level<a class="headerlink" href="#task-11-integration-framework-level" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Wire the MCP HTTP server layer into the Frasy framework's <code>MainApplicationLayer</code> so any application automatically gets MCP support.</p>
+<p><strong>Implementation:</strong></p>
+<p>In <code>MainApplicationLayer::onAttach()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">MainApplicationLayer::onAttach</span><span class="p">()</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="p">{</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="c1">// ... existing initialization ...</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">CliArgs</span><span class="o">::</span><span class="n">get</span><span class="p">().</span><span class="n">mcpPort</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">CliArgs</span><span class="o">::</span><span class="n">get</span><span class="p">().</span><span class="n">mcpPort</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="cm">/* auto-port */</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">        </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">provider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Interpreter</span><span class="o">::</span><span class="n">Get</span><span class="p">().</span><span class="n">getProductProvider</span><span class="p">();</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">provider</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">            </span><span class="n">m_mcpLayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">McpHttpServerLayer</span><span class="o">&gt;</span><span class="p">(</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">                </span><span class="n">CliArgs</span><span class="o">::</span><span class="n">get</span><span class="p">().</span><span class="n">mcpPort</span><span class="p">,</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">                </span><span class="n">m_orchestrator</span><span class="p">,</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">                </span><span class="n">m_canOpen</span><span class="p">,</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">                </span><span class="o">*</span><span class="n">provider</span><span class="p">);</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">            </span><span class="n">m_mcpLayer</span><span class="o">-&gt;</span><span class="n">onAttach</span><span class="p">();</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="p">}</span>
+</code></pre></div>
+<p>Or, better as a proper layer pushed to the layer stack:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">MainApplicationLayer::onAttach</span><span class="p">()</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="p">{</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="c1">// ... existing ...</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">CliArgs</span><span class="o">::</span><span class="n">get</span><span class="p">().</span><span class="n">mcpPort</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">  </span><span class="c1">// -1 = disabled, 0 = auto, &gt;0 = specific port</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">        </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">provider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Interpreter</span><span class="o">::</span><span class="n">Get</span><span class="p">().</span><span class="n">getProductProvider</span><span class="p">();</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">provider</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">            </span><span class="n">Brigerad</span><span class="o">::</span><span class="n">Application</span><span class="o">::</span><span class="n">Get</span><span class="p">().</span><span class="n">pushLayer</span><span class="p">(</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">McpHttpServerLayer</span><span class="p">(</span><span class="n">CliArgs</span><span class="o">::</span><span class="n">get</span><span class="p">().</span><span class="n">mcpPort</span><span class="p">,</span><span class="w"> </span><span class="n">m_orchestrator</span><span class="p">,</span><span class="w"> </span><span class="n">m_canOpen</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">provider</span><span class="p">));</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>The GUI continues to own m_orchestrator and m_canOpen.</strong> The MCP layer only has references.</p>
+<p><strong>Changes:</strong>
+- Modified: <code>Frasy/src/layers/main_application_layer.cpp</code> — conditionally push MCP layer
+- Modified: <code>Frasy/src/layers/main_application_layer.h</code> — optional pointer to MCP layer (for RunState access)</p>
+<hr />
+<h3 id="task-12-integration-application-level">Task 12: Integration — Application Level<a class="headerlink" href="#task-12-integration-application-level" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> The Kinova frasy-application's <code>MyMainApplicationLayer</code> needs minor adjustments to expose active product info and handle MCP-initiated runs gracefully.</p>
+<p><strong>Implementation:</strong></p>
+<ol>
+<li><strong>Active product getter:</strong> Already tracked in <code>m_activeProduct</code>. Expose via a virtual method or callback.</li>
+<li><strong>Run indicator:</strong> When <code>RunState::owner == Mcp</code>, show "Test run in progress (remote)" in the control room instead of the normal run button.</li>
+<li><strong>Product change notification:</strong> When MCP calls <code>load_product</code>, the GUI's product dropdown and loaded state update automatically (since <code>loadProduct()</code> runs on the main thread).</li>
+</ol>
+<p><strong>Changes:</strong>
+- Minor modifications to <code>frasy-application/src/layers/my_main_application_layer.cpp</code></p>
+<hr />
+<h3 id="task-13-backward-compatibility">Task 13: Backward Compatibility<a class="headerlink" href="#task-13-backward-compatibility" title="Permanent link">&para;</a></h3>
+<p><strong>Objective:</strong> Ensure all existing modes continue working.</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>frasy.exe</code></td>
+<td>Unchanged — no MCP server</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-server</code> (standalone)</td>
+<td>Unchanged — standalone stdio MCP with own orchestrator (deprecated)</td>
+</tr>
+<tr>
+<td><code>frasy.exe --headless ...</code></td>
+<td>Unchanged</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-port 8080</code></td>
+<td><strong>New</strong> — GUI + HTTP MCP server</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-client --port 8080</code></td>
+<td><strong>New</strong> — relay mode (stdio ↔ HTTP to localhost)</td>
+</tr>
+<tr>
+<td><code>frasy.exe --mcp-client --address x --port y</code></td>
+<td><strong>New</strong> — remote relay mode</td>
+</tr>
+</tbody>
+</table>
+<p>The standalone <code>--mcp-server</code> mode is deprecated but fully preserved for backward compatibility. It can be removed in a future major version once all users migrate to the HTTP-based approach.</p>
+<p><strong>Mutual exclusivity:</strong>
+- <code>--mcp-port</code> is incompatible with <code>--mcp-server</code>, <code>--mcp-client</code>, <code>--headless</code>.
+- <code>--mcp-client</code> is incompatible with <code>--mcp-server</code>, <code>--mcp-port</code>, <code>--headless</code>.
+- <code>--mcp-server</code> is incompatible with <code>--mcp-client</code>, <code>--mcp-port</code>, <code>--headless</code>.</p>
+<hr />
+<h2 id="implementation-order">Implementation Order<a class="headerlink" href="#implementation-order" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>Phase 1: Foundation
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>├── Task 1:  Add cpp-httplib dependency
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>├── Task 2:  CLI flags (--mcp-port, --address, --port)
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>└── Task 10: Popup access refactor (expose getPopups, add setInput/clickButton)
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>Phase 2: Core Server
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>├── Task 3:  McpHttpServerLayer (HTTP server + JSON-RPC dispatch)
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>├── Task 4:  Command queue for thread-safe mutating ops
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>└── Task 8:  Product state sharing
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>Phase 3: Dual-Path Interaction
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>├── Task 5:  Unified popup handler (dual-path, first-responder-wins)
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>├── Task 6:  SSE progress notifications
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>└── Task 7:  Run ownership and conflict prevention
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>Phase 4: Client Mode
+<a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>└── Task 9:  MCP client relay (--mcp-client, stdio ↔ HTTP bridge)
+<a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a>
+<a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a>Phase 5: Integration
+<a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a>├── Task 11: Framework-level wiring
+<a id="__codelineno-20-21" name="__codelineno-20-21" href="#__codelineno-20-21"></a>├── Task 12: Application-level adjustments
+<a id="__codelineno-20-22" name="__codelineno-20-22" href="#__codelineno-20-22"></a>└── Task 13: Backward compatibility testing
+</code></pre></div>
+<hr />
+<h2 id="detailed-interaction-flows">Detailed Interaction Flows<a class="headerlink" href="#detailed-interaction-flows" title="Permanent link">&para;</a></h2>
+<h3 id="flow-a-mcp-agent-starts-a-test-run-operator-watches">Flow A: MCP Agent Starts a Test Run (Operator Watches)<a class="headerlink" href="#flow-a-mcp-agent-starts-a-test-run-operator-watches" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>Agent                        HTTP Server          Main Thread (GUI)         Lua Workers
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>  |                              |                      |                       |
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>  |--POST run_tests------------&gt;|                      |                       |
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>  |                              |--enqueue command----&gt;|                       |
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>  |                              |                      |--loadProduct()        |
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>  |                              |                      |--runSolution()-------&gt;|
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>  |                              |&lt;--result: started----|                       |
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>  |&lt;-response: {started:true}----|                      |                       |
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>  |                              |                      |                       |
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>  |  (SSE stream)               |                      |                       |
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>  |&lt;--notification: running------|&lt;--state change-------|                       |
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>  |&lt;--notification: test_start---|&lt;--progress event-----|                       |
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>  |                              |                      |--renderPopups()       |
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a>  |                              |                      |   (operator sees      |
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a>  |                              |                      |    progress in GUI)   |
+</code></pre></div>
+<h3 id="flow-b-popup-agent-responds-before-operator">Flow B: Popup — Agent Responds Before Operator<a class="headerlink" href="#flow-b-popup-agent-responds-before-operator" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>Lua Worker                   Main Thread              HTTP Server           Agent
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>  |                              |                      |                    |
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>  |--Show(popup)----------------&gt;|                      |                    |
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>  |  (blocks in Routine())       |                      |                    |
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>  |                              |--renderPopups()      |                    |
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>  |                              |  (ImGui popup shown) |                    |
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>  |                              |--sync() detects new-&gt;|--SSE: popup-------&gt;|
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>  |                              |                      |                    |
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>  |                              |                      |&lt;-respond_to_popup--|
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>  |                              |                      |--setInput()+       |
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a>  |                              |                      |  clickButton()     |
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>  |                              |                      |  Consume()         |
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>  |  (Routine() sees consumed)   |                      |                    |
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a>  |&lt;--(unblocked)                |                      |                    |
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a>  |                              |--next renderPopups() |                    |
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a>  |                              |  (popup gone from    |                    |
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a>  |                              |   m_popups → ImGui   |                    |
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>  |                              |   popup disappears)  |                    |
+</code></pre></div>
+<h3 id="flow-c-popup-operator-responds-before-agent">Flow C: Popup — Operator Responds Before Agent<a class="headerlink" href="#flow-c-popup-operator-responds-before-agent" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Lua Worker                   Main Thread              HTTP Server           Agent
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>  |                              |                      |                    |
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>  |--Show(popup)----------------&gt;|                      |                    |
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>  |  (blocks in Routine())       |                      |                    |
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>  |                              |--renderPopups()      |                    |
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>  |                              |  (operator clicks    |                    |
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>  |                              |   button → Consume())|                    |
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>  |  (Routine() sees consumed)   |                      |                    |
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>  |&lt;--(unblocked, reads inputs)  |                      |                    |
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>  |  (popup removed from map)    |                      |                    |
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>  |                              |--sync() detects      |                    |
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>  |                              |  popup gone --------&gt;|--SSE: consumed----&gt;|
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>  |                              |                      |                    |
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>  |                              |                      |&lt;-respond_to_popup--|
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a>  |                              |                      |  (returns error:   |
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a>  |                              |                      |   popup not found) |
+</code></pre></div>
+<h3 id="flow-d-remote-agent-connects-via-relay-mcp-client">Flow D: Remote Agent Connects via Relay (<code>--mcp-client</code>)<a class="headerlink" href="#flow-d-remote-agent-connects-via-relay-mcp-client" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Agent (Kiro)           McpRelay Process          Primary GUI Instance
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>  |                        |                          |
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>  |--stdin: initialize----&gt;|                          |
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>  |                        |--POST /mcp: initialize--&gt;|
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>  |                        |&lt;-response: result--------|
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>  |&lt;-stdout: result--------|                          |
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>  |                        |                          |
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>  |--stdin: tools/call----&gt;|                          |
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>  |                        |--POST /mcp: tools/call--&gt;|
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>  |                        |&lt;-response: result--------|
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>  |&lt;-stdout: result--------|                          |
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>  |                        |                          |
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a>  |                        |--GET /mcp (SSE)---------&gt;|
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>  |                        |&lt;-SSE: progress events----|
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a>  |&lt;-stdout: notifications-|                          |
+</code></pre></div>
+<hr />
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Origin validation:</strong> HTTP server validates <code>Origin</code> header. Accept requests only from <code>localhost</code> or explicitly configured origins.</li>
+<li><strong>Localhost binding by default:</strong> Server binds to <code>127.0.0.1</code> by default (not <code>0.0.0.0</code>) unless explicitly configured otherwise.</li>
+<li><strong>Session management:</strong> Use <code>Mcp-Session-Id</code> header per the spec. Reject requests without valid session after initialization.</li>
+<li><strong>No authentication initially:</strong> For local development use, no auth. Document that exposing to network requires proper auth (future enhancement).</li>
+</ol>
+<hr />
+<h2 id="risk-assessment">Risk Assessment<a class="headerlink" href="#risk-assessment" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Likelihood</th>
+<th>Impact</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thread race on orchestrator state</td>
+<td>Medium</td>
+<td>High</td>
+<td>Command queue for mutations; careful classification of read-only ops</td>
+</tr>
+<tr>
+<td>Popup dual-path race condition</td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Use <code>m_consumed</code> atomic + popup mutex; first-responder wins naturally</td>
+</tr>
+<tr>
+<td>cpp-httplib blocking thread exhaustion</td>
+<td>Low</td>
+<td>Medium</td>
+<td>Set reasonable thread pool size; tool calls are fast</td>
+</tr>
+<tr>
+<td>Port conflict on startup</td>
+<td>Low</td>
+<td>Low</td>
+<td>Support port 0 (auto); clear error message if port in use</td>
+</tr>
+<tr>
+<td>GUI and MCP disagree on state</td>
+<td>Low</td>
+<td>Low</td>
+<td>Single orchestrator instance = single source of truth</td>
+</tr>
+<tr>
+<td>Button action requires Lua state</td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Button actions run on the Lua worker thread after Routine() unblocks — need to verify thread safety</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="open-questions-resolved">Open Questions (Resolved)<a class="headerlink" href="#open-questions-resolved" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shared orchestrator?</td>
+<td>✅ Yes — same instance for GUI and MCP</td>
+</tr>
+<tr>
+<td>Dual-path popups?</td>
+<td>✅ Yes — from day one</td>
+</tr>
+<tr>
+<td>Transport?</td>
+<td>✅ HTTP (Streamable HTTP spec) hosted by GUI process</td>
+</tr>
+<tr>
+<td>Remote connection?</td>
+<td>✅ Via relay process (<code>--mcp-client --address x --port y</code>)</td>
+</tr>
+<tr>
+<td>Backward compat?</td>
+<td>✅ Standalone <code>--mcp-server</code> preserved</td>
+</tr>
+<tr>
+<td>Should the GUI display a status bar showing MCP connection count / active session?</td>
+<td>Yes, next to the Connected tab</td>
+</tr>
+</tbody>
+</table>
+<h2 id="remaining-open-questions">Remaining Open Questions<a class="headerlink" href="#remaining-open-questions" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Port default:</strong> Should <code>--mcp-port</code> have a default (e.g., always-on at port 8042)? Or require explicit opt-in?</li>
+<li>
+<p>Recommendation: Require explicit opt-in (<code>--mcp-port &lt;N&gt;</code>) for now. Consider a config.json option to auto-start.</p>
+</li>
+<li>
+<p><strong>Multiple concurrent MCP clients:</strong> The HTTP server naturally supports this. Should we limit to one session?</p>
+</li>
+<li>
+<p>Recommendation: Allow multiple read-only clients, but only one can have an active <code>run_tests</code> session.</p>
+</li>
+<li>
+<p><strong>Button action thread safety:</strong> The <code>Popup::Button::action</code> is a <code>sol::unsafe_function</code> that captures the Lua state. Calling it from the HTTP thread (via <code>respondToPopup</code>) would be unsafe. Need to ensure button actions are deferred to the Lua worker thread.</p>
+</li>
+<li>
+<p>Resolution: <code>respondToPopup</code> sets inputs and marks consumed, but does NOT call the button action directly. The Lua worker's <code>Routine()</code> exit path already handles calling the action. We just need to store WHICH button was clicked.</p>
+</li>
+<li>
+<p><strong>Should the GUI display a status bar showing MCP connection count / active session?</strong></p>
+</li>
+<li>Recommendation: Yes, a small indicator in the menu bar or status area. Low priority.</li>
+</ol>
+<hr />
+<h2 id="test-strategy">Test Strategy<a class="headerlink" href="#test-strategy" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Unit tests:</strong> JSON-RPC dispatch, command queue, popup tracking/sync logic</li>
+<li><strong>Integration test:</strong> Start Frasy with <code>--mcp-port</code>, send HTTP requests to <code>/mcp</code>, verify tool responses</li>
+<li><strong>Relay test:</strong> Start Frasy with <code>--mcp-port</code>, start relay process (<code>--mcp-client --port</code>), pipe JSON-RPC via stdin, verify end-to-end</li>
+<li><strong>Popup dual-path test:</strong> Start run, trigger popup, respond via HTTP, verify GUI popup disappears</li>
+<li><strong>Conflict test:</strong> Start run via MCP, try GUI run (expect rejection). Vice versa.</li>
+<li><strong>SSE test:</strong> Connect SSE stream, start run, verify progress notifications arrive</li>
+<li><strong>Shutdown test:</strong> Close GUI with active SSE clients — verify clean disconnect</li>
+<li><strong>Backward compat:</strong> Verify <code>--mcp-server</code> (standalone) still works identically</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.highlight", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
