@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22)
 project(Frasy C CXX)
 
 if (NOT TARGET frasy_dep_build_options)
-    include(compile_options.cmake)
+    include(cmake/compile_options.cmake)
 endif ()
 
 add_subdirectory(Brigerad)
@@ -18,7 +18,7 @@ set(CANOPEN_OD_DIR "${CMAKE_CURRENT_LIST_DIR}/Frasy/src/utils/communication/can_
 include(Frasy/vendor/cmake/canopennode.cmake)
 include(Frasy/vendor/cmake/json.cmake)
 add_subdirectory(Frasy/vendor/hashdir)
-include(Frasy/vendor/cmake/wkhtmltox.cmake)
+add_subdirectory(Frasy/vendor/wkhtmltox)
 include(Frasy/vendor/cmake/cpp-httplib.cmake)
 
 add_library(${PROJECT_NAME} STATIC ${FRASY_SOURCES})
@@ -28,13 +28,13 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         CanOpen
         libhashdir
         json
-        wkhtmltox
         cpp-httplib
         Ws2_32.lib
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/Frasy/src
 )
+add_dependencies(${PROJECT_NAME} wkhtmltopdf)
 
 option(FRASY_BUILD_TESTS "Build Frasy unit tests" OFF)
 if (FRASY_BUILD_TESTS)
@@ -49,7 +49,7 @@ add_custom_target(generate_hashes
 if (DEFINED APP_NAME)
     add_custom_target(make_lua_dir COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${APP_NAME}>/lua"
     )
-    include(sync_assets.cmake)
+    include(cmake/sync_assets.cmake)
     target_sync_assets(
             refresh_lua_core
             "${CMAKE_CURRENT_LIST_DIR}/Frasy/lua/core"
@@ -64,12 +64,6 @@ if (DEFINED APP_NAME)
             generate_hashes
             make_lua_dir
             refresh_frasy_assets
-    )
-
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${WKHTMLTOX_DIR}/bin/wkhtmltox.dll"
-            "$<TARGET_FILE_DIR:${APP_NAME}>/wkhtmltox.dll"
     )
 endif ()
 

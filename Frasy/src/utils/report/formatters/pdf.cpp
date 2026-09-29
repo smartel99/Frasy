@@ -18,8 +18,6 @@
 
 #include <Brigerad/Core/Log.h>
 
-#include "wkhtmltox/pdf.h"
-
 #include <fstream>
 
 #include <Windows.h>
@@ -32,7 +30,7 @@ int         s_int    = 0;
 }    // namespace Defaults
 
 PDF::PDF(std::string_view outPath, std::string_view outName, const sol::table& result)
-: Formatter(result), m_wkhtmltopdf(outPath, outName), m_outPath(outPath)
+: Formatter(result), m_outPath(outPath)
 {
     m_ss << "<!DOCTYPE html>\n"
          << "<html>\n"
@@ -112,9 +110,7 @@ void PDF::reportInfo()
 }
 
 void PDF::reportUserInfo([[maybe_unused]] const sol::table& table)
-{
-    throw std::runtime_error("Not implemented");
-}
+{ throw std::runtime_error("Not implemented"); }
 
 void PDF::startReportIb()
 {
@@ -154,9 +150,7 @@ void PDF::endReportIb()
 }
 
 void PDF::startReportSequences()
-{
-    m_ss << "<h2>Test Sequences:</h2>\n";
-}
+{ m_ss << "<h2>Test Sequences:</h2>\n"; }
 
 void PDF::reportSequenceResult(const std::string& name)
 {
@@ -203,28 +197,22 @@ bool PDF::convert()
     m_ss << "</body>\n"
          << "</html>\n";
 
+    auto str = m_ss.str();
+
     std::ofstream htmlFile(m_outPath + ".html");
-    htmlFile << m_ss.str();
+    htmlFile << str;
 
-    m_wkhtmltopdf.addContent(m_ss.str());
-
-    return m_wkhtmltopdf.convert();
+    return system(std::format("{} {} {}", wkhtmltopdf, m_outPath + ".html", m_outPath).c_str()) == 0;
 }
 
 void PDF::reportToBeEqualBoolean(const sol::table& expectation)
-{
-    reportToBeEqual<bool>(expectation);
-}
+{ reportToBeEqual<bool>(expectation); }
 
 void PDF::reportToBeEqualNumber(const sol::table& expectation)
-{
-    reportToBeEqual<double>(expectation);
-}
+{ reportToBeEqual<double>(expectation); }
 
 void PDF::reportToBeEqualString(const sol::table& expectation)
-{
-    reportToBeEqual<std::string>(expectation);
-}
+{ reportToBeEqual<std::string>(expectation); }
 
 void PDF::reportToBeInPercentage(const sol::table& e)
 {
@@ -291,14 +279,10 @@ std::string PDF::sectionResultToString(const sol::table& section) const
 }
 
 void PDF::divLine()
-{
-    m_ss << "<div class=\"report-line\"></div>\n";
-}
+{ m_ss << "<div class=\"report-line\"></div>\n"; }
 
 void PDF::smallDivLine()
-{
-    m_ss << "<div class=\"small-line\"></div>\n";
-}
+{ m_ss << "<div class=\"small-line\"></div>\n"; }
 
 void PDF::printResult(bool passed)
 {
