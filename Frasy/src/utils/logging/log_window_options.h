@@ -90,8 +90,8 @@ struct LogWindowOptions {
 
         // Save the overriden log levels, if any.
         nlohmann::json loggerLevels = nlohmann::json::object();
-        const auto&    loggers      = Brigerad::Log::GetLoggers();
-        for (auto&& [name, ptr] : loggers) {
+        const auto     loggers      = Brigerad::Log::GetLoggers();
+        for (auto&& [name, ptr] : *loggers) {
             if (ptr->level() != Brigerad::Log::s_defaultLevel) { loggerLevels[name] = ptr->level(); }
         }
         cfg["Loggers"] = loggerLevels;

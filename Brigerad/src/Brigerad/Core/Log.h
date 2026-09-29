@@ -1,7 +1,9 @@
 #pragma once
 #include "Core.h"
 
+#include <atomic>
 #include <cctype>
+#include <memory>
 #include <ranges>
 #include <source_location>
 #include <spdlog/sinks/dist_sink.h>
@@ -18,20 +20,30 @@ public:
 
     static void Init(bool useStderr = false, bool silent = false);
 
-    static Logger& GetCoreLogger() { return GetLogger(s_coreLoggerName); }
-    static Logger& GetClientLogger() { return GetLogger(s_clientLoggerName); }
-    static Logger& GetLuaLogger() { return GetLogger(s_luaLoggerName); }
+    static Logger GetCoreLogger() { return GetLogger(s_coreLoggerName); }
+    static Logger GetClientLogger() { return GetLogger(s_clientLoggerName); }
+    static Logger GetLuaLogger() { return GetLogger(s_luaLoggerName); }
 
-    static Logger& GetLogger(const std::string& name)
+    using LoggerMap = std::unordered_map<std::string, Logger>;
+
+    static Logger GetLogger(const std::string& name)    // by value now
     {
-        if (!s_loggers.contains(name))
+        auto current = s_loggers.load(std::memory_order_acquire);
+        if (auto it = current->find(name); it != current->end()) { return it->second; }
+
+        auto logger = std::make_shared<spdlog::logger>(name, s_sinks);
+        logger->set_level(s_defaultLevel);    // fully set up before anyone can see it
+        while (true)
         {
-            spdlog::debug("Added logger: {}", name);
-            s_loggers[name] = std::make_shared<spdlog::logger>(name, s_sinks);
-            s_loggers[name]->set_level(s_defaultLevel);
+            auto next = std::make_shared<LoggerMap>(*current);
+            next->emplace(name, logger);
+            if (s_loggers.compare_exchange_weak(current, std::move(next), std::memory_order_acq_rel)) { return logger; }
+            // CAS failed: `current` now holds the newer map. Another thread may have added this name.
+            if (auto it = current->find(name); it != current->end()) { return it->second; }
         }
-        return s_loggers[name];
     }
+
+    static std::shared_ptr<const LoggerMap> GetLoggers() { return s_loggers.load(); }
 
     static spdlog::level::level_enum GetLoggerLevel(const std::string& name) { return GetLogger(name)->level(); }
 
@@ -39,8 +51,6 @@ public:
     {
         GetLogger(name)->set_level(level);
     }
-
-    static const auto& GetLoggers() { return s_loggers; }
 
     static void AddSink(const spdlog::sink_ptr& sink);
 
@@ -55,7 +65,7 @@ public:
 
 private:
     static inline std::shared_ptr<spdlog::sinks::dist_sink_mt>                     s_sinks   = nullptr;
-    static inline std::unordered_map<std::string, std::shared_ptr<spdlog::logger>> s_loggers = {};
+    static inline std::atomic<std::shared_ptr<const LoggerMap>>                    s_loggers {std::make_shared<const LoggerMap>()};
 
     static spdlog::file_event_handlers s_eventHandlers;
 

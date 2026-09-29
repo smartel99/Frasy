@@ -76,9 +76,9 @@ void LogWindow::onImGuiRender()
 void LogWindow::RenderOptions()
 {
     if (ImGui::TreeNode("Options")) {
-        const auto& loggers = Brigerad::Log::GetLoggers();
+        const auto loggers = Brigerad::Log::GetLoggers();
 
-        for (auto&& [name, ptr] : loggers) {
+        for (auto&& [name, ptr] : *loggers) {
             if (name.empty()) { continue; }    // No clue what this logger is, and it affects nothing
             auto currentLevel    = ptr->level();
             auto currentLevelStr = to_string_view(currentLevel);
