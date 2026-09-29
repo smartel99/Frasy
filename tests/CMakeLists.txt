@@ -32,7 +32,7 @@ set(FRASY_TEST_LUA_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Sync Lua core files to the test binary directory so tests can find them at runtime.
 # Uses the target_sync_assets function from sync_assets.cmake (included by parent).
-include(${CMAKE_CURRENT_LIST_DIR}/../sync_assets.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../cmake/sync_assets.cmake)
 target_sync_assets(
         sync_test_lua
         "${CMAKE_CURRENT_LIST_DIR}/../Frasy/lua/core"
