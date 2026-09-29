@@ -22,6 +22,10 @@
 #include <utils/lua/profile_events.h>
 #include <utils/string_utils.h>
 
+#include <algorithm>
+#include <array>
+#include <string_view>
+
 namespace Frasy::SlCan {
 Device::Device(std::string_view port, bool open) : m_port(std::move(port)), m_label("SlCan")
 {
@@ -107,13 +111,16 @@ bool Device::open()
     if (isOpen()) { close(); }
 
     try {
+        // The RX loop only reads bytes that are already available, so the read timeout barely
+        // matters. Writes get 100ms: a 1ms write timeout (one USB frame) fails with
+        // ERROR_SEM_TIMEOUT after the frame was already queued, which duplicates it on the bus.
         m_device = std::make_unique<serial::Serial>(m_port,
                                                     921600,
-                                                    serial::Timeout::simpleTimeout(1),
+                                                    serial::Timeout(serial::Timeout::max(), 1, 0, 100, 0),
                                                     serial::eightbits,
                                                     serial::parity_none,
                                                     serial::stopbits_one,
-                                                    serial::flowcontrol_software);
+                                                    serial::flowcontrol_none);
     }
     catch (std::exception& e) {
         BR_LOG_ERROR(m_label, "While opening '{}': {}", m_port, e.what());
@@ -127,28 +134,51 @@ bool Device::open()
             BR_LOG_ERROR("SlCAN", "Unable to set thread description");
         }
         BR_LOG_INFO(m_label, "Started RX listener on '{}'", m_device->getPort());
-        std::string read;
+        // A line can be split across USB transfers, so partial lines are carried over until their
+        // terminator arrives.
+        std::array<uint8_t, Packet::s_mtu> chunk   = {};
+        std::array<uint8_t, Packet::s_mtu> pending = {};
+        size_t                             pendingLen = 0;
         while (!stopToken.stop_requested()) {
             try {
                 FRASY_PROFILE_SCOPE("RX Loop");
                 if (m_device == nullptr) { break; }
-                if (m_device->available() == 0) {
-                    Sleep(1);
+                size_t available = m_device->available();
+                if (available == 0) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     continue;
                 }
-                read.clear();
-                // TODO this might cause problems if we don't receive a complete packet.
-                m_device->readline(read, Packet::s_mtu, "\r");
-                if (m_muted || read.empty()) { continue; }
-                BR_LOG_TRACE(m_label, "RX: {}", read);
-                std::unique_lock lock {m_lock};
-                const auto&      packet = m_queue.emplace(reinterpret_cast<const uint8_t*>(read.data()), read.size());
-                m_rxMonitorFunc(packet);
-                // manual unlocking is done before notifying, to avoid waking up
-                // the waiting thread only to block again (see notify_one for details)
-                lock.unlock();
-                m_cv.notify_one();
-                m_rxCallbackFunc();
+                size_t read = m_device->read(chunk.data(), std::min(available, chunk.size()));
+                for (size_t i = 0; i < read; i++) {
+                    pending[pendingLen++] = chunk[i];
+                    // '\r' terminates a line, a lone '\a' (BEL) is how SLCAN rejects a command.
+                    bool terminated = chunk[i] == '\r' || chunk[i] == '\a';
+                    if (!terminated) {
+                        if (pendingLen == pending.size()) {
+                            BR_LOG_ERROR(m_label, "Discarding {} unterminated bytes on '{}'", pendingLen, m_port);
+                            pendingLen = 0;
+                        }
+                        continue;
+                    }
+
+                    size_t len = pendingLen;
+                    pendingLen = 0;
+                    // A bare terminator is a command ACK/NACK, not a frame. Packet needs at least 2 bytes.
+                    if (len < 2) {
+                        if (chunk[i] == '\a') { BR_LOG_WARN(m_label, "Command rejected by '{}'", m_port); }
+                        continue;
+                    }
+                    if (m_muted) { continue; }
+                    BR_LOG_TRACE(m_label, "RX: {}", std::string_view(reinterpret_cast<const char*>(pending.data()), len));
+                    std::unique_lock lock {m_lock};
+                    const auto&      packet = m_queue.emplace(pending.data(), len);
+                    m_rxMonitorFunc(packet);
+                    // manual unlocking is done before notifying, to avoid waking up
+                    // the waiting thread only to block again (see notify_one for details)
+                    lock.unlock();
+                    m_cv.notify_one();
+                    m_rxCallbackFunc();
+                }
             }
             catch (std::exception& e) {
                 if (!stopToken.stop_requested()) {
