@@ -929,7 +929,7 @@ void Orchestrator::checkResults(const std::vector<std::size_t>& devices)
             std::string   serial  = data["info"]["serial"];
             m_uutStates[uut]      = passed ? UutState::Passed : UutState::Failed;
             std::filesystem::copy(resultFile,
-                                  std::format("{}/{}/{}/{}_{}.txt",
+                                  std::format("{}/{}/{}/{}_{}.json",
                                               m_outputDirectory,
                                               m_title,
                                               passed ? passSubdirectory : failSubdirectory,
