@@ -247,11 +247,20 @@ void MainApplicationLayer::renderProfiler()
 {
     if (!ImGui::Begin("Lua Profiler", &m_renderProfiler)) { goto skip_render; }
 
+    if (bool enabled = Profiler::get().isEnabled(); ImGui::Checkbox("Enabled", &enabled)) {
+        if (enabled) { Profiler::get().enable(); }
+        else {
+            Profiler::get().disable();
+        }
+    }
+
+    ImGui::SameLine();
     if (ImGui::Button("Reset All")) {
-        Profiler& profiler = Profiler::get();
+        Profiler&  profiler   = Profiler::get();
+        const bool wasEnabled = profiler.isEnabled();
         profiler.disable();
         profiler.reset();
-        profiler.enable();
+        if (wasEnabled) { profiler.enable(); }
         m_profileGraphPopups.clear();
     }
 
