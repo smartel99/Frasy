@@ -101,9 +101,11 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
             if (HRESULT hr = environment6->CreatePrintSettings(&settings); FAILED(hr)) {
                 return fail("CreatePrintSettings", hr);
             }
-            // A4, in inches.
-            settings->put_PageWidth(8.27);
-            settings->put_PageHeight(11.69);
+            // US Letter, in inches.
+            settings->put_PageWidth(8.5);
+            settings->put_PageHeight(11.0);
+            // Matches the content size previously produced by wkhtmltopdf.
+            settings->put_ScaleFactor(0.8);
             // The divider lines and table row colors are backgrounds, which are skipped by default.
             settings->put_ShouldPrintBackgrounds(TRUE);
             settings->put_ShouldPrintHeaderAndFooter(FALSE);
