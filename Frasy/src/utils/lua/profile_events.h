@@ -24,6 +24,7 @@
 
 #include <utils/string_utils.h>
 
+#include <atomic>
 #include <chrono>
 #include <deque>
 #include <functional>
@@ -126,6 +127,7 @@ public:
     void reset(std::thread::id id) { m_events[id].reset(); }
     void enable() { m_enabled = true; }
     void disable() { m_enabled = false; }
+    bool isEnabled() const { return m_enabled; }
 
     const std::map<std::thread::id, ProfilerDetails>& getEvents() const { return m_events; }
 
@@ -213,7 +215,7 @@ public:
     }
 
 private:
-    bool                                       m_enabled = true;
+    std::atomic_bool                           m_enabled = false;
     std::map<std::thread::id, ProfilerDetails> m_events;
 
     std::function<bool(const ProfileEvent&, const ProfileEvent&)> m_sortFunction = sortByTotalTimeDesc;
