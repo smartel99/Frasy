@@ -22,10 +22,10 @@
 #include <fstream>
 #include <thread>
 
-#include <Windows.h>
 #include <ShlObj.h>
 #include <Shlwapi.h>
 #include <WebView2.h>
+#include <Windows.h>
 #include <wrl.h>
 
 namespace {
@@ -42,6 +42,29 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
     using Microsoft::WRL::ComPtr;
     static constexpr UINT s_timeoutMs = 30'000;
 
+    LPWSTR runtimeVersion = nullptr;
+    HRESULT runtimeHr     = GetAvailableCoreWebView2BrowserVersionString(nullptr, &runtimeVersion);
+    const bool hasRuntime = SUCCEEDED(runtimeHr) && runtimeVersion != nullptr;
+    CoTaskMemFree(runtimeVersion);
+    if (!hasRuntime) {
+        BR_LOG_ERROR(s_tag,
+                     "Microsoft Edge WebView2 Runtime is not installed, PDF reports cannot be generated. "
+                     "Install it from https://developer.microsoft.com/microsoft-edge/webview2/ (0x{:08X})",
+                     static_cast<uint32_t>(runtimeHr));
+        return false;
+    }
+
+    wchar_t url[4096] = {};
+    DWORD   urlLen    = static_cast<DWORD>(std::size(url));
+    if (HRESULT hr = UrlCreateFromPathW(std::filesystem::absolute(htmlPath).c_str(), url, &urlLen, 0); FAILED(hr)) {
+        BR_LOG_ERROR(s_tag,
+                     "Unable to create a URL from '{}': 0x{:08X}",
+                     htmlPath.string(),
+                     static_cast<uint32_t>(hr));
+        return false;
+    }
+    std::wstring pdf = std::filesystem::absolute(pdfPath).wstring();
+
     bool        ok = false;
     std::thread worker([&] {
         if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED))) {
@@ -52,11 +75,6 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
         // WebView2 needs a parent window, even though nothing is ever shown.
         HWND hwnd = CreateWindowExW(
           0, L"STATIC", L"", WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
-
-        wchar_t url[4096];
-        DWORD   urlLen = static_cast<DWORD>(std::size(url));
-        UrlCreateFromPathW(std::filesystem::absolute(htmlPath).c_str(), url, &urlLen, 0);
-        std::wstring pdf = std::filesystem::absolute(pdfPath).wstring();
 
         // The default user data folder is next to the executable, which might not be writable.
         std::wstring userDataFolder;
@@ -69,14 +87,18 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
         ComPtr<ICoreWebView2Environment> environment;
         ComPtr<ICoreWebView2Controller>  controller;
         ComPtr<ICoreWebView2>            webview;
-        auto                             fail = [](std::string_view what, HRESULT hr) {
-            BR_LOG_ERROR(s_tag, "{} failed: 0x{:08X}", what, static_cast<uint32_t>(hr));
+        auto                             fail = [](const std::string& message) {
+            BR_LOG_ERROR(s_tag, "{}", message);
             PostQuitMessage(1);
             return S_OK;
         };
+        auto failHr = [&](std::string_view what, HRESULT hr) {
+            return fail(std::format("{} failed: 0x{:08X}", what, static_cast<uint32_t>(hr)));
+        };
 
         auto onPrinted = [&](HRESULT hr, BOOL printed) -> HRESULT {
-            if (FAILED(hr) || printed == FALSE) { return fail("PrintToPdf", hr); }
+            if (FAILED(hr)) { return failHr("PrintToPdf", hr); }
+            if (printed == FALSE) { return fail(std::format("PrintToPdf did not write '{}'", pdfPath.string())); }
             ok = true;
             PostQuitMessage(0);
             return S_OK;
@@ -88,23 +110,25 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
             if (success == FALSE) {
                 COREWEBVIEW2_WEB_ERROR_STATUS status {};
                 args->get_WebErrorStatus(&status);
-                return fail("Navigation", static_cast<HRESULT>(status));
+                return fail(std::format("Navigation to '{}' failed: COREWEBVIEW2_WEB_ERROR_STATUS {}",
+                                        htmlPath.string(),
+                                        static_cast<int>(status)));
             }
 
             ComPtr<ICoreWebView2_7>            webview7;
             ComPtr<ICoreWebView2Environment6>  environment6;
             ComPtr<ICoreWebView2PrintSettings> settings;
-            if (HRESULT hr = webview.As(&webview7); FAILED(hr)) { return fail("ICoreWebView2_7", hr); }
+            if (HRESULT hr = webview.As(&webview7); FAILED(hr)) { return failHr("ICoreWebView2_7", hr); }
             if (HRESULT hr = environment.As(&environment6); FAILED(hr)) {
-                return fail("ICoreWebView2Environment6", hr);
+                return failHr("ICoreWebView2Environment6", hr);
             }
             if (HRESULT hr = environment6->CreatePrintSettings(&settings); FAILED(hr)) {
-                return fail("CreatePrintSettings", hr);
+                return failHr("CreatePrintSettings", hr);
             }
             // US Letter, in inches.
             settings->put_PageWidth(8.5);
             settings->put_PageHeight(11.0);
-            // Matches the content size previously produced by wkhtmltopdf.
+            // Keeps text and table sizes close to what wkhtmltopdf produced (only the content scale, not the page size).
             settings->put_ScaleFactor(0.8);
             // The divider lines and table row colors are backgrounds, which are skipped by default.
             settings->put_ShouldPrintBackgrounds(TRUE);
@@ -112,26 +136,28 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
 
             HRESULT hr = webview7->PrintToPdf(
               pdf.c_str(), settings.Get(), Callback<ICoreWebView2PrintToPdfCompletedHandler>(onPrinted).Get());
-            return FAILED(hr) ? fail("PrintToPdf", hr) : S_OK;
+            return FAILED(hr) ? failHr("PrintToPdf", hr) : S_OK;
         };
 
         auto onControllerCreated = [&](HRESULT hr, ICoreWebView2Controller* c) -> HRESULT {
-            if (FAILED(hr)) { return fail("CreateCoreWebView2Controller", hr); }
+            if (FAILED(hr)) { return failHr("CreateCoreWebView2Controller", hr); }
             controller = c;
-            controller->get_CoreWebView2(&webview);
+            hr         = controller->get_CoreWebView2(&webview);
+            if (FAILED(hr) || !webview) { return failHr("get_CoreWebView2", FAILED(hr) ? hr : E_POINTER); }
             EventRegistrationToken token;
-            webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>(onNavigated).Get(),
-                                             &token);
+            hr = webview->add_NavigationCompleted(
+              Callback<ICoreWebView2NavigationCompletedEventHandler>(onNavigated).Get(), &token);
+            if (FAILED(hr)) { return failHr("add_NavigationCompleted", hr); }
             hr = webview->Navigate(url);
-            return FAILED(hr) ? fail("Navigate", hr) : S_OK;
+            return FAILED(hr) ? failHr("Navigate", hr) : S_OK;
         };
 
         auto onEnvironmentCreated = [&](HRESULT hr, ICoreWebView2Environment* env) -> HRESULT {
-            if (FAILED(hr)) { return fail("CreateCoreWebView2Environment", hr); }
+            if (FAILED(hr)) { return failHr("CreateCoreWebView2Environment", hr); }
             environment = env;
             hr          = environment->CreateCoreWebView2Controller(
               hwnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(onControllerCreated).Get());
-            return FAILED(hr) ? fail("CreateCoreWebView2Controller", hr) : S_OK;
+            return FAILED(hr) ? failHr("CreateCoreWebView2Controller", hr) : S_OK;
         };
 
         HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
@@ -140,8 +166,7 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
           nullptr,
           Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(onEnvironmentCreated).Get());
         if (FAILED(hr)) {
-            // Most likely cause: the WebView2 runtime is not installed.
-            fail("CreateCoreWebView2EnvironmentWithOptions", hr);
+            failHr("CreateCoreWebView2EnvironmentWithOptions", hr);
         }
         else {
             UINT_PTR timer = SetTimer(nullptr, 0, s_timeoutMs, nullptr);
@@ -344,10 +369,17 @@ bool PDF::convert()
     m_ss << "</body>\n"
          << "</html>\n";
 
-    const auto htmlPath = m_outPath + ".html";
-    {
-        std::ofstream htmlFile(htmlPath);
-        htmlFile << m_ss.str();
+    const auto    htmlPath = m_outPath + ".html";
+    std::ofstream htmlFile(htmlPath);
+    if (!htmlFile) {
+        BR_LOG_ERROR(s_tag, "Unable to open '{}' for writing", htmlPath);
+        return false;
+    }
+    htmlFile << m_ss.str();
+    htmlFile.close();    // Flushes, so write errors are reported below.
+    if (!htmlFile) {
+        BR_LOG_ERROR(s_tag, "Unable to write '{}'", htmlPath);
+        return false;
     }
 
     return htmlToPdf(htmlPath, m_outPath);

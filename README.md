@@ -44,6 +44,8 @@ Full documentation is available at **[frasy.rald.ca](https://frasy.rald.ca)**, i
 ## Requirements
 
 - Windows 10 or later
+- [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (used to generate PDF
+  reports; included with Windows 11, may be missing on Windows 10 LTSC/IoT and Windows Server)
 - C++23 compiler (MSVC / Visual Studio 2022 recommended)
 - CMake 3.22+
 - Git (for submodule checkout)

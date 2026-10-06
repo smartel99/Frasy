@@ -22,10 +22,10 @@
 
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <string>
 #include <vector>
-#include <format>
 
 namespace Frasy::Report::PDF {
 std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames)
@@ -34,7 +34,6 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
     const auto               lua     = sol::state_view(results.lua_state());
     std::vector<std::string> reports = {};
     try {
-
         using namespace Frasy::Report::SolutionLoader;
         Solution solution = loadSolution();
 
@@ -88,7 +87,13 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
             formatter.endReportSequence();
         }
 
-        formatter.convert();
+        // Don't leave the previous UUT's report behind if this conversion fails.
+        std::error_code ec;
+        fs::remove(lastReportFilepath, ec);
+        if (!formatter.convert()) {
+            BR_LOG_ERROR(s_tag, "Report generation failed for '{}'", lastReportFilepath.string());
+            return {};
+        }
         reports.emplace_back(lastReportFilepath.string());
         for (const auto& filename : filenames) {
             const auto filepath = clientFileDir / filename;

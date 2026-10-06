@@ -10,10 +10,24 @@ FetchContent_Declare(webview2
 )
 FetchContent_MakeAvailable(webview2)
 
+# The package ships a static loader per target architecture.
+string(TOLOWER "${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" WEBVIEW2_ARCH)
+# MSVC reports x64/X86/ARM64; GCC and Clang report their own names.
+if (WEBVIEW2_ARCH MATCHES "^(x86_64|amd64)$")
+    set(WEBVIEW2_ARCH x64)
+elseif (WEBVIEW2_ARCH MATCHES "^i[3-6]86$")
+    set(WEBVIEW2_ARCH x86)
+elseif (WEBVIEW2_ARCH STREQUAL "aarch64")
+    set(WEBVIEW2_ARCH arm64)
+endif ()
+if (NOT WEBVIEW2_ARCH MATCHES "^(x64|x86|arm64)$")
+    message(FATAL_ERROR "WebView2: unsupported target architecture '${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}' (expected x64, x86 or ARM64)")
+endif ()
+
 add_library(webview2 INTERFACE)
 target_include_directories(webview2 INTERFACE "${webview2_SOURCE_DIR}/build/native/include")
 target_link_libraries(webview2 INTERFACE
-        "${webview2_SOURCE_DIR}/build/native/x64/WebView2LoaderStatic.lib"
+        "${webview2_SOURCE_DIR}/build/native/${WEBVIEW2_ARCH}/WebView2LoaderStatic.lib"
         version.lib # Required by the static loader.
         Advapi32.lib # Required by the static loader.
         Shlwapi.lib
