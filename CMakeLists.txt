@@ -18,7 +18,7 @@ set(CANOPEN_OD_DIR "${CMAKE_CURRENT_LIST_DIR}/Frasy/src/utils/communication/can_
 include(Frasy/vendor/cmake/canopennode.cmake)
 include(Frasy/vendor/cmake/json.cmake)
 add_subdirectory(Frasy/vendor/hashdir)
-add_subdirectory(Frasy/vendor/wkhtmltox)
+include(Frasy/vendor/cmake/webview2.cmake)
 include(Frasy/vendor/cmake/cpp-httplib.cmake)
 
 add_library(${PROJECT_NAME} STATIC ${FRASY_SOURCES})
@@ -29,12 +29,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         libhashdir
         json
         cpp-httplib
+        webview2
         Ws2_32.lib
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/Frasy/src
 )
-add_dependencies(${PROJECT_NAME} wkhtmltopdf)
 
 option(FRASY_BUILD_TESTS "Build Frasy unit tests" OFF)
 if (FRASY_BUILD_TESTS)
