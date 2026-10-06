@@ -29,7 +29,6 @@ The build output directory contains everything needed to run the application:
 build/bin/MyApp_v1.0.0/
   MyApp.exe              ← the application
   MyApp.pdb              ← debug symbols (for crash reports)
-  wkhtmltox.dll          ← PDF generation library
   config.json            ← runtime configuration
   assets/
     textures/            ← UI icons and images
@@ -81,9 +80,6 @@ OutputDir=installer_output
 Source: "{#BinDir}\{#ExeName}.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BinDir}\{#ExeName}.pdb"; DestDir: "{app}"; Flags: ignoreversion
 
-; Required DLLs
-Source: "{#BinDir}\wkhtmltox.dll"; DestDir: "{app}"; Flags: ignoreversion
-
 ; Configuration
 Source: "{#BinDir}\config.json"; DestDir: "{app}"; Flags: onlyifdoesntexist
 
@@ -121,7 +117,7 @@ Verify the output directory contains all required files:
 dir build\bin\MyApp_v1.0.0\
 ```
 
-You should see the `.exe`, `.pdb`, `wkhtmltox.dll`, `config.json`, `assets/`, and `lua/`.
+You should see the `.exe`, `.pdb`, `config.json`, `assets/`, and `lua/`.
 
 ### 2. Obtain the VC++ Redistributable
 

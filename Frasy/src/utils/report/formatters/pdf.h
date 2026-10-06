@@ -97,7 +97,6 @@ private:
         reportLine(fieldName, (field.valid() ? field.template get_or<decltype(defaultVal)>(defaultVal) : defaultVal));
     }
 
-    static constexpr auto wkhtmltopdf = ".\\wkhtmltopdf.exe";
     std::stringstream    m_ss;
     std::string          m_outPath;
 };

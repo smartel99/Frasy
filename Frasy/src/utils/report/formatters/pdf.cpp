@@ -18,9 +18,154 @@
 
 #include <Brigerad/Core/Log.h>
 
+#include <filesystem>
 #include <fstream>
+#include <thread>
 
 #include <Windows.h>
+#include <ShlObj.h>
+#include <Shlwapi.h>
+#include <WebView2.h>
+#include <wrl.h>
+
+namespace {
+constexpr auto s_tag = "PDF Report";
+
+/**
+ * Renders an HTML file to PDF using the WebView2 runtime that ships with Windows.
+ * WebView2 is asynchronous and needs an STA thread pumping messages, so the work is done on a dedicated thread
+ * and this function blocks until the PDF is written (or the conversion fails/times out).
+ */
+bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::path& pdfPath)
+{
+    using Microsoft::WRL::Callback;
+    using Microsoft::WRL::ComPtr;
+    static constexpr UINT s_timeoutMs = 30'000;
+
+    bool        ok = false;
+    std::thread worker([&] {
+        if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED))) {
+            BR_LOG_ERROR(s_tag, "Unable to initialize COM");
+            return;
+        }
+
+        // WebView2 needs a parent window, even though nothing is ever shown.
+        HWND hwnd = CreateWindowExW(
+          0, L"STATIC", L"", WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+
+        wchar_t url[4096];
+        DWORD   urlLen = static_cast<DWORD>(std::size(url));
+        UrlCreateFromPathW(std::filesystem::absolute(htmlPath).c_str(), url, &urlLen, 0);
+        std::wstring pdf = std::filesystem::absolute(pdfPath).wstring();
+
+        // The default user data folder is next to the executable, which might not be writable.
+        std::wstring userDataFolder;
+        PWSTR        localAppData = nullptr;
+        if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppData))) {
+            userDataFolder = std::wstring(localAppData) + L"\\Frasy\\WebView2";
+        }
+        CoTaskMemFree(localAppData);
+
+        ComPtr<ICoreWebView2Environment> environment;
+        ComPtr<ICoreWebView2Controller>  controller;
+        ComPtr<ICoreWebView2>            webview;
+        auto                             fail = [](std::string_view what, HRESULT hr) {
+            BR_LOG_ERROR(s_tag, "{} failed: 0x{:08X}", what, static_cast<uint32_t>(hr));
+            PostQuitMessage(1);
+            return S_OK;
+        };
+
+        auto onPrinted = [&](HRESULT hr, BOOL printed) -> HRESULT {
+            if (FAILED(hr) || printed == FALSE) { return fail("PrintToPdf", hr); }
+            ok = true;
+            PostQuitMessage(0);
+            return S_OK;
+        };
+
+        auto onNavigated = [&](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+            BOOL success = FALSE;
+            args->get_IsSuccess(&success);
+            if (success == FALSE) {
+                COREWEBVIEW2_WEB_ERROR_STATUS status {};
+                args->get_WebErrorStatus(&status);
+                return fail("Navigation", static_cast<HRESULT>(status));
+            }
+
+            ComPtr<ICoreWebView2_7>            webview7;
+            ComPtr<ICoreWebView2Environment6>  environment6;
+            ComPtr<ICoreWebView2PrintSettings> settings;
+            if (HRESULT hr = webview.As(&webview7); FAILED(hr)) { return fail("ICoreWebView2_7", hr); }
+            if (HRESULT hr = environment.As(&environment6); FAILED(hr)) {
+                return fail("ICoreWebView2Environment6", hr);
+            }
+            if (HRESULT hr = environment6->CreatePrintSettings(&settings); FAILED(hr)) {
+                return fail("CreatePrintSettings", hr);
+            }
+            // A4, in inches.
+            settings->put_PageWidth(8.27);
+            settings->put_PageHeight(11.69);
+            // The divider lines and table row colors are backgrounds, which are skipped by default.
+            settings->put_ShouldPrintBackgrounds(TRUE);
+            settings->put_ShouldPrintHeaderAndFooter(FALSE);
+
+            HRESULT hr = webview7->PrintToPdf(
+              pdf.c_str(), settings.Get(), Callback<ICoreWebView2PrintToPdfCompletedHandler>(onPrinted).Get());
+            return FAILED(hr) ? fail("PrintToPdf", hr) : S_OK;
+        };
+
+        auto onControllerCreated = [&](HRESULT hr, ICoreWebView2Controller* c) -> HRESULT {
+            if (FAILED(hr)) { return fail("CreateCoreWebView2Controller", hr); }
+            controller = c;
+            controller->get_CoreWebView2(&webview);
+            EventRegistrationToken token;
+            webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>(onNavigated).Get(),
+                                             &token);
+            hr = webview->Navigate(url);
+            return FAILED(hr) ? fail("Navigate", hr) : S_OK;
+        };
+
+        auto onEnvironmentCreated = [&](HRESULT hr, ICoreWebView2Environment* env) -> HRESULT {
+            if (FAILED(hr)) { return fail("CreateCoreWebView2Environment", hr); }
+            environment = env;
+            hr          = environment->CreateCoreWebView2Controller(
+              hwnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(onControllerCreated).Get());
+            return FAILED(hr) ? fail("CreateCoreWebView2Controller", hr) : S_OK;
+        };
+
+        HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
+          nullptr,
+          userDataFolder.empty() ? nullptr : userDataFolder.c_str(),
+          nullptr,
+          Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(onEnvironmentCreated).Get());
+        if (FAILED(hr)) {
+            // Most likely cause: the WebView2 runtime is not installed.
+            fail("CreateCoreWebView2EnvironmentWithOptions", hr);
+        }
+        else {
+            UINT_PTR timer = SetTimer(nullptr, 0, s_timeoutMs, nullptr);
+            MSG      msg;
+            while (GetMessageW(&msg, nullptr, 0, 0) > 0) {
+                if (msg.message == WM_TIMER && msg.hwnd == nullptr && msg.wParam == timer) {
+                    BR_LOG_ERROR(s_tag, "PDF conversion timed out");
+                    break;
+                }
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
+            KillTimer(nullptr, timer);
+        }
+
+        if (controller) { controller->Close(); }
+        webview.Reset();
+        controller.Reset();
+        environment.Reset();
+        DestroyWindow(hwnd);
+        CoUninitialize();
+    });
+    worker.join();
+    return ok;
+}
+}    // namespace
 
 namespace Frasy::Report::Formatter {
 namespace Defaults {
@@ -197,12 +342,13 @@ bool PDF::convert()
     m_ss << "</body>\n"
          << "</html>\n";
 
-    auto str = m_ss.str();
+    const auto htmlPath = m_outPath + ".html";
+    {
+        std::ofstream htmlFile(htmlPath);
+        htmlFile << m_ss.str();
+    }
 
-    std::ofstream htmlFile(m_outPath + ".html");
-    htmlFile << str;
-
-    return system(std::format("{} {} {}", wkhtmltopdf, m_outPath + ".html", m_outPath).c_str()) == 0;
+    return htmlToPdf(htmlPath, m_outPath);
 }
 
 void PDF::reportToBeEqualBoolean(const sol::table& expectation)
