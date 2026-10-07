@@ -298,18 +298,11 @@ void PDF::startReportIb()
 
 void PDF::reportIb(const std::string& name)
 {
-    const auto& ib     = m_result["ib"][name].get_or(m_emptyTable);
-    std::string serial = getFieldAsStr<std::string>(ib["serial"]);
+    const auto& ib = m_result["ib"][name].get_or(m_emptyTable);
     m_ss << "<div class=\"ib\">\n"
          << "<h4>" << name << "</h4>\n"
          << "<table style=\"width:100%\">\n";
-    reportLine("Serial", [&serial]() {
-        std::string result;
-        for (const auto& c : serial) {
-            result += std::format("{:02x}", c);
-        }
-        return result;
-    }());
+    reportLine("Serial", getFieldAsStr<std::string>(ib["serial"]));
     reportLine("Hardware", getFieldAsStr<std::string>(ib["hardware"]));
     reportLine("Software", getFieldAsStr<std::string>(ib["software"]));
     m_ss << "</table>\n</div>\n";

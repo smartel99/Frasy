@@ -442,7 +442,7 @@ function Orchestrator.CompileExecutionResults(outputDir)
             eds = ib.ib.eds,
             software = ib.ib:SoftwareVersion(),
             hardware = ib.ib:HardwareVersion(),
-            serial = tostring(ib.ib:Serial()),
+            serial = ib.ib:Serial(),
         }
     end
 

@@ -70,8 +70,14 @@ function Ib:Reset()
     CanOpen.__reset(self.nodeId)
 end
 
+--- Serial number (octet string) as a hex string.
+--- @return string
 function Ib:Serial()
-    return self:Upload(self.od["Serial Number"])
+    local s = self:Upload(self.od["Serial Number"])
+    if type(s) ~= "table" then return tostring(s) end
+    local hex = {}
+    for i, b in ipairs(s) do hex[i] = string.format("%02x", b) end
+    return table.concat(hex)
 end
 
 function Ib:SoftwareVersion()
