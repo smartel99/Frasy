@@ -23,12 +23,21 @@
 #include "spdlog/sinks/base_sink.h"
 
 #include <array>
+#include <chrono>
+#include <format>
 #include <map>
 #include <mutex>
 #include <string>
 #include <string_view>
 
 namespace Frasy {
+
+//! Formats a log time point in the system's local time zone.
+inline std::string FormatLocalTime(std::chrono::system_clock::time_point time)
+{
+    static const std::chrono::time_zone* tz = std::chrono::current_zone();
+    return std::format("{:%F %T}", std::chrono::zoned_time {tz, time});
+}
 
 class LogWindowSink : public spdlog::sinks::base_sink<std::mutex> {};
 
@@ -53,7 +62,7 @@ protected:
                                               msg.source.funcname,
                                               msg.source.line,
                                               std::string(msg.payload),
-                                              std::format("{}", msg.time)});
+                                              FormatLocalTime(msg.time)});
     }
 
     void flush_() override {}
@@ -80,7 +89,7 @@ protected:
                              msg.source.funcname,
                              msg.source.line,
                              std::string(msg.payload),
-                             std::format("{}", msg.time)});
+                             FormatLocalTime(msg.time)});
     }
 
     void flush_() override {}
