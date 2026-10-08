@@ -21,7 +21,7 @@ spdlog::file_event_handlers Log::s_eventHandlers = []() {
         spdlog::source_loc loc    = Brigerad::Log::FormatSourceLocation(std::source_location::current());
         std::string        header = std::format(
           "[{{"
-                 "\"timestamp\": \"{:%Y-%m-%dT%T.000Z}\","
+                 "\"timestamp\": \"{:%Y-%m-%dT%T%Ez}\","
                  "\"level\": \"trace\","
                  "\"from\": \"system\","
                  "\"message\": \"Initialized Log File\","
@@ -31,7 +31,8 @@ spdlog::file_event_handlers Log::s_eventHandlers = []() {
                  "\"function\": \"{}\""
                  "}}"
                  "}}\n",
-          std::chrono::system_clock::now(),
+          std::chrono::zoned_time {std::chrono::current_zone(),
+                                   std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now())},
           loc.filename,
           loc.line,
           loc.funcname);
@@ -76,7 +77,7 @@ void Log::Init(bool useStderr, bool silent)
     // clang-format off
     static constexpr const char* pattern =
 ",{"
-    "\"timestamp\": \"%Y-%m-%dT%T.%eZ\","
+    "\"timestamp\": \"%Y-%m-%dT%T.%e%z\","
     "\"level\": \"%l\","
     "\"from\": \"%n\","
     "\"message\": \"%v\","
