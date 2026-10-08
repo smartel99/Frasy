@@ -40,6 +40,7 @@ struct LogWindowOptions {
     std::array<bool, spdlog::level::n_levels> ShowLevels = {true, true, true, true, true, true, true};
 
     bool                                 ShowTimeStamp             = true;
+    bool                                 FullTimestamp             = false;
     bool                                 ShowLogSource             = true;
     bool                                 ShowSourceLocation        = true;
     LogEntry::SourceLocationRenderStyles SourceLocationRenderStyle = LogEntry::SourceLocationRenderStyle_All;
@@ -53,6 +54,7 @@ struct LogWindowOptions {
         LOAD_FIELD(CombineLoggers);
         LOAD_FIELD(ShowLevels);
         LOAD_FIELD(ShowTimeStamp);
+        LOAD_FIELD(FullTimestamp);
         LOAD_FIELD(ShowLogSource);
         LOAD_FIELD(ShowSourceLocation);
         LOAD_FIELD(SourceLocationRenderStyle);
@@ -83,6 +85,7 @@ struct LogWindowOptions {
         SET_FIELD(CombineLoggers);
         SET_FIELD(ShowLevels);
         SET_FIELD(ShowTimeStamp);
+        SET_FIELD(FullTimestamp);
         SET_FIELD(ShowLogSource);
         SET_FIELD(ShowSourceLocation);
         SET_FIELD(SourceLocationRenderStyle);

@@ -39,7 +39,26 @@ inline std::string FormatLocalTime(std::chrono::system_clock::time_point time)
     return std::format("{:%F %T}", std::chrono::zoned_time {tz, time});
 }
 
-class LogWindowSink : public spdlog::sinks::base_sink<std::mutex> {};
+class LogWindowSink : public spdlog::sinks::base_sink<std::mutex> {
+    static std::string TimestampToFullString(spdlog::log_clock::time_point time)
+    {
+        static const std::chrono::time_zone* tz = std::chrono::current_zone();
+        return std::format("{:%F %T}", std::chrono::zoned_time {tz, time});
+    }
+    static std::string TimestampToCompactString(spdlog::log_clock::time_point time)
+    {
+        static const std::chrono::time_zone* tz = std::chrono::current_zone();
+        return std::format("{:%T}", std::chrono::zoned_time {tz, time});
+    }
+
+protected:
+    static std::string (*TimestampToString)(spdlog::log_clock::time_point time);
+
+public:
+    static bool IsTimestampFull() { return TimestampToString == TimestampToFullString; }
+    static void SetTimestampFull(bool enable)
+    { TimestampToString = enable ? TimestampToFullString : TimestampToCompactString; }
+};
 
 class LogWindowMultiSink : public LogWindowSink {
 public:
@@ -83,13 +102,15 @@ public:
 protected:
     void sink_it_(const spdlog::details::log_msg& msg) override
     {
-        m_entries.push_back({msg.level,
-                             std::string(msg.logger_name),
-                             msg.source.filename,
-                             msg.source.funcname,
-                             msg.source.line,
-                             std::string(msg.payload),
-                             FormatLocalTime(msg.time)});
+        m_entries.push_back({
+          msg.level,
+          std::string(msg.logger_name),
+          msg.source.filename,
+          msg.source.funcname,
+          msg.source.line,
+          std::string(msg.payload),
+          TimestampToString(msg.time),
+        });
     }
 
     void flush_() override {}
