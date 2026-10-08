@@ -23,8 +23,6 @@
 #include "spdlog/sinks/base_sink.h"
 
 #include <array>
-#include <chrono>
-#include <format>
 #include <map>
 #include <mutex>
 #include <string>
@@ -32,33 +30,7 @@
 
 namespace Frasy {
 
-//! Formats a log time point in the system's local time zone.
-inline std::string FormatLocalTime(std::chrono::system_clock::time_point time)
-{
-    static const std::chrono::time_zone* tz = std::chrono::current_zone();
-    return std::format("{:%F %T}", std::chrono::zoned_time {tz, time});
-}
-
-class LogWindowSink : public spdlog::sinks::base_sink<std::mutex> {
-    static std::string TimestampToFullString(spdlog::log_clock::time_point time)
-    {
-        static const std::chrono::time_zone* tz = std::chrono::current_zone();
-        return std::format("{:%F %T}", std::chrono::zoned_time {tz, time});
-    }
-    static std::string TimestampToCompactString(spdlog::log_clock::time_point time)
-    {
-        static const std::chrono::time_zone* tz = std::chrono::current_zone();
-        return std::format("{:%T}", std::chrono::zoned_time {tz, time});
-    }
-
-protected:
-    static std::string (*TimestampToString)(spdlog::log_clock::time_point time);
-
-public:
-    static bool IsTimestampFull() { return TimestampToString == TimestampToFullString; }
-    static void SetTimestampFull(bool enable)
-    { TimestampToString = enable ? TimestampToFullString : TimestampToCompactString; }
-};
+class LogWindowSink : public spdlog::sinks::base_sink<std::mutex> {};
 
 class LogWindowMultiSink : public LogWindowSink {
 public:
@@ -81,7 +53,7 @@ protected:
                                               msg.source.funcname,
                                               msg.source.line,
                                               std::string(msg.payload),
-                                              FormatLocalTime(msg.time)});
+                                              LogEntry::ToLocalTimepoint(msg.time)});
     }
 
     void flush_() override {}
@@ -109,7 +81,7 @@ protected:
           msg.source.funcname,
           msg.source.line,
           std::string(msg.payload),
-          TimestampToString(msg.time),
+          LogEntry::ToLocalTimepoint(msg.time),
         });
     }
 

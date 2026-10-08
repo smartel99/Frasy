@@ -28,7 +28,7 @@ LogWindow::LogWindow() noexcept
 {
     const auto cfg = Interpreter::Get().getConfig().value("LogWindow", nlohmann::json::object());
     m_options      = LogWindowOptions::from_json(cfg);
-    LogWindowSink::SetTimestampFull(m_options.FullTimestamp);
+
     m_renderLoggersFunc = m_options.CombineLoggers ? &RenderCombinedLoggers : &RenderSeparateLoggers;
 }
 
@@ -77,11 +77,7 @@ void LogWindow::RenderOptions()
 {
     if (ImGui::TreeNode("Options")) {
         const auto loggers = Brigerad::Log::GetLoggers();
-        if (m_options.ShowTimeStamp) {
-            if (ImGui::Checkbox("Full Timestamp", &m_options.FullTimestamp)) {
-                LogWindowSink::SetTimestampFull(m_options.FullTimestamp);
-            }
-        }
+        if (m_options.ShowTimeStamp) { ImGui::Checkbox("Full Timestamp", &m_options.FullTimestamp); }
 
         for (auto&& [name, ptr] : *loggers) {
             if (name.empty()) { continue; }    // No clue what this logger is, and it affects nothing
@@ -208,7 +204,7 @@ void LogWindow::RenderEntry(LogWindowOptions& options, const LogEntry& entry)
 
     bool dummy;
     renderColumn(0, to_short_c_str(entry.Level), dummy);
-    renderColumn(1, entry.Timestamp, options.ShowTimeStamp);
+    renderColumn(1, entry.FormatTimestamp(options.FullTimestamp), options.ShowTimeStamp);
     renderColumn(2, entry.LoggerName, options.ShowLogSource);
     renderColumn(3, entry.Entry, dummy);
     renderColumn(4, entry.FormatSourceLocation(options.SourceLocationRenderStyle), options.ShowSourceLocation);

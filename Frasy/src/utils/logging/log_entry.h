@@ -21,11 +21,21 @@
 #include "spdlog/common.h"
 
 #include <array>
+#include <chrono>
 #include <format>
 #include <string>
 
 namespace Frasy {
 struct LogEntry {
+    using Timepoint = std::chrono::local_time<std::chrono::milliseconds>;
+
+    //! Converts a log time to local time, clamped to milliseconds.
+    static Timepoint ToLocalTimepoint(std::chrono::system_clock::time_point time)
+    {
+        static const std::chrono::time_zone* tz = std::chrono::current_zone();
+        return std::chrono::floor<std::chrono::milliseconds>(tz->to_local(time));
+    }
+
     enum SourceLocationRenderStyles {
         SourceLocationRenderStyle_Function        = 0,
         SourceLocationRenderStyle_FunctionAndLine = 1,
@@ -41,7 +51,12 @@ struct LogEntry {
     std::string               Funcname;
     int                       Line;
     std::string               Entry;
-    std::string               Timestamp;
+    Timepoint                 Timestamp;
+
+    [[nodiscard]] std::string FormatTimestamp(bool full) const
+    {
+        return full ? std::format("{:%F %T}", Timestamp) : std::format("{:%T}", Timestamp);
+    }
 
     [[nodiscard]] std::string FormatSourceLocation(SourceLocationRenderStyles style) const
     {
