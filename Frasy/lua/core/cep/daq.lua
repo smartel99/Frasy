@@ -31,7 +31,7 @@ local TryFunction = require("lua/core/utils/try_function")
 --- @class DAQ
 --- @field ib? Ib
 --- @field cache DAQ_Cache
-DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, }, adc = { lastStoredSamples = { } } } }
+DAQ = { ib = nil, cache = { io = { mode = 0, output = 0, }, adc = { lastStoredSamples = {} } } }
 DAQ.__index = DAQ
 
 --- @enum DAQ_AdcChannelEnum
@@ -1012,7 +1012,114 @@ end
 --- @field vin number
 --- @field vout number
 
+--- Prepare the DAC for impedance measurement
+--- @param mode DAQ_ImpedanceModeEnum
+--- @param opt DAQ_ImpedancesOptionalParameters?
+function DAQ:ImpedancesParameters(mode, opt)
+    local od = self.ib.od["Impedances"]
+
+    local odMode = od["Mode"]
+    CheckField(mode, Is.IntegerInOd, odMode)
+
+    if opt == nil then opt = {} end
+    CheckField(opt, Is.Table)
+
+    local odShape = od["Shape"]
+    local odRangeResistor = od["Range Resistor"]
+    local odFrequency = od["Frequency"]
+    local odAmplitude = od["Amplitude"]
+    local odDelay = od["Delay"]
+    local odSamplesToTake = od["Samples to Take"]
+    local odExpectedValue = od["Expected Value"]
+    local odFavorSpeed = od["Favor Speed"]
+
+    local shape = opt.shape or DAQ.ImpedanceDefaults.shape
+    local rangeResistor = opt.rangeResistor or DAQ.ImpedanceDefaults.rangeResistor
+    local frequency = opt.frequency or DAQ.ImpedanceDefaults.frequency
+    local amplitude = opt.amplitude or DAQ.ImpedanceDefaults.amplitude
+    local delay = opt.delay or DAQ.ImpedanceDefaults.delay
+    local samplesToTake = opt.samplesToTake or DAQ.ImpedanceDefaults.samplesToTake
+    local expectedValue = opt.expectedValue or DAQ.ImpedanceDefaults.expectedValue
+    local favorSpeed = opt.favorSpeed or DAQ.ImpedanceDefaults.favorSpeed
+
+    CheckField(shape, Is.IntegerInOd, odShape)
+    CheckField(rangeResistor, Is.IntegerInOd, odRangeResistor)
+    CheckField(frequency, Is.IntegerInOd, odFrequency)
+    CheckField(amplitude, Is.FloatInOd, odAmplitude)
+    CheckField(samplesToTake, Is.IntegerInOd, odSamplesToTake)
+    CheckField(delay, Is.Unsigned32)
+    CheckField(expectedValue, Is.Unsigned32)
+    CheckField(favorSpeed, Is.Boolean)
+
+    self.ib:Download(odMode, mode)
+    self.ib:Download(odShape, shape)
+    self.ib:Download(odRangeResistor, rangeResistor)
+    self.ib:Download(odFrequency, frequency)
+    self.ib:Download(odAmplitude, amplitude)
+    self.ib:Download(odDelay, delay)
+    self.ib:Download(odSamplesToTake, samplesToTake)
+    self.ib:Download(odExpectedValue, expectedValue)
+    self.ib:Download(odFavorSpeed, favorSpeed)
+end
+
+--- Perform the impedance measurement.
+--- You must have called ImpedancesParameters before calling this function.
+--- @params timeout integer? set measure timeout. Default to 5s
+--- @return DAQ_ImpedanceResults
+function DAQ:ImpedancesMeasurement(timeout)
+    local od = self.ib.od["Impedances"]
+    local odTrigger = od["Trigger"]
+    if self.ib:Upload(odTrigger) then error("Impedance measure already running") end
+
+    timeout = timeout or 5000
+    CheckField(timeout, Is.Unsigned)
+    
+    self.ib:Download(odTrigger, true)
+
+    if Context.info.stage == Stage.execution then
+        SleepFor(100) -- Let DAQ start measure and update trigger
+        local deadline = os.clock() + timeout / 1000
+        local doRun = true
+        while doRun do
+            doRun = self.ib:Upload(odTrigger) --[[@as boolean]]
+            SleepFor(10)
+            if deadline < os.clock() then error("Impedance timeout") end
+        end
+    end
+
+    local odMode = od["Mode"]
+    local odShape = od["Shape"]
+    local odRangeResistor = od["Range Resistor"]
+    local odFrequency = od["Frequency"]
+    local odAmplitude = od["Amplitude"]
+    local odDelay = od["Delay"]
+    local odSamplesToTake = od["Samples to Take"]
+    local odExpectedValue = od["Expected Value"]
+    local odFavorSpeed = od["Favor Speed"]
+    local odConfidence = od["Confidence"]
+    local odValue = od["Value"]
+    local odVin = od["Vin"]
+    local odVout = od["Vout"]
+
+    return {
+        mode = self.ib:Upload(odMode) --[[@as DAQ_ImpedanceModeEnum]],
+        shape = self.ib:Upload(odShape) --[[@as DAQ_ImpedanceShapeEnum]],
+        rangeResistor = self.ib:Upload(odRangeResistor) --[[@as DAQ_ImpedanceRangeResistorEnum]],
+        frequency = self.ib:Upload(odFrequency) --[[@as integer]],
+        amplitude = self.ib:Upload(odAmplitude) --[[@as number]],
+        delay = self.ib:Upload(odDelay) --[[@as integer]],
+        samplesToTake = self.ib:Upload(odSamplesToTake) --[[@as integer]],
+        expectedValue = self.ib:Upload(odExpectedValue) --[[@as number]],
+        favorSpeed = self.ib:Upload(odFavorSpeed) --[[@as boolean]],
+        confidence = self.ib:Upload(odConfidence) --[[@as integer]],
+        value = self.ib:Upload(odValue) --[[@as number]],
+        vin = self.ib:Upload(odVin) --[[@as number]],
+        vout = self.ib:Upload(odVout) --[[@as number]]
+    }
+end
+
 --- Measures an impedance.
+--- @deprecated DAQ firmware has changed to provide better control during impedance measurement. Use SetImpedanceDac and MeasureImpedances instead
 --- @param mode DAQ_ImpedanceModeEnum
 --- @param opt DAQ_ImpedancesOptionalParameters?
 --- @return DAQ_ImpedanceResults
@@ -1164,7 +1271,7 @@ function DAQ:MeasureVoltage(points, opt)
 
     if route == -1 then error("Unable to connect points to ADC!") end
 
-    if opt.debugPopup then 
+    if opt.debugPopup then
         local text = type(opt.debugPopup) == "string" and opt.debugPopup or "Do your stuff" --[[@as string]]
         Popup("Measure Voltage")
             :Text(text)
@@ -1216,6 +1323,7 @@ end
 --- @field delay integer? us
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
+--- @field timeout integer? in ms default to 5s
 --- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
 
 --- Measures a resistor.
@@ -1226,6 +1334,16 @@ end
 function DAQ:MeasureResistor(impP, impN, opt)
     if opt == nil then opt = {} end
     CheckField(opt, Is.Table)
+
+    self:ImpedancesParameters(DAQ.ImpedanceModeEnum.resistor, {
+        shape = DAQ.ImpedanceShapeEnum.dc,
+        rangeResistor = opt.rangeResistor,
+        amplitude = opt.amplitude,
+        delay = opt.delay,
+        samplesToTake = opt.samplesToTake,
+        expectedValue = opt.expectedValue,
+        favorSpeed = opt.favorSpeed
+    })
 
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
@@ -1239,23 +1357,14 @@ function DAQ:MeasureResistor(impP, impN, opt)
         rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
     end
 
-    if opt.debugPopup then 
+    if opt.debugPopup then
         local text = type(opt.debugPopup) == "string" and opt.debugPopup or "Do your stuff" --[[@as string]]
         Popup("Measure Resistor")
             :Text(text)
             :Show()
     end
 
-    local result = self:Impedances(
-        DAQ.ImpedanceModeEnum.resistor, {
-            shape = DAQ.ImpedanceShapeEnum.dc,
-            rangeResistor = opt.rangeResistor,
-            amplitude = opt.amplitude,
-            delay = opt.delay,
-            samplesToTake = opt.samplesToTake,
-            expectedValue = opt.expectedValue,
-            favorSpeed = opt.favorSpeed
-        })
+    local result = self:ImpedancesMeasurement(opt.timeout)
 
     -- cleanup
     self:ClearBus(rimpp)
@@ -1274,6 +1383,7 @@ end
 --- @field delay integer?
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
+--- @field timeout integer? in ms, default to 5s
 --- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
 
 --- Measures a capacitor.
@@ -1288,6 +1398,17 @@ function DAQ:MeasureCapacitor(impP, impN, opt)
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
 
+    self:ImpedancesParameters(DAQ.ImpedanceModeEnum.capacitor, {
+        frequency = opt.frequency,
+        rangeResistor = opt.rangeResistor,
+        amplitude = opt.amplitude,
+        delay = opt.delay,
+        samplesToTake = opt.samplesToTake,
+        expectedValue = opt.expectedValue,
+        favorSpeed = opt.favorSpeed
+    })
+
+
     local rimpp = self:RequestRouting({ DAQ.RoutingPointsEnum.IMP_P, DAQ.RoutingPointsEnum.ADC_CH1, table.unpack(impP) })
     SleepFor(10)
     local rimpn = self:RequestRouting({ DAQ.RoutingPointsEnum.IMP_N, table.unpack(impN) })
@@ -1297,23 +1418,14 @@ function DAQ:MeasureCapacitor(impP, impN, opt)
         rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
     end
 
-    if opt.debugPopup then 
+    if opt.debugPopup then
         local text = type(opt.debugPopup) == "string" and opt.debugPopup or "Do your stuff" --[[@as string]]
         Popup("Measure Capacitor")
             :Text(text)
             :Show()
     end
 
-    local result = self:Impedances(
-        DAQ.ImpedanceModeEnum.capacitor, {
-            frequency = opt.frequency,
-            rangeResistor = opt.rangeResistor,
-            amplitude = opt.amplitude,
-            delay = opt.delay,
-            samplesToTake = opt.samplesToTake,
-            expectedValue = opt.expectedValue,
-            favorSpeed = opt.favorSpeed
-        })
+    local result = self:ImpedancesMeasurement(opt.timeout)
 
     -- cleanup
     self:ClearBus(rimpp)
@@ -1332,6 +1444,7 @@ end
 --- @field delay integer?
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
+--- @field timeout integer? in ms, default to 5s
 --- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
 
 --- Measures an inductor.
@@ -1342,6 +1455,16 @@ end
 function DAQ:MeasureInductor(impP, impN, opt)
     if opt == nil then opt = {} end
     CheckField(opt, Is.Table)
+
+    self:ImpedancesParameters(DAQ.ImpedanceModeEnum.inductor, {
+        frequency = opt.frequency,
+        rangeResistor = opt.rangeResistor,
+        amplitude = opt.amplitude,
+        delay = opt.delay,
+        samplesToTake = opt.samplesToTake,
+        expectedValue = opt.expectedValue,
+        favorSpeed = opt.favorSpeed
+    })
 
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
@@ -1355,23 +1478,14 @@ function DAQ:MeasureInductor(impP, impN, opt)
         rguards = self:RequestRouting({ DAQ.RoutingPointsEnum.GUARD, table.unpack(opt.guards) })
     end
 
-    if opt.debugPopup then 
+    if opt.debugPopup then
         local text = type(opt.debugPopup) == "string" and opt.debugPopup or "Do your stuff" --[[@as string]]
         Popup("Measure Inductor")
             :Text(text)
             :Show()
     end
 
-    local result = self:Impedances(
-        DAQ.ImpedanceModeEnum.inductor, {
-            frequency = opt.frequency,
-            rangeResistor = opt.rangeResistor,
-            amplitude = opt.amplitude,
-            delay = opt.delay,
-            samplesToTake = opt.samplesToTake,
-            expectedValue = opt.expectedValue,
-            favorSpeed = opt.favorSpeed
-        })
+    local result = self:ImpedancesMeasurement(opt.timeout)
 
     -- cleanup
     self:ClearBus(rimpp)
