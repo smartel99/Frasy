@@ -1064,6 +1064,7 @@ end
 
 --- Perform the impedance measurement.
 --- You must have called ImpedancesParameters before calling this function.
+--- On timeout, value, vin and vout are NaN and confidence is 0.
 --- @params timeout integer? set measure timeout. Default to 5s
 --- @return DAQ_ImpedanceResults
 function DAQ:ImpedancesMeasurement(timeout)
@@ -1073,9 +1074,10 @@ function DAQ:ImpedancesMeasurement(timeout)
 
     timeout = timeout or 5000
     CheckField(timeout, Is.Unsigned)
-    
+
     self.ib:Download(odTrigger, true)
 
+    local timedOut = false
     if Context.info.stage == Stage.execution then
         SleepFor(100) -- Let DAQ start measure and update trigger
         local deadline = os.clock() + timeout / 1000
@@ -1083,7 +1085,12 @@ function DAQ:ImpedancesMeasurement(timeout)
         while doRun do
             doRun = self.ib:Upload(odTrigger) --[[@as boolean]]
             SleepFor(10)
-            if deadline < os.clock() then error("Impedance timeout") end
+            if doRun and deadline < os.clock() then
+                -- DAQ may still be measuring. TODO: firmware should abort when trigger is set to false.
+                Log.E("Impedance timeout")
+                timedOut = true
+                break
+            end
         end
     end
 
@@ -1101,6 +1108,7 @@ function DAQ:ImpedancesMeasurement(timeout)
     local odVin = od["Vin"]
     local odVout = od["Vout"]
 
+    local nan = 0 / 0
     return {
         mode = self.ib:Upload(odMode) --[[@as DAQ_ImpedanceModeEnum]],
         shape = self.ib:Upload(odShape) --[[@as DAQ_ImpedanceShapeEnum]],
@@ -1111,14 +1119,15 @@ function DAQ:ImpedancesMeasurement(timeout)
         samplesToTake = self.ib:Upload(odSamplesToTake) --[[@as integer]],
         expectedValue = self.ib:Upload(odExpectedValue) --[[@as number]],
         favorSpeed = self.ib:Upload(odFavorSpeed) --[[@as boolean]],
-        confidence = self.ib:Upload(odConfidence) --[[@as integer]],
-        value = self.ib:Upload(odValue) --[[@as number]],
-        vin = self.ib:Upload(odVin) --[[@as number]],
-        vout = self.ib:Upload(odVout) --[[@as number]]
+        confidence = timedOut and 0 or self.ib:Upload(odConfidence) --[[@as integer]],
+        value = timedOut and nan or self.ib:Upload(odValue) --[[@as number]],
+        vin = timedOut and nan or self.ib:Upload(odVin) --[[@as number]],
+        vout = timedOut and nan or self.ib:Upload(odVout) --[[@as number]]
     }
 end
 
 --- Measures an impedance.
+--- On timeout, value, vin and vout are NaN and confidence is 0.
 --- @deprecated DAQ firmware has changed to provide better control during impedance measurement. Use SetImpedanceDac and MeasureImpedances instead
 --- @param mode DAQ_ImpedanceModeEnum
 --- @param opt DAQ_ImpedancesOptionalParameters?
@@ -1186,6 +1195,7 @@ function DAQ:Impedances(mode, opt)
     self.ib:Download(odFavorSpeed, opt.favorSpeed)
     self.ib:Download(odTrigger, true)
 
+    local timedOut = false
     if Context.info.stage == Stage.execution then
         SleepFor(100) -- Let DAQ start measure and update trigger
         local deadline = os.clock() + computeMeasureDuration(opt.samplesToTake, DAQ.AdcSampleRateEnum.f1000Hz, opt.delay) +
@@ -1194,7 +1204,12 @@ function DAQ:Impedances(mode, opt)
         while doRun do
             doRun = self.ib:Upload(odTrigger) --[[@as boolean]]
             SleepFor(10)
-            if deadline < os.clock() then error("Impedance timeout") end
+            if doRun and deadline < os.clock() then
+                -- DAQ may still be measuring. TODO: firmware should abort when trigger is set to false.
+                Log.E("Impedance timeout")
+                timedOut = true
+                break
+            end
         end
     end
 
@@ -1206,6 +1221,7 @@ function DAQ:Impedances(mode, opt)
     if opt.samplesToTake == 0 then opt.samplesToTake = self.ib:Upload(odSamplesToTake) --[[@as integer]] end
     if opt.expectedValue == 0 then opt.expectedValue = self.ib:Upload(odExpectedValue) --[[@as integer]] end
 
+    local nan = 0 / 0
     return {
         mode = mode,
         shape = opt.shape --[[@as DAQ_ImpedanceShapeEnum]],
@@ -1216,10 +1232,10 @@ function DAQ:Impedances(mode, opt)
         samplesToTake = opt.samplesToTake --[[@as integer]],
         expectedValue = opt.expectedValue --[[@as number]],
         favorSpeed = opt.favorSpeed,
-        confidence = self.ib:Upload(odConfidence) --[[@as integer]],
-        value = self.ib:Upload(odValue) --[[@as number]],
-        vin = self.ib:Upload(odVin) --[[@as number]],
-        vout = self.ib:Upload(odVout) --[[@as number]]
+        confidence = timedOut and 0 or self.ib:Upload(odConfidence) --[[@as integer]],
+        value = timedOut and nan or self.ib:Upload(odValue) --[[@as number]],
+        vin = timedOut and nan or self.ib:Upload(odVin) --[[@as number]],
+        vout = timedOut and nan or self.ib:Upload(odVout) --[[@as number]]
     }
 end
 
