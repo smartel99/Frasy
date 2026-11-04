@@ -21,6 +21,7 @@
 #include "../../communication/serial/device_map.h"
 #include "../args_checker.h"
 #include "../dummy_table_deserializer.h"
+#include "../ib_info.h"
 #include "../ode_deserializer.h"
 #include "../ode_serializer.h"
 #include "../team.h"
@@ -469,6 +470,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         lua["CanOpen"]["__reset"] = [&](std::size_t nodeId) { m_canOpen->resetNode(static_cast<uint8_t>(nodeId)); };
 
+        IbInfo::registerLuaType(lua);
 
         // Boards
         auto ibs    = lua.create_named_table("Ibs");
@@ -1057,6 +1059,13 @@ void Orchestrator::populateMap()
 {
     m_map = {};
     for (auto& [k, v] : (*m_state)["Context"]["map"]["ibs"].get<sol::table>()) {
+        // IBs defined in C++ (exposing a Lua::IbInfo as their `ib` field) are usertypes, not tables. They are not
+        // CANopen nodes, so they are not part of the map.
+        if (!v.is<sol::table>() || v.as<sol::table>()["ib"].get_type() != sol::type::table) {
+            BR_LUA_DEBUG("Entry '{}' is not a Lua instrumentation board, skipping",
+                         (*m_state)["tostring"](k).get<std::string>());
+            continue;
+        }
         auto ib         = v.as<sol::table>();
         auto name       = ib["ib"]["name"].get<std::string>();
         m_map.ibs[name] = IbView(static_cast<int>(ib["ib"]["kind"].get<std::size_t>()),
