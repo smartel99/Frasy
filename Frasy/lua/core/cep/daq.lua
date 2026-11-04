@@ -1062,6 +1062,8 @@ function DAQ:ImpedancesParameters(mode, opt)
     self.ib:Download(odFavorSpeed, favorSpeed)
 end
 
+local impedancesDefaultTimeout = 5000
+
 --- Perform the impedance measurement.
 --- You must have called ImpedancesParameters before calling this function.
 --- On timeout, value, vin and vout are NaN and confidence is 0.
@@ -1072,7 +1074,7 @@ function DAQ:ImpedancesMeasurement(timeout)
     local odTrigger = od["Trigger"]
     if self.ib:Upload(odTrigger) then error("Impedance measure already running") end
 
-    timeout = timeout or 5000
+    timeout = timeout or impedancesDefaultTimeout
     CheckField(timeout, Is.Unsigned)
 
     self.ib:Download(odTrigger, true)
@@ -1342,6 +1344,14 @@ end
 --- @field timeout integer? in ms default to 5s
 --- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
 
+
+--- @param opt DAQ_MeasureCapacitorOptParameters | DAQ_MeasureResistorOptParameters | DAQ_MeasureInductorOptParameters
+local function sanitizeDefaultTimeout(opt)
+    if opt.delay == nil or opt.timeout ~= nil then return opt.timeout end
+    CheckField(opt.delay, Is.Unsigned)
+    return impedancesDefaultTimeout + opt.delay
+end
+
 --- Measures a resistor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
 --- @param impN DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
@@ -1350,6 +1360,7 @@ end
 function DAQ:MeasureResistor(impP, impN, opt)
     if opt == nil then opt = {} end
     CheckField(opt, Is.Table)
+    local timeout = sanitizeDefaultTimeout(opt)
 
     self:ImpedancesParameters(DAQ.ImpedanceModeEnum.resistor, {
         shape = DAQ.ImpedanceShapeEnum.dc,
@@ -1380,7 +1391,7 @@ function DAQ:MeasureResistor(impP, impN, opt)
             :Show()
     end
 
-    local result = self:ImpedancesMeasurement(opt.timeout)
+    local result = self:ImpedancesMeasurement(timeout)
 
     -- cleanup
     self:ClearBus(rimpp)
@@ -1410,6 +1421,7 @@ end
 function DAQ:MeasureCapacitor(impP, impN, opt)
     if opt == nil then opt = {} end
     CheckField(opt, Is.Table)
+    local timeout = sanitizeDefaultTimeout(opt)
 
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
@@ -1441,7 +1453,7 @@ function DAQ:MeasureCapacitor(impP, impN, opt)
             :Show()
     end
 
-    local result = self:ImpedancesMeasurement(opt.timeout)
+    local result = self:ImpedancesMeasurement(timeout)
 
     -- cleanup
     self:ClearBus(rimpp)
@@ -1471,6 +1483,7 @@ end
 function DAQ:MeasureInductor(impP, impN, opt)
     if opt == nil then opt = {} end
     CheckField(opt, Is.Table)
+    local timeout = sanitizeDefaultTimeout(opt)
 
     self:ImpedancesParameters(DAQ.ImpedanceModeEnum.inductor, {
         frequency = opt.frequency,
@@ -1501,7 +1514,7 @@ function DAQ:MeasureInductor(impP, impN, opt)
             :Show()
     end
 
-    local result = self:ImpedancesMeasurement(opt.timeout)
+    local result = self:ImpedancesMeasurement(timeout)
 
     -- cleanup
     self:ClearBus(rimpp)
