@@ -142,6 +142,44 @@ void Popup::Spring::render()
     ImGui::Spring(weight, spacing);
 }
 
+Popup::Graph::Graph(std::string                name,
+                    const std::vector<double>& data,
+                    ImVec2                     size,
+                    sol::protected_function    getFunc,
+                    std::string                xaxis,
+                    std::string                yaxis)
+: Element(Kind::Graph), name(std::move(name)), size(size), xaxis(std::move(xaxis)), yaxis(std::move(yaxis))
+{
+    points.reserve(data.size());
+    sol::state_view lua = getFunc.lua_state();
+    getFunc.set_error_handler(lua.script_file("lua/core/framework/error_handler.lua"));
+    for (std::size_t i = 0; i < data.size(); ++i) {
+        auto res = getFunc(i + 1, data);    // Lua arrays are 1-indexed.
+        if (!res.valid()) {
+            sol::error err = res;
+            BR_LUA_ERROR(err.what());
+            continue;
+        }
+        points.push_back(res.get<ImPlotPoint>());
+    }
+}
+
+void Popup::Graph::render()
+{
+    if (ImPlot::BeginPlot(name.c_str(), size)) {
+        ImPlot::SetupAxes(xaxis.c_str(), yaxis.c_str(), ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+        ImPlot::PlotLineG(
+          "data",
+          [](int idx, void* data) -> ImPlotPoint {
+              const auto& points = *static_cast<std::vector<ImPlotPoint>*>(data);
+              return points[idx];
+          },
+          &points,
+          static_cast<int>(points.size()));
+        ImPlot::EndPlot();
+    }
+}
+
 Popup::Popup(std::size_t uut, sol::table builder)
 {
     bool global               = builder["global"];
@@ -201,6 +239,15 @@ Popup::Popup(std::size_t uut, sol::table builder)
             case Element::Kind::Spring:
                 m_elements.push_back(
                   std::make_unique<Spring>(element["weight"].get<float>(), element["spacing"].get<float>()));
+                break;
+            case Element::Kind::Graph:
+                size = element["size"].get<std::array<float, 2>>();
+                m_elements.push_back(std::make_unique<Graph>(element["name"].get<std::string>(),
+                                                             element["data"].get<std::vector<double>>(),
+                                                             ImVec2 {size[0], size[1]},
+                                                             element["getFunc"].get<sol::protected_function>(),
+                                                             element["xaxis"].get<std::string>(),
+                                                             element["yaxis"].get<std::string>()));
                 break;
         }
     }

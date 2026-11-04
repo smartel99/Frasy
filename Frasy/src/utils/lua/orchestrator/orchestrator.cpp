@@ -1099,6 +1099,13 @@ void Orchestrator::renderPopups()
 
 void Orchestrator::importPopup(sol::state_view lua, std::size_t uut, Stage stage)
 {
+    lua.new_usertype<ImPlotPoint>("ImPlotPoint",
+                                  sol::call_constructor,
+                                  sol::factories([](double x, double y) { return ImPlotPoint(x, y); }),
+                                  "x",
+                                  &ImPlotPoint::x,
+                                  "y",
+                                  &ImPlotPoint::y);
     lua.script_file("lua/core/sdk/popup.lua");
     lua["__popup"]            = lua.create_table();
     lua["__popup"]["Consume"] = [&, uut](sol::table builder) { m_popups[Popup::GetName(uut, builder)].Consume(); };

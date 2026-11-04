@@ -43,6 +43,7 @@ local ElementKind    = {
     endVertical     = 8,
     sameLine        = 9,
     spring          = 10,
+    graph           = 11,
 }
 
 --- @class PopupBuilder
@@ -243,6 +244,44 @@ function PopupBuilder:Spring(opt)
         kind = ElementKind.spring,
         weight = opt.weight,
         spacing = opt.spacing,
+    })
+    return self
+end
+
+--- @class ImPlotPoint
+--- @field x number
+--- @field y number
+
+--- @class ImGui_Graph_OptParameters
+--- @field size ImGui_Size? Size of the graph, defaults to 800x600.
+--- @field getFunc (fun(idx:integer, samples:number[]):ImPlotPoint)? Maps a sample to a point. Defaults to function(i, s) return ImPlotPoint(i, s[i]) end
+--- @field xaxis string? Name of the X axis, defaults to "X axis"
+--- @field yaxis string? Name of the Y axis, defaults to "Y axis"
+
+--- Plot a line graph
+--- @param name string Name of the graph
+--- @param data number[] Data to be graphed
+--- @param opt ImGui_Graph_OptParameters?
+--- @return PopupBuilder
+function PopupBuilder:Graph(name, data, opt)
+    opt = PrepareOptParameters(opt)
+    CheckField(name, Is.String)
+    CheckField(data, function(v) return Is.Table(v) or type(v) == "userdata" end)
+    local size = PrepareImguiSize(opt.size or { width = 800, height = 600 }, "size")
+    if opt.getFunc == nil then opt.getFunc = function(i, s) return ImPlotPoint(i, s[i]) end end
+    if opt.xaxis == nil then opt.xaxis = "X axis" end
+    if opt.yaxis == nil then opt.yaxis = "Y axis" end
+    CheckField(opt.getFunc, Is.Function)
+    CheckField(opt.xaxis, Is.String)
+    CheckField(opt.yaxis, Is.String)
+    table.insert(self.elements, {
+        kind = ElementKind.graph,
+        name = name,
+        data = data,
+        size = size,
+        getFunc = opt.getFunc,
+        xaxis = opt.xaxis,
+        yaxis = opt.yaxis,
     })
     return self
 end
