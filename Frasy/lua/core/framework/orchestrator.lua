@@ -616,7 +616,7 @@ function Orchestrator.AddExpectationResult(result)
         .expectations, result)
 
     local function getName()
-        if (result.note ~= nil) then
+        if (result.note ~= nil and result.note ~= result.name) then
             return string.format("%s - %s", result.name, result.note)
         else
             return result.name

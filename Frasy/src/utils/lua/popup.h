@@ -20,6 +20,8 @@
 #include "Brigerad.h"
 #include "glm/gtx/io.hpp"
 
+#include <implot.h>
+
 #include <functional>
 #include <shared_mutex>
 #include <sol/sol.hpp>
@@ -43,6 +45,7 @@ public:
             EndVertical,
             SameLine,
             Spring,
+            Graph,
         } kind;
         explicit Element(Kind kind) : kind(kind) {}
         virtual ~Element()    = default;
@@ -167,6 +170,26 @@ public:
         float spacing;
 
         Spring(float weight, float spacing) : Element(Kind::Spring), weight(weight), spacing(spacing) {}
+        void render() final;
+    };
+
+    struct Graph : Element {
+        std::string name;
+        ImVec2      size;
+        std::string xaxis;
+        std::string yaxis;
+
+        std::vector<ImPlotPoint> points;
+
+        /**
+         * Evaluates @p getFunc once per sample, on the Lua thread, so that rendering does not need the Lua state.
+         */
+        Graph(std::string                name,
+              const std::vector<double>& data,
+              ImVec2                     size,
+              sol::protected_function    getFunc,
+              std::string                xaxis,
+              std::string                yaxis);
         void render() final;
     };
 

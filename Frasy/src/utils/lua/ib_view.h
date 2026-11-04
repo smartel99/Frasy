@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
  */
-#ifndef IB_H
-#define IB_H
+#ifndef FRASY_LUA_IB_H
+#define FRASY_LUA_IB_H
 
 #include <sol/sol.hpp>
 
@@ -32,4 +32,4 @@ struct IbView {
 };
 }    // namespace Frasy::Lua
 
-#endif    // IB_H
+#endif    // FRASY_LUA_IB_H

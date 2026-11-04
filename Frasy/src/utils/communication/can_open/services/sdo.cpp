@@ -80,6 +80,11 @@ SdoManager::SdoManager(uint8_t nodeId)
     startWorkers();
 }
 
+SdoManager::~SdoManager()
+{
+    stopWorkers();
+}
+
 bool SdoManager::hasUploadRequestsPending() const
 {
     return !m_pendingUploadRequests.empty();

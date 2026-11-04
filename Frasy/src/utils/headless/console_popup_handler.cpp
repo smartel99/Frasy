@@ -44,6 +44,7 @@ enum class ElementKind : uint8_t {
     EndVertical     = 8,
     SameLine        = 9,
     Spring          = 10,
+    Graph           = 11,
 };
 
 struct PopupInfo {
