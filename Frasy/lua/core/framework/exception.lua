@@ -64,6 +64,7 @@ function AlreadyDefined(what) return PopulateException(exceptions_values.Already
 function NotFound(what) return PopulateException(exceptions_values.NotFound, what) end
 
 function InvalidRequirement(what, requirement)
+    what = what or "<nil>"
     what = what .. "\nRequirement\n" .. ToString(requirement)
     return PopulateException(exceptions_values.InvalidRequirement, what)
 end
