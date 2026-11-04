@@ -54,6 +54,7 @@ class SdoManager {
 public:
     SdoManager();
     explicit SdoManager(uint8_t nodeId);
+    ~SdoManager();
 
     [[nodiscard]] bool   hasUploadRequestsPending() const;
     [[nodiscard]] size_t uploadRequestsPending() const;
