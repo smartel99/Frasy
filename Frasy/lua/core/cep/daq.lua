@@ -1130,7 +1130,7 @@ end
 
 --- Measures an impedance.
 --- On timeout, value, vin and vout are NaN and confidence is 0.
---- @deprecated DAQ firmware has changed to provide better control during impedance measurement. Use SetImpedanceDac and MeasureImpedances instead
+--- @deprecated DAQ firmware has changed to provide better control during impedance measurement. Use ImpedancesParameters and ImpedancesMeasurement instead
 --- @param mode DAQ_ImpedanceModeEnum
 --- @param opt DAQ_ImpedancesOptionalParameters?
 --- @return DAQ_ImpedanceResults
