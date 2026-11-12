@@ -19,6 +19,7 @@
 #    include "device_viewer.h"
 #    include "log_window.h"
 #    include "mcp_http_server_layer.h"
+#    include "impedance_analyzer.h"
 #    include "result_analyzer.h"
 #    include "result_viewer.h"
 #    include "test_viewer.h"
@@ -71,6 +72,7 @@ protected:
     virtual void makeResultViewerVisible();
     virtual void makeResultAnalyzerVisible();
     virtual void makeTestViewerVisible();
+    virtual void makeImpedanceAnalyzerVisible();
     virtual void appendToMainTabBar() {}
 
     /// Get the currently active product name. Override in derived class.
@@ -105,6 +107,7 @@ protected:
     std::unique_ptr<ResultViewer>         m_resultViewer   = nullptr;
     std::unique_ptr<ResultAnalyzer>       m_resultAnalyzer = nullptr;
     std::unique_ptr<TestViewer>           m_testViewer     = nullptr;
+    std::unique_ptr<ImpedanceAnalyzer>      m_impedanceAnalyzer = nullptr;
 
     Brigerad::Ref<Brigerad::Texture2D> m_run;
     Brigerad::Ref<Brigerad::Texture2D> m_runWarn;

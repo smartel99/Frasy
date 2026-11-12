@@ -51,6 +51,7 @@ void MainApplicationLayer::onAttach()
     m_resultAnalyzer = std::make_unique<ResultAnalyzer>();
     m_testViewer     = std::make_unique<TestViewer>();
     m_testViewer->SetInterface(this);
+    m_impedanceAnalyzer = std::make_unique<ImpedanceAnalyzer>();
 
     bool  maximized = Interpreter::Get().getConfig().value("maximized", true);
     auto& window    = Interpreter::Get().getWindow();
@@ -116,6 +117,7 @@ void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F6)) { makeTestViewerVisible(); }
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F7)) { makeCanOpenViewerVisible(); }
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F8)) { m_renderProfiler = true; }
+    if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F11)) { makeImpedanceAnalyzerVisible(); }
     m_logWindow->onUpdate(ts);
     m_deviceViewer->onUpdate(ts);
     m_canOpenViewer->onUpdate(ts);
@@ -145,6 +147,7 @@ void MainApplicationLayer::onImGuiRender()
             if (ImGui::MenuItem("Test Viewer", "F6")) { makeTestViewerVisible(); }
             if (ImGui::MenuItem("CANopen Viewer", "F7")) { makeCanOpenViewerVisible(); }
             if (ImGui::MenuItem("Lua Profiler", "F8")) { m_renderProfiler = true; }
+            if (ImGui::MenuItem("Impedance Analyzer", "F11")) { makeImpedanceAnalyzerVisible(); }
             ImGui::Separator();
             if (m_noMove && ImGui::MenuItem("Unlock")) { m_noMove = false; }
             if (!m_noMove && ImGui::MenuItem("Lock")) { m_noMove = true; }
@@ -174,6 +177,7 @@ void MainApplicationLayer::onImGuiRender()
     m_resultViewer->onImGuiRender();
     m_resultAnalyzer->onImGuiRender();
     m_testViewer->onImGuiRender();
+    m_impedanceAnalyzer->onImGuiRender();
 
     m_orchestrator.renderPopups();
     handleResultAnalyserPopup();
@@ -230,6 +234,11 @@ void MainApplicationLayer::makeResultAnalyzerVisible()
 void MainApplicationLayer::makeTestViewerVisible()
 {
     m_testViewer->SetVisibility(true);
+}
+
+void MainApplicationLayer::makeImpedanceAnalyzerVisible()
+{
+    m_impedanceAnalyzer->setVisibility(true);
 }
 
 void MainApplicationLayer::renderAbout()
