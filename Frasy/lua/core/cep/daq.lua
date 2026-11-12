@@ -970,19 +970,9 @@ DAQ.ImpedanceDefaults = {
     delay = 0,
     samplesToTake = 0,
     expectedValue = 0,
-    favorSpeed = false
+    favorSpeed = false,
+    timeout = 5000 -- 5s
 }
-
---- @param samplesToTake integer
---- @param sampleRate DAQ_AdcSampleRateEnum
---- @param delay integer? delay in us
---- @return number duration in s
-local function computeMeasureDuration(samplesToTake, sampleRate, delay)
-    local delayDuration = delay / 1000 / 1000
-    local measureDuration = samplesToTake / DAQ.AdcSampleRateValues[sampleRate]
-    local commDuration = 0.5 -- 500ms extra duration
-    return delayDuration + measureDuration + commDuration
-end
 
 --- @class DAQ_ImpedancesOptionalParameters
 --- @field shape DAQ_ImpedanceShapeEnum?
@@ -992,10 +982,28 @@ end
 --- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
 --- @field range DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
---- @field voltage number?
---- @field delay integer?
+--- @field delay integer? duration before storing samples in ms (µs for deprecated Impedances call)
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
+
+--- @class DAQ_ImpedancesParameters
+--- @field mode DAQ_ImpedanceModeEnum
+--- @field shape DAQ_ImpedanceShapeEnum?
+--- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
+--- @field frequency integer?
+--- @field amplitude integer?
+--- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
+--- @field range DAQ_ImpedanceRangeResistorEnum?
+--- @field delay integer? duration before storing samples in ms (µs for deprecated Impedances call)
+--- @field samplesToTake integer?
+--- @field favorSpeed boolean?
+
+--- @class DAQ_ImpedanceMeasure
+--- @field confidence integer
+--- @field value number
+--- @field vin number
+--- @field vout number
+--- @field time number? in ms, since the first measure of the series was triggered, at the time this measure completed. Only set by the `Measure*` functions.
 
 --- @class DAQ_ImpedanceResults
 --- @field mode DAQ_ImpedanceModeEnum
@@ -1011,10 +1019,12 @@ end
 --- @field value number
 --- @field vin number
 --- @field vout number
+--- @field measures DAQ_ImpedanceMeasure[]
 
 --- Prepare the DAC for impedance measurement
 --- @param mode DAQ_ImpedanceModeEnum
 --- @param opt DAQ_ImpedancesOptionalParameters?
+--- @return DAQ_ImpedancesParameters
 function DAQ:ImpedancesParameters(mode, opt)
     local od = self.ib.od["Impedances"]
 
@@ -1056,32 +1066,41 @@ function DAQ:ImpedancesParameters(mode, opt)
     self.ib:Download(odRangeResistor, rangeResistor)
     self.ib:Download(odFrequency, frequency)
     self.ib:Download(odAmplitude, amplitude)
-    self.ib:Download(odDelay, delay)
+    self.ib:Download(odDelay, (delay * 1000) // 1) -- DAQ expect µs
     self.ib:Download(odSamplesToTake, samplesToTake)
     self.ib:Download(odExpectedValue, expectedValue)
     self.ib:Download(odFavorSpeed, favorSpeed)
-end
 
-local impedancesDefaultTimeout = 5000
+    return {
+        mode = mode,
+        shape = shape,
+        rangeResistor = rangeResistor,
+        frequency = frequency,
+        amplitude = amplitude,
+        delay = delay,
+        samplesToTake = samplesToTake,
+        expectedValue = expectedValue,
+        favorSpeed = favorSpeed
+    }
+end
 
 --- Perform the impedance measurement.
 --- You must have called ImpedancesParameters before calling this function.
 --- On timeout, value, vin and vout are NaN and confidence is 0.
---- @params timeout integer? set measure timeout. Default to 5s
+--- @param timeout integer? measure timeout in ms. Default to 5 s
 --- @return DAQ_ImpedanceResults
 function DAQ:ImpedancesMeasurement(timeout)
     local od = self.ib.od["Impedances"]
     local odTrigger = od["Trigger"]
     if self.ib:Upload(odTrigger) then error("Impedance measure already running") end
 
-    timeout = timeout or impedancesDefaultTimeout
+    timeout = timeout or DAQ.ImpedanceDefaults.timeout
     CheckField(timeout, Is.Unsigned)
 
     self.ib:Download(odTrigger, true)
 
     local timedOut = false
     if Context.info.stage == Stage.execution then
-        SleepFor(100) -- Let DAQ start measure and update trigger
         local deadline = os.clock() + timeout / 1000
         local doRun = true
         while doRun do
@@ -1096,15 +1115,6 @@ function DAQ:ImpedancesMeasurement(timeout)
         end
     end
 
-    local odMode = od["Mode"]
-    local odShape = od["Shape"]
-    local odRangeResistor = od["Range Resistor"]
-    local odFrequency = od["Frequency"]
-    local odAmplitude = od["Amplitude"]
-    local odDelay = od["Delay"]
-    local odSamplesToTake = od["Samples to Take"]
-    local odExpectedValue = od["Expected Value"]
-    local odFavorSpeed = od["Favor Speed"]
     local odConfidence = od["Confidence"]
     local odValue = od["Value"]
     local odVin = od["Vin"]
@@ -1112,15 +1122,6 @@ function DAQ:ImpedancesMeasurement(timeout)
 
     local nan = 0 / 0
     return {
-        mode = self.ib:Upload(odMode) --[[@as DAQ_ImpedanceModeEnum]],
-        shape = self.ib:Upload(odShape) --[[@as DAQ_ImpedanceShapeEnum]],
-        rangeResistor = self.ib:Upload(odRangeResistor) --[[@as DAQ_ImpedanceRangeResistorEnum]],
-        frequency = self.ib:Upload(odFrequency) --[[@as integer]],
-        amplitude = self.ib:Upload(odAmplitude) --[[@as number]],
-        delay = self.ib:Upload(odDelay) --[[@as integer]],
-        samplesToTake = self.ib:Upload(odSamplesToTake) --[[@as integer]],
-        expectedValue = self.ib:Upload(odExpectedValue) --[[@as number]],
-        favorSpeed = self.ib:Upload(odFavorSpeed) --[[@as boolean]],
         confidence = timedOut and 0 or self.ib:Upload(odConfidence) --[[@as integer]],
         value = timedOut and nan or self.ib:Upload(odValue) --[[@as number]],
         vin = timedOut and nan or self.ib:Upload(odVin) --[[@as number]],
@@ -1132,7 +1133,7 @@ end
 --- On timeout, value, vin and vout are NaN and confidence is 0.
 --- @deprecated DAQ firmware has changed to provide better control during impedance measurement. Use ImpedancesParameters and ImpedancesMeasurement instead
 --- @param mode DAQ_ImpedanceModeEnum
---- @param opt DAQ_ImpedancesOptionalParameters?
+--- @param opt DAQ_ImpedancesParameters?
 --- @return DAQ_ImpedanceResults
 function DAQ:Impedances(mode, opt)
     local od = self.ib.od["Impedances"]
@@ -1196,6 +1197,17 @@ function DAQ:Impedances(mode, opt)
     self.ib:Download(odExpectedValue, opt.expectedValue)
     self.ib:Download(odFavorSpeed, opt.favorSpeed)
     self.ib:Download(odTrigger, true)
+
+    --- @param samplesToTake integer
+    --- @param sampleRate DAQ_AdcSampleRateEnum
+    --- @param delay integer? delay in ms
+    --- @return number duration in ms
+    local function computeMeasureDuration(samplesToTake, sampleRate, delay)
+        local delayDuration = delay
+        local measureDuration = samplesToTake * 1000 / DAQ.AdcSampleRateValues[sampleRate]
+        local commDuration = 500 -- 500 ms extra duration
+        return delayDuration + measureDuration + commDuration
+    end
 
     local timedOut = false
     if Context.info.stage == Stage.execution then
@@ -1333,24 +1345,83 @@ function DAQ:GetStoredSample(channel, index)
     return res
 end
 
+--- @param opt DAQ_MeasureCapacitorOptParameters | DAQ_MeasureResistorOptParameters | DAQ_MeasureInductorOptParameters
+local function sanitizeDefaultTimeout(opt)
+    if opt.delay == nil or opt.timeout ~= nil then return opt.timeout end
+    CheckField(opt.delay, Is.Unsigned)
+    return DAQ.ImpedanceDefaults.timeout + opt.delay
+end
+
+local measureImpedanceMultipleValueOnBoolean = 5.0 -- 5s
+
+--- Validates `opt.multiple` and converts it to a duration.
+--- Must be called before any routing is requested, so that an invalid value doesn't leave buses connected.
+--- @param opt DAQ_MeasureCapacitorOptParameters | DAQ_MeasureResistorOptParameters | DAQ_MeasureInductorOptParameters
+--- @return number? duration in seconds, nil if multiple measures are not requested
+local function sanitizeMultiple(opt)
+    local multiple = opt.multiple
+    if not multiple then return nil end
+    if multiple == true then return measureImpedanceMultipleValueOnBoolean end
+    if type(multiple) ~= "number" then error("opt.multiple is neither a boolean nor a number") end
+    CheckField(multiple, Is.Unsigned)
+    return multiple / 1000
+end
+
+--- Runs the impedance measurement once, or repeatedly for `duration` seconds.
+--- The top level `confidence`, `value`, `vin` and `vout` are those of the last measure.
+--- Every measure, including the last, is available in `measures`.
+--- Outside of the execution stage, measures are instantaneous: only one is taken.
+--- @param params DAQ_ImpedancesParameters
+--- @param timeout integer? in ms
+--- @param duration number? in seconds. nil for a single measure
+--- @return DAQ_ImpedanceResults
+local function measureImpedances(self, params, timeout, duration)
+    local result = {
+        mode = params.mode,
+        shape = params.shape,
+        rangeResistor = params.rangeResistor,
+        frequency = params.frequency,
+        amplitude = params.amplitude,
+        delay = params.delay,
+        samplesToTake = params.samplesToTake,
+        expectedValue = params.expectedValue,
+        favorSpeed = params.favorSpeed,
+        confidence = 0,
+        value = 0 / 0,
+        vout = 0 / 0,
+        vin = 0 / 0,
+        measures = {},
+    }
+
+    local start = os.clock()
+    local deadline = start + (duration or 0)
+    repeat
+        local measure = self:ImpedancesMeasurement(timeout)
+        measure.time = (os.clock() - start) * 1000
+        result.confidence = measure.confidence
+        result.value = measure.value
+        result.vout = measure.vout
+        result.vin = measure.vin
+        table.insert(result.measures, measure)
+    until duration == nil
+        or Context.info.stage ~= Stage.execution
+        or os.clock() > deadline
+
+    return result
+end
+
 --- @class DAQ_MeasureResistorOptParameters
 --- @field expectedValue integer? Expected value to be read. Required if range if set to automatic
 --- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
 --- @field amplitude number?
---- @field delay integer? us
+--- @field delay integer? ms
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
 --- @field timeout integer? in ms default to 5s
---- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
+--- @field debugPopup (boolean|string)? if present, will display a popup when routage is active. String value allows custom text
+--- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 15s of measurement, integer => duration in ms.
 
-
---- @param opt DAQ_MeasureCapacitorOptParameters | DAQ_MeasureResistorOptParameters | DAQ_MeasureInductorOptParameters
-local function sanitizeDefaultTimeout(opt)
-    if opt.delay == nil or opt.timeout ~= nil then return opt.timeout end
-    CheckField(opt.delay, Is.Unsigned)
-    return impedancesDefaultTimeout + opt.delay
-end
 
 --- Measures a resistor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
@@ -1361,8 +1432,9 @@ function DAQ:MeasureResistor(impP, impN, opt)
     if opt == nil then opt = {} end
     CheckField(opt, Is.Table)
     local timeout = sanitizeDefaultTimeout(opt)
+    local multipleDuration = sanitizeMultiple(opt)
 
-    self:ImpedancesParameters(DAQ.ImpedanceModeEnum.resistor, {
+    local params = self:ImpedancesParameters(DAQ.ImpedanceModeEnum.resistor, {
         shape = DAQ.ImpedanceShapeEnum.dc,
         rangeResistor = opt.rangeResistor,
         amplitude = opt.amplitude,
@@ -1391,7 +1463,7 @@ function DAQ:MeasureResistor(impP, impN, opt)
             :Show()
     end
 
-    local result = self:ImpedancesMeasurement(timeout)
+    local result = measureImpedances(self, params, timeout, multipleDuration)
 
     -- cleanup
     self:ClearBus(rimpp)
@@ -1407,11 +1479,12 @@ end
 --- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
 --- @field amplitude number?
---- @field delay integer?
+--- @field delay integer? ms
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
 --- @field timeout integer? in ms, default to 5s
 --- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
+--- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 15s of measurement, integer => duration in ms.
 
 --- Measures a capacitor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
@@ -1422,11 +1495,12 @@ function DAQ:MeasureCapacitor(impP, impN, opt)
     if opt == nil then opt = {} end
     CheckField(opt, Is.Table)
     local timeout = sanitizeDefaultTimeout(opt)
+    local multipleDuration = sanitizeMultiple(opt)
 
     impP = PointToPoints(impP)
     impN = PointToPoints(impN)
 
-    self:ImpedancesParameters(DAQ.ImpedanceModeEnum.capacitor, {
+    local params = self:ImpedancesParameters(DAQ.ImpedanceModeEnum.capacitor, {
         frequency = opt.frequency,
         rangeResistor = opt.rangeResistor,
         amplitude = opt.amplitude,
@@ -1453,7 +1527,7 @@ function DAQ:MeasureCapacitor(impP, impN, opt)
             :Show()
     end
 
-    local result = self:ImpedancesMeasurement(timeout)
+    local result = measureImpedances(self, params, timeout, multipleDuration)
 
     -- cleanup
     self:ClearBus(rimpp)
@@ -1469,11 +1543,12 @@ end
 --- @field rangeResistor DAQ_ImpedanceRangeResistorEnum?
 --- @field guards DAQ_RoutingPointsEnum[]?
 --- @field amplitude number?
---- @field delay integer?
+--- @field delay integer? ms
 --- @field samplesToTake integer?
 --- @field favorSpeed boolean?
 --- @field timeout integer? in ms, default to 5s
 --- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
+--- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 15s of measurement, integer => duration in ms.
 
 --- Measures an inductor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
@@ -1484,8 +1559,9 @@ function DAQ:MeasureInductor(impP, impN, opt)
     if opt == nil then opt = {} end
     CheckField(opt, Is.Table)
     local timeout = sanitizeDefaultTimeout(opt)
+    local multipleDuration = sanitizeMultiple(opt)
 
-    self:ImpedancesParameters(DAQ.ImpedanceModeEnum.inductor, {
+    local params = self:ImpedancesParameters(DAQ.ImpedanceModeEnum.inductor, {
         frequency = opt.frequency,
         rangeResistor = opt.rangeResistor,
         amplitude = opt.amplitude,
@@ -1514,7 +1590,7 @@ function DAQ:MeasureInductor(impP, impN, opt)
             :Show()
     end
 
-    local result = self:ImpedancesMeasurement(timeout)
+    local result = measureImpedances(self, params, timeout, multipleDuration)
 
     -- cleanup
     self:ClearBus(rimpp)
