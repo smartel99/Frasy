@@ -13,7 +13,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${APP_NAME}")
 # Frasy is in the parent directory
 set(FRASY_DIR "${CMAKE_SOURCE_DIR}/..")
 
-include(${FRASY_DIR}/compile_options.cmake)
+include(${FRASY_DIR}/cmake/compile_options.cmake)
 
 file(GLOB_RECURSE SOURCES
         "${SRC_DIR}/*.cpp"
@@ -34,7 +34,7 @@ add_custom_target(refresh_config ALL
         "$<TARGET_FILE_DIR:${APP_NAME}>/config.json"
 )
 
-include(${FRASY_DIR}/sync_assets.cmake)
+include(${FRASY_DIR}/cmake/sync_assets.cmake)
 target_sync_assets(refresh_lua_user
         "${SRC_DIR}/lua/user"
         "$<TARGET_FILE_DIR:${APP_NAME}>/lua/user"
