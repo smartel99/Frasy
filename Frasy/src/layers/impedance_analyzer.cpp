@@ -165,11 +165,11 @@ const MeasureReport& ImpedanceAnalyzer::LoadedReport::getSelected() const
 
 void ImpedanceAnalyzer::setVisibility(bool visibility)
 {
-    m_isVisible = visibility;
-    if (visibility) {
-        refresh();
-        ImGui::SetWindowFocus(s_windowName);
-    }
+    // Called every frame while the shortcut is held: only reload when the window opens.
+    const bool opening = visibility && !m_isVisible;
+    m_isVisible        = visibility;
+    if (opening) { refresh(); }
+    if (visibility) { ImGui::SetWindowFocus(s_windowName); }
 }
 
 void ImpedanceAnalyzer::onImGuiRender()
@@ -201,7 +201,7 @@ void ImpedanceAnalyzer::onImGuiRender()
 
 // --- Loading ---
 
-std::vector<ImpedanceAnalyzer::LoadedReport> ImpedanceAnalyzer::loadReports()
+std::vector<std::filesystem::path> ImpedanceAnalyzer::listReports()
 {
     namespace fs = std::filesystem;
 
@@ -212,13 +212,7 @@ std::vector<ImpedanceAnalyzer::LoadedReport> ImpedanceAnalyzer::loadReports()
         if (isReportFile(entry, s_logFileExtension)) { paths.push_back(entry.path()); }
     }
     std::ranges::sort(paths);
-
-    std::vector<LoadedReport> reports;
-    reports.reserve(paths.size());
-    for (const auto& path : paths) {
-        reports.push_back(loadReport(path));
-    }
-    return reports;
+    return paths;
 }
 
 ImpedanceAnalyzer::LoadedReport ImpedanceAnalyzer::loadReport(const std::filesystem::path& path)
@@ -328,11 +322,22 @@ bool ImpedanceAnalyzer::hasChanged() const
 
 void ImpedanceAnalyzer::refresh()
 {
-    auto reports = loadReports();
-    // Keep what the user was looking at, if it is still there. Otherwise it stays on the first result.
-    for (auto& report : reports) {
-        const auto previous = std::ranges::find(m_reports, report.path, &LoadedReport::path);
+    std::vector<LoadedReport> reports;
+    for (const auto& path : listReports()) {
+        const auto previous = std::ranges::find(m_reports, path.string(), &LoadedReport::path);
+
+        // Unchanged reports are kept as is, only the rewritten ones are parsed again.
+        std::error_code ec;
+        const auto      lastModified = std::filesystem::last_write_time(path, ec);
+        if (previous != m_reports.end() && !ec && previous->lastModified == lastModified) {
+            reports.push_back(std::move(*previous));
+            continue;
+        }
+
+        auto report = loadReport(path);
+        // Keep what the user was looking at, if it is still there. Otherwise it stays on the first result.
         if (previous != m_reports.end()) { restoreSelection(report, *previous); }
+        reports.push_back(std::move(report));
     }
     m_reports = std::move(reports);
 }
@@ -361,12 +366,16 @@ void ImpedanceAnalyzer::renderReport(LoadedReport& report)
     // displayed, or when the plots were not drawn last frame (another tab, window closed).
     const auto key = std::format(
       "{}|{}|{}", report.path, report.getSelectedIndex(), report.lastModified.time_since_epoch().count());
-    const int frame = ImGui::GetFrameCount();
-    m_fitPlots      = key != m_plotKey || frame != m_lastPlotFrame + 1;
+    const int  frame   = ImGui::GetFrameCount();
+    const bool changed = key != m_plotKey;
+    if (changed) { m_analysis = analyseMeasure(report.getSelected()); }
+    m_fitPlots      = changed || frame != m_lastPlotFrame + 1;
     m_plotKey       = key;
     m_lastPlotFrame = frame;
 
-    if (ImGui::BeginChild("##details", ImVec2 {0.0f, 0.0f}, false)) { renderMeasure(report.getSelected()); }
+    if (ImGui::BeginChild("##details", ImVec2 {0.0f, 0.0f}, false)) {
+        renderMeasure(report.getSelected(), m_analysis);
+    }
     ImGui::EndChild();
 }
 
@@ -389,7 +398,42 @@ void ImpedanceAnalyzer::renderSelectors(LoadedReport& report)
     });
 }
 
-void ImpedanceAnalyzer::renderMeasure(const MeasureReport& measure)
+ImpedanceAnalyzer::MeasureAnalysis ImpedanceAnalyzer::analyseMeasure(const MeasureReport& measure)
+{
+    const auto& [expectation, measurement] = measure;
+
+    MeasureAnalysis analysis;
+    // The expectation limits apply to the expectation's value.
+    analysis.values = extractChannel(measurement.measures, Channel::Value);
+    analysis.stats  = computeStats(analysis.values, expectation.limits);
+    std::ranges::copy_if(analysis.values, std::back_inserter(analysis.finiteValues), [](double value) {
+        return std::isfinite(value);
+    });
+
+    // Without a time stamp (reports from before `time` was added), the position of the sample is used.
+    analysis.times    = extractTimes(measurement.measures);
+    analysis.hasTimes = !analysis.times.empty();
+    if (!analysis.hasTimes) {
+        analysis.times.resize(analysis.values.size());
+        std::iota(analysis.times.begin(), analysis.times.end(), 0.0);
+    }
+    analysis.stability = computeStability(analysis.values, analysis.times);
+
+    // The quality of the measure (noise, spread, ...) is the one once the value is stable: the transient before is
+    // not noise. Without stability, there is no such part.
+    if (analysis.stability.stable) {
+        analysis.stableStats = computeStats(
+          std::span<const double> {analysis.values}.subspan(analysis.stability.firstIndex), expectation.limits);
+    }
+
+    analysis.excitation = checkExcitation(measurement);
+    analysis.vin        = extractChannel(measurement.measures, Channel::Vin);
+    analysis.vout       = extractChannel(measurement.measures, Channel::Vout);
+    analysis.confidence = extractChannel(measurement.measures, Channel::Confidence);
+    return analysis;
+}
+
+void ImpedanceAnalyzer::renderMeasure(const MeasureReport& measure, const MeasureAnalysis& analysis)
 {
     const auto& [expectation, measurement] = measure;
 
@@ -405,40 +449,23 @@ void ImpedanceAnalyzer::renderMeasure(const MeasureReport& measure)
     renderIssues(measurement);
     ImGui::Separator();
 
-    // The expectation limits apply to the expectation's value.
-    const auto values = extractChannel(measurement.measures, Channel::Value);
-    const auto stats  = computeStats(values, expectation.limits);
+    const auto& stats  = analysis.stats;
+    const char* xLabel = analysis.hasTimes ? "Time (ms)" : "Sample";
 
-    // Without a time stamp (reports from before `time` was added), the position of the sample is used.
-    auto       times    = extractTimes(measurement.measures);
-    const bool hasTimes = !times.empty();
-    if (!hasTimes) {
-        times.resize(values.size());
-        std::iota(times.begin(), times.end(), 0.0);
-    }
-    const char* xLabel    = hasTimes ? "Time (ms)" : "Sample";
-    const auto  stability = computeStability(values, times);
-
-    // The quality of the measure (noise, spread, ...) is the one once the value is stable: the transient before is
-    // not noise. Without stability, there is no such part.
-    std::optional<Stats> stableStats;
-    if (stability.stable) {
-        stableStats = computeStats(std::span<const double> {values}.subspan(stability.firstIndex), expectation.limits);
-    }
-
-    renderRelevance(stableStats ? *stableStats : stats);
-    renderStability(stability, stats.count - stats.invalidCount, hasTimes, checkExcitation(measurement));
+    renderRelevance(analysis.stableStats ? *analysis.stableStats : stats);
+    renderStability(analysis.stability, stats.count - stats.invalidCount, analysis.hasTimes, analysis.excitation);
 
     // Top: the value over time and its distribution. Bottom: the statistics and the electrical signals.
-    renderValuePlot(values, times, xLabel, expectation.limits, stats, stability, expectation.value);
+    renderValuePlot(
+      analysis.values, analysis.times, xLabel, expectation.limits, stats, analysis.stability, expectation.value);
     ImGui::SameLine();
-    renderDistributionPlot(values, expectation.limits, stats, expectation.value);
+    renderDistributionPlot(analysis.finiteValues, expectation.limits, stats, expectation.value);
 
-    renderStats(stats, stableStats);
+    renderStats(stats, analysis.stableStats);
     ImGui::SameLine();
-    renderElectricalPlot(measurement, times, xLabel);
+    renderElectricalPlot(analysis, xLabel);
 
-    renderSamples(measurement, hasTimes ? times : std::vector<double> {});
+    renderSamples(measurement, analysis.hasTimes ? analysis.times : std::vector<double> {});
 }
 
 void ImpedanceAnalyzer::renderIssues(const ImpedanceMeasurement& measurement)
@@ -541,14 +568,13 @@ void ImpedanceAnalyzer::renderStability(const Stability&       stability,
     }
 }
 
-void ImpedanceAnalyzer::renderElectricalPlot(const ImpedanceMeasurement& measurement,
-                                             const std::vector<double>&  x,
-                                             const char*                 xLabel)
+void ImpedanceAnalyzer::renderElectricalPlot(const MeasureAnalysis& analysis, const char* xLabel)
 {
-    const auto vin        = extractChannel(measurement.measures, Channel::Vin);
-    const auto vout       = extractChannel(measurement.measures, Channel::Vout);
-    const auto confidence = extractChannel(measurement.measures, Channel::Confidence);
-    const auto count      = static_cast<int>(x.size());
+    const auto& x          = analysis.times;
+    const auto& vin        = analysis.vin;
+    const auto& vout       = analysis.vout;
+    const auto& confidence = analysis.confidence;
+    const auto  count      = static_cast<int>(x.size());
 
     if (m_fitPlots) { ImPlot::SetNextAxesToFit(); }
     if (ImPlot::BeginPlot("Vin / Vout / Confidence", ImVec2 {-1.0f, s_plotHeight})) {
@@ -597,15 +623,11 @@ void ImpedanceAnalyzer::renderValuePlot(const std::vector<double>& values,
     }
 }
 
-void ImpedanceAnalyzer::renderDistributionPlot(const std::vector<double>& values,
+void ImpedanceAnalyzer::renderDistributionPlot(const std::vector<double>& valid,
                                                const Limits&              limits,
                                                const Stats&               stats,
                                                std::optional<double>      expectationValue)
 {
-    std::vector<double> valid;
-    valid.reserve(values.size());
-    std::ranges::copy_if(values, std::back_inserter(valid), [](double value) { return std::isfinite(value); });
-
     if (m_fitPlots) { ImPlot::SetNextAxesToFit(); }
     if (ImPlot::BeginPlot("Distribution", ImVec2 {-1.0f, s_plotHeight})) {
         ImPlot::SetupLegend(s_legendLocation, s_legendFlags);
