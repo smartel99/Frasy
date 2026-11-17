@@ -1406,6 +1406,7 @@ local function measureImpedances(self, params, timeout, duration)
     until duration == nil
         or Context.info.stage ~= Stage.execution
         or os.clock() > deadline
+        or measure.value ~= measure.value -- timed out: DAQ still busy, next trigger would error
 
     return result
 end
@@ -1420,7 +1421,7 @@ end
 --- @field favorSpeed boolean?
 --- @field timeout integer? in ms default to 5s
 --- @field debugPopup (boolean|string)? if present, will display a popup when routage is active. String value allows custom text
---- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 15s of measurement, integer => duration in ms.
+--- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 5s of measurement, integer => duration in ms.
 
 
 --- Measures a resistor.
@@ -1484,7 +1485,7 @@ end
 --- @field favorSpeed boolean?
 --- @field timeout integer? in ms, default to 5s
 --- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
---- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 15s of measurement, integer => duration in ms.
+--- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 5s of measurement, integer => duration in ms.
 
 --- Measures a capacitor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
@@ -1548,7 +1549,7 @@ end
 --- @field favorSpeed boolean?
 --- @field timeout integer? in ms, default to 5s
 --- @field debugPopup boolean|string? if present, will display a popup when routage is active. String value allows custom text
---- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 15s of measurement, integer => duration in ms.
+--- @field multiple (boolean|integer)? if present, will run multiple measures, returned in `measures`. True => 5s of measurement, integer => duration in ms.
 
 --- Measures an inductor.
 --- @param impP DAQ_RoutingPointsEnum|DAQ_RoutingPointsEnum[]
