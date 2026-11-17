@@ -80,7 +80,25 @@ private:
         [[nodiscard]] const ImpedanceAnalysis::MeasureReport& getSelected() const;
     };
 
-    static std::vector<LoadedReport> loadReports();
+    /// Everything derived from the selected measurement. Computed once per selection, not every frame.
+    struct MeasureAnalysis {
+        std::vector<double> values;
+        std::vector<double> finiteValues;    //!< For the histogram.
+        std::vector<double> times;           //!< In ms, or the sample index when the report has no time.
+        std::vector<double> vin;
+        std::vector<double> vout;
+        std::vector<double> confidence;
+        bool                hasTimes = false;
+
+        ImpedanceAnalysis::Stats                  stats;
+        std::optional<ImpedanceAnalysis::Stats>   stableStats;
+        ImpedanceAnalysis::Stability              stability;
+        ImpedanceAnalysis::ExcitationCheck        excitation;
+    };
+
+    static MeasureAnalysis analyseMeasure(const ImpedanceAnalysis::MeasureReport& measure);
+
+    static std::vector<std::filesystem::path> listReports();
     static LoadedReport              loadReport(const std::filesystem::path& path);
     static void                      buildSelection(LoadedReport& report);
     static void                      restoreSelection(LoadedReport& report, const LoadedReport& previous);
@@ -90,7 +108,7 @@ private:
 
     void renderReport(LoadedReport& report);
     void renderSelectors(LoadedReport& report);
-    void renderMeasure(const ImpedanceAnalysis::MeasureReport& measure);
+    void renderMeasure(const ImpedanceAnalysis::MeasureReport& measure, const MeasureAnalysis& analysis);
     void renderIssues(const ImpedanceAnalysis::ImpedanceMeasurement& measurement);
     void renderStats(const ImpedanceAnalysis::Stats& all, const std::optional<ImpedanceAnalysis::Stats>& stable);
     void renderRelevance(const ImpedanceAnalysis::Stats& stats);
@@ -99,9 +117,7 @@ private:
                          std::size_t                               validSamples,
                          bool                                      hasTimes,
                          const ImpedanceAnalysis::ExcitationCheck& excitation);
-    void renderElectricalPlot(const ImpedanceAnalysis::ImpedanceMeasurement& measurement,
-                              const std::vector<double>&                     x,
-                              const char*                                    xLabel);
+    void renderElectricalPlot(const MeasureAnalysis& analysis, const char* xLabel);
     void renderValuePlot(const std::vector<double>&       values,
                          const std::vector<double>&       x,
                          const char*                      xLabel,
@@ -109,7 +125,7 @@ private:
                          const ImpedanceAnalysis::Stats&  stats,
                          const ImpedanceAnalysis::Stability& stability,
                          std::optional<double>            expectationValue);
-    void renderDistributionPlot(const std::vector<double>&       values,
+    void renderDistributionPlot(const std::vector<double>&       finiteValues,
                                 const ImpedanceAnalysis::Limits& limits,
                                 const ImpedanceAnalysis::Stats&  stats,
                                 std::optional<double>            expectationValue);
@@ -121,9 +137,10 @@ private:
     bool                      m_isVisible  = false;
 
     /// The plots are navigable (zoom, pan). They only fit their data when something else is displayed.
-    std::string m_plotKey;
-    int         m_lastPlotFrame = -1;
-    bool        m_fitPlots      = true;
+    std::string     m_plotKey;
+    int             m_lastPlotFrame = -1;
+    bool            m_fitPlots      = true;
+    MeasureAnalysis m_analysis;    //!< Of the measurement identified by `m_plotKey`.
 
     static constexpr const char* s_tag              = "ImpedanceAnalyzer";
     static constexpr const char* s_windowName       = "Impedance Analyzer";
