@@ -1408,6 +1408,8 @@ local function measureImpedances(self, params, timeout, duration)
         or os.clock() > deadline
         or measure.value ~= measure.value -- timed out: DAQ still busy, next trigger would error
 
+    if #result.measures <= 1 then result.measures = nil end
+
     return result
 end
 
