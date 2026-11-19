@@ -47,8 +47,8 @@ Ordered so each phase builds and runs on its own, and the first visible result (
 One commit per phase on `feature/test-viewer`.
 
 ```
-1 Model ──► 2 Generate on load ──► 3 State tracking ──► 4 Lua events ──► 5 Viewer UI ──► 7 Docs
-   └──────────────────────────────► 6 Enable wiring (independent of 3–5)
+1 Model ──► 2 Generate on load ──► 3 State tracking ──► 4 Lua events ──► 6a Enable wiring ──► 5 Viewer UI ──► 7 Docs
+                                                                                     └──► 6b Test Selection window (unlock decision)
 ```
 
 ### Phase 1 — Model
@@ -106,7 +106,9 @@ Needs Phase 1, or every entry shows as disabled.
     only set the same "dirty" flag, and it would need a subscriber list.
 - `Lua::GenerateOnLoad` (`generate_on_load.h`): `update()` calls `generate()` when `getLoadId()` changed and the
   orchestrator is idle, and only marks the load as handled once `generate()` accepted it. A load made during a run
-  or a generation is generated once idle again.
+  or a generation is generated once idle again, unless that run or generation already generated it
+  (`getGeneratedLoadId()`, set by `runStageGenerate()` under `m_generateMutex`): regenerating would reset the
+  run's states, e.g. right after every MCP `run_tests`, which loads and runs in the same frame.
 - `MainApplicationLayer`:
   - `onUpdate()` calls `GenerateOnLoad::update()`. Works for every app without the derived class having to call
     anything, and stays on the main thread.
@@ -124,20 +126,31 @@ C++ side of live progress. Needs Phase 1 (state vectors) and Phase 2 (mutex/revi
 - Always bind `__progress.report` in the execution stage. The binding updates `m_solution` states under lock,
   bumps the revision, then forwards to `m_progressCallback` if set (headless unchanged).
 - Handle new types `sequence_disabled`, `sequence_skipped`, `test_disabled`, `test_skipped`.
-  `test_end` / `sequence_end` never overwrite a `disabled`/`skipped` state.
-- `runSolution()` calls `ResetStates()` at start.
-- End of `runStageExecute()`: any node still `running` for a UUT → `error`; anything still `idle` stays
-  empty (never reached, e.g. after a stopAll).
+  Start / end events never overwrite a `disabled`/`skipped` state; `*_disabled` / `*_skipped` always apply,
+  and on a sequence also to its tests still idle.
+- Rules in the model (`Solution::SetSequenceState()`, `SetTestState()`, `ApplyProgress()`, `DisableUut()`,
+  `FinishRun()`), the orchestrator only locks and bumps the revision.
+- `runTests()` resets the states right after the run's generation (`resetRunStates()`), so a regeneration can't
+  undo it.
+- On every way out of `runTests()` (scope guard): any node still `running` → `error`; anything still `idle`
+  stays empty (never reached, e.g. after a stopAll).
 - UUT marked `Disabled` → all its nodes `disabled`.
 
-**Done when:** a run in the demo leaves correct final states (checked in the debugger or a temporary dump).
+**Done when:** real runs in `FrasyTest_OrchestratorSolution` leave correct live and final states.
+Note for test products: test bodies also run during generation (to collect requirements), so runtime-only
+code must check `Context.info.stage == Stage.execution`.
 
 ### Phase 4 — Lua events (`orchestrator.lua`)
 
 Small Lua-only change. Harmless alone; meaningful once Phase 3 consumes it.
 
-- `RunSequence`: report `sequence_disabled` / `sequence_skipped` in the skip branches.
-- `RunTest`: report `test_disabled` / `test_skipped` before the existing `test_end`.
+- `RunSequence`: report `sequence_skipped` in the `UnmetRequirement` branch and `sequence_disabled` in the
+  disabled branch. Both report `sequence_start` and never `sequence_end` today, so after Phase 3 alone such a
+  sequence ends as `error` (aborted) once the run ends.
+- `RunTest`: report `test_disabled` / `test_skipped` before the existing `test_end`. After Phase 3 alone those
+  tests show as `passed`.
+- Orchestrator tests: a sequence skipped because its required sequence failed, a sequence and a test disabled
+  in Lua, a test skipped by a requirement.
 - Emit `test_end(false)` before each `error(...)` re-raise, so aborts don't rely only on the C++ finaliser.
 - Headless drops unknown types (`else { return; }`), so its stdout stays the same.
 
@@ -159,17 +172,22 @@ Needs 1–4 for real data, but can be developed against 1–3.
 - Optional: `SetScrollHereY()` when a test becomes running on the selected UUT.
 - Remove the skeleton's checkboxes and `setSequenceEnable` / `setTestEnable` from `TestViewer::Interface`.
 
-### Phase 6 — Test Selection window + enable/disable wiring
+### Phase 6a — Enable/disable wiring (before Phase 5)
 
-Independent of 3–5; only needs Phase 1 (enabled defaults + preservation on regenerate).
-Could be split into its own PR if preferred.
+Needs Phase 1. Must land before Phase 5 shows states: until flags gate Lua, `ResetStates()` marks an unchecked
+entry `disabled` while Lua still runs it, and its failures or aborts would be shown as gray.
+
+- After `loadTests()` in both validation and execution states, push `m_solution` flags into
+  `Context.orchestrator.enable_list` as `{ [seq] = { enabled = b, [test] = { enabled = b } } }`.
+- Fix `Orchestrator.Enable/Disable` to write that same shape; `IsScopeEnabled` defaults a missing test entry to `true`.
+
+### Phase 6b — Test Selection window
+
+Needs 6a. Waits for the unlock decision (see open points).
 
 - New `TestSelection` layer: same ordered tree, one checkbox per sequence/test, all inside
   `BeginDisabled(isRunning())`. "Enable all" button.
 - Not in the operator's menu or hotkeys. How it's unlocked is **to be decided** (see open points).
-- After `loadTests()` in both validation and execution states, push `m_solution` flags into
-  `Context.orchestrator.enable_list` as `{ [seq] = { enabled = b, [test] = { enabled = b } } }`.
-- Fix `Orchestrator.Enable/Disable` to write that same shape; `IsScopeEnabled` defaults a missing test entry to `true`.
 
 ### Phase 7 — Docs
 
@@ -182,10 +200,11 @@ Manual in `demo_mode`: multi-UUT run, one test disabled, one sequence disabled, 
 abort, one unmet requirement; quick product switching; MCP `load_product` + `run_tests` back-to-back.
 Check headless text and JSON output is unchanged.
 
-Orchestrator-level generation behaviour is covered by `FrasyTest_OrchestratorSolution` (no hardware: products
-written to disk, marker files make generation slow or broken), including `GenerateOnLoad`. It is Debug only
-(other configurations verify the `lua/user` hash) and runs serially (shared `lua/solution.json`). Runs
-(`runSolution()`) aren't covered there, as they can open modal dialogs; they are checked manually in `demo_mode`.
+Orchestrator-level behaviour is covered by `FrasyTest_OrchestratorSolution` (no hardware: products written to
+disk, marker files make generation slow or broken, or hold a test while its live state is checked), including
+`GenerateOnLoad` and real `runSolution()` runs on 2 UUTs (without verification, avoiding its two modal-dialog
+preconditions). It is Debug only (other configurations verify the `lua/user` hash) and runs serially (shared
+`lua/solution.json` and `logs/last`). The GUI itself is checked manually in `demo_mode`.
 
 ### Profiling copy on change (after Phase 5)
 
