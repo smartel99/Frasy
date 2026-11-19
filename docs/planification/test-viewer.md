@@ -150,8 +150,14 @@ Small Lua-only change. Harmless alone; meaningful once Phase 3 consumes it.
 - `RunTest`: report `test_disabled` / `test_skipped` before the existing `test_end`. After Phase 3 alone those
   tests show as `passed`.
 - Orchestrator tests: a sequence skipped because its required sequence failed, a sequence and a test disabled
-  in Lua, a test skipped by a requirement.
-- Emit `test_end(false)` before each `error(...)` re-raise, so aborts don't rely only on the C++ finaliser.
+  in Lua, a test skipped by a requirement (`FrasyTest_OrchestratorSolution`, real runs). Exact event order for
+  each outcome in `FrasyTest_Orchestrator` (`progress_events.cpp`, recording `__progress` mock).
+- Demo hashes regenerated (`demo_mode/generate_hashes.bat`), as `AGENTS.md` asks; that file isn't read at runtime
+  (see follow-ups).
+- No `test_end(false)` before `error(...)` re-raises (dropped): Phase 3's end-of-run cleanup already turns aborts
+  into `error`, which the viewer shows apart from `failed`, and the extra `test_end` would change headless output.
+- New event types reach products' `setProgressCallback()` (additive); `pass` is `true` on them, like the
+  `test_end(true)` Lua reports for skipped tests.
 - Headless drops unknown types (`else { return; }`), so its stdout stays the same.
 
 ### Phase 5 — Viewer UI (`test_viewer.{h,cpp}`)
@@ -236,3 +242,15 @@ preconditions). It is Debug only (other configurations verify the `lua/user` has
 - The product callback setters wait for a generation, but not for a run's validation and execution, whose UUT
   threads also call those callbacks. Replacing a callback during a run (product switch while running) is still
   a race; it predates this work.
+- `OrchestratorTestFixture` registers `Team.Fail` with `lua.set_function("Team.Fail", ...)`, which creates a
+  global named `Team.Fail` instead of a field of `Team`: Lua calling `Team.Fail()` hits nil.
+- In `OrchestratorTestFixture`, `ScopeRequirement` keeps the implementation of the stage it was first required in
+  (generation), so `ToPass()` isn't checked after switching to the execution stage. Real runs use one Lua state
+  per stage and aren't affected.
+- The demo's user-Lua hash is written where nothing reads it. `demo_mode/generate_hashes.bat` writes
+  `src/lua/hash`, but CMake only syncs `src/lua/user` to `lua/user`, and `verifyHash()` reads `lua/user/hash`, so
+  a non-Debug demo build fails the hash check whatever that file holds. The value is also computed over
+  working-copy bytes (CRLF with `core.autocrlf`), so an LF checkout hashes differently. It had not been
+  regenerated since the headless and MCP commits; regenerated in its own commit, which fixes nothing at runtime.
+- `scripts/Windows/generate_hashes.bat` (a Frasy build step) assumes Frasy is a product's submodule
+  (`../../src/lua/user`); building from this repository prints "The system cannot find the path specified".
