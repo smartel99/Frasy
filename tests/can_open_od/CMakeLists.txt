@@ -1,4 +1,5 @@
 add_executable(FrasyTest_CanOpenOd
+    od_value_test.cpp
     object_dictionary_test.cpp
     object_dictionary_fields_test.cpp
     object_dictionary_registry_test.cpp
