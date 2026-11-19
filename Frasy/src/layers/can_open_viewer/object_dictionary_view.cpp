@@ -48,8 +48,9 @@ namespace OdValue = CanOpen::OdValue;
 namespace {
 using StringUtils::toLower;
 
-constexpr ImVec4 s_okColor    = {0.30f, 0.80f, 0.35f, 1.0f};
-constexpr ImVec4 s_errorColor = {0.90f, 0.30f, 0.30f, 1.0f};
+constexpr ImVec4 s_okColor      = {0.30f, 0.80f, 0.35f, 1.0f};
+constexpr ImVec4 s_errorColor   = {0.90f, 0.30f, 0.30f, 1.0f};
+constexpr ImVec4 s_warningColor = {0.95f, 0.75f, 0.25f, 1.0f};
 
 //! Raw values longer than this are not copied in the edit field, as they are shown truncated.
 constexpr std::size_t s_maxEditableRawBytes = 64;
@@ -87,6 +88,12 @@ std::string longFailure(CO_SDO_abortCode_t abortCode, CO_SDO_return_t returnCode
 std::string objectLabel(uint16_t index)
 {
     return std::format("0x{:04X}", index);
+}
+
+//! Identifies the node in the title of its windows, as windows of different nodes must not share a title.
+std::string windowPrefix(const CanOpen::Node& node)
+{
+    return std::format("{} (0x{:02X})", node.name(), node.nodeId());
 }
 
 //! Comments longer than this are cut in the tooltip. The whole text is in the comment window.
@@ -133,8 +140,6 @@ void ObjectDictionaryView::onImGuiRender(CanOpen::Node& node)
         m_commentWindows.clear();
     }
     if (!m_loaded) { load(); }
-
-    m_windowPrefix = std::format("{} (0x{:02X})", node.name(), node.nodeId());
 
     ImGui::PushID(this);
     pollRequests(node);
@@ -289,7 +294,6 @@ std::size_t ObjectDictionaryView::rangeOf(uint16_t index) noexcept
 
 std::string ObjectDictionaryView::rangeName(std::size_t range)
 {
-    if (range >= s_ranges.size()) { return "Other indexes"; }
     return std::format("0x{:04X} - {}", s_ranges[range].first, s_ranges[range].name);
 }
 
@@ -299,19 +303,30 @@ void ObjectDictionaryView::updateFilterMatches()
 {
     m_matchingObjects.clear();
     m_matchingEntries.clear();
-    if (m_lowerFilter.empty() || !m_dictionary) { return; }
+    if (!m_dictionary) { return; }
 
-    for (const auto& object : m_dictionary->getObjects()) {
-        // When the object itself is what is searched for, all of its sub-indexes are of interest.
-        const bool isObjectMatching =
-          containsLower(objectLabel(object.index), m_lowerFilter) || containsLower(object.name, m_lowerFilter);
-        if (isObjectMatching) { m_matchingObjects.insert(object.index); }
-        for (const auto& entry : object.entries) {
-            if (isObjectMatching || containsLower(entry.name, m_lowerFilter)) {
-                m_matchingObjects.insert(object.index);
-                m_matchingEntries.insert(makeKey(object.index, entry.subIndex));
+    if (!m_lowerFilter.empty()) {
+        for (const auto& object : m_dictionary->getObjects()) {
+            // When the object itself is what is searched for, all of its sub-indexes are of interest.
+            const bool isObjectMatching =
+              containsLower(objectLabel(object.index), m_lowerFilter) || containsLower(object.name, m_lowerFilter);
+            if (isObjectMatching) { m_matchingObjects.insert(object.index); }
+            for (const auto& entry : object.entries) {
+                if (isObjectMatching || containsLower(entry.name, m_lowerFilter)) {
+                    m_matchingObjects.insert(object.index);
+                    m_matchingEntries.insert(makeKey(object.index, entry.subIndex));
+                }
             }
         }
+    }
+
+    // Number of objects in each range, with the filter applied: the labels show where the matches are.
+    m_rangeCounts = {};
+    for (const auto& object : m_dictionary->getObjects()) {
+        if (matchesFilter(object)) { ++m_rangeCounts[rangeOf(object.index)]; }
+    }
+    for (std::size_t range = 0; range < m_rangeLabels.size(); ++range) {
+        m_rangeLabels[range] = std::format("{} ({})", rangeName(range), m_rangeCounts[range]);
     }
 }
 
@@ -345,19 +360,8 @@ void ObjectDictionaryView::renderToolbar()
         return;
     }
 
-    // Number of objects in each range, with the filter applied: the labels show where the matches are.
-    std::array<std::size_t, s_ranges.size() + 1> counts = {};
-    for (const auto& object : m_dictionary->getObjects()) {
-        if (matchesFilter(object)) { ++counts[rangeOf(object.index)]; }
-    }
-    // The other indexes are only offered when the file has some.
-    const bool hasOther = std::ranges::any_of(
-      m_dictionary->getObjects(), [](const OdObject& object) { return rangeOf(object.index) == s_otherRange; });
-    std::vector<std::size_t> ranges = {0, 1, 2};
-    if (hasOther) { ranges.push_back(s_otherRange); }
-    m_selectedRange = (std::min)(m_selectedRange, ranges.size() - 1);
-    Widget::Selector("##range", m_selectedRange, ranges, [&counts](std::size_t range) {
-        return std::format("{} ({})", rangeName(range), counts[range]);
+    Widget::Selector("##range", m_selectedRange, s_rangeChoices, [this](std::size_t range) -> const std::string& {
+        return m_rangeLabels[range];
     });
 
     ImGui::SetNextItemWidth(220.0f);
@@ -406,11 +410,10 @@ void ObjectDictionaryView::setAllOpen(bool isOpen)
 void ObjectDictionaryView::renderTable(CanOpen::Node& node)
 {
     BR_PROFILE_FUNCTION();
-    const bool hasObjects = std::ranges::any_of(m_dictionary->getObjects(), [this](const OdObject& object) {
-        return rangeOf(object.index) == m_selectedRange && matchesFilter(object);
-    });
-    if (!hasObjects) {
-        ImGui::TextDisabled("No object in this range.");
+    if (m_rangeCounts[m_selectedRange] == 0) {
+        ImGui::TextColored(s_warningColor,
+                           m_lowerFilter.empty() ? "The file has no object in this range."
+                                                 : "No object of this range matches the filter.");
         return;
     }
 
@@ -446,7 +449,8 @@ void ObjectDictionaryView::renderObject(CanOpen::Node& node, const OdObject& obj
     ImGui::TableNextColumn();
 
     if (!object.hasSubIndexes()) {
-        ImGui::TreeNodeEx(objectLabel(object.index).c_str(), leafFlags);
+        // Formatted by ImGui in its own buffer, which does not allocate on every frame.
+        ImGui::TreeNodeEx("object", leafFlags, "0x%04X", object.index);
         if (!object.entries.empty()) { renderEntryCells(node, object.index, object.entries.front(), object); }
         ImGui::PopID();
         return;
@@ -455,14 +459,17 @@ void ObjectDictionaryView::renderObject(CanOpen::Node& node, const OdObject& obj
     // The state is kept here, to be able to expand and fold all the objects.
     const bool wasOpen = m_openObjects.contains(object.index);
     ImGui::SetNextItemOpen(wasOpen, ImGuiCond_Always);
-    const bool open = ImGui::TreeNodeEx(objectLabel(object.index).c_str(), branchFlags);
+    const bool open = ImGui::TreeNodeEx("object", branchFlags, "0x%04X", object.index);
     if (open != wasOpen) {
         if (open) { m_openObjects.insert(object.index); }
         else { m_openObjects.erase(object.index); }
     }
 
     ImGui::TableNextColumn();
-    renderName(object.name, object.description, std::format("{} - {}: {}", m_windowPrefix, objectLabel(object.index), object.name));
+    if (renderName(object.name, object.description)) {
+        openCommentWindow(std::format("{} - {}: {}", windowPrefix(node), objectLabel(object.index), object.name),
+                          object.description);
+    }
     if (ImGui::IsItemHovered() && !object.description.empty()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
@@ -489,7 +496,7 @@ void ObjectDictionaryView::renderObject(CanOpen::Node& node, const OdObject& obj
             ImGui::PushID(entry.subIndex);
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TreeNodeEx(std::format("sub 0x{:02X}", entry.subIndex).c_str(), leafFlags);
+            ImGui::TreeNodeEx("sub", leafFlags, "sub 0x%02X", entry.subIndex);
             renderEntryCells(node, object.index, entry, object);
             ImGui::PopID();
         }
@@ -507,9 +514,14 @@ void ObjectDictionaryView::renderEntryCells(CanOpen::Node&  node,
 
     // Name
     ImGui::TableNextColumn();
-    renderName(entry.name,
-               entry.description,
-               std::format("{} - {} sub 0x{:02X}: {}", m_windowPrefix, objectLabel(object.index), entry.subIndex, entry.name));
+    if (renderName(entry.name, entry.description)) {
+        openCommentWindow(std::format("{} - {} sub 0x{:02X}: {}",
+                                      windowPrefix(node),
+                                      objectLabel(object.index),
+                                      entry.subIndex,
+                                      entry.name),
+                          entry.description);
+    }
     if (ImGui::IsItemHovered()) { renderEntryTooltip(object, entry); }
 
     // Type
@@ -585,16 +597,14 @@ void ObjectDictionaryView::renderEntryCells(CanOpen::Node&  node,
     }
 }
 
-void ObjectDictionaryView::renderName(const std::string& name,
-                                      const std::string& comment,
-                                      const std::string& windowTitle)
+bool ObjectDictionaryView::renderName(const std::string& name, const std::string& comment)
 {
     if (comment.empty()) {
         ImGui::TextUnformatted(name.c_str());
-        return;
+        return false;
     }
     // A selectable, so that it looks clickable when hovered.
-    if (ImGui::Selectable(name.empty() ? "(unnamed)" : name.c_str())) { openCommentWindow(windowTitle, comment); }
+    return ImGui::Selectable(name.empty() ? "(unnamed)" : name.c_str());
 }
 
 void ObjectDictionaryView::openCommentWindow(const std::string& title, const std::string& comment)
