@@ -22,13 +22,13 @@
 #include "utils/communication/can_open/to_string.h"
 #include "utils/communication/can_open/types.h"
 #include "utils/imgui/selector.h"
+#include "utils/string_utils.h"
 
 #include <Brigerad/Core/Log.h>
 #include <Brigerad/Debug/Instrumentor.h>
 #include <imgui.h>
 
 #include <algorithm>
-#include <cctype>
 #include <cfloat>
 #include <chrono>
 #include <cstring>
@@ -46,6 +46,8 @@ using CanOpen::VarType;
 namespace OdValue = CanOpen::OdValue;
 
 namespace {
+using StringUtils::toLower;
+
 constexpr ImVec4 s_okColor    = {0.30f, 0.80f, 0.35f, 1.0f};
 constexpr ImVec4 s_errorColor = {0.90f, 0.30f, 0.30f, 1.0f};
 
@@ -53,13 +55,6 @@ constexpr ImVec4 s_errorColor = {0.90f, 0.30f, 0.30f, 1.0f};
 constexpr std::size_t s_maxEditableRawBytes = 64;
 //! Octet strings longer than this do not fit in the 255 characters of the edit field, at 5 characters per byte.
 constexpr std::size_t s_maxEditableOctets = 255 / 5;
-
-std::string toLower(std::string_view text)
-{
-    std::string out(text);
-    std::ranges::transform(out, out.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-    return out;
-}
 
 bool containsLower(std::string_view text, std::string_view lowerNeedle)
 {

@@ -16,6 +16,8 @@
  */
 #include "mcp_popup_handler.h"
 
+#include "utils/string_utils.h"
+
 #include <Brigerad/Core/Log.h>
 
 #include <algorithm>
@@ -102,13 +104,9 @@ void McpPopupHandler::importPopup(sol::state_view lua, std::size_t uut)
 
             // Call button action if applicable
             int buttonIdx = -1;
-            auto lower = [](std::string s) {
-                std::ranges::transform(s, s.begin(), ::tolower);
-                return s;
-            };
-            std::string lowerButton = lower(popup->responseButton);
+            const std::string lowerButton = StringUtils::toLower(popup->responseButton);
             for (size_t i = 0; i < popup->buttons.size(); ++i) {
-                if (lower(popup->buttons[i]) == lowerButton) {
+                if (StringUtils::toLower(popup->buttons[i]) == lowerButton) {
                     buttonIdx = static_cast<int>(i);
                     break;
                 }
