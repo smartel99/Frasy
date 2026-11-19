@@ -82,6 +82,9 @@ void Layer::onImGuiRender()
     }
     ImGui::End();
     if (!open) { m_openNodes.clear(); }
+    for (auto&& node : m_openNodes) {
+        node.renderWindows();
+    }
 }
 
 void Layer::setVisibility(bool visibility)

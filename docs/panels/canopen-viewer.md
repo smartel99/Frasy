@@ -58,7 +58,8 @@ is shown next to the button; hover it for details (e.g., the device type that wa
 
 ## Node Explorer
 
-When you click a node, it opens in a tabbed explorer window with three tabs:
+When you click a node, it opens in a tabbed explorer window with these tabs: Active Errors, Error
+History, Object Dictionary and SDO.
 
 ### Active Errors
 
@@ -82,9 +83,57 @@ Shows the history of emergency messages received from the node. Each entry inclu
 This is useful for diagnosing intermittent issues that have already resolved by the time you
 look.
 
+### Object Dictionary
+
+Browses the object dictionary of the node, so that you do not have to remember indexes. The
+content comes from the **EDS or XDD file of the board** (the `ib.odPath` of the board given to `Environment.Ib.Add()`);
+the format is detected automatically. The path of the file and the device it describes are shown
+at the top. The file is parsed once, by whoever needs it first (the Lua environment when the product
+is loaded), and the viewer shows that same result. **Reload** reads the file again after you edited it.
+
+The objects are shown one range of indexes at a time. Use the arrows or the dropdown (like in the
+analyzers) to switch between:
+
+| Range | Content |
+|---|---|
+| `0x1000` - `0x1FFF` | Communication Specific Parameters |
+| `0x2000` - `0x5FFF` | Manufacturer Specific Parameters |
+| `0x6000` - `0x9FFF` | Device Profile Specific Parameters (shown first) |
+| Other indexes | Anything else in the file (e.g., data types). Only offered when there is some. |
+
+The dropdown shows how many objects each range has (with the filter applied).
+
+Each object is a row, and records and arrays (e.g., `0x1018` Identity) expand to show their
+sub-indexes:
+
+| Column | Description |
+|---|---|
+| **Object** | Index (`0x1018`) or sub-index (`sub 0x01`). |
+| **Name** | Name from the EDS/XDD. Hover for the beginning of the description (comment) written in the XDD, the data type and the default value. When there is a description, the name can be clicked to open it entirely (see below). An EDS has no descriptions. |
+| **Type** | Data type of the entry. |
+| **Access** | `ro`, `wo`, `rw` or `const`. |
+| **Value** | The last value read from the device. |
+| **New value** | Value to write (only for writable entries). Pressing ++enter++ writes it. |
+| **Actions** | **Read** and **Write** buttons, and the result of the last write. |
+
+- **Read** uploads the entry. **Read all** on a record or an array reads all its sub-indexes.
+- **Write** downloads the value typed in *New value*, then reads the entry back to show what the
+  device holds. Integers accept decimal or hexadecimal (`0x1F`). Entries of a type without a
+  native representation (e.g., domains) are edited as hexadecimal bytes (`01 AB FF`).
+- Clicking the name of an entry that has a comment opens a window with the whole text. It scrolls,
+  can be resized and is closed with its close button. Several can be open at once, and they stay
+  open when you select another tab.
+- **Expand** and **Fold**, on the right of the filter line, expand or fold every record and array,
+  in all the ranges. Typing a filter expands the records and arrays that match.
+- A button is disabled when the access type does not allow the operation.
+- Errors are shown in red (`Timeout`, or the SDO abort code); hover for the explanation.
+- The filter keeps the objects whose index or name contains the text, in the selected range. Timeout and retries apply to
+  the requests of this tab.
+
 ### SDO (Upload / Download)
 
-The SDO tab lets you manually read from and write to the node's object dictionary.
+The SDO tab lets you manually read from and write to any index of the node, even when it is not
+in the EDS/XDD.
 
 ---
 

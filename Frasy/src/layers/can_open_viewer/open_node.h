@@ -22,6 +22,7 @@
 #include "utils/communication/can_open/can_open.h"
 #include "utils/communication/can_open/services/sdo_uploader.h"
 
+#include "object_dictionary_view.h"
 #include "sdo.h"
 
 #include <cstdint>
@@ -36,6 +37,8 @@ public:
     OpenNode(uint8_t nodeId, CanOpen::CanOpen* canOpen);
 
     void onImGuiRender();
+    //! Renders the windows opened from the pages of the node. They stay whatever the selected tab.
+    void renderWindows();
 
     [[nodiscard]] bool    open() const { return m_open; }
     [[nodiscard]] uint8_t nodeId() const { return m_nodeId; }
@@ -50,7 +53,8 @@ private:
     std::string       m_tabBarName;
     bool              m_open = true;
 
-    std::unique_ptr<Sdo> m_sdo;
+    std::unique_ptr<Sdo>                  m_sdo;
+    std::unique_ptr<ObjectDictionaryView> m_objectDictionary;
 
     static constexpr uint32_t s_criticalEmergencyColor = 0x203030DC;    // Pretty red uwu.
 };
