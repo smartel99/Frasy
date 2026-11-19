@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <utils/models/solution.h>
 
+#include <initializer_list>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -306,4 +307,200 @@ TEST(SolutionResetStates, OverwritesPreviousRun)
     solution.ResetStates(2);
     EXPECT_EQ(a.state, (std::vector {ExecutionState::idle, ExecutionState::idle, ExecutionState::idle}));
     EXPECT_EQ(a.tests.at("a1").state[1], ExecutionState::idle);
+}
+
+// =============================================================================
+// State transitions
+// =============================================================================
+
+namespace {
+using enum ExecutionState;
+
+Solution Running(std::size_t uutCount = 2)
+{
+    Solution solution = FromJson(s_splitGeneration);
+    solution.ResetStates(uutCount);
+    return solution;
+}
+}    // namespace
+
+TEST(SolutionStates, NormalTestLifecycle)
+{
+    Solution solution = Running();
+    EXPECT_TRUE(solution.SetTestState(1, "A", "a1", running));
+    EXPECT_EQ(solution.sequences.at("A").tests.at("a1").state[1], running);
+    EXPECT_EQ(solution.sequences.at("A").tests.at("a1").state[2], idle);    // Other UUT untouched.
+    EXPECT_TRUE(solution.SetTestState(1, "A", "a1", passed));
+    EXPECT_EQ(solution.sequences.at("A").tests.at("a1").state[1], passed);
+    EXPECT_FALSE(solution.SetTestState(1, "A", "a1", passed));    // Unchanged.
+}
+
+TEST(SolutionStates, EndNeverOverwritesSkipOrDisable)
+{
+    for (const auto skip : {disabled, skipped}) {
+        Solution solution = Running();
+        ASSERT_TRUE(solution.SetTestState(1, "A", "a1", skip));
+        ASSERT_TRUE(solution.SetSequenceState(1, "B", skip));
+        for (const auto next : {running, passed, failed, error}) {
+            EXPECT_FALSE(solution.SetTestState(1, "A", "a1", next)) << int(skip) << " -> " << int(next);
+            EXPECT_FALSE(solution.SetSequenceState(1, "B", next)) << int(skip) << " -> " << int(next);
+        }
+        EXPECT_EQ(solution.sequences.at("A").tests.at("a1").state[1], skip);
+        EXPECT_EQ(solution.sequences.at("B").state[1], skip);
+    }
+}
+
+TEST(SolutionStates, SkipAndDisableAlwaysApply)
+{
+    Solution solution = Running();
+    ASSERT_TRUE(solution.SetTestState(1, "A", "a1", running));
+    EXPECT_TRUE(solution.SetTestState(1, "A", "a1", skipped));
+    EXPECT_TRUE(solution.SetTestState(1, "A", "a1", disabled));
+    EXPECT_EQ(solution.sequences.at("A").tests.at("a1").state[1], disabled);
+}
+
+TEST(SolutionStates, StartDoesntOverwriteFlagDisabled)
+{
+    Solution solution = FromJson(s_splitGeneration);
+    solution.SetTestEnable("A", "a2", false);
+    solution.ResetStates(1);
+    EXPECT_FALSE(solution.SetTestState(1, "A", "a2", running));
+    EXPECT_FALSE(solution.SetTestState(1, "A", "a2", passed));
+    EXPECT_EQ(solution.sequences.at("A").tests.at("a2").state[1], disabled);
+}
+
+TEST(SolutionStates, SequenceSkipCascadesToIdleTestsOnly)
+{
+    Solution solution = Running();
+    ASSERT_TRUE(solution.SetTestState(1, "A", "a1", passed));
+    ASSERT_TRUE(solution.SetSequenceState(1, "A", skipped));
+    const auto& a = solution.sequences.at("A");
+    EXPECT_EQ(a.state[1], skipped);
+    EXPECT_EQ(a.tests.at("a1").state[1], passed);    // Already done, kept.
+    EXPECT_EQ(a.tests.at("a2").state[1], skipped);
+    EXPECT_EQ(a.tests.at("a3").state[1], skipped);
+    EXPECT_EQ(a.tests.at("a2").state[2], idle);    // Other UUT untouched.
+}
+
+TEST(SolutionStates, RepeatedSequenceSkipIsNoChange)
+{
+    Solution solution = Running();
+    ASSERT_TRUE(solution.SetSequenceState(1, "B", disabled));
+    EXPECT_FALSE(solution.SetSequenceState(1, "B", disabled));
+    EXPECT_EQ(solution.sequences.at("B").tests.at("b3").state[1], disabled);
+}
+
+TEST(SolutionStates, UnknownTargetsIgnored)
+{
+    Solution solution = Running(1);
+    EXPECT_FALSE(solution.SetSequenceState(1, "Z", running));
+    EXPECT_FALSE(solution.SetTestState(1, "Z", "a1", running));
+    EXPECT_FALSE(solution.SetTestState(1, "A", "z", running));
+    EXPECT_FALSE(solution.SetSequenceState(2, "A", running));    // UUT out of range.
+    EXPECT_FALSE(solution.SetTestState(2, "A", "a1", running));
+    EXPECT_FALSE(solution.SetSequenceState(99, "A", skipped));
+
+    Solution empty = FromJson(s_splitGeneration);    // States never sized.
+    EXPECT_FALSE(empty.SetSequenceState(0, "A", running));
+    EXPECT_FALSE(empty.SetTestState(0, "A", "a1", running));
+}
+
+// =============================================================================
+// ApplyProgress
+// =============================================================================
+
+TEST(SolutionApplyProgress, MapsEveryEventType)
+{
+    struct Case {
+        const char*    type;
+        bool           pass;
+        bool           isTest;
+        ExecutionState expected;
+    };
+    for (const auto& [type, pass, isTest, expected] : std::initializer_list<Case> {
+           {"sequence_start", true, false, running},
+           {"sequence_end", true, false, passed},
+           {"sequence_end", false, false, failed},
+           {"sequence_disabled", true, false, disabled},
+           {"sequence_skipped", false, false, skipped},
+           {"test_start", true, true, running},
+           {"test_end", true, true, passed},
+           {"test_end", false, true, failed},
+           {"test_disabled", true, true, disabled},
+           {"test_skipped", true, true, skipped},
+         }) {
+        Solution solution = Running();
+        if (isTest) {
+            EXPECT_TRUE(solution.ApplyProgress(type, 2, "b2", "B", pass)) << type;
+            EXPECT_EQ(solution.sequences.at("B").tests.at("b2").state[2], expected) << type << " " << pass;
+            EXPECT_EQ(solution.sequences.at("B").state[2], idle) << type;
+        }
+        else {
+            EXPECT_TRUE(solution.ApplyProgress(type, 2, "B", "", pass)) << type;
+            EXPECT_EQ(solution.sequences.at("B").state[2], expected) << type << " " << pass;
+        }
+        EXPECT_EQ(solution.sequences.at("B").state[1], idle) << type;    // Other UUT untouched.
+    }
+}
+
+TEST(SolutionApplyProgress, IgnoresExpectationsAndUnknownTypes)
+{
+    Solution solution = Running();
+    EXPECT_FALSE(solution.ApplyProgress("expectation", 1, "Voltage", "A", false));
+    EXPECT_FALSE(solution.ApplyProgress("", 1, "A", "", true));
+    EXPECT_FALSE(solution.ApplyProgress("Sequence_Start", 1, "A", "", true));
+    EXPECT_FALSE(solution.ApplyProgress("test_start", 1, "a1", "Z", true));    // Unknown parent.
+    for (const auto& [sName, sequence] : solution.sequences) {
+        EXPECT_EQ(sequence.state, (std::vector {idle, idle, idle})) << sName;
+    }
+}
+
+TEST(SolutionApplyProgress, LuaDisabledTestSequence)
+{
+    // What Lua reports for a disabled test: start, disabled, then end with pass = true.
+    Solution solution = Running();
+    EXPECT_TRUE(solution.ApplyProgress("test_start", 1, "a2", "A", true));
+    EXPECT_TRUE(solution.ApplyProgress("test_disabled", 1, "a2", "A", true));
+    EXPECT_FALSE(solution.ApplyProgress("test_end", 1, "a2", "A", true));
+    EXPECT_EQ(solution.sequences.at("A").tests.at("a2").state[1], disabled);
+}
+
+// =============================================================================
+// DisableUut / FinishRun
+// =============================================================================
+
+TEST(SolutionStates, DisableUut)
+{
+    Solution solution = Running();
+    solution.DisableUut(2);
+    for (const auto& [sName, sequence] : solution.sequences) {
+        EXPECT_EQ(sequence.state[1], idle) << sName;
+        EXPECT_EQ(sequence.state[2], disabled) << sName;
+        for (const auto& [tName, test] : sequence.tests) {
+            EXPECT_EQ(test.state[1], idle) << tName;
+            EXPECT_EQ(test.state[2], disabled) << tName;
+        }
+    }
+    solution.DisableUut(99);    // Out of range: ignored.
+}
+
+TEST(SolutionStates, FinishRunAbortsOnlyRunning)
+{
+    Solution solution = Running();
+    solution.SetSequenceState(1, "A", running);
+    solution.SetTestState(1, "A", "a1", passed);
+    solution.SetTestState(1, "A", "a2", running);
+    solution.SetTestState(2, "A", "a1", failed);
+    solution.SetSequenceState(2, "B", skipped);
+
+    solution.FinishRun();
+
+    const auto& a = solution.sequences.at("A");
+    EXPECT_EQ(a.state[1], error);
+    EXPECT_EQ(a.tests.at("a1").state[1], passed);
+    EXPECT_EQ(a.tests.at("a2").state[1], error);
+    EXPECT_EQ(a.tests.at("a3").state[1], idle);    // Never reached.
+    EXPECT_EQ(a.tests.at("a1").state[2], failed);
+    EXPECT_EQ(solution.sequences.at("B").state[2], skipped);
+    EXPECT_EQ(solution.sequences.at("C").state[1], idle);
 }

@@ -232,6 +232,19 @@ enum ExecutionState {
 };
 ```
 
+The orchestrator updates these states live during a run, from the events Lua reports through
+`__progress.report` (`sequence_start`, `test_end`, …), and bumps the solution revision on each change:
+
+- **Run start** (after the run's generation): every state goes back to `idle`, or `disabled` for disabled
+  entries; UUTs disabled with `toggleUut()` are `disabled` everywhere.
+- **Start / end events** set `running`, then `passed` or `failed`. They never overwrite `disabled` or
+  `skipped`: Lua still reports the start of those, and the end too for tests.
+- **`*_disabled` / `*_skipped` events** always apply; on a sequence, also to its tests not reached yet.
+- **Run end**: whatever is still `running` was aborted (e.g. `ErrorPolicy.stopAll`, a Lua error) and becomes
+  `error`. What was never reached stays `idle`.
+
+`waiting` is not used yet. The rules live in `Models::Solution::ApplyProgress()` and the state setters it uses.
+
 ### Enabling/Disabling at Runtime
 
 Enable flags are set on the orchestrator's solution:
@@ -247,7 +260,7 @@ m_orchestrator.setTestEnable("Power On", "Check Voltage", false);
     [the Test Viewer plan](../planification/test-viewer.md).
 
 In Lua, a sequence disabled with `Orchestrator.Disable(sequence)` is skipped with reason "Disabled"
-(test-level disabling is broken until that same plan's Phase 6). A disabled or skipped scope never passes,
+(test-level disabling is broken until that same plan's Phase 6a). A disabled or skipped scope never passes,
 so the UUT's overall result is a failure.
 
 ---

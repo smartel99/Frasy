@@ -143,6 +143,9 @@ public:
     /// Bumped after each successful loadUserFiles().
     [[nodiscard]] std::uint64_t getLoadId() const { return m_loadId.load(); }
 
+    /// getLoadId() value the last successful generation was built from (by generate() or a run).
+    [[nodiscard]] std::uint64_t getGeneratedLoadId() const { return m_generatedLoadId.load(); }
+
     /**
      * Allows orchestrator to display Lua popups
      * Already call by Frasy::MainLayer::OnGuiRender()
@@ -201,6 +204,8 @@ private:
     void updateUutState(UutState state, bool force = false);
     void updateUutState(UutState state, const std::vector<std::size_t>& uuts, bool force = false);
 
+    /// Start of a run: states back to idle (or disabled), disabled UUTs disabled everywhere.
+    void resetRunStates();
     bool runStageGenerate(bool regenerate = false);
     bool runStageVerify(sol::state_view team);
     void runStageExecute(sol::state_view team, const std::vector<std::string>& serials);
@@ -257,6 +262,7 @@ private:
     Models::Solution           m_solution         = {};
     std::atomic<std::uint64_t> m_solutionRevision = 0;
     std::atomic<std::uint64_t> m_loadId           = 0;
+    std::atomic<std::uint64_t> m_generatedLoadId  = 0;
     // Last members: destroyed first, so they wait for their thread while everything it uses still exists.
     std::future<void> m_running;
     std::future<void> m_generating;

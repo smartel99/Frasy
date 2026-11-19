@@ -219,6 +219,7 @@ UutState getUutState(std::size_t uut) const;
 Models::Solution getSolution() const;       // Copy, taken under lock
 std::uint64_t getSolutionRevision() const;  // Bumped on every change of the solution
 std::uint64_t getLoadId() const;            // Bumped after each successful loadUserFiles()
+std::uint64_t getGeneratedLoadId() const;   // getLoadId() the last successful generation was built from
 
 // Control
 void toggleUut(std::size_t index);

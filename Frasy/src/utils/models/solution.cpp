@@ -113,6 +113,84 @@ void Solution::ResetStates(std::size_t uutCount)
     }
 }
 
+namespace {
+bool IsSkip(ExecutionState state)
+{ return state == disabled || state == skipped; }
+
+/// Apply the transition rules to one state, see Solution::SetSequenceState().
+bool Transition(ExecutionState& current, ExecutionState next)
+{
+    if (current == next || (IsSkip(current) && !IsSkip(next))) { return false; }
+    current = next;
+    return true;
+}
+}    // namespace
+
+bool Solution::SetSequenceState(std::size_t uut, const std::string& sequence, ExecutionState state)
+{
+    const auto it = sequences.find(sequence);
+    if (it == sequences.end() || uut >= it->second.state.size()) { return false; }
+    bool changed = Transition(it->second.state[uut], state);
+    if (IsSkip(state)) {
+        for (auto& [tName, test] : it->second.tests) {
+            if (uut < test.state.size() && test.state[uut] == idle) {
+                test.state[uut] = state;
+                changed         = true;
+            }
+        }
+    }
+    return changed;
+}
+
+bool Solution::SetTestState(std::size_t uut, const std::string& sequence, const std::string& test, ExecutionState state)
+{
+    const auto sq = sequences.find(sequence);
+    if (sq == sequences.end()) { return false; }
+    const auto t = sq->second.tests.find(test);
+    if (t == sq->second.tests.end() || uut >= t->second.state.size()) { return false; }
+    return Transition(t->second.state[uut], state);
+}
+
+bool Solution::ApplyProgress(
+  std::string_view type, std::size_t uut, const std::string& name, const std::string& parent, bool pass)
+{
+    const ExecutionState end = pass ? passed : failed;
+    if (type == "sequence_start") { return SetSequenceState(uut, name, running); }
+    if (type == "sequence_end") { return SetSequenceState(uut, name, end); }
+    if (type == "sequence_disabled") { return SetSequenceState(uut, name, disabled); }
+    if (type == "sequence_skipped") { return SetSequenceState(uut, name, skipped); }
+    if (type == "test_start") { return SetTestState(uut, parent, name, running); }
+    if (type == "test_end") { return SetTestState(uut, parent, name, end); }
+    if (type == "test_disabled") { return SetTestState(uut, parent, name, disabled); }
+    if (type == "test_skipped") { return SetTestState(uut, parent, name, skipped); }
+    return false;
+}
+
+void Solution::DisableUut(std::size_t uut)
+{
+    for (auto& [sName, sequence] : sequences) {
+        if (uut < sequence.state.size()) { sequence.state[uut] = disabled; }
+        for (auto& [tName, test] : sequence.tests) {
+            if (uut < test.state.size()) { test.state[uut] = disabled; }
+        }
+    }
+}
+
+void Solution::FinishRun()
+{
+    const auto abort = [](std::vector<ExecutionState>& states) {
+        for (auto& state : states) {
+            if (state == running) { state = error; }
+        }
+    };
+    for (auto& [sName, sequence] : sequences) {
+        abort(sequence.state);
+        for (auto& [tName, test] : sequence.tests) {
+            abort(test.state);
+        }
+    }
+}
+
 void Solution::SetSequenceEnable(const std::string& sequence, bool enabled)
 { sequences.at(sequence).enabled = enabled; }
 

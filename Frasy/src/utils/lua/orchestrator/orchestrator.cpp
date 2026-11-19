@@ -360,8 +360,8 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         importExclusive(lua, stage);
         importOnce(lua, stage);
 
-        // Progress callback binding
-        if (m_progressCallback && stage == Stage::execution) {
+        // Progress: tracked in the solution's states, then forwarded to the user callback if any.
+        if (stage == Stage::execution) {
             lua["__progress"]           = lua.create_table();
             lua["__progress"]["report"] = [this](const std::string& type,
                                                  std::size_t        uut,
@@ -369,7 +369,12 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
                                                  const std::string& parentA,
                                                  const std::string& parentB,
                                                  bool               pass) {
-                m_progressCallback(type, uut, name, parentA, parentB, pass);
+                // Expectations don't change states: skip the lock, they are the most frequent event.
+                if (type != "expectation") {
+                    std::lock_guard lock(m_solutionMutex);
+                    if (m_solution.ApplyProgress(type, uut, name, parentA, pass)) { ++m_solutionRevision; }
+                }
+                if (m_progressCallback) { m_progressCallback(type, uut, name, parentA, parentB, pass); }
             };
         }
         else {
@@ -545,6 +550,17 @@ bool Orchestrator::loadTests(sol::state_view lua, const std::string& filename)
 
 void Orchestrator::runTests(const std::vector<std::string>& serials, const bool regenerate, const bool skipVerification)
 {
+    // On every way out: whatever is still running was aborted.
+    struct FinishRunStates {
+        Orchestrator* self;
+        ~FinishRunStates()
+        {
+            std::lock_guard lock(self->m_solutionMutex);
+            self->m_solution.FinishRun();
+            ++self->m_solutionRevision;
+        }
+    } finishRunStates {this};
+
     updateUutState(UutState::Waiting);
     {
         FRASY_PROFILE_SCOPE("Create Output Dir");
@@ -562,6 +578,7 @@ void Orchestrator::runTests(const std::vector<std::string>& serials, const bool 
             return;
         }
     }
+    resetRunStates();
     {
         FRASY_PROFILE_SCOPE("Verify");
         if (!skipVerification && !runStageVerify(*m_state)) {
@@ -574,6 +591,16 @@ void Orchestrator::runTests(const std::vector<std::string>& serials, const bool 
         FRASY_PROFILE_SCOPE("Execute");
         runStageExecute(*m_state, serials);
     }
+}
+
+void Orchestrator::resetRunStates()
+{
+    std::lock_guard lock(m_solutionMutex);
+    m_solution.ResetStates(m_map.uuts.size());
+    for (const auto uut : m_map.uuts) {
+        if (m_uutStates[uut] == UutState::Disabled) { m_solution.DisableUut(uut); }
+    }
+    ++m_solutionRevision;
 }
 
 bool Orchestrator::runStageGenerate(bool regenerate)
@@ -624,6 +651,8 @@ bool Orchestrator::runStageGenerate(bool regenerate)
         }
 
         m_generated = result.valid();
+        // m_loadId only changes under m_generateMutex (loadUserFiles()), so this is the load generated from.
+        if (m_generated) { m_generatedLoadId = m_loadId.load(); }
         return m_generated;
     }
     catch (const std::exception& err) {
