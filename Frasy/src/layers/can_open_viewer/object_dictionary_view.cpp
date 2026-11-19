@@ -140,6 +140,8 @@ void ObjectDictionaryView::onImGuiRender(CanOpen::Node& node)
     renderToolbar();
     if (m_dictionary) { renderTable(node); }
     ImGui::PopID();
+
+    renderCommentWindows();
 }
 
 void ObjectDictionaryView::load(bool forceReload)
