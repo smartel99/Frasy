@@ -1,7 +1,7 @@
 --- @class Ib
 --- @field kind integer
 --- @field nodeId integer
---- @field odPath string Path of the EDS file describing the object dictionary.
+--- @field odPath string Path of the EDS or XDD file describing the object dictionary.
 --- @field name string
 --- @field od table
 --- @field private __kind string

@@ -97,8 +97,9 @@ local function AddIb(board)
         "Ib already defined. " .. board.ib.name)
     Context.map.ibs[board.ib.name] = board
     if (board.ib.odPath == nil or board.ib.odPath == "") and board.ib.eds ~= nil then
-        error("Board '" .. board.ib.name .. "': `ib.eds` was renamed to `ib.odPath`.")
+        error("Board '" .. board.ib.name .. "': `ib.eds` was renamed to `ib.odPath`. It accepts an EDS or a XDD file.")
     end
+    -- The format (EDS or XDD) is detected from the content of the file.
     board.ib.od = odParser.LoadFile(board.ib.odPath)
     return board
 end

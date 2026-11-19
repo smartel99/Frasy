@@ -66,8 +66,8 @@ Environment.Uut.Count(4)
 
 ## `Environment.Ib.Add(board)`
 
-Registers a CANopen instrumentation board. The framework parses the board's EDS file and
-builds its object dictionary.
+Registers a CANopen instrumentation board. The framework parses the board's EDS or XDD file
+(see `ib.odPath`) and builds its object dictionary.
 
 ```lua
 local MyDaq = DAQ:New({ name = "daq", nodeId = 2 })
@@ -86,7 +86,9 @@ Environment.Ib.Add(MyDaq)
 
 - Board names must be unique. Registering a duplicate name raises an error.
 - After registration, the board is accessible at `Context.map.ibs.<name>`.
-- The EDS file is parsed immediately and the object dictionary is attached as `board.ib.od`.
+- The EDS or XDD file is parsed by C++ (once per file, the result is shared with the CANopen Viewer) and the
+  object dictionary is attached as `board.ib.od`.
+  The format is detected from the content of the file, not from its extension.
 - `ib.odPath` replaces the former `ib.eds`; a board that still sets `ib.eds` raises an error.
 - Predefined board types: `DAQ`, `PIO`, `R8L`.
 - For non-CANopen devices, add them directly to `Context.map.ibs` instead (see

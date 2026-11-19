@@ -24,6 +24,7 @@
 #include "../ib_info.h"
 #include "../ode_deserializer.h"
 #include "../ode_serializer.h"
+#include "../object_dictionary_binding.h"
 #include "../team.h"
 #include "utils/lua/save_as_json.h"
 
@@ -471,6 +472,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         lua["CanOpen"]["__reset"] = [&](std::size_t nodeId) { m_canOpen->resetNode(static_cast<uint8_t>(nodeId)); };
 
         IbInfo::registerLuaType(lua);
+        registerObjectDictionary(lua);
 
         // Boards
         auto ibs    = lua.create_named_table("Ibs");

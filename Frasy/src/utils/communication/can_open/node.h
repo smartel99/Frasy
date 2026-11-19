@@ -41,7 +41,7 @@ public:
 
     [[nodiscard]] uint8_t          nodeId() const { return m_nodeId; }
     [[nodiscard]] std::string_view name() const { return m_name; }
-    //! Path of the EDS describing the object dictionary of the node. Empty when unknown.
+    //! Path of the EDS or XDD describing the object dictionary of the node. Empty when unknown.
     [[nodiscard]] std::string_view odPath() const { return m_odPath; }
     [[nodiscard]] CanOpen*         bus() const { return m_canOpen; }
     void reset() const;

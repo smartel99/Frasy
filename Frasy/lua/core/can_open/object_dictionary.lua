@@ -1,4 +1,3 @@
-local IniParser = require("lua.core.utils.ini_parser")
 local ObjectType = require("lua.core.can_open.types.object_type")
 local DataType = require("lua.core.can_open.types.data_type")
 
@@ -137,13 +136,16 @@ local function ParseObjectDictionary(ini)
     return od
 end
 
+--- The EDS and XDD files are read by C++, which parses each file only once and shares the result with the GUI. What it
+--- gives is the sections of the dictionary, with the layout of an EDS (`XXXX` for an object, `XXXXsubY` for one of its
+--- sub-indexes). The table of the dictionary is built from them.
 return {
+    --- Builds the object dictionary from the content of an EDS or of a XDD.
     Parse = function(str)
-        local ini = IniParser.Parse(str)
-        return ParseObjectDictionary(ini)
+        return ParseObjectDictionary(__parseObjectDictionary(str))
     end,
+    --- Builds the object dictionary from an EDS or a XDD file. The format is detected from the content.
     LoadFile = function(filename)
-        local ini = IniParser.LoadFile(filename)
-        return ParseObjectDictionary(ini)
+        return ParseObjectDictionary(__loadObjectDictionary(filename))
     end
 }

@@ -43,7 +43,7 @@ end)
 | `Environment.Make(fn)` | Wraps the environment definition; validates on completion |
 | `Environment.ScriptVersion(version)` | Declares the script version string |
 | `Environment.Uut.Count(n)` | Sets the number of UUTs (Units Under Test) |
-| `Environment.Ib.Add(board)` | Registers an instrumentation board; parses its EDS file |
+| `Environment.Ib.Add(board)` | Registers an instrumentation board; loads its EDS or XDD file (parsed by C++) |
 | `Environment.SetExecutionPolicy(policy)` | `ExecutionPolicy.parallel` or `ExecutionPolicy.sequential` |
 | `Environment.UutValue.Add(key)` | Declares a per-UUT value with `.Link(uut, value)` chaining |
 | `Environment.Team.Add(leader, ...)` | Groups UUTs into teams for coordinated execution |
