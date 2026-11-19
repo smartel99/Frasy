@@ -77,12 +77,19 @@ Needs Phase 1, or every entry shows as disabled.
 
 - Orchestrator:
   - `std::atomic<std::uint64_t> m_loadId`, bumped at the end of a successful `loadUserFiles()`; `getLoadId()`.
-  - Split generation from runs: own `std::future<void> m_generating` and `std::mutex m_generateMutex`
-    held for the whole of `runStageGenerate()`, so background and run-time generation serialize.
-  - `runSolution()` no longer collides with a background generation: its worker waits on `m_generating`,
-    then `runStageGenerate(regenerate)` returns immediately when already generated.
-  - `loadUserFiles()` waits for an in-flight generation before resetting state (fast product switching).
-  - `requestGenerate()`: silent no-op if running or already generating (no modal dialog).
+  - Split generation from runs: own `std::future<void> m_generating` (`isGenerating()`), so `isRunning()` only
+    reflects runs. `std::mutex m_generateMutex` is held for the whole of `runStageGenerate()`, so background and
+    run-time generation serialize.
+  - `runSolution()` no longer collides with a background generation: its `runStageGenerate(regenerate)` waits on
+    `m_generateMutex`, then returns immediately when already generated.
+  - `loadUserFiles()` and the product callback setters (`setLoadUser*`, `setPopupImport`, `setProgressCallback`)
+    take `m_generateMutex`: they wait for an in-flight generation, which reads the state they reset and may be
+    calling the callback being replaced.
+  - `bool generate()`: returns false and logs a warning if running or already generating (no modal dialog).
+  - `bool setSequenceEnable()` / `setTestEnable()`: thread-safe, return false and ignore unknown names (they may
+    come from a reader's copy taken before a regeneration).
+  - `m_running` and `m_generating` are the last members, so their destructors wait for their thread while
+    everything it uses still exists.
   - `std::mutex m_solutionMutex` + `std::atomic<std::uint64_t> m_solutionRevision`. Needed now because the UI
     reads while the generation thread writes. Generation parses with `FromGeneration()` outside the lock, then
     `ReplaceWith()` and the revision bump happen under it.
@@ -97,10 +104,15 @@ Needs Phase 1, or every entry shows as disabled.
     ```
     Chosen over a change callback: it would fire on worker threads, where ImGui can't be touched, so it could
     only set the same "dirty" flag, and it would need a subscriber list.
+- `Lua::GenerateOnLoad` (`generate_on_load.h`): `update()` calls `generate()` when `getLoadId()` changed and the
+  orchestrator is idle, and only marks the load as handled once `generate()` accepted it. A load made during a run
+  or a generation is generated once idle again.
 - `MainApplicationLayer`:
-  - `onUpdate()`: when `getLoadId()` differs from the last seen one, call `requestGenerate()`.
-    Works for every app without the derived class having to call anything, and stays on the main thread.
-  - Override `GetSolution()`; `generate()` → `requestGenerate()`.
+  - `onUpdate()` calls `GenerateOnLoad::update()`. Works for every app without the derived class having to call
+    anything, and stays on the main thread.
+  - `onDetach()` waits for an in-flight generation: product callbacks may capture the derived layer, which is
+    destroyed before `m_orchestrator`.
+  - Overrides `GetSolution()` / `GetSolutionRevision()`; `generate()` → `m_orchestrator.generate()`.
 
 **Done when:** picking a product (dropdown, startup, or MCP `load_product`) fills the viewer; MCP
 `load_product` immediately followed by `run_tests` runs normally; headless output unchanged.
@@ -170,8 +182,10 @@ Manual in `demo_mode`: multi-UUT run, one test disabled, one sequence disabled, 
 abort, one unmet requirement; quick product switching; MCP `load_product` + `run_tests` back-to-back.
 Check headless text and JSON output is unchanged.
 
-Orchestrator-level behaviour (flags kept on regenerate and on same-product reload, cleared on product switch)
-has no automated coverage, since `Orchestrator` has no test fixture; checked manually in `demo_mode`.
+Orchestrator-level generation behaviour is covered by `FrasyTest_OrchestratorSolution` (no hardware: products
+written to disk, marker files make generation slow or broken), including `GenerateOnLoad`. It is Debug only
+(other configurations verify the `lua/user` hash) and runs serially (shared `lua/solution.json`). Runs
+(`runSolution()`) aren't covered there, as they can open modal dialogs; they are checked manually in `demo_mode`.
 
 ### Profiling copy on change (after Phase 5)
 
@@ -190,3 +204,16 @@ has no automated coverage, since `Orchestrator` has no test fixture; checked man
   `MainApplicationLayer`, default `false`), a `config.json` key, build type (non-Dist only), or a mix.
   Any of these is public API and is flagged before implementation.
 - Whether enable flags persist across runs (current plan) or reset after each run.
+
+## Found along the way (separate follow-ups)
+
+- `runSolution()` captures `serials` by reference in its async lambda. Current callers pass vectors that outlive
+  the run, but a temporary would be read after it is freed.
+- `loadUserFiles()` clears `m_expectationsVectors` twice and never clears `m_expectationsMutexes`, which grows
+  by `uutCount + 1` on every load.
+- `loadUserFiles()` runs on the UI thread in the demo and now waits for an in-flight generation: switching product
+  during a generation freezes the UI for up to one generation. The demo's F9 is level-triggered, so one tap
+  reloads on several frames and hits this on almost every reload.
+- The product callback setters wait for a generation, but not for a run's validation and execution, whose UUT
+  threads also call those callbacks. Replacing a callback during a run (product switch while running) is still
+  a race; it predates this work.
