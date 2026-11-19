@@ -1,56 +1,37 @@
-﻿/**
- ******************************************************************************
- * @addtogroup StringUtils
- * @{
- * @file    StringUtils
+/**
+ * @file    string_utils.h
  * @author  Samuel Martel
- * @brief   Header for the StringUtils module.
+ * @date    2020-01-03
+ * @brief   String helpers: replacement, file paths and wide strings.
  *
- * @date 1/3/2020 12:09:56 PM
+ * @copyright
+ * This program is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
  *
- ******************************************************************************
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this
+ * program. If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef _StringUtils
-#    define _StringUtils
+#ifndef FRASY_UTILS_STRING_UTILS_H
+#define FRASY_UTILS_STRING_UTILS_H
 
-/*****************************************************************************/
-/* Includes */
+#include <string>
 
-#    include <string>
+namespace Frasy::StringUtils {
 
-namespace Frasy::StringUtils
-{
-/*****************************************************************************/
-/* Exported defines */
-
-
-/*****************************************************************************/
-/* Exported macro */
-
-
-/*****************************************************************************/
-/* Exported types */
-
-
-/*****************************************************************************/
-/* Exported functions */
-std::string  ReplaceAll(const std::string& str, const std::string& toReplace, const std::string& replaceBy);
-std::string  GetFullNameFromPath(const std::wstring& path);
-std::string  GetFullNameFromPath(const std::string& path);
-std::string  GetNameFromPath(const std::string& path);
-std::string  RemoveNameFromPath(const std::wstring& path);
-std::string  RemoveNameFromPath(const std::string& path);
-std::string  WStringToString(const std::wstring& src);
-std::wstring StringToWString(const std::string& src);
-
+std::string  replaceAll(const std::string& str, const std::string& toReplace, const std::string& replaceBy);
+std::string  getFullNameFromPath(const std::wstring& path);
+std::string  getFullNameFromPath(const std::string& path);
+std::string  getNameFromPath(const std::string& path);
+std::string  removeNameFromPath(const std::wstring& path);
+std::string  removeNameFromPath(const std::string& path);
+std::string  wstringToString(const std::wstring& src);
+std::wstring stringToWstring(const std::string& src);
 
 }    // namespace Frasy::StringUtils
 
-
-/*****************************************************************************/
-#endif /* _StringUtils */
-/* Have a wonderful day :) */
-/**
- * @}
- */
-/****** END OF FILE ******/
+#endif    // FRASY_UTILS_STRING_UTILS_H
