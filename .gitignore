@@ -31,3 +31,6 @@ __pycache__
 
 cmake_test_discovery*
 Testing/Temporary*
+BrigeradProfile-Startup.json
+crash_report.txt
+logs/frasy/log.json
