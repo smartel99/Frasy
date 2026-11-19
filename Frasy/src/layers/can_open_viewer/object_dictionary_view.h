@@ -71,6 +71,8 @@ private:
         std::optional<CanOpen::SdoDownloadDataResult> writeRequest;
         //! Type used to interpret the answer of the pending read.
         CanOpen::VarType readType = CanOpen::VarType::Undefined;
+        //! The pending read is an OCTET_STRING, edited as a list of bytes.
+        bool isReadOctetString = false;
     };
 
     [[nodiscard]] static constexpr uint32_t makeKey(uint16_t index, uint8_t subIndex) noexcept

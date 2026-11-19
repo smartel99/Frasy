@@ -17,6 +17,9 @@
 
 #include "ode_serializer.h"
 #include "../communication/can_open/types.h"
+#include "utils/communication/can_open/od_value.h"
+
+#include <format>
 
 #include <utils/misc/serializer.h>
 
@@ -92,6 +95,46 @@ static std::vector<uint8_t> serializeTimeStruct(const sol::object& value)
     return result;
 }
 
+static std::string entryName(const sol::table& ode)
+{
+    return ode["parameterName"].get_or<std::string>("?");
+}
+
+//! Pads a string up to the StringLengthMin of its entry, which is the size of the string in the device.
+static std::vector<uint8_t> fitToEntry(const sol::table& ode, std::vector<uint8_t> bytes)
+{
+    auto result = Frasy::CanOpen::OdValue::fitToLength(std::move(bytes), ode["stringLengthMin"].get_or<uint32_t>(0));
+    if (!result.has_value()) { throw sol::error(std::format("'{}': {}", entryName(ode), result.error())); }
+    return std::move(*result);
+}
+
+/**
+ * The bytes of an OCTET_STRING: either a table of integers from 0 to 255, or a string listing them, as accepted by
+ * OdValue::parseOctetString ("0x01, 2, 0xFF").
+ */
+static std::vector<uint8_t> octetsOf(const sol::table& ode, const sol::object& value)
+{
+    if (value.get_type() == sol::type::string) {
+        auto result = Frasy::CanOpen::OdValue::parseOctetString(value.as<std::string>());
+        if (!result.has_value()) { throw sol::error(std::format("'{}': {}", entryName(ode), result.error())); }
+        return std::move(*result);
+    }
+    if (value.get_type() != sol::type::table) {
+        throw sol::error(std::format("'{}': an octet string is a table of bytes or a string", entryName(ode)));
+    }
+
+    std::vector<uint8_t> out;
+    const auto           table = value.as<sol::table>();
+    for (std::size_t i = 1; i <= table.size(); ++i) {
+        const sol::object item = table[i];
+        if (!item.is<int64_t>() || item.as<int64_t>() < 0 || item.as<int64_t>() > 255) {
+            throw sol::error(std::format("'{}': item {} is not a byte (0 to 255)", entryName(ode), i));
+        }
+        out.push_back(static_cast<uint8_t>(item.as<int64_t>()));
+    }
+    return out;
+}
+
 std::vector<uint8_t> serializeOdeValue(const sol::table& ode, const sol::object& value)
 {
     switch (static_cast<DataType>(ode["dataType"].get<uint16_t>())) {
@@ -117,17 +160,10 @@ std::vector<uint8_t> serializeOdeValue(const sol::table& ode, const sol::object&
         case DataType::unsigned64: return serializeUnsigned(value.as<uint64_t>(), 8);
 
         case DataType::visibleString: {
-            auto str      = value.as<std::string>();
-            auto fieldLen = ode["stringLengthMin"].get_or<uint32_t>(0);
-            if (str.size() < fieldLen) { str.insert(str.end(), fieldLen - str.size(), 0); }
-            return std::vector<uint8_t>(str.begin(), str.end());
+            auto str = value.as<std::string>();
+            return fitToEntry(ode, std::vector<uint8_t>(str.begin(), str.end()));
         }
-        case DataType::octetString: {
-            auto arr      = value.as<std::vector<uint8_t>>();
-            auto fieldLen = ode["stringLengthMin"].get_or<uint32_t>(0);
-            if (arr.size() < fieldLen) { arr.insert(arr.end(), fieldLen - arr.size(), 0); }
-            return std::vector(arr.begin(), arr.end());
-        }
+        case DataType::octetString: return fitToEntry(ode, octetsOf(ode, value));
         case DataType::unicodeString: {
             auto str      = value.as<std::string>();
             auto fieldLen = ode["stringLengthMin"].get_or<uint32_t>(0);

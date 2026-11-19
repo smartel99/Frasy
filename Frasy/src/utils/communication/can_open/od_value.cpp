@@ -16,6 +16,9 @@
  */
 #include "od_value.h"
 
+#include "utils/communication/can_open/object_dictionary.h"
+#include "utils/communication/can_open/types.h"
+
 #include <algorithm>
 #include <array>
 #include <bit>
@@ -257,6 +260,78 @@ std::expected<std::vector<uint8_t>, std::string> parse(VarType type, std::string
         case VarType::Max:
         default: return std::unexpected {"Unsupported type"};
     }
+}
+
+std::expected<std::vector<uint8_t>, std::string> parse(const OdEntry& entry, std::string_view text)
+{
+    const std::size_t length = entry.stringLengthMin.value_or(0);
+    switch (static_cast<DataType>(entry.dataType)) {
+        case DataType::visibleString: return fitToLength({text.begin(), text.end()}, length);
+        case DataType::octetString: {
+            auto bytes = parseOctetString(text);
+            if (!bytes.has_value()) { return bytes; }
+            return fitToLength(std::move(*bytes), length);
+        }
+        default: return parse(entry.varType, text);
+    }
+}
+
+std::expected<std::vector<uint8_t>, std::string> parseOctetString(std::string_view text)
+{
+    constexpr std::string_view separators = " \t,";
+
+    std::vector<uint8_t> out;
+    std::size_t          pos = 0;
+    while (pos < text.size()) {
+        const auto start = text.find_first_not_of(separators, pos);
+        if (start == std::string_view::npos) { break; }
+        auto end = text.find_first_of(separators, start);
+        if (end == std::string_view::npos) { end = text.size(); }
+        const auto token = text.substr(start, end - start);
+        pos              = end;
+
+        const bool isHex  = hasHexPrefix(token);
+        const auto digits = isHex ? token.substr(2) : token;
+        if (digits.starts_with('+') || digits.starts_with('-')) {
+            return std::unexpected {std::format("'{}': a byte has no sign", token)};
+        }
+        unsigned value = 0;
+        auto [ptr, ec] = std::from_chars(digits.data(), digits.data() + digits.size(), value, isHex ? 16 : 10);
+        if (digits.empty() || ptr != digits.data() + digits.size() ||
+            (ec != std::errc {} && ec != std::errc::result_out_of_range)) {
+            return std::unexpected {
+              std::format("'{}' is not a byte: expected a decimal number, or a hexadecimal one starting with 0x", token)};
+        }
+        if (ec == std::errc::result_out_of_range || value > (std::numeric_limits<uint8_t>::max)()) {
+            return std::unexpected {std::format("'{}' is greater than 255", token)};
+        }
+        out.push_back(static_cast<uint8_t>(value));
+    }
+    return out;
+}
+
+std::string formatOctetString(std::span<const uint8_t> bytes)
+{
+    std::string out;
+    out.reserve(bytes.size() * 5);
+    for (std::size_t i = 0; i < bytes.size(); ++i) {
+        if (i != 0) { out += ' '; }
+        out += std::format("0x{:02X}", bytes[i]);
+    }
+    return out;
+}
+
+std::expected<std::vector<uint8_t>, std::string> fitToLength(std::vector<uint8_t> bytes, std::size_t length)
+{
+    if (bytes.size() > length) {
+        if (length == 0) {
+            return std::unexpected {"The entry has no StringLengthMin in the object dictionary, only an empty value "
+                                    "can be sent"};
+        }
+        return std::unexpected {std::format("{} bytes, but the entry holds at most {}", bytes.size(), length)};
+    }
+    bytes.resize(length, 0);
+    return bytes;
 }
 
 }    // namespace Frasy::CanOpen::OdValue

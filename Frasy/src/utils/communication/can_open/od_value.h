@@ -27,6 +27,10 @@
 #include <string_view>
 #include <vector>
 
+namespace Frasy::CanOpen {
+struct OdEntry;
+}
+
 namespace Frasy::CanOpen::OdValue {
 
 /**
@@ -78,6 +82,40 @@ namespace Frasy::CanOpen::OdValue {
  * @return The bytes, or the reason why the text is not acceptable for this type.
  */
 [[nodiscard]] std::expected<std::vector<uint8_t>, std::string> parse(VarType type, std::string_view text);
+
+/**
+ * @brief Converts text typed by the user into the bytes to send to an entry of the object dictionary.
+ *
+ * Same as parse(VarType, std::string_view), except for the strings, whose size is known from the entry:
+ * - VISIBLE_STRING: the characters of the text.
+ * - OCTET_STRING: the bytes listed by the text, see parseOctetString().
+ *
+ * Both are padded with null bytes up to the `StringLengthMin` of the entry, and are rejected when longer. An entry
+ * without `StringLengthMin` only accepts an empty value.
+ */
+[[nodiscard]] std::expected<std::vector<uint8_t>, std::string> parse(const OdEntry& entry, std::string_view text);
+
+/**
+ * @brief Converts a list of bytes into those bytes.
+ *
+ * Each byte is either decimal (`171`) or hexadecimal with a `0x` prefix (`0xAB`), from 0 to 255, without a sign. The
+ * bytes are separated by spaces, commas or tabs. An empty text is an empty list.
+ */
+[[nodiscard]] std::expected<std::vector<uint8_t>, std::string> parseOctetString(std::string_view text);
+
+/**
+ * @brief Formats bytes the way parseOctetString() reads them (`0x01 0xAB`).
+ */
+[[nodiscard]] std::string formatOctetString(std::span<const uint8_t> bytes);
+
+/**
+ * @brief Pads a string with null bytes up to the size of its entry.
+ *
+ * @param length The `StringLengthMin` of the entry, which is the size of the string in the device.
+ * @return The padded bytes, or an error when they do not fit.
+ */
+[[nodiscard]] std::expected<std::vector<uint8_t>, std::string> fitToLength(std::vector<uint8_t> bytes,
+                                                                           std::size_t          length);
 
 }    // namespace Frasy::CanOpen::OdValue
 
