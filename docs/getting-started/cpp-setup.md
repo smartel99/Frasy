@@ -203,8 +203,8 @@ void MyMainApplicationLayer::makeOrchestrator(const std::string& name,
         m_activeProduct = name;
 
         const auto& [ibs, uuts, teams] = m_orchestrator.getMap();
-        for (const auto& [kind, nodeId, ibName, edsPath, od] : ibs | std::views::values) {
-            m_canOpen.addNode(static_cast<uint8_t>(nodeId), ibName, edsPath);
+        for (const auto& [kind, nodeId, ibName, odPath, od] : ibs | std::views::values) {
+            m_canOpen.addNode(static_cast<uint8_t>(nodeId), ibName, odPath);
         }
         m_canOpen.start();
 

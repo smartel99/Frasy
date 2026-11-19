@@ -26,7 +26,7 @@ struct IbView {
     int         kind;
     int         nodeId;
     std::string name;
-    std::string edsPath;
+    std::string odPath;
 
     sol::table od;    //!< Object dictionary loaded in lua.
 };

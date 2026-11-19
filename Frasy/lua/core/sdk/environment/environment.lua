@@ -96,7 +96,10 @@ local function AddIb(board)
     assert(Context.map.ibs[board.ib.name] == nil,
         "Ib already defined. " .. board.ib.name)
     Context.map.ibs[board.ib.name] = board
-    board.ib.od = odParser.LoadFile(board.ib.eds)
+    if (board.ib.odPath == nil or board.ib.odPath == "") and board.ib.eds ~= nil then
+        error("Board '" .. board.ib.name .. "': `ib.eds` was renamed to `ib.odPath`.")
+    end
+    board.ib.od = odParser.LoadFile(board.ib.odPath)
     return board
 end
 

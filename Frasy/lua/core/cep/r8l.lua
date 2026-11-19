@@ -57,7 +57,7 @@ function R8L:New(opt)
     if opt.nodeId == nil then opt.nodeId = ib.kind end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/core/cep/eds/r8l_1.1.0.eds"
+    ib.odPath = "lua/core/cep/eds/r8l_1.1.0.eds"
     return setmetatable({ ib = ib, cache = { digitalOutput = 0, errorValueOutput = 0 } }, R8L)
 end
 

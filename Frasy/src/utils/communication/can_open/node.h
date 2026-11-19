@@ -37,16 +37,18 @@ class Node {
 
 public:
     Node() = default;
-    Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_view edsPath);
+    Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_view odPath);
 
     [[nodiscard]] uint8_t          nodeId() const { return m_nodeId; }
     [[nodiscard]] std::string_view name() const { return m_name; }
+    //! Path of the EDS describing the object dictionary of the node. Empty when unknown.
+    [[nodiscard]] std::string_view odPath() const { return m_odPath; }
     [[nodiscard]] CanOpen*         bus() const { return m_canOpen; }
     void reset() const;
 
     constexpr bool operator==(const Node& o) const
     {
-        return m_nodeId == o.m_nodeId && m_name == o.m_name && m_edsPath == o.m_edsPath;
+        return m_nodeId == o.m_nodeId && m_name == o.m_name && m_odPath == o.m_odPath;
     }
 
     [[nodiscard]] CO_HBconsumer_state_t  getHbState() const { return m_hbConsumer.getState(); }
@@ -67,7 +69,7 @@ private:
 private:
     uint8_t     m_nodeId = 0;
     std::string m_name;
-    std::string m_edsPath;
+    std::string m_odPath;
 
     HbConsumer m_hbConsumer;
     std::unique_ptr<SdoManager> m_sdoManager;

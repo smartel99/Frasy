@@ -29,7 +29,7 @@ struct IbInfo {
     int         kind    = 0;
     int         nodeId  = 0;
     std::string name    = "<N/A>";
-    std::string edsPath = "<N/A>";
+    std::string odPath = "<N/A>";
     sol::table  od;    //!< Object dictionary loaded in lua. Can be empty.
 
     std::string serialNumber    = "<N/A>";
@@ -46,8 +46,8 @@ struct IbInfo {
           &IbInfo::nodeId,
           "name",
           &IbInfo::name,
-          "edsPath",
-          &IbInfo::edsPath,
+          "odPath",
+          &IbInfo::odPath,
           "od",
           &IbInfo::od,
           "Serial",

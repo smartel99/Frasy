@@ -439,7 +439,7 @@ function Orchestrator.CompileExecutionResults(outputDir)
         report.ib[k] = {
             kind = ib.ib.kind,
             nodeId = ib.ib.nodeId,
-            eds = ib.ib.eds,
+            odPath = ib.ib.odPath,
             software = ib.ib:SoftwareVersion(),
             hardware = ib.ib:HardwareVersion(),
             serial = ib.ib:Serial(),

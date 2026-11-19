@@ -1,11 +1,11 @@
 --- @class Ib
 --- @field kind integer
 --- @field nodeId integer
---- @field eds string
+--- @field odPath string Path of the EDS file describing the object dictionary.
 --- @field name string
 --- @field od table
 --- @field private __kind string
-local Ib = { kind = 0, nodeId = 0, eds = "", name = "", __kind = "ib", }
+local Ib = { kind = 0, nodeId = 0, odPath = "", name = "", __kind = "ib", }
 Ib.__index = Ib
 
 --- Creates a new instrumentation board.
@@ -14,7 +14,7 @@ function Ib:New()
     return setmetatable({
         kind = 0,
         nodeId = 0,
-        eds = "",
+        odPath = "",
         name = "",
     }, Ib)
 end

@@ -197,7 +197,7 @@ void CanOpen::start()
         if (!Brigerad::SetThreadPriority(Brigerad::GetCurrentThread(), THREAD_PRIORITY_HIGHEST)) {
             BR_LOG_ERROR("CANOpen", "Unable to set thread priority!");
         }
-        addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the EDS.
+        addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the object dictionary file.
         canOpenTask(m_stopSource.get_token());
         removeNode(0x01);
     });
@@ -220,7 +220,7 @@ std::optional<Node*> CanOpen::getNode(uint8_t nodeId)
     return it == m_nodes.end() ? std::optional<Node*> {} : std::optional {&*it};
 }
 
-Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view edsPath)
+Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view odPath)
 {
     if (isNodeRegistered(nodeId)) {
         BR_LOG_ERROR(m_tag, "Node with ID 0x{:02x} already exists", nodeId);
@@ -228,7 +228,7 @@ Node* CanOpen::addNode(uint8_t nodeId, std::string_view name, std::string_view e
     }
 
     // TODO that's fucking stupid, vector offers no pointer stability, ***especially*** in insertions!!!
-    Node* node = &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {}", nodeId) : name, edsPath);
+    Node* node = &m_nodes.emplace_back(this, nodeId, name.empty() ? std::format("Node {}", nodeId) : name, odPath);
     m_sdoClientODEntries.push_back(node->sdoInterface()->makeSdoClientOdEntry());
     // TODO Node should contain the OD, so its Heartbeat Producer time should be fetched from it.
 

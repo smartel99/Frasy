@@ -39,7 +39,7 @@ public:
         canOpen.clearNodes();
         const auto& [ibs, uuts, teams] = orchestrator.getMap();
         for (const auto& ib : ibs | std::views::values) {
-            canOpen.addNode(ib.nodeId, ib.name, ib.edsPath);
+            canOpen.addNode(ib.nodeId, ib.name, ib.odPath);
         }
         canOpen.start();
         return true;

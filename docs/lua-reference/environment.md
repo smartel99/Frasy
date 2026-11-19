@@ -78,7 +78,7 @@ Environment.Ib.Add(MyDaq)
 
 | Name | Type | Description |
 |---|---|---|
-| `board` | table | A board instance (must have a `.ib` field with `name`, `nodeId`, and `eds`) |
+| `board` | table | A board instance (must have a `.ib` field with `name`, `nodeId`, and `odPath`) |
 
 **Returns:** The board instance (allows chaining).
 
@@ -87,6 +87,7 @@ Environment.Ib.Add(MyDaq)
 - Board names must be unique. Registering a duplicate name raises an error.
 - After registration, the board is accessible at `Context.map.ibs.<name>`.
 - The EDS file is parsed immediately and the object dictionary is attached as `board.ib.od`.
+- `ib.odPath` replaces the former `ib.eds`; a board that still sets `ib.eds` raises an error.
 - Predefined board types: `DAQ`, `PIO`, `R8L`.
 - For non-CANopen devices, add them directly to `Context.map.ibs` instead (see
   [Custom Instrumentation Boards](../developer-guide/custom-ibs.md)).

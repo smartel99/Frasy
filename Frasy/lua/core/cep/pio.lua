@@ -108,7 +108,7 @@ function PIO:New(opt)
     end
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/core/cep/eds/pio.eds"
+    ib.odPath = "lua/core/cep/eds/pio.eds"
     return setmetatable({
         ib = ib,
         cache = {
