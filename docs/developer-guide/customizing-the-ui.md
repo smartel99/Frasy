@@ -172,7 +172,8 @@ m_orchestrator.runSolution(
 m_orchestrator.isRunning();
 m_orchestrator.getUutState(uutIndex);  // returns Frasy::UutState enum
 m_orchestrator.getMap();               // returns {ibs, uuts, teams}
-m_orchestrator.getSolution();          // the current Solution model
+m_orchestrator.getSolution();          // copy of the current Solution model
+m_orchestrator.getSolutionRevision();  // bumped on every change, check it before copying
 
 // Inject custom Lua functions
 m_orchestrator.setLoadUserFunctions([](sol::state_view lua) {
@@ -271,7 +272,8 @@ void MyMainApplicationLayer::onUpdate(Brigerad::Timestep ts)
 
 !!! warning
     Always call `MainApplicationLayer::onUpdate(ts)` first so that the built-in hotkeys and
-    panel update logic still run.
+    panel update logic still run. It also starts the solution generation after each product load,
+    so the Test Viewer shows the sequences before the first run.
 
 ---
 

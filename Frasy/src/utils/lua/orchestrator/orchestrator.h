@@ -26,6 +26,8 @@
 #include "utils/models/solution.h"
 
 #include "../expectation.h"
+#include <atomic>
+#include <cstdint>
 #include <functional>
 #include <future>
 #include <hashdir/hashdir.h>
@@ -63,15 +65,18 @@ public:
      * Load the user environment files
      * @param environment path to the environment file
      * @param testsDir path the folder containing the test files
+     * Waits for an in-flight generation first. Enable flags are kept when the same environment and tests
+     * folder are loaded again, cleared otherwise. getLoadId() is bumped on success.
      * @return true if the orchestrator successfully loaded the files, false otherwise
      */
     bool loadUserFiles(const std::string& environment, const std::string& testsDir, const std::string& title = "");
 
     /**
-     * Async request to generate the solution
-     * Success will be reported through Interface::OnGenerated() callback
+     * Async request to (re)generate the solution, see getSolutionRevision() for the result.
+     * Doesn't count as running: isRunning() stays false, and runSolution() waits for it instead of being rejected.
+     * @return false (and logs a warning) if a run or a generation is already in progress
      */
-    void generate();
+    bool generate();
 
     /**
      * Toggle the enable state of a uut
@@ -89,20 +94,22 @@ public:
 
     /**
      * Enable or disable a test from running
-     * Use GetSolution() to know a test state
+     * Use getSolution() to know a test state
      * @param sequence name of the sequence that hold the test
      * @param test name of the test
      * @param enable state of the test
+     * @return false if the test is unknown (e.g. name from a copy taken before a regeneration), nothing changed
      */
-    void setTestEnable(const std::string& sequence, const std::string& test, bool enable);
+    bool setTestEnable(const std::string& sequence, const std::string& test, bool enable);
 
     /**
      * Enable or disable a sequence from running
-     * Use GetSolution() to know a sequence state
+     * Use getSolution() to know a sequence state
      * @param sequence name of the sequence
      * @param enable state of the sequence
+     * @return false if the sequence is unknown, nothing changed
      */
-    void setSequenceEnable(const std::string& sequence, bool enable);
+    bool setSequenceEnable(const std::string& sequence, bool enable);
 
     /**
      * Execute the solution asynchronously
@@ -124,11 +131,17 @@ public:
       bool                            skipVerification,
       std::function<void()>           onDoneCallback = [] {});
 
+    /// Copy of the calculated solution, taken under lock.
+    [[nodiscard]] Models::Solution getSolution() const;
+
     /**
-     * Return the calculated solution
-     * @return
+     * Bumped on every change of the solution (generation, enable flags, states).
+     * Read it before getSolution(): a change in between then only costs one extra copy.
      */
-    const Models::Solution& getSolution();
+    [[nodiscard]] std::uint64_t getSolutionRevision() const { return m_solutionRevision.load(); }
+
+    /// Bumped after each successful loadUserFiles().
+    [[nodiscard]] std::uint64_t getLoadId() const { return m_loadId.load(); }
 
     /**
      * Allows orchestrator to display Lua popups
@@ -138,8 +151,10 @@ public:
 
     [[nodiscard]] const Map& getMap() const { return m_map; }
 
-    [[nodiscard]] bool        isRunning() const;
-    [[nodiscard]] UutState    getUutState(std::size_t uut) const;
+    [[nodiscard]] bool     isRunning() const;
+    [[nodiscard]] bool     isGenerating() const;
+    [[nodiscard]] UutState getUutState(std::size_t uut) const;
+    // Callback setters wait for an in-flight generation. Don't call them from inside these callbacks.
     void                      setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
     void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
     void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
@@ -195,7 +210,6 @@ private:
 
     std::unique_ptr<sol::state> m_state = nullptr;
     std::vector<UutState>       m_uutStates;
-    std::future<void>           m_running;
     Map                         m_map;
     bool                        m_generated = false;
     std::string                 m_title;
@@ -230,13 +244,22 @@ private:
                        const std::string& parentB,
                        bool               pass)>
                                              m_progressCallback;
-    Models::Solution                         m_solution = {};
     std::vector<std::vector<Expectation>>    m_expectationsVectors;
     std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes;
 
     CanOpen::CanOpen* m_canOpen = nullptr;
 
     const char* (*m_getApplicationVersion)() = [] { return "1.0.0"; };
+
+    // Lock order: m_generateMutex, then m_solutionMutex.
+    std::mutex                 m_generateMutex;    //!< Held by generation and loadUserFiles().
+    mutable std::mutex         m_solutionMutex;    //!< Guards m_solution.
+    Models::Solution           m_solution         = {};
+    std::atomic<std::uint64_t> m_solutionRevision = 0;
+    std::atomic<std::uint64_t> m_loadId           = 0;
+    // Last members: destroyed first, so they wait for their thread while everything it uses still exists.
+    std::future<void> m_running;
+    std::future<void> m_generating;
 
     static constexpr auto s_tag = "Orchestrator";
 };

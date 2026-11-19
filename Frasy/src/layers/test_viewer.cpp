@@ -28,23 +28,31 @@ TestViewer::TestViewer() : m_interface(Interface::GetDefault())
 void TestViewer::onImGuiRender()
 {
     if (!m_isVisible) { return; }
+    UpdateSolution();
     if (ImGui::Begin("Test Viewer", &m_isVisible, ImGuiWindowFlags_NoDocking)) {
-        bool                    first    = true;
-        const Models::Solution& solution = m_interface->GetSolution();
-        for (auto& [name, sequence] : solution.sequences) {
+        bool first = true;
+        for (const auto& name : m_solution.sequenceOrder) {
             if (first) { first = false; }
             else {
                 ImGui::Separator();
             }
-            RenderSequence(name, sequence);
+            RenderSequence(name, m_solution.sequences.at(name));
         }
 
-        if (solution.sequences.empty()) {
+        if (m_solution.sequences.empty()) {
             ImGui::Text("Not loaded, is the test sequence generated?");
             if (ImGui::Button("generate")) { m_interface->generate(); }
         }
     }
     ImGui::End();
+}
+
+void TestViewer::UpdateSolution()
+{
+    if (const auto revision = m_interface->GetSolutionRevision(); revision != m_lastRevision) {
+        m_lastRevision = revision;    // Read before copying: a change in between only costs one extra copy.
+        m_solution     = m_interface->GetSolution();
+    }
 }
 
 void TestViewer::RenderSequence(const std::string& sName, const Models::Sequence& sequence)
@@ -73,7 +81,8 @@ void TestViewer::RenderSequence(const std::string& sName, const Models::Sequence
         listStatus = ListStatus::unknown;    // Will be recomputed next frame
     }
     if (listStatus == ListStatus::expanded) {
-        for (auto& [tName, test] : sequence.tests) {
+        for (const auto& tName : sequence.testOrder) {
+            const auto& test = sequence.tests.at(tName);
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TableNextColumn();
@@ -93,11 +102,11 @@ TestViewer::Interface* TestViewer::Interface::GetDefault()
     return &interface;
 }
 
-const Frasy::Models::Solution& TestViewer::Interface::GetSolution()
-{
-    static Frasy::Models::Solution solution;
-    return solution;
-}
+Frasy::Models::Solution TestViewer::Interface::GetSolution()
+{ return {}; }
+
+std::uint64_t TestViewer::Interface::GetSolutionRevision()
+{ return 0; }
 
 void TestViewer::Interface::generate()
 {

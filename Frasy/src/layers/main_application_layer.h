@@ -24,6 +24,7 @@
 #    include "result_viewer.h"
 #    include "test_viewer.h"
 #    include "utils/communication/can_open/can_open.h"
+#    include "utils/lua/orchestrator/generate_on_load.h"
 #    include "utils/lua/orchestrator/orchestrator.h"
 #    include "utils/run_owner.h"
 
@@ -92,9 +93,11 @@ protected:
     void renderProfilerGraphs();
 
 private:
-    void generate() override;
-    void setTestEnable(const std::string& sequence, const std::string& test, bool enable) override;
-    void setSequenceEnable(const std::string& sequence, bool enable) override;
+    Models::Solution GetSolution() override { return m_orchestrator.getSolution(); }
+    std::uint64_t    GetSolutionRevision() override { return m_orchestrator.getSolutionRevision(); }
+    void             generate() override;
+    void             setTestEnable(const std::string& sequence, const std::string& test, bool enable) override;
+    void             setSequenceEnable(const std::string& sequence, bool enable) override;
 
 protected:
     bool m_renderAbout    = false;
@@ -139,6 +142,7 @@ private:
     void                          PresetControlRoomOptions();
     void                          handleResultAnalyserPopup();
     bool                          m_wasRunning = false;
+    Lua::GenerateOnLoad           m_generateOnLoad;
 
     void DumpProfileEvents();
 };

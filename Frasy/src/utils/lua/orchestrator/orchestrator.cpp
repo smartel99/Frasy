@@ -35,6 +35,7 @@
 #include <filesystem>
 #include <fstream>
 #include <json.hpp>
+#include <optional>
 #include <regex>
 
 #include "../../version.h"
@@ -88,13 +89,19 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
         BR_LOG_ERROR(s_tag, "Unable to set thread name");
     }
     FRASY_PROFILE_FUNCTION();
+    // Generation reads the environment, tests folder and map reset below.
+    std::lock_guard generateLock(m_generateMutex);
     m_map        = {};    // IBs contain a sol::table that needs to be released before the state is reset.
     m_popupMutex = std::make_unique<std::mutex>();
     m_state      = std::make_unique<sol::state>();
     m_state->set_panic(&OnPanic);
     m_generated = false;
     // Same product reloaded (MCP run_tests, F9, Reload): keep enable flags, regeneration merges them.
-    if (environment != m_environment || testsDir != m_testsDir) { m_solution.Clear(); }
+    if (environment != m_environment || testsDir != m_testsDir) {
+        std::lock_guard solutionLock(m_solutionMutex);
+        m_solution.Clear();
+        ++m_solutionRevision;
+    }
     m_environment = environment;
     m_testsDir    = testsDir;
     if (title.empty()) {
@@ -121,6 +128,7 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     }
     m_uutStates.resize(m_map.uuts.size() + 1, UutState::Idle);
 
+    ++m_loadId;
     return true;
 }
 
@@ -187,8 +195,11 @@ void Orchestrator::runSolution(const std::string&              operatorName,
     });
 }
 
-const Models::Solution& Orchestrator::getSolution()
-{ return m_solution; }
+Models::Solution Orchestrator::getSolution() const
+{
+    std::lock_guard lock(m_solutionMutex);
+    return m_solution;
+}
 
 bool Orchestrator::createOutputDirs()
 {
@@ -568,6 +579,8 @@ void Orchestrator::runTests(const std::vector<std::string>& serials, const bool 
 bool Orchestrator::runStageGenerate(bool regenerate)
 {
     FRASY_PROFILE_FUNCTION();
+    // Serializes background generations, a run's own generation and loadUserFiles().
+    std::lock_guard generateLock(m_generateMutex);
     try {
         if (m_generated && !regenerate) { return true; }
 
@@ -585,12 +598,23 @@ bool Orchestrator::runStageGenerate(bool regenerate)
         else {
             lua["Log"]["I"]("Success");
         }
-        if (result.valid()) {
-            std::ifstream os = std::ifstream(std::string(solutionFile));
-            m_solution.ReplaceWith(Models::Solution::FromGeneration(os), m_map.uuts.size());
+        std::size_t sectionCount = 0;
+        {
+            // Parse outside the lock, readers only ever see the old or the complete new solution.
+            std::optional<Models::Solution> fresh;
+            if (result.valid()) {
+                std::ifstream os = std::ifstream(std::string(solutionFile));
+                fresh            = Models::Solution::FromGeneration(os);
+            }
+            std::lock_guard solutionLock(m_solutionMutex);
+            if (fresh) {
+                m_solution.ReplaceWith(std::move(*fresh), m_map.uuts.size());
+                ++m_solutionRevision;
+            }
+            sectionCount = m_solution.sections.size();
         }
         if (!m_parallel) {
-            if (m_solution.sections.size() != 1) {
+            if (sectionCount != 1) {
                 throw std::runtime_error(
                   "Cannot have multiple sections (Sync) when using Sequential Execution Policy.");
             }
@@ -775,8 +799,12 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
             }
         };
 
+        const std::size_t sectionCount = [this] {
+            std::lock_guard lock(m_solutionMutex);
+            return m_solution.sections.size();
+        }();
         auto runSections = [&]() {
-            for (std::size_t is = 1; is <= m_solution.sections.size(); ++is) {
+            for (std::size_t is = 1; is <= sectionCount; ++is) {
                 if (hasAnyUutCrashed()) { return; }
                 for (sol::object& stage : stages) {
                     auto                      devices = stage.as<std::vector<std::size_t>>();
@@ -926,25 +954,44 @@ void Orchestrator::setUutState(std::size_t index, UutState state)
 }
 
 
-void Orchestrator::generate()
+bool Orchestrator::generate()
 {
-    if (isRunning()) {
-        Brigerad::warningDialog("Frasy", "Orchestrator is busy");
-        return;
+    if (isRunning() || isGenerating()) {
+        BR_LOG_WARN(s_tag, "Orchestrator is busy, generation request ignored");
+        return false;
     }
 
-    m_running = std::async(std::launch::async, [this] {
+    m_generating = std::async(std::launch::async, [this] {
         BR_BEGIN_GUARDED_SCOPE
-        { runStageGenerate(true); }
+        {
+            if (!Brigerad::SetThreadName(Brigerad::GetCurrentThread(), "Solution Generator")) {
+                BR_LOG_ERROR(s_tag, "Unable to set thread name");
+            }
+            runStageGenerate(true);
+        }
         BR_END_GUARDED_SCOPE
     });
+    return true;
 }
 
-void Orchestrator::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
-{ m_solution.SetTestEnable(sequence, test, enable); }
+bool Orchestrator::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
+{
+    std::lock_guard lock(m_solutionMutex);
+    const auto      it = m_solution.sequences.find(sequence);
+    if (it == m_solution.sequences.end() || !it->second.tests.contains(test)) { return false; }
+    m_solution.SetTestEnable(sequence, test, enable);
+    ++m_solutionRevision;
+    return true;
+}
 
-void Orchestrator::setSequenceEnable(const std::string& sequence, bool enable)
-{ m_solution.SetSequenceEnable(sequence, enable); }
+bool Orchestrator::setSequenceEnable(const std::string& sequence, bool enable)
+{
+    std::lock_guard lock(m_solutionMutex);
+    if (!m_solution.sequences.contains(sequence)) { return false; }
+    m_solution.SetSequenceEnable(sequence, enable);
+    ++m_solutionRevision;
+    return true;
+}
 
 bool Orchestrator::isRunning() const
 {
@@ -952,20 +999,39 @@ bool Orchestrator::isRunning() const
     return m_running.valid() && m_running.wait_for(10us) == std::future_status::timeout;
 }
 
+bool Orchestrator::isGenerating() const
+{
+    using namespace std::chrono_literals;
+    return m_generating.valid() && m_generating.wait_for(0s) == std::future_status::timeout;
+}
+
 [[nodiscard]] UutState Orchestrator::getUutState(std::size_t uut) const
 { return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle; }
 
+// Callback setters wait for an in-flight generation, which may be calling the callback being replaced.
 void Orchestrator::setLoadUserFunctions(const std::function<void(sol::state_view)>& callback)
-{ m_loadUserFunctions = callback; }
+{
+    std::lock_guard lock(m_generateMutex);
+    m_loadUserFunctions = callback;
+}
 
 void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback)
-{ m_loadUserBoards = callback; }
+{
+    std::lock_guard lock(m_generateMutex);
+    m_loadUserBoards = callback;
+}
 
 void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback)
-{ m_loadUserValues = callback; }
+{
+    std::lock_guard lock(m_generateMutex);
+    m_loadUserValues = callback;
+}
 
 void Orchestrator::setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback)
-{ m_popupImport = std::move(callback); }
+{
+    std::lock_guard lock(m_generateMutex);
+    m_popupImport = std::move(callback);
+}
 
 void Orchestrator::setProgressCallback(std::function<void(const std::string& type,
                                                           std::size_t        uut,
@@ -973,7 +1039,10 @@ void Orchestrator::setProgressCallback(std::function<void(const std::string& typ
                                                           const std::string& parentA,
                                                           const std::string& parentB,
                                                           bool               pass)> callback)
-{ m_progressCallback = std::move(callback); }
+{
+    std::lock_guard lock(m_generateMutex);
+    m_progressCallback = std::move(callback);
+}
 #pragma endregion
 
 #pragma region Exclusive

@@ -115,7 +115,7 @@ This function is called by Brigerad's `main()` (provided via `Brigerad/Core/Entr
 |---|---|---|
 | `onAttach()` | Layer pushed to stack | Initializes panels, loads textures, sets up the orchestrator |
 | `onDetach()` | Layer popped | Cleans up resources |
-| `onUpdate(Timestep)` | Every frame (before render) | Processes hotkeys, handles post-test actions |
+| `onUpdate(Timestep)` | Every frame (before render) | Processes hotkeys, handles post-test actions, generates the solution after each product load |
 | `onImGuiRender()` | Every frame (render pass) | Draws the menu bar, control room, all panels |
 | `onEvent(Event&)` | On input events | Dispatches keyboard/mouse events |
 
@@ -202,7 +202,7 @@ makeTestViewerVisible();
 ### Key API
 
 ```cpp
-// Load a product's Lua files
+// Load a product's Lua files. Waits for an in-flight generation, bumps getLoadId() on success.
 bool loadUserFiles(const std::string& environment, const std::string& testsDir);
 
 // Run the full test pipeline (async)
@@ -213,15 +213,31 @@ void runSolution(const std::string& operatorName,
                  std::function<void()> onDoneCallback);
 
 // State queries
-bool isRunning() const;
+bool isRunning() const;        // A run is in progress (generation doesn't count)
+bool isGenerating() const;     // A background generation is in progress
 UutState getUutState(std::size_t uut) const;
-const Models::Solution& getSolution();
+Models::Solution getSolution() const;       // Copy, taken under lock
+std::uint64_t getSolutionRevision() const;  // Bumped on every change of the solution
+std::uint64_t getLoadId() const;            // Bumped after each successful loadUserFiles()
 
 // Control
 void toggleUut(std::size_t index);
-void setSequenceEnable(const std::string& sequence, bool enable);
-void setTestEnable(const std::string& sequence, const std::string& test, bool enable);
-void generate();  // Force re-generation of the solution
+bool setSequenceEnable(const std::string& sequence, bool enable);  // false: unknown name, ignored
+bool setTestEnable(const std::string& sequence, const std::string& test, bool enable);
+bool generate();  // Async re-generation; false if a run or a generation is in progress
+```
+
+The solution is generated in the background as soon as a product is loaded (see below), so it is
+known before the first run. A run started during that generation waits for it instead of being rejected.
+
+To follow the solution from the UI thread, copy it only when it changed. Read the revision first:
+a change in between then only costs one extra copy.
+
+```cpp
+if (const auto revision = m_orchestrator.getSolutionRevision(); revision != m_lastRevision) {
+    m_lastRevision = revision;
+    m_solution     = m_orchestrator.getSolution();
+}
 ```
 
 ### Extension Callbacks

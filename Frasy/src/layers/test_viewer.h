@@ -20,6 +20,8 @@
 #include "utils/lua/orchestrator/orchestrator.h"
 #include "utils/models/sequence.h"
 
+#include <cstdint>
+#include <limits>
 #include <string>
 #include <unordered_map>
 
@@ -42,21 +44,27 @@ public:
 
 private:
     void RenderSequence(const std::string& name, const Models::Sequence& sequence);
+    void UpdateSolution();
 
 private:
     bool                                        m_isVisible = false;
     std::unordered_map<std::string, ListStatus> m_listStatus;
     Interface*                                  m_interface;
+    Models::Solution                            m_solution;    //!< Copy, refreshed when the revision changes.
+    std::uint64_t m_lastRevision = std::numeric_limits<std::uint64_t>::max();    // Forces the first copy.
 };
 
 class TestViewer::Interface {
 public:
     static Interface* GetDefault();
     virtual ~Interface() = default;
-    virtual const Models::Solution& GetSolution();
-    virtual void                    generate();
-    virtual void                    setSequenceEnable(const std::string& sequence, bool enable);
-    virtual void                    setTestEnable(const std::string& sequence, const std::string& test, bool enable);
+    /// Copy of the solution. Called only when GetSolutionRevision() changed.
+    virtual Models::Solution GetSolution();
+    /// Bumped on every change of the solution.
+    virtual std::uint64_t GetSolutionRevision();
+    virtual void          generate();
+    virtual void          setSequenceEnable(const std::string& sequence, bool enable);
+    virtual void          setTestEnable(const std::string& sequence, const std::string& test, bool enable);
 };
 
 enum class TestViewer::ListStatus {

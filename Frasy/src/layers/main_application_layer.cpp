@@ -22,6 +22,9 @@
 #include <utils/cli/cli_args.h>
 #include <utils/imgui/table.h>
 
+#include <chrono>
+#include <thread>
+
 #define CREATE_TEXTURE(texture, name, path)                                                                            \
     do {                                                                                                               \
         texture = Brigerad::AssetManager::AddTexture2D(name, path);                                                    \
@@ -95,6 +98,11 @@ void MainApplicationLayer::onDetach()
 {
     BR_PROFILE_FUNCTION();
 
+    // Product callbacks may capture the derived layer, which is destroyed before m_orchestrator.
+    while (m_orchestrator.isGenerating()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+
     if (m_mcpHttpServer) { m_mcpHttpServer->onDetach(); }
     m_logWindow->onDetach();
     m_deviceViewer->onDetach();
@@ -117,6 +125,8 @@ void MainApplicationLayer::onUpdate(Brigerad::Timestep ts)
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F7)) { makeCanOpenViewerVisible(); }
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F8)) { m_renderProfiler = true; }
     if (Brigerad::Input::isKeyPressed(Brigerad::KeyCode::F11)) { makeImpedanceAnalyzerVisible(); }
+    // Generate as soon as an environment is loaded, so the solution is known before the first run.
+    m_generateOnLoad.update(m_orchestrator);
     m_logWindow->onUpdate(ts);
     m_deviceViewer->onUpdate(ts);
     m_canOpenViewer->onUpdate(ts);
@@ -560,9 +570,7 @@ void MainApplicationLayer::DumpProfileEvents()
 }
 
 void MainApplicationLayer::generate()
-{
-    //    m_orchestrator->Generate();
-}
+{ m_orchestrator.generate(); }
 
 void MainApplicationLayer::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
 { m_orchestrator.setTestEnable(sequence, test, enable); }
