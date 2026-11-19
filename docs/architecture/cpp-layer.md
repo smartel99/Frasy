@@ -264,7 +264,7 @@ m_canOpen.stop();
 m_canOpen.clearNodes();
 
 for (const auto& ib : environment.ibs) {
-    m_canOpen.addNode(ib.nodeId, ib.name, ib.edsPath);
+    m_canOpen.addNode(ib.nodeId, ib.name, ib.odPath);
 }
 
 m_canOpen.start();

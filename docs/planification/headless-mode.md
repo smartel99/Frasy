@@ -689,8 +689,8 @@ public:
         canOpen.stop();
         canOpen.clearNodes();
         const auto& [ibs, uuts, teams] = orchestrator.getMap();
-        for (const auto& [kind, nodeId, name, edsPath, od] : ibs) {
-            canOpen.addNode(nodeId, name, edsPath);
+        for (const auto& [kind, nodeId, name, odPath, od] : ibs) {
+            canOpen.addNode(nodeId, name, odPath);
         }
         canOpen.start();
         return true;

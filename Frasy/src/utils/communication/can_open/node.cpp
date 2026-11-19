@@ -23,10 +23,10 @@
 
 namespace Frasy::CanOpen {
 
-Node::Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_view edsPath)
+Node::Node(CanOpen* canOpen, uint8_t nodeId, std::string_view name, std::string_view odPath)
 : m_nodeId(nodeId),
   m_name(name),
-  m_edsPath(edsPath),
+  m_odPath(odPath),
   m_sdoManager(std::make_unique<SdoManager>(nodeId)),
   m_canOpen(canOpen)
 {

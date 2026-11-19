@@ -101,7 +101,7 @@ public:
 
     std::vector<Node>&   getNodes();
     std::optional<Node*> getNode(uint8_t nodeId);
-    Node*                addNode(uint8_t nodeId, std::string_view name = "", std::string_view edsPath = "");
+    Node*                addNode(uint8_t nodeId, std::string_view name = "", std::string_view odPath = "");
     void                 removeNode(uint8_t nodeId);
     void                 removeNode(const Node& node);
     void                 clearNodes();

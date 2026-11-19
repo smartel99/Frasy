@@ -1071,7 +1071,7 @@ void Orchestrator::populateMap()
         m_map.ibs[name] = IbView(static_cast<int>(ib["ib"]["kind"].get<std::size_t>()),
                                  static_cast<int>(ib["ib"]["nodeId"].get<std::size_t>()),
                                  ib["ib"]["name"].get<std::string>(),
-                                 ib["ib"]["eds"].get<std::string>(),
+                                 ib["ib"]["odPath"].get<std::string>(),
                                  ib["ib"]["od"].get<sol::table>());
     }
 
