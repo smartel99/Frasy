@@ -130,6 +130,7 @@ void ObjectDictionaryView::onImGuiRender(CanOpen::Node& node)
         m_odPath = node.odPath();
         m_openObjects.clear();
         m_loaded = false;
+        m_commentWindows.clear();
     }
     if (!m_loaded) { load(); }
 
