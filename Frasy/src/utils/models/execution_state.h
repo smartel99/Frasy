@@ -17,10 +17,8 @@
 #ifndef KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_EXECUTION_STATE_H
 #define KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_EXECUTION_STATE_H
 
-namespace Frasy::Models
-{
-enum ExecutionState
-{
+namespace Frasy::Models {
+enum ExecutionState {
     idle,
     disabled,
     waiting,

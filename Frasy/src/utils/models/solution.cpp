@@ -22,8 +22,7 @@
 
 #include <fstream>
 
-namespace Frasy::Models
-{
+namespace Frasy::Models {
 
 void Solution::Clear()
 {
@@ -32,12 +31,8 @@ void Solution::Clear()
 }
 
 void Solution::SetSequenceEnable(const std::string& sequence, bool enabled)
-{
-    sequences.at(sequence).enabled = enabled;
-}
+{ sequences.at(sequence).enabled = enabled; }
 
 void Solution::SetTestEnable(const std::string& sequence, const std::string& test, bool enabled)
-{
-    sequences.at(sequence).tests.at(test).enabled = enabled;
-}
+{ sequences.at(sequence).tests.at(test).enabled = enabled; }
 }    // namespace Frasy::Models

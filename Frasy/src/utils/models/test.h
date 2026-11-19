@@ -22,10 +22,8 @@
 #include <string>
 #include <vector>
 
-namespace Frasy::Models
-{
-struct Test
-{
+namespace Frasy::Models {
+struct Test {
     bool                        enabled = false;
     std::vector<ExecutionState> state;
 

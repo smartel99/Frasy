@@ -23,10 +23,8 @@
 #include <utility>
 #include <vector>
 
-namespace Frasy::Models
-{
-struct Solution
-{
+namespace Frasy::Models {
+struct Solution {
     using subsequence = std::pair<std::string, std::vector<std::vector<std::string>>>;
     using section     = std::vector<std::vector<subsequence>>;
 

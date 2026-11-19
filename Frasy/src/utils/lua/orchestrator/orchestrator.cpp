@@ -122,8 +122,7 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     return true;
 }
 
-bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
-                              const std::filesystem::path&        hashfile)
+bool Orchestrator::verifyHash(const std::filesystem::path& folder, const std::filesystem::path& hashfile)
 {
 #ifndef BR_DEBUG
     if (!exists(hashfile)) {
@@ -341,9 +340,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         };
         lua.require_file("Json", "lua/core/vendor/json.lua");
         importLog(lua, uut, stage);
-        if (m_popupImport) {
-            m_popupImport(lua, uut, stage);
-        }
+        if (m_popupImport) { m_popupImport(lua, uut, stage); }
         else {
             importPopup(lua, uut, stage);
         }
@@ -352,18 +349,20 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         // Progress callback binding
         if (m_progressCallback && stage == Stage::execution) {
-            lua["__progress"] = lua.create_table();
-            lua["__progress"]["report"] = [this](const std::string& type, std::size_t uut,
-                                                  const std::string& name, const std::string& parentA,
-                                                  const std::string& parentB, bool pass) {
+            lua["__progress"]           = lua.create_table();
+            lua["__progress"]["report"] = [this](const std::string& type,
+                                                 std::size_t        uut,
+                                                 const std::string& name,
+                                                 const std::string& parentA,
+                                                 const std::string& parentB,
+                                                 bool               pass) {
                 m_progressCallback(type, uut, name, parentA, parentB, pass);
             };
         }
         else {
             lua["__progress"] = lua.create_table();
-            lua["__progress"]["report"] = [](const std::string&, std::size_t,
-                                              const std::string&, const std::string&,
-                                              const std::string&, bool) {};
+            lua["__progress"]["report"] =
+              [](const std::string&, std::size_t, const std::string&, const std::string&, const std::string&, bool) {};
         }
         lua.script_file("lua/core/framework/exception.lua");
 
@@ -1008,7 +1007,12 @@ void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_v
 void Orchestrator::setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback)
 { m_popupImport = std::move(callback); }
 
-void Orchestrator::setProgressCallback(std::function<void(const std::string& type, std::size_t uut, const std::string& name, const std::string& parentA, const std::string& parentB, bool pass)> callback)
+void Orchestrator::setProgressCallback(std::function<void(const std::string& type,
+                                                          std::size_t        uut,
+                                                          const std::string& name,
+                                                          const std::string& parentA,
+                                                          const std::string& parentB,
+                                                          bool               pass)> callback)
 { m_progressCallback = std::move(callback); }
 #pragma endregion
 

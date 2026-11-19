@@ -24,11 +24,9 @@
 #include <unordered_map>
 #include <vector>
 
-namespace Frasy::Models
-{
+namespace Frasy::Models {
 
-struct Sequence
-{
+struct Sequence {
     bool                                  enabled = false;
     std::vector<ExecutionState>           state;
     std::unordered_map<std::string, Test> tests = {};
@@ -37,7 +35,9 @@ struct Sequence
     Sequence(const Sequence& other) = default;
     explicit Sequence(bool enabled, const std::vector<std::string>& tests) : enabled(enabled)
     {
-        for (const auto& test : tests) { this->tests[test] = Test {true}; }
+        for (const auto& test : tests) {
+            this->tests[test] = Test {true};
+        }
     }
 };
 
