@@ -20,11 +20,11 @@
 
 #include "utils/communication/can_open/object_dictionary.h"
 #include "utils/communication/can_open/types.h"
+#include "utils/string_utils.h"
 
 #include <algorithm>
 #include <array>
 #include <bit>
-#include <cctype>
 #include <charconv>
 #include <cstring>
 #include <format>
@@ -34,6 +34,10 @@
 namespace Frasy::CanOpen::OdValue {
 
 namespace {
+using StringUtils::hasHexPrefix;
+using StringUtils::toLower;
+using StringUtils::trim;
+
 //! Raw data longer than this is truncated when displayed.
 constexpr std::size_t s_maxDisplayedBytes = 64;
 
@@ -87,22 +91,6 @@ std::expected<std::vector<uint8_t>, std::string> toBytes(T value)
     return out;
 }
 
-std::string_view trim(std::string_view text)
-{
-    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.front()))) {
-        text.remove_prefix(1);
-    }
-    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.back()))) {
-        text.remove_suffix(1);
-    }
-    return text;
-}
-
-bool hasHexPrefix(std::string_view text)
-{
-    return text.size() >= 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X');
-}
-
 template<typename T>
 std::expected<std::vector<uint8_t>, std::string> parseInteger(std::string_view text)
 {
@@ -145,8 +133,7 @@ std::expected<std::vector<uint8_t>, std::string> parseReal(std::string_view text
 
 std::expected<std::vector<uint8_t>, std::string> parseBoolean(std::string_view text)
 {
-    std::string lower(text);
-    std::ranges::transform(lower, lower.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    const std::string lower = toLower(text);
     if (lower == "true" || lower == "1") { return std::vector<uint8_t> {1}; }
     if (lower == "false" || lower == "0") { return std::vector<uint8_t> {0}; }
     return std::unexpected {"Expected true, false, 1 or 0"};

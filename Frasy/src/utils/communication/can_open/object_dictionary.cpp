@@ -18,6 +18,8 @@
  */
 #include "object_dictionary.h"
 
+#include "utils/string_utils.h"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -36,26 +38,12 @@ namespace {
 
 // --- Generic helpers ---
 
+using StringUtils::hasHexPrefix;
+using StringUtils::toLower;
+using StringUtils::trim;
+
 //! Files bigger than this are not object dictionary descriptions.
 constexpr std::uintmax_t s_maxFileSize = 16ull * 1024 * 1024;
-
-std::string_view trim(std::string_view text)
-{
-    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.front()))) {
-        text.remove_prefix(1);
-    }
-    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.back()))) {
-        text.remove_suffix(1);
-    }
-    return text;
-}
-
-std::string toLower(std::string_view text)
-{
-    std::string out(text);
-    std::ranges::transform(out, out.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-    return out;
-}
 
 bool isHex(std::string_view text)
 {
@@ -65,7 +53,7 @@ bool isHex(std::string_view text)
 std::optional<uint32_t> parseHex(std::string_view text)
 {
     text = trim(text);
-    if (text.size() > 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X')) { text.remove_prefix(2); }
+    if (hasHexPrefix(text)) { text.remove_prefix(2); }
     uint32_t value = 0;
     auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.size(), value, 16);
     if (text.empty() || ec != std::errc {} || ptr != text.data() + text.size()) { return std::nullopt; }
@@ -76,7 +64,7 @@ std::optional<uint32_t> parseHex(std::string_view text)
 std::optional<uint32_t> parseNumber(std::string_view text)
 {
     text = trim(text);
-    if (text.size() > 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X')) { return parseHex(text); }
+    if (hasHexPrefix(text)) { return parseHex(text); }
     uint32_t value = 0;
     auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.size(), value, 10);
     if (text.empty() || ec != std::errc {} || ptr != text.data() + text.size()) { return std::nullopt; }

@@ -2,7 +2,7 @@
  * @file    string_utils.cpp
  * @author  Samuel Martel
  * @date    2020-01-03
- * @brief   String helpers: replacement, file paths and wide strings.
+ * @brief   String helpers shared across Frasy: replacement, file paths, wide strings, trimming and case folding.
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under the
@@ -19,6 +19,9 @@
 #include "string_utils.h"
 
 #include <Windows.h>
+
+#include <algorithm>
+#include <cctype>
 
 namespace Frasy::StringUtils {
 
@@ -88,5 +91,26 @@ std::string wstringToString(const std::wstring& src)
 
 std::wstring stringToWstring(const std::string& src)
 { return std::wstring(src.begin(), src.end()); }
+
+std::string_view trim(std::string_view text)
+{
+    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.front()))) {
+        text.remove_prefix(1);
+    }
+    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.back()))) {
+        text.remove_suffix(1);
+    }
+    return text;
+}
+
+std::string toLower(std::string_view text)
+{
+    std::string out(text);
+    std::ranges::transform(out, out.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return out;
+}
+
+bool hasHexPrefix(std::string_view text)
+{ return text.size() >= 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X'); }
 
 }    // namespace Frasy::StringUtils

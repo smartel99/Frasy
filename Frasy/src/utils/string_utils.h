@@ -2,7 +2,7 @@
  * @file    string_utils.h
  * @author  Samuel Martel
  * @date    2020-01-03
- * @brief   String helpers: replacement, file paths and wide strings.
+ * @brief   String helpers shared across Frasy: replacement, file paths, wide strings, trimming and case folding.
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under the
@@ -20,6 +20,7 @@
 #define FRASY_UTILS_STRING_UTILS_H
 
 #include <string>
+#include <string_view>
 
 namespace Frasy::StringUtils {
 
@@ -31,6 +32,13 @@ std::string  removeNameFromPath(const std::wstring& path);
 std::string  removeNameFromPath(const std::string& path);
 std::string  wstringToString(const std::wstring& src);
 std::wstring stringToWstring(const std::string& src);
+
+//! Removes the leading and trailing whitespace of @p text.
+[[nodiscard]] std::string_view trim(std::string_view text);
+//! Copy of @p text with its ASCII letters in lowercase.
+[[nodiscard]] std::string toLower(std::string_view text);
+//! True when @p text starts with "0x" or "0X".
+[[nodiscard]] bool hasHexPrefix(std::string_view text);
 
 }    // namespace Frasy::StringUtils
 

@@ -16,6 +16,8 @@
  */
 #include "console_popup_handler.h"
 
+#include "utils/string_utils.h"
+
 #include <Brigerad/Core/Log.h>
 
 #include <algorithm>
@@ -190,15 +192,12 @@ ParsedResponse parseJsonLine(const std::string& line)
 /// Find which button matches (case-insensitive)
 int findButton(const std::string& name, const PopupInfo& info)
 {
-    auto lower = [](std::string s) {
-        std::ranges::transform(s, s.begin(), ::tolower);
-        return s;
-    };
-    std::string lowerName = lower(name);
+    using StringUtils::toLower;
+    const std::string lowerName = toLower(name);
     for (size_t i = 0; i < info.buttons.size(); ++i) {
-        if (lower(info.buttons[i]) == lowerName) { return static_cast<int>(i); }
+        if (toLower(info.buttons[i]) == lowerName) { return static_cast<int>(i); }
     }
-    if (lower(info.consumeButtonText) == lowerName) { return -1; }    // Cancel/consume button
+    if (toLower(info.consumeButtonText) == lowerName) { return -1; }    // Cancel/consume button
     return -2;    // Not found
 }
 
