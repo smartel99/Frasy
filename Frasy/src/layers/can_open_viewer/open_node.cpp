@@ -29,6 +29,8 @@ CanOpenViewer::OpenNode::OpenNode(uint8_t nodeId, CanOpen::CanOpen* canOpen)
     auto             maybeNode = canOpen->getNode(nodeId);
     std::string_view nodeName  = maybeNode.has_value() ? maybeNode.value()->name() : "Unknown";
     m_tabBarName               = std::format("{} - 0x{:2X}", nodeName, nodeId);
+    m_objectDictionary =
+      std::make_unique<ObjectDictionaryView>(maybeNode.has_value() ? std::string {maybeNode.value()->odPath()} : "");
 }
 
 void CanOpenViewer::OpenNode::onImGuiRender()
@@ -53,6 +55,10 @@ void CanOpenViewer::OpenNode::onImGuiRender()
                 renderErrorHistory(*node);
                 ImGui::EndTabItem();
             }
+            if (ImGui::BeginTabItem("Object Dictionary")) {
+                m_objectDictionary->onImGuiRender(*node);
+                ImGui::EndTabItem();
+            }
             if (ImGui::BeginTabItem("SDO")) {
                 m_sdo->onImGuiRender(*node);
                 ImGui::EndTabItem();
@@ -61,6 +67,11 @@ void CanOpenViewer::OpenNode::onImGuiRender()
         }
         ImGui::EndTabItem();
     }
+}
+
+void CanOpenViewer::OpenNode::renderWindows()
+{
+    m_objectDictionary->renderCommentWindows();
 }
 
 void CanOpenViewer::OpenNode::renderActiveErrors(const CanOpen::Node& node)
