@@ -164,6 +164,8 @@ void ObjectDictionaryView::load(bool forceReload)
         return;
     }
     m_dictionary = std::move(*result);
+    // The matches are those of the previous dictionary, which can be another file or another version of it.
+    updateFilterMatches();
 }
 
 // --- Requests ---
@@ -293,24 +295,34 @@ std::string ObjectDictionaryView::rangeName(std::size_t range)
 
 // --- Filter ---
 
+void ObjectDictionaryView::updateFilterMatches()
+{
+    m_matchingObjects.clear();
+    m_matchingEntries.clear();
+    if (m_lowerFilter.empty() || !m_dictionary) { return; }
+
+    for (const auto& object : m_dictionary->getObjects()) {
+        // When the object itself is what is searched for, all of its sub-indexes are of interest.
+        const bool isObjectMatching =
+          containsLower(objectLabel(object.index), m_lowerFilter) || containsLower(object.name, m_lowerFilter);
+        if (isObjectMatching) { m_matchingObjects.insert(object.index); }
+        for (const auto& entry : object.entries) {
+            if (isObjectMatching || containsLower(entry.name, m_lowerFilter)) {
+                m_matchingObjects.insert(object.index);
+                m_matchingEntries.insert(makeKey(object.index, entry.subIndex));
+            }
+        }
+    }
+}
+
 bool ObjectDictionaryView::matchesFilter(const OdObject& object) const
 {
-    if (m_lowerFilter.empty()) { return true; }
-    if (containsLower(objectLabel(object.index), m_lowerFilter) || containsLower(object.name, m_lowerFilter)) {
-        return true;
-    }
-    return std::ranges::any_of(object.entries,
-                               [this](const OdEntry& entry) { return containsLower(entry.name, m_lowerFilter); });
+    return m_lowerFilter.empty() || m_matchingObjects.contains(object.index);
 }
 
 bool ObjectDictionaryView::matchesFilter(const OdObject& object, const OdEntry& entry) const
 {
-    if (m_lowerFilter.empty()) { return true; }
-    // When the object itself is what is searched for, all of its sub-indexes are of interest.
-    if (containsLower(objectLabel(object.index), m_lowerFilter) || containsLower(object.name, m_lowerFilter)) {
-        return true;
-    }
-    return containsLower(entry.name, m_lowerFilter);
+    return m_lowerFilter.empty() || m_matchingEntries.contains(makeKey(object.index, entry.subIndex));
 }
 
 // --- Rendering ---
@@ -351,6 +363,7 @@ void ObjectDictionaryView::renderToolbar()
     ImGui::SetNextItemWidth(220.0f);
     if (ImGui::InputTextWithHint("##filter", "Filter by index or name", m_filter.data(), m_filter.size())) {
         m_lowerFilter = toLower(m_filter.data());
+        updateFilterMatches();
         // Show the matches that are in the sub-indexes. The user is free to fold them afterwards.
         if (!m_lowerFilter.empty()) {
             for (const auto& object : m_dictionary->getObjects()) {

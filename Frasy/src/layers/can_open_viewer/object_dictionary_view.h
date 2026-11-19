@@ -132,6 +132,12 @@ private:
     //! Expands (or folds) every record and array, whatever the selected range.
     void setAllOpen(bool isOpen);
 
+    /**
+     * @brief Finds the objects and entries that match the filter.
+     *
+     * Only done when the filter or the dictionary changes, as comparing every name allocates.
+     */
+    void updateFilterMatches();
     [[nodiscard]] bool matchesFilter(const CanOpen::OdObject& object) const;
     [[nodiscard]] bool matchesFilter(const CanOpen::OdObject& object, const CanOpen::OdEntry& entry) const;
 
@@ -147,6 +153,10 @@ private:
     std::array<char, 64> m_filter = {};
     //! The filter in lower case, as used by the comparisons.
     std::string          m_lowerFilter;
+    //! Objects that match the filter, by themselves or by one of their entries. Unused when the filter is empty.
+    std::unordered_set<uint16_t> m_matchingObjects;
+    //! Entries (keys from makeKey) shown under their object when the filter is set. Unused when the filter is empty.
+    std::unordered_set<uint32_t> m_matchingEntries;
 
     std::size_t m_selectedRange = s_defaultRange;
     //! Indexes of the records and arrays that are expanded. Kept here so that they stay as they are when switching range.
