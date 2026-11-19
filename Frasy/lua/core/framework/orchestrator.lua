@@ -36,10 +36,10 @@ if Context.orchestrator == nil then
 end
 
 local function ErrorHandler(err)
-    if type(err) == "string" then
-        err = GenericError(err)
+    if type(err) ~= "table" then
+        err = GenericError(tostring(err))
     end
-    err.what = err.what .. "\r\n" .. debug.traceback(nil, 2)
+    err.what = tostring(err.what) .. "\r\n" .. debug.traceback(nil, 2)
     return err
 end
 
