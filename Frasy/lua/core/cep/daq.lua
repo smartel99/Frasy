@@ -56,7 +56,7 @@ function DAQ:New(opt)
     CheckField(opt.nodeId, Is.Unsigned8)
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.odPath = "lua/core/cep/eds/daq.eds"
+    ib.odPath = "lua/core/cep/eds/daq.xdd"
     return setmetatable(
         {
             ib = ib,

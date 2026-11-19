@@ -212,6 +212,14 @@ TEST_F(LuaObjectDictionaryTest, LoadFile_AcceptsAByteOrderMark)
     EXPECT_EQ(lua.script("return OdParser.LoadFile(XddFile)['Device type'].dataType").get<int>(), 7);
 }
 
+TEST_F(LuaObjectDictionaryTest, LoadFile_BoardXdd)
+{
+    EXPECT_EQ(lua.script("return OdParser.LoadFile('lua/core/cep/eds/daq.xdd')['Device type'].index")
+                .get<std::string>(),
+              "0x1000");
+    EXPECT_EQ(lua.script("return OdParser.LoadFile('lua/core/cep/eds/daq.xdd')['Device type'].dataType").get<int>(), 7);
+}
+
 TEST_F(LuaObjectDictionaryTest, LoadFile_BoardEds)
 {
     EXPECT_EQ(lua.script("return OdParser.LoadFile('lua/core/cep/eds/pio.eds')['Device type'].index")

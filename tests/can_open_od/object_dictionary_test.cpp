@@ -305,6 +305,17 @@ TEST(ObjectDictionaryLoad, MissingFileIsAnError)
     EXPECT_FALSE(ObjectDictionary::load("this/file/does/not/exist.eds").has_value());
 }
 
+TEST(ObjectDictionaryLoad, BoardXddHasDeviceType)
+{
+    auto od = ObjectDictionary::load("lua/core/cep/eds/daq.xdd");
+    ASSERT_TRUE(od.has_value()) << od.error();
+    const auto* object = od->findObject(0x1000);
+    ASSERT_NE(object, nullptr);
+    ASSERT_EQ(object->entries.size(), 1u);
+    EXPECT_EQ(object->entries[0].varType, VarType::Unsigned32);
+    EXPECT_TRUE(isReadable(object->entries[0].access));
+}
+
 // The XDD and the EDS of the Frasy node are generated from the same dictionary, so both parsers must agree. The XDD
 // also describes the SDO client parameters (0x1280), which the EDS does not.
 TEST(ObjectDictionaryLoad, FrasyEdsAndXddAgree)
