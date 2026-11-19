@@ -1,5 +1,7 @@
 /**
  * @file    od_value.h
+ * @author  Paul Thomas
+ * @date    2026-11-19
  * @brief   Conversion between the raw bytes of an SDO transfer and their textual representation.
  *
  * @copyright

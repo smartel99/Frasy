@@ -1,3 +1,9 @@
+/**
+ * @file    object_dictionary_registry_test.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
+ * @brief   Unit tests for the registry that parses each EDS and XDD file once.
+ */
 #include "utils/communication/can_open/object_dictionary_registry.h"
 
 #include <gtest/gtest.h>

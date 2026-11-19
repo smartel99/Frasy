@@ -1,3 +1,9 @@
+/**
+ * @file    object_dictionary_test.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
+ * @brief   Unit tests for the parsing of EDS and XDD object dictionaries.
+ */
 #include "utils/communication/can_open/object_dictionary.h"
 
 #include <gtest/gtest.h>

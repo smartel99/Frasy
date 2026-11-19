@@ -1,5 +1,7 @@
 /**
  * @file    ping.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
  * @brief   Checks whether a CANopen node answers to requests.
  *
  * @copyright

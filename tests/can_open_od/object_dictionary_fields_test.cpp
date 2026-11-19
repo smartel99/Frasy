@@ -1,3 +1,9 @@
+/**
+ * @file    object_dictionary_fields_test.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
+ * @brief   Unit tests for the object dictionary fields that Lua needs: type codes, limits, object types and sub-index counts.
+ */
 #include "utils/communication/can_open/object_dictionary.h"
 
 #include <gtest/gtest.h>
