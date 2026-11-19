@@ -9,26 +9,26 @@ There are two approaches depending on your hardware's communication protocol:
 
 | Approach | When to Use | Defined In | Communication |
 |---|---|---|---|
-| **CANopen board (Lua)** | Your board speaks CANopen and has an EDS file | Lua (`lua/core/cep/` or `lua/user/`) | SDO via `Ib:Upload()` / `Ib:Download()` |
+| **CANopen board (Lua)** | Your board speaks CANopen and has an EDS or XDD file | Lua (`lua/core/cep/` or `lua/user/`) | SDO via `Ib:Upload()` / `Ib:Download()` |
 | **Non-CANopen device (C++)** | Your device uses USB, serial, TCP, or a vendor SDK | C++ with sol2 usertype | Direct API calls |
 
 ---
 
 ## CANopen Boards (Lua)
 
-If your custom hardware is a CANopen node with an EDS file, you implement it entirely in Lua
+If your custom hardware is a CANopen node with an EDS or XDD file, you implement it entirely in Lua
 by building on the `Ib` base class — the same pattern used by `DAQ`, `PIO`, and `R8L`.
 
 ### Structure
 
 A CANopen board definition consists of:
 
-1. An **EDS file** describing the node's object dictionary
+1. An **EDS or XDD file** describing the node's object dictionary
 2. A **Lua module** that creates the board class with high-level methods
 
-### Step 1: Provide an EDS File
+### Step 1: Provide an EDS or XDD File
 
-Place your board's EDS file in your project. Convention is to put it alongside your board
+Place your board's EDS (INI) or XDD (XML) file in your project. Convention is to put it alongside your board
 definition:
 
 ```
@@ -66,7 +66,7 @@ function MyBoard:New(opt)
 
     ib.name = opt.name
     ib.nodeId = opt.nodeId
-    ib.eds = "lua/user/common/boards/my_board.eds"
+    ib.odPath = "lua/user/common/boards/my_board.eds"
 
     return setmetatable({ ib = ib }, MyBoard)
 end
@@ -133,7 +133,8 @@ end)
 
 When `Environment.Ib.Add()` is called with your board:
 
-1. The framework reads the EDS file at the path in `ib.eds`.
+1. The framework reads the EDS or XDD file at the path in `ib.odPath`. The format is detected
+   from the content.
 2. It parses the object dictionary and attaches it as `board.ib.od`.
 3. During execution, `Ib:Upload()` and `Ib:Download()` perform SDO operations via the CANopen
    bus.
@@ -143,7 +144,7 @@ You get stage-aware behavior for free — no need to guard your methods manually
 
 ### Tips for CANopen Boards
 
-- **Name OD entries clearly** in your EDS file — those names become the keys in `self.ib.od`.
+- **Name OD entries clearly** in your EDS or XDD file — those names become the keys in `self.ib.od`.
 - **Add parameter validation** using `CheckField` to catch mistakes early.
 - **Provide enums** for constants (e.g., channel IDs, modes) as class-level tables.
 - **Add caching** if you read the same OD entry repeatedly — store it locally and only refresh
@@ -324,7 +325,7 @@ boards. The framework reads `ib.name`, `ib.serialNumber`, `ib.softwareVersion`, 
 
 ```cpp
 MyInstrument::MyInstrument()
-    : m_ibInfo{.kind = 0, .edsPath = "N/A"}
+    : m_ibInfo{.kind = 0, .odPath = "N/A"}
 {
 }
 
@@ -384,8 +385,8 @@ inst:setRange(MyInstrument.Range.R10V)
 | | `Environment.Ib.Add(board)` | `Context.map.ibs["name"] = board` |
 |---|---|---|
 | **Communication** | CANopen (SDO via SLCAN) | Anything (USB, serial, TCP, vendor SDK) |
-| **EDS file** | Required — parsed automatically | Not applicable |
-| **Object dictionary** | Built from EDS, accessible as `board.ib.od` | N/A (methods wrap hardware directly) |
+| **EDS or XDD file** | Required — parsed automatically | Not applicable |
+| **Object dictionary** | Built from the EDS or XDD, accessible as `board.ib.od` | N/A (methods wrap hardware directly) |
 | **Stage guards** | Built into `Ib:Upload()` / `Ib:Download()` | You implement them in `registerLuaType` |
 | **CANopen node management** | Automatic (added to bus, heartbeat, NMT) | N/A |
 | **Test report integration** | Automatic via `ib` field | Works if your type exposes an `ib` field with `IbInfo` |

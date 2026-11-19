@@ -108,19 +108,21 @@ The CANopen stack runs in its own `std::jthread`. It:
 
 ---
 
-## EDS Files and the Object Dictionary
+## EDS/XDD Files and the Object Dictionary
 
-### What Is an EDS?
+### What Are an EDS and a XDD?
 
-An **Electronic Data Sheet** (EDS) is a standardized INI-format file (CiA 306) that describes a CANopen node's capabilities. It lists every object in the node's **object dictionary** — their indexes, sub-indexes, data types, access rights, and default values.
+An **Electronic Data Sheet** (EDS) is a standardized INI-format file (CiA 306) that describes a CANopen node's capabilities. The **XDD** (CiA 311) is its XML counterpart. Either one lists every object in the node's **object dictionary** — their indexes, sub-indexes, data types, access rights, and default values.
 
-### How Frasy Uses EDS Files
+### How Frasy Uses EDS and XDD Files
 
 When `Environment.Ib.Add(board)` is called in Lua, the framework:
 
-1. Reads the EDS file specified in the board definition.
-2. Parses it with an INI parser.
-3. Builds an in-memory Lua table representing the object dictionary.
+1. Reads the EDS or XDD file given by `ib.odPath` in the board definition. The format is detected from the content of the file, not from its extension.
+2. Asks C++ to parse it (INI for an EDS, XML for a XDD). Each file is parsed **once**: the result is kept by
+   `ObjectDictionaryRegistry`, and is shared with the CANopen Viewer, which shows the same dictionary. A file is
+   parsed again only if it changed on disk, or when **Reload** is pressed in the viewer.
+3. Builds an in-memory Lua table representing the object dictionary from the result.
 4. Attaches it to the board as `board.ib.od`.
 
 ### Object Dictionary Structure
@@ -259,7 +261,7 @@ m_canOpen.addEmergencyMessageCallback([](const EmergencyMessage& em) {
 When a product is loaded:
 
 1. The application reads the environment's IB declarations.
-2. For each IB, `addNode(nodeId, name, edsPath)` is called on `m_canOpen`.
+2. For each IB, `addNode(nodeId, name, odPath)` is called on `m_canOpen`.
 3. `m_canOpen.start()` launches the CANopen thread.
 4. The orchestrator receives `setCanOpen(&m_canOpen)` so the Lua bindings can invoke SDO operations.
 
