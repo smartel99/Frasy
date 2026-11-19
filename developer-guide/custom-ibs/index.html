@@ -1159,10 +1159,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-1-provide-an-eds-file" class="md-nav__link">
+  <a href="#step-1-provide-an-eds-or-xdd-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 1: Provide an EDS File
+        Step 1: Provide an EDS or XDD File
       
     </span>
   </a>
@@ -2143,10 +2143,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-1-provide-an-eds-file" class="md-nav__link">
+  <a href="#step-1-provide-an-eds-or-xdd-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 1: Provide an EDS File
+        Step 1: Provide an EDS or XDD File
       
     </span>
   </a>
@@ -2389,7 +2389,7 @@ to define a custom board type.</p>
 <tbody>
 <tr>
 <td><strong>CANopen board (Lua)</strong></td>
-<td>Your board speaks CANopen and has an EDS file</td>
+<td>Your board speaks CANopen and has an EDS or XDD file</td>
 <td>Lua (<code>lua/core/cep/</code> or <code>lua/user/</code>)</td>
 <td>SDO via <code>Ib:Upload()</code> / <code>Ib:Download()</code></td>
 </tr>
@@ -2403,16 +2403,16 @@ to define a custom board type.</p>
 </table>
 <hr />
 <h2 id="canopen-boards-lua">CANopen Boards (Lua)<a class="headerlink" href="#canopen-boards-lua" title="Permanent link">&para;</a></h2>
-<p>If your custom hardware is a CANopen node with an EDS file, you implement it entirely in Lua
+<p>If your custom hardware is a CANopen node with an EDS or XDD file, you implement it entirely in Lua
 by building on the <code>Ib</code> base class — the same pattern used by <code>DAQ</code>, <code>PIO</code>, and <code>R8L</code>.</p>
 <h3 id="structure">Structure<a class="headerlink" href="#structure" title="Permanent link">&para;</a></h3>
 <p>A CANopen board definition consists of:</p>
 <ol>
-<li>An <strong>EDS file</strong> describing the node's object dictionary</li>
+<li>An <strong>EDS or XDD file</strong> describing the node's object dictionary</li>
 <li>A <strong>Lua module</strong> that creates the board class with high-level methods</li>
 </ol>
-<h3 id="step-1-provide-an-eds-file">Step 1: Provide an EDS File<a class="headerlink" href="#step-1-provide-an-eds-file" title="Permanent link">&para;</a></h3>
-<p>Place your board's EDS file in your project. Convention is to put it alongside your board
+<h3 id="step-1-provide-an-eds-or-xdd-file">Step 1: Provide an EDS or XDD File<a class="headerlink" href="#step-1-provide-an-eds-or-xdd-file" title="Permanent link">&para;</a></h3>
+<p>Place your board's EDS (INI) or XDD (XML) file in your project. Convention is to put it alongside your board
 definition:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>src/lua/user/common/boards/
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  my_board.lua
@@ -2445,7 +2445,7 @@ definition:</p>
 <a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
 <a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="nv">ib</span><span class="p">.</span><span class="py">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">name</span>
 <a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="nv">ib</span><span class="p">.</span><span class="py">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">opt</span><span class="p">.</span><span class="py">nodeId</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="nv">ib</span><span class="p">.</span><span class="py">eds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"lua/user/common/boards/my_board.eds"</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="nv">ib</span><span class="p">.</span><span class="py">odPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"lua/user/common/boards/my_board.eds"</span>
 <a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
 <a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nb">setmetatable</span><span class="p">({</span><span class="w"> </span><span class="nv">ib</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ib</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="nv">MyBoard</span><span class="p">)</span>
 <a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="kr">end</span>
@@ -2500,7 +2500,8 @@ use:</p>
 <h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
 <p>When <code>Environment.Ib.Add()</code> is called with your board:</p>
 <ol>
-<li>The framework reads the EDS file at the path in <code>ib.eds</code>.</li>
+<li>The framework reads the EDS or XDD file at the path in <code>ib.odPath</code>. The format is detected
+   from the content.</li>
 <li>It parses the object dictionary and attaches it as <code>board.ib.od</code>.</li>
 <li>During execution, <code>Ib:Upload()</code> and <code>Ib:Download()</code> perform SDO operations via the CANopen
    bus.</li>
@@ -2509,7 +2510,7 @@ use:</p>
 <p>You get stage-aware behavior for free — no need to guard your methods manually.</p>
 <h3 id="tips-for-canopen-boards">Tips for CANopen Boards<a class="headerlink" href="#tips-for-canopen-boards" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Name OD entries clearly</strong> in your EDS file — those names become the keys in <code>self.ib.od</code>.</li>
+<li><strong>Name OD entries clearly</strong> in your EDS or XDD file — those names become the keys in <code>self.ib.od</code>.</li>
 <li><strong>Add parameter validation</strong> using <code>CheckField</code> to catch mistakes early.</li>
 <li><strong>Provide enums</strong> for constants (e.g., channel IDs, modes) as class-level tables.</li>
 <li><strong>Add caching</strong> if you read the same OD entry repeatedly — store it locally and only refresh
@@ -2663,7 +2664,7 @@ and add them to <code>Context.map.ibs</code>:</p>
 boards. The framework reads <code>ib.name</code>, <code>ib.serialNumber</code>, <code>ib.softwareVersion</code>, and
 <code>ib.hardwareVersion</code> when generating reports.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">MyInstrument</span><span class="o">::</span><span class="n">MyInstrument</span><span class="p">()</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">m_ibInfo</span><span class="p">{.</span><span class="n">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">edsPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"N/A"</span><span class="p">}</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">m_ibInfo</span><span class="p">{.</span><span class="n">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">odPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"N/A"</span><span class="p">}</span>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="p">{</span>
 <a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="p">}</span>
 <a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
@@ -2725,13 +2726,13 @@ the usertype:</p>
 <td>Anything (USB, serial, TCP, vendor SDK)</td>
 </tr>
 <tr>
-<td><strong>EDS file</strong></td>
+<td><strong>EDS or XDD file</strong></td>
 <td>Required — parsed automatically</td>
 <td>Not applicable</td>
 </tr>
 <tr>
 <td><strong>Object dictionary</strong></td>
-<td>Built from EDS, accessible as <code>board.ib.od</code></td>
+<td>Built from the EDS or XDD, accessible as <code>board.ib.od</code></td>
 <td>N/A (methods wrap hardware directly)</td>
 </tr>
 <tr>

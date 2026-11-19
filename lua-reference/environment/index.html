@@ -2354,8 +2354,8 @@ Validates team assignments and worker configuration on completion.</p>
 </ul>
 <hr />
 <h2 id="environmentibaddboard"><code>Environment.Ib.Add(board)</code><a class="headerlink" href="#environmentibaddboard" title="Permanent link">&para;</a></h2>
-<p>Registers a CANopen instrumentation board. The framework parses the board's EDS file and
-builds its object dictionary.</p>
+<p>Registers a CANopen instrumentation board. The framework parses the board's EDS or XDD file
+(see <code>ib.odPath</code>) and builds its object dictionary.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">MyDaq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">DAQ</span><span class="p">:</span><span class="nf">New</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"daq"</span><span class="p">,</span><span class="w"> </span><span class="nv">nodeId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">})</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">Environment</span><span class="p">.</span><span class="py">Ib</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nv">MyDaq</span><span class="p">)</span>
 </code></pre></div>
@@ -2372,7 +2372,7 @@ builds its object dictionary.</p>
 <tr>
 <td><code>board</code></td>
 <td>table</td>
-<td>A board instance (must have a <code>.ib</code> field with <code>name</code>, <code>nodeId</code>, and <code>eds</code>)</td>
+<td>A board instance (must have a <code>.ib</code> field with <code>name</code>, <code>nodeId</code>, and <code>odPath</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -2381,7 +2381,10 @@ builds its object dictionary.</p>
 <ul>
 <li>Board names must be unique. Registering a duplicate name raises an error.</li>
 <li>After registration, the board is accessible at <code>Context.map.ibs.&lt;name&gt;</code>.</li>
-<li>The EDS file is parsed immediately and the object dictionary is attached as <code>board.ib.od</code>.</li>
+<li>The EDS or XDD file is parsed by C++ (once per file, the result is shared with the CANopen Viewer) and the
+  object dictionary is attached as <code>board.ib.od</code>.
+  The format is detected from the content of the file, not from its extension.</li>
+<li><code>ib.odPath</code> replaces the former <code>ib.eds</code>; a board that still sets <code>ib.eds</code> raises an error.</li>
 <li>Predefined board types: <code>DAQ</code>, <code>PIO</code>, <code>R8L</code>.</li>
 <li>For non-CANopen devices, add them directly to <code>Context.map.ibs</code> instead (see
   <a href="../../developer-guide/custom-ibs/">Custom Instrumentation Boards</a>).</li>

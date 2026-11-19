@@ -1862,6 +1862,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ping
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1895,6 +1906,17 @@
     <span class="md-ellipsis">
       
         Error History
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-dictionary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object Dictionary
       
     </span>
   </a>
@@ -2176,6 +2198,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ping
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2209,6 +2242,17 @@
     <span class="md-ellipsis">
       
         Error History
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-dictionary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object Dictionary
       
     </span>
   </a>
@@ -2431,6 +2475,10 @@ test development.</p>
 <td><strong>State</strong></td>
 <td>Heartbeat state and NMT state</td>
 </tr>
+<tr>
+<td><strong>Ping</strong></td>
+<td><strong>Ping</strong> button and the result of the last ping</td>
+</tr>
 </tbody>
 </table>
 <h3 id="status-indicators">Status Indicators<a class="headerlink" href="#status-indicators" title="Permanent link">&para;</a></h3>
@@ -2443,10 +2491,38 @@ test development.</p>
 <ul>
 <li><strong>Click a node row</strong> to open its Node Explorer tab.</li>
 <li><strong>"Restart" button</strong> — resets the entire CANopen stack (all nodes re-initialize).</li>
+<li><strong>"Ping" button</strong> (one per node) and <strong>"Ping All"</strong> — quickly checks that a node answers.</li>
 </ul>
+<h3 id="ping">Ping<a class="headerlink" href="#ping" title="Permanent link">&para;</a></h3>
+<p>CANopen has no generic ping command, so a ping reads the <em>Device type</em> (index <code>0x1000</code>), an object
+that every CANopen device must have. It waits 500 ms for the answer and does not retry. The result
+is shown next to the button; hover it for details (e.g., the device type that was read).</p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Responsive</strong></td>
+<td>The node answered with its device type.</td>
+</tr>
+<tr>
+<td><strong>Error</strong></td>
+<td>The node answered, but with an SDO abort. The node is alive, but something is wrong.</td>
+</tr>
+<tr>
+<td><strong>No response</strong></td>
+<td>No answer before the timeout, or the request could not be sent (is CANopen running?).</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="node-explorer">Node Explorer<a class="headerlink" href="#node-explorer" title="Permanent link">&para;</a></h2>
-<p>When you click a node, it opens in a tabbed explorer window with three tabs:</p>
+<p>When you click a node, it opens in a tabbed explorer window with these tabs: Active Errors, Error
+History, Object Dictionary and SDO.</p>
 <h3 id="active-errors">Active Errors<a class="headerlink" href="#active-errors" title="Permanent link">&para;</a></h3>
 <p>Shows currently active error conditions on the node. Each error displays:</p>
 <ul>
@@ -2465,8 +2541,99 @@ clear when the condition resolves.</p>
 </ul>
 <p>This is useful for diagnosing intermittent issues that have already resolved by the time you
 look.</p>
+<h3 id="object-dictionary">Object Dictionary<a class="headerlink" href="#object-dictionary" title="Permanent link">&para;</a></h3>
+<p>Browses the object dictionary of the node, so that you do not have to remember indexes. The
+content comes from the <strong>EDS or XDD file of the board</strong> (the <code>ib.odPath</code> of the board given to <code>Environment.Ib.Add()</code>);
+the format is detected automatically. The path of the file and the device it describes are shown
+at the top. The file is parsed once, by whoever needs it first (the Lua environment when the product
+is loaded), and the viewer shows that same result. <strong>Reload</strong> reads the file again after you edited it.</p>
+<p>The objects are shown one range of indexes at a time. Use the arrows or the dropdown (like in the
+analyzers) to switch between:</p>
+<table>
+<thead>
+<tr>
+<th>Range</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x1000</code> - <code>0x1FFF</code></td>
+<td>Communication Specific Parameters</td>
+</tr>
+<tr>
+<td><code>0x2000</code> - <code>0x5FFF</code></td>
+<td>Manufacturer Specific Parameters</td>
+</tr>
+<tr>
+<td><code>0x6000</code> - <code>0x9FFF</code></td>
+<td>Device Profile Specific Parameters (shown first)</td>
+</tr>
+<tr>
+<td>Other indexes</td>
+<td>Anything else in the file (e.g., data types). Only offered when there is some.</td>
+</tr>
+</tbody>
+</table>
+<p>The dropdown shows how many objects each range has (with the filter applied).</p>
+<p>Each object is a row, and records and arrays (e.g., <code>0x1018</code> Identity) expand to show their
+sub-indexes:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Object</strong></td>
+<td>Index (<code>0x1018</code>) or sub-index (<code>sub 0x01</code>).</td>
+</tr>
+<tr>
+<td><strong>Name</strong></td>
+<td>Name from the EDS/XDD. Hover for the beginning of the description (comment) written in the XDD, the data type and the default value. When there is a description, the name can be clicked to open it entirely (see below). An EDS has no descriptions.</td>
+</tr>
+<tr>
+<td><strong>Type</strong></td>
+<td>Data type of the entry.</td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><code>ro</code>, <code>wo</code>, <code>rw</code> or <code>const</code>.</td>
+</tr>
+<tr>
+<td><strong>Value</strong></td>
+<td>The last value read from the device.</td>
+</tr>
+<tr>
+<td><strong>New value</strong></td>
+<td>Value to write (only for writable entries). Pressing <span class="keys"><kbd class="key-enter">Enter</kbd></span> writes it.</td>
+</tr>
+<tr>
+<td><strong>Actions</strong></td>
+<td><strong>Read</strong> and <strong>Write</strong> buttons, and the result of the last write.</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Read</strong> uploads the entry. <strong>Read all</strong> on a record or an array reads all its sub-indexes.</li>
+<li><strong>Write</strong> downloads the value typed in <em>New value</em>, then reads the entry back to show what the
+  device holds. Integers accept decimal or hexadecimal (<code>0x1F</code>). Entries of a type without a
+  native representation (e.g., domains) are edited as hexadecimal bytes (<code>01 AB FF</code>).</li>
+<li>Clicking the name of an entry that has a comment opens a window with the whole text. It scrolls,
+  can be resized and is closed with its close button. Several can be open at once, and they stay
+  open when you select another tab.</li>
+<li><strong>Expand</strong> and <strong>Fold</strong>, on the right of the filter line, expand or fold every record and array,
+  in all the ranges. Typing a filter expands the records and arrays that match.</li>
+<li>A button is disabled when the access type does not allow the operation.</li>
+<li>Errors are shown in red (<code>Timeout</code>, or the SDO abort code); hover for the explanation.</li>
+<li>The filter keeps the objects whose index or name contains the text, in the selected range. Timeout and retries apply to
+  the requests of this tab.</li>
+</ul>
 <h3 id="sdo-upload-download">SDO (Upload / Download)<a class="headerlink" href="#sdo-upload-download" title="Permanent link">&para;</a></h3>
-<p>The SDO tab lets you manually read from and write to the node's object dictionary.</p>
+<p>The SDO tab lets you manually read from and write to any index of the node, even when it is not
+in the EDS/XDD.</p>
 <hr />
 <h2 id="sdo-operations">SDO Operations<a class="headerlink" href="#sdo-operations" title="Permanent link">&para;</a></h2>
 <h3 id="upload-read">Upload (Read)<a class="headerlink" href="#upload-read" title="Permanent link">&para;</a></h3>

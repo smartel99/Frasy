@@ -990,22 +990,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#eds-files-and-the-object-dictionary" class="md-nav__link">
+  <a href="#edsxdd-files-and-the-object-dictionary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        EDS Files and the Object Dictionary
+        EDS/XDD Files and the Object Dictionary
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="EDS Files and the Object Dictionary">
+    <nav class="md-nav" aria-label="EDS/XDD Files and the Object Dictionary">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#what-is-an-eds" class="md-nav__link">
+  <a href="#what-are-an-eds-and-a-xdd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Is an EDS?
+        What Are an EDS and a XDD?
       
     </span>
   </a>
@@ -1013,10 +1013,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#how-frasy-uses-eds-files" class="md-nav__link">
+  <a href="#how-frasy-uses-eds-and-xdd-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How Frasy Uses EDS Files
+        How Frasy Uses EDS and XDD Files
       
     </span>
   </a>
@@ -2276,22 +2276,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#eds-files-and-the-object-dictionary" class="md-nav__link">
+  <a href="#edsxdd-files-and-the-object-dictionary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        EDS Files and the Object Dictionary
+        EDS/XDD Files and the Object Dictionary
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="EDS Files and the Object Dictionary">
+    <nav class="md-nav" aria-label="EDS/XDD Files and the Object Dictionary">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#what-is-an-eds" class="md-nav__link">
+  <a href="#what-are-an-eds-and-a-xdd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Is an EDS?
+        What Are an EDS and a XDD?
       
     </span>
   </a>
@@ -2299,10 +2299,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#how-frasy-uses-eds-files" class="md-nav__link">
+  <a href="#how-frasy-uses-eds-and-xdd-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How Frasy Uses EDS Files
+        How Frasy Uses EDS and XDD Files
       
     </span>
   </a>
@@ -2544,15 +2544,17 @@
 <li>Sleeps or wakes based on a condition variable triggered by new incoming data.</li>
 </ol>
 <hr />
-<h2 id="eds-files-and-the-object-dictionary">EDS Files and the Object Dictionary<a class="headerlink" href="#eds-files-and-the-object-dictionary" title="Permanent link">&para;</a></h2>
-<h3 id="what-is-an-eds">What Is an EDS?<a class="headerlink" href="#what-is-an-eds" title="Permanent link">&para;</a></h3>
-<p>An <strong>Electronic Data Sheet</strong> (EDS) is a standardized INI-format file (CiA 306) that describes a CANopen node's capabilities. It lists every object in the node's <strong>object dictionary</strong> — their indexes, sub-indexes, data types, access rights, and default values.</p>
-<h3 id="how-frasy-uses-eds-files">How Frasy Uses EDS Files<a class="headerlink" href="#how-frasy-uses-eds-files" title="Permanent link">&para;</a></h3>
+<h2 id="edsxdd-files-and-the-object-dictionary">EDS/XDD Files and the Object Dictionary<a class="headerlink" href="#edsxdd-files-and-the-object-dictionary" title="Permanent link">&para;</a></h2>
+<h3 id="what-are-an-eds-and-a-xdd">What Are an EDS and a XDD?<a class="headerlink" href="#what-are-an-eds-and-a-xdd" title="Permanent link">&para;</a></h3>
+<p>An <strong>Electronic Data Sheet</strong> (EDS) is a standardized INI-format file (CiA 306) that describes a CANopen node's capabilities. The <strong>XDD</strong> (CiA 311) is its XML counterpart. Either one lists every object in the node's <strong>object dictionary</strong> — their indexes, sub-indexes, data types, access rights, and default values.</p>
+<h3 id="how-frasy-uses-eds-and-xdd-files">How Frasy Uses EDS and XDD Files<a class="headerlink" href="#how-frasy-uses-eds-and-xdd-files" title="Permanent link">&para;</a></h3>
 <p>When <code>Environment.Ib.Add(board)</code> is called in Lua, the framework:</p>
 <ol>
-<li>Reads the EDS file specified in the board definition.</li>
-<li>Parses it with an INI parser.</li>
-<li>Builds an in-memory Lua table representing the object dictionary.</li>
+<li>Reads the EDS or XDD file given by <code>ib.odPath</code> in the board definition. The format is detected from the content of the file, not from its extension.</li>
+<li>Asks C++ to parse it (INI for an EDS, XML for a XDD). Each file is parsed <strong>once</strong>: the result is kept by
+   <code>ObjectDictionaryRegistry</code>, and is shared with the CANopen Viewer, which shows the same dictionary. A file is
+   parsed again only if it changed on disk, or when <strong>Reload</strong> is pressed in the viewer.</li>
+<li>Builds an in-memory Lua table representing the object dictionary from the result.</li>
 <li>Attaches it to the board as <code>board.ib.od</code>.</li>
 </ol>
 <h3 id="object-dictionary-structure">Object Dictionary Structure<a class="headerlink" href="#object-dictionary-structure" title="Permanent link">&para;</a></h3>
@@ -2715,7 +2717,7 @@
 <p>When a product is loaded:</p>
 <ol>
 <li>The application reads the environment's IB declarations.</li>
-<li>For each IB, <code>addNode(nodeId, name, edsPath)</code> is called on <code>m_canOpen</code>.</li>
+<li>For each IB, <code>addNode(nodeId, name, odPath)</code> is called on <code>m_canOpen</code>.</li>
 <li><code>m_canOpen.start()</code> launches the CANopen thread.</li>
 <li>The orchestrator receives <code>setCanOpen(&amp;m_canOpen)</code> so the Lua bindings can invoke SDO operations.</li>
 </ol>
