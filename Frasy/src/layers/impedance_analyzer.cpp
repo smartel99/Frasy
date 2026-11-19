@@ -17,6 +17,8 @@
 
 #include "impedance_analyzer.h"
 
+#include "utils/imgui/selector.h"
+
 #include <imgui.h>
 #include <implot.h>
 
@@ -96,44 +98,6 @@ std::pair<const char*, ImVec4> describeRelevance(Relevance relevance)
             break;
     }
     return {"", s_warnColor};    // Not displayed: see renderRelevance.
-}
-
-/**
- * @brief Previous and next arrows with a dropdown, like the selectors of the Result Analyzer.
- * @param label    Identifies the selector. Prefix it with `##` to hide it.
- * @param selected Index of the selected item, updated on selection.
- * @param items    Items to choose from. Must not be empty.
- * @param nameOf   Gives the displayed name of an item.
- * @return True if the selection changed.
- */
-template<typename Items, typename NameOf>
-bool renderSelector(const char* label, std::size_t& selected, const Items& items, NameOf nameOf)
-{
-    bool changed = false;
-
-    ImGui::PushID(label);
-    if (ImGui::ArrowButton("##previous", ImGuiDir_Left) && selected > 0) {
-        --selected;
-        changed = true;
-    }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("##next", ImGuiDir_Right) && selected + 1 < items.size()) {
-        ++selected;
-        changed = true;
-    }
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    if (ImGui::BeginCombo(label, nameOf(items[selected]).c_str())) {
-        for (std::size_t i = 0; i < items.size(); ++i) {
-            if (ImGui::Selectable(nameOf(items[i]).c_str(), selected == i)) {
-                changed  = changed || selected != i;
-                selected = i;
-            }
-        }
-        ImGui::EndCombo();
-    }
-    ImGui::PopID();
-    return changed;
 }
 
 /// Names of the expectations are not unique, number the ones that are not.
@@ -384,16 +348,16 @@ void ImpedanceAnalyzer::renderSelectors(LoadedReport& report)
     // The selection is always valid: a change of a level resets the ones below it to their first item.
     const auto name = [](const auto& item) -> const std::string& { return item.name; };
     // The labels are hidden (##): the dropdowns are self explanatory.
-    if (renderSelector("##Sequence", report.sequence, report.sequences, name)) {
+    if (Widget::Selector("##Sequence", report.sequence, report.sequences, name)) {
         report.test  = 0;
         report.entry = 0;
     }
 
     const auto& sequence = report.sequences.at(report.sequence);
-    if (renderSelector("##Test", report.test, sequence.tests, name)) { report.entry = 0; }
+    if (Widget::Selector("##Test", report.test, sequence.tests, name)) { report.entry = 0; }
 
     const auto& test = sequence.tests.at(report.test);
-    renderSelector("##Expectation", report.entry, test.entries, [](const Entry& entry) -> const std::string& {
+    Widget::Selector("##Expectation", report.entry, test.entries, [](const Entry& entry) -> const std::string& {
         return entry.label;
     });
 }
