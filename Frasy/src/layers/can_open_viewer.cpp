@@ -48,6 +48,15 @@ void Layer::onImGuiRender()
         ImGui::Text("%s", m_canOpen.isOpen() ? "Active" : "Inactive");
         ImGui::SameLine();
         if (ImGui::Button("Restart")) { m_canOpen.reset(); }
+        ImGui::SameLine();
+        if (ImGui::Button("Ping All")) {
+            for (auto& node : m_canOpen.getNodes()) {
+                m_pings[node.nodeId()].start(node);
+            }
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Checks that every node answers, by reading its device type (0x1000).");
+        }
         if (ImGui::Button("Error Generator")) { m_shouldRenderErrorGenerator = true; }
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("!!! CAUTION !!! This menu is not for you to use, you do not need to go there!");
@@ -81,17 +90,42 @@ void Layer::setVisibility(bool visibility)
     ImGui::SetWindowFocus(s_windowName);
 }
 
+namespace {
+constexpr ImVec4 s_pingAliveColor = {0.30f, 0.80f, 0.35f, 1.0f};
+constexpr ImVec4 s_pingFaultColor = {0.95f, 0.75f, 0.20f, 1.0f};
+constexpr ImVec4 s_pingDeadColor  = {0.90f, 0.30f, 0.30f, 1.0f};
+
+void renderPingStatus(const Ping& ping)
+{
+    switch (ping.getStatus()) {
+        case Ping::Status::Idle: return;
+        case Ping::Status::Pending: ImGui::TextDisabled("Pinging..."); break;
+        case Ping::Status::Alive: ImGui::TextColored(s_pingAliveColor, "Responsive"); break;
+        case Ping::Status::Fault: ImGui::TextColored(s_pingFaultColor, "Error"); break;
+        case Ping::Status::Dead: ImGui::TextColored(s_pingDeadColor, "No response"); break;
+    }
+    if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%s", ping.getMessage().c_str()); }
+}
+}    // namespace
+
 void Layer::renderNodes()
 {
     BR_PROFILE_FUNCTION();
 
-    Widget::Table("nodes", 3)
+    // Forget the pings of the nodes that do not exist anymore, and collect the answers of the others.
+    std::erase_if(m_pings, [this](const auto& entry) { return !m_canOpen.getNode(entry.first).has_value(); });
+    for (auto& [nodeId, ping] : m_pings) {
+        ping.update();
+    }
+
+    Widget::Table("nodes", 4)
       .ColumnHeader("Name", ImGuiTableColumnFlags_DefaultSort)
       .ColumnHeader("Node ID")
       .ColumnHeader("State", ImGuiTableColumnFlags_WidthStretch)
+      .ColumnHeader("Ping", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoSort, 170.0f)
       .ScrollFreeze()
       .FinishHeader()
-      .Content(m_canOpen.getNodes(), [this](Widget::Table& table, const CanOpen::Node& node) {
+      .Content(m_canOpen.getNodes(), [this](Widget::Table& table, CanOpen::Node& node) {
           bool clicked    = false;
           auto renderCell = [&clicked](std::string_view str) {
               if (ImGui::Selectable(str.data())) { clicked = true; }
@@ -106,6 +140,15 @@ void Layer::renderNodes()
                             std::format("HB: {}, NMT: {}",
                                         CanOpen::toString(node.getHbState()),
                                         CanOpen::toString(node.getNmtState())));
+
+          auto& ping = m_pings[node.nodeId()];
+          table.CellContent([&ping, &node] {
+              ImGui::BeginDisabled(ping.isPending());
+              if (ImGui::SmallButton("Ping")) { ping.start(node); }
+              ImGui::EndDisabled();
+              ImGui::SameLine();
+              renderPingStatus(ping);
+          });
 
           if (clicked && !std::ranges::any_of(
                            m_openNodes, [nodeId = node.nodeId()](const auto& n) { return n.nodeId() == nodeId; })) {

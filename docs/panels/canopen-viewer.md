@@ -27,6 +27,7 @@ The main panel displays a table of all CANopen nodes registered in the current e
 | **Name** | Board name (from `Environment.Ib.Add()`) |
 | **Node ID** | CANopen node ID (hex) |
 | **State** | Heartbeat state and NMT state |
+| **Ping** | **Ping** button and the result of the last ping |
 
 ### Status Indicators
 
@@ -39,6 +40,19 @@ A node in `Operational` + `Active` state is healthy and ready for SDO communicat
 
 - **Click a node row** to open its Node Explorer tab.
 - **"Restart" button** — resets the entire CANopen stack (all nodes re-initialize).
+- **"Ping" button** (one per node) and **"Ping All"** — quickly checks that a node answers.
+
+### Ping
+
+CANopen has no generic ping command, so a ping reads the *Device type* (index `0x1000`), an object
+that every CANopen device must have. It waits 500 ms for the answer and does not retry. The result
+is shown next to the button; hover it for details (e.g., the device type that was read).
+
+| Result | Meaning |
+|---|---|
+| **Responsive** | The node answered with its device type. |
+| **Error** | The node answered, but with an SDO abort. The node is alive, but something is wrong. |
+| **No response** | No answer before the timeout, or the request could not be sent (is CANopen running?). |
 
 ---
 

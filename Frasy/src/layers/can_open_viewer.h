@@ -20,10 +20,12 @@
 #define FRASY_SRC_LAYERS_CAN_OPEN_VIEWER_H
 
 #include "can_open_viewer/open_node.h"
+#include "can_open_viewer/ping.h"
 #include "utils/communication/can_open/can_open.h"
 
 #include <Brigerad.h>
 #include <cstdint>
+#include <map>
 #include <vector>
 
 namespace Frasy::CanOpenViewer {
@@ -55,6 +57,9 @@ private:
     CanOpen::CanOpen& m_canOpen;
 
     std::vector<OpenNode> m_openNodes;
+
+    //! State of the last ping of each node, by node ID.
+    std::map<uint8_t, Ping> m_pings;
 
     static constexpr const char* s_windowName = "CANopen Viewer";
 };
