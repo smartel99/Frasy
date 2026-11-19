@@ -104,7 +104,7 @@ private:
         PWSTR   data          = nullptr;
         HRESULT hr            = GetThreadDescription(currentThread, &data);
         if (SUCCEEDED(hr) && std::wcslen(data) > 0) {
-            std::string label = StringUtils::WStringToString(data);
+            std::string label = StringUtils::wstringToString(data);
             LocalFree(data);
             return label;
         }
