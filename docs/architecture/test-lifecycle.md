@@ -161,6 +161,10 @@ classDiagram
     class Solution {
         +sections : Section[]
         +sequences : map~string, Sequence~
+        +sequenceOrder : string[]
+        +FromGeneration(istream)$ Solution
+        +ReplaceWith(Solution, uutCount)
+        +ResetStates(uutCount)
         +SetSequenceEnable(name, bool)
         +SetTestEnable(sequence, test, bool)
     }
@@ -175,6 +179,7 @@ classDiagram
         +enabled : bool
         +state : ExecutionState[]
         +tests : map~string, Test~
+        +testOrder : string[]
     }
     class Test {
         +enabled : bool
@@ -189,11 +194,26 @@ classDiagram
 
 ### Structure Breakdown
 
-- **Solution** — top-level container. Holds the ordered sections and a flat map of all sequences (for enable/disable and state tracking).
+- **Solution** — top-level container. Holds the ordered sections and a flat map of all sequences (for enable/disable and state tracking). `sequenceOrder` lists the sequences in execution order (first appearance across sections, since a sequence can be split into several subsequences by sync points).
 - **Section** — a group of sequences separated by sync barriers. All UUTs must complete a section before moving to the next.
 - **Subsequence** — a reference to a sequence within a section, plus its test execution order (also potentially sectioned by test-level sync points).
-- **Sequence** — metadata about a sequence: enabled state and per-UUT execution states.
+- **Sequence** — metadata about a sequence: enabled state, per-UUT execution states, and `testOrder`, its tests in execution order.
 - **Test** — metadata about a test: enabled state and per-UUT execution states.
+
+Sequences and tests are enabled by default. `state` vectors are indexed by UUT (1-based, index 0 unused) and sized by `ResetStates(uutCount)`.
+
+### Building the Solution
+
+Generation writes `lua/solution.json`, then the orchestrator builds the model in two steps:
+
+```cpp
+// Parse; throws on invalid or malformed input, leaving the current solution untouched.
+auto fresh = Models::Solution::FromGeneration(file);
+// Keep enable flags of entries that still exist, size the per-UUT states, then replace.
+m_solution.ReplaceWith(std::move(fresh), uutCount);
+```
+
+Enable flags survive regeneration and reloading the same product. They are cleared when `loadUserFiles()` is called with a different environment or tests folder.
 
 ### ExecutionState
 
@@ -208,19 +228,27 @@ enum ExecutionState {
     passed,     // Completed successfully
     failed,     // One or more expectations failed
     error,      // Uncaught exception
+    skipped,    // Unmet requirement
 };
 ```
 
 ### Enabling/Disabling at Runtime
 
-The Test Viewer panel (++f6++) allows operators to enable or disable individual sequences and tests before or between runs:
+Enable flags are set on the orchestrator's solution:
 
 ```cpp
 m_orchestrator.setSequenceEnable("Power On", false);
 m_orchestrator.setTestEnable("Power On", "Check Voltage", false);
 ```
 
-Disabled items are skipped during execution with reason "Disabled".
+!!! warning "Not wired yet"
+    These flags are not yet passed to Lua, so they don't affect execution. Passing them to Lua and a dedicated
+    Test Selection window, kept away from regular operators, are planned in
+    [the Test Viewer plan](../planification/test-viewer.md).
+
+In Lua, a sequence disabled with `Orchestrator.Disable(sequence)` is skipped with reason "Disabled"
+(test-level disabling is broken until that same plan's Phase 6). A disabled or skipped scope never passes,
+so the UUT's overall result is a failure.
 
 ---
 

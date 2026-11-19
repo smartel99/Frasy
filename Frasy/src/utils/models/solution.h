@@ -18,6 +18,7 @@
 #define KONGSBERG_FRASY_FRASY_SRC_UTILS_MODELS_SOLUTION_H
 #include "sequence.h"
 
+#include <istream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -28,10 +29,33 @@ struct Solution {
     using subsequence = std::pair<std::string, std::vector<std::vector<std::string>>>;
     using section     = std::vector<std::vector<subsequence>>;
 
-    std::vector<section>                      sections  = {};
-    std::unordered_map<std::string, Sequence> sequences = {};
+    std::vector<section>                      sections      = {};
+    std::unordered_map<std::string, Sequence> sequences     = {};
+    std::vector<std::string>                  sequenceOrder = {};    //!< Execution order of `sequences`.
 
     void Clear();
+
+    /**
+     * Build from the generation output (`lua/solution.json`).
+     * Entries are enabled, states are empty. Throws on invalid or malformed input.
+     */
+    [[nodiscard]] static Solution FromGeneration(std::istream& generation);
+
+    /**
+     * Replace with `fresh`, keeping enable flags of entries that still exist, states reset for `uutCount`.
+     * Left untouched if it throws.
+     */
+    void ReplaceWith(Solution&& fresh, std::size_t uutCount);
+
+    /// Add a sequence if missing, keeping first-appearance order.
+    Sequence& AddSequence(const std::string& sequence);
+    /// Add a test (and its sequence) if missing, keeping first-appearance order.
+    void AddTest(const std::string& sequence, const std::string& test);
+
+    /// Copy enable flags of sequences and tests that also exist in `other`.
+    void CopyEnableStates(const Solution& other);
+    /// Size every state vector to `uutCount + 1` (UUTs are 1-based), set to idle or disabled.
+    void ResetStates(std::size_t uutCount);
 
     void SetSequenceEnable(const std::string& sequence, bool enabled);
     void SetTestEnable(const std::string& sequence, const std::string& test, bool enabled);

@@ -92,7 +92,9 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     m_popupMutex = std::make_unique<std::mutex>();
     m_state      = std::make_unique<sol::state>();
     m_state->set_panic(&OnPanic);
-    m_generated   = false;
+    m_generated = false;
+    // Same product reloaded (MCP run_tests, F9, Reload): keep enable flags, regeneration merges them.
+    if (environment != m_environment || testsDir != m_testsDir) { m_solution.Clear(); }
     m_environment = environment;
     m_testsDir    = testsDir;
     if (title.empty()) {
@@ -584,50 +586,8 @@ bool Orchestrator::runStageGenerate(bool regenerate)
             lua["Log"]["I"]("Success");
         }
         if (result.valid()) {
-            using json               = nlohmann::json;
-            std::ifstream os         = std::ifstream(std::string(solutionFile));
-            json          generation = json::parse(os);
-            m_solution.Clear();
-
-            // Solution
-            // - Section
-            // - - Section stage
-            // - - - Sequence (Actually a subsequence)
-            // - - - - Sequence name
-            // - - - - Sequence stage
-            // - - - - - Test
-
-            m_solution.sections.reserve(generation.size());
-            for (const auto& gSc : generation) {
-                // Section
-                m_solution.sections.emplace_back();
-                auto& sc = m_solution.sections.back();
-                sc.reserve(gSc.size());
-                for (const auto& gScS : gSc) {
-                    // Section stage
-                    sc.emplace_back();
-                    auto& scs = sc.back();
-                    scs.reserve(gScS.size());
-                    for (const auto& gSq : gScS) {
-                        // Sequence
-                        scs.emplace_back();
-                        auto& sq = scs.back();
-                        sq.first = gSq["name"];
-                        sq.second.reserve(gSq["tests"].size());
-                        if (!m_solution.sequences.contains(sq.first)) { m_solution.sequences[sq.first] = {}; }
-                        for (const auto& gSqS : gSq["tests"]) {
-                            // Sequence stages
-                            sq.second.emplace_back();
-                            auto& sqs = sq.second.back();
-                            sqs.reserve(gSqS.size());
-                            for (const auto& gT : gSqS) {
-                                sqs.push_back(gT);
-                                m_solution.sequences[sq.first].tests[gT] = {};
-                            }
-                        }
-                    }
-                }
-            }
+            std::ifstream os = std::ifstream(std::string(solutionFile));
+            m_solution.ReplaceWith(Models::Solution::FromGeneration(os), m_map.uuts.size());
         }
         if (!m_parallel) {
             if (m_solution.sections.size() != 1) {

@@ -24,11 +24,10 @@
 
 namespace Frasy::Models {
 struct Test {
-    bool                        enabled = false;
+    bool                        enabled = true;
     std::vector<ExecutionState> state;
 
-    Test()                  = default;
-    Test(const Test& other) = default;
+    Test() = default;
     explicit Test(bool enabled) : enabled(enabled) {}
 };
 }    // namespace Frasy::Models

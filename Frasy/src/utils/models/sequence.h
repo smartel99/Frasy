@@ -27,16 +27,16 @@
 namespace Frasy::Models {
 
 struct Sequence {
-    bool                                  enabled = false;
+    bool                                  enabled = true;
     std::vector<ExecutionState>           state;
-    std::unordered_map<std::string, Test> tests = {};
+    std::unordered_map<std::string, Test> tests     = {};
+    std::vector<std::string>              testOrder = {};    //!< Execution order of `tests`.
 
-    Sequence()                      = default;
-    Sequence(const Sequence& other) = default;
+    Sequence() = default;
     explicit Sequence(bool enabled, const std::vector<std::string>& tests) : enabled(enabled)
     {
         for (const auto& test : tests) {
-            this->tests[test] = Test {true};
+            if (this->tests.try_emplace(test, true).second) { testOrder.push_back(test); }
         }
     }
 };

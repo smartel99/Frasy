@@ -26,6 +26,7 @@ enum ExecutionState {
     passed,
     failed,
     error,
+    skipped,    //!< Unmet requirement.
 };
 }
 
