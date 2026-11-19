@@ -23,10 +23,8 @@
 #include <string>
 #include <unordered_map>
 
-namespace Frasy
-{
-class TestViewer : public Brigerad::Layer
-{
+namespace Frasy {
+class TestViewer : public Brigerad::Layer {
 public:
     class Interface;
 
@@ -51,8 +49,7 @@ private:
     Interface*                                  m_interface;
 };
 
-class TestViewer::Interface
-{
+class TestViewer::Interface {
 public:
     static Interface* GetDefault();
     virtual ~Interface() = default;
@@ -62,8 +59,7 @@ public:
     virtual void                    setTestEnable(const std::string& sequence, const std::string& test, bool enable);
 };
 
-enum class TestViewer::ListStatus
-{
+enum class TestViewer::ListStatus {
     unknown,
     expanded,
     folded,
