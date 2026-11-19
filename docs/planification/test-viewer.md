@@ -20,7 +20,9 @@ Builds on the existing skeleton in `Frasy/src/layers/test_viewer.{h,cpp}` (F6).
 - Sequences collapsed by default, auto-expand when they start, auto-collapse when they **pass**
   (failed ones stay open). Manual toggling by the operator is otherwise respected.
 - UUT selector with `<` `>` arrows + combo, same pattern as `ResultAnalyzer`.
-- Enable/disable checkboxes actually gate execution (locked while running).
+- The Test Viewer is **read-only**: operators must not be able to disable tests in production.
+- Enable/disable checkboxes live in a separate **Test Selection** window, not reachable by regular operators,
+  and actually gate execution (locked while running).
 
 ## Current state (findings)
 
@@ -36,6 +38,8 @@ Builds on the existing skeleton in `Frasy/src/layers/test_viewer.{h,cpp}` (F6).
 | Aborts | A test/sequence that `error()`s out (stopAll, Lua error) never emits its `_end` → would stay orange forever. |
 | `enable_list` | Gating works in Lua (`IsScopeEnabled`) but is reset to `{}` in `load_tests.lua` and never populated. `Enable/Disable` write `s[test] = bool` while `IsScopeEnabled` reads `test.enabled` → runtime error; missing test entry also errors. |
 | Threading | `m_solution` is written by the generation thread and would be written by UUT threads; UI reads it unlocked. |
+| Disabled → board result | A disabled or skipped scope keeps `result.pass = false` (`scope_result.lua` default), so its sequence fails and the board FAILS. Safe, but by accident of the defaults rather than an explicit rule. |
+| Access control | No admin/debug mode exists in Frasy; the demo only has a hotkey (F10) for skip-verification. |
 
 ## Phases
 
@@ -56,8 +60,13 @@ Foundation, no visible change. Everything else reads these structures.
   Filled in `runStageGenerate()` by walking sections → stages → subsequences → test stages, first-appearance order,
   deduped (a sequence can be split across sections).
 - Generation creates entries as enabled, and **preserves existing enable flags** on regenerate.
+  Flags are cleared only when the environment or tests folder changes (MCP `run_tests`, F9 and Reload
+  call `loadUserFiles()` again for the same product).
 - `Solution::ResetStates(std::size_t uutCount)`: resize `state` vectors to `uutCount + 1` (UUTs are 1-based),
   set each to `disabled` if not enabled, else `idle`.
+- Parsing and replacing are split so the live solution is never half-built:
+  `static Solution FromGeneration(std::istream&)` (throws on bad input) and
+  `ReplaceWith(Solution&& fresh, std::size_t uutCount)` (copies flags, resets states, move-assigns).
 
 **Done when:** generating the demo product gives the expected order, all entries enabled.
 
@@ -74,8 +83,20 @@ Needs Phase 1, or every entry shows as disabled.
     then `runStageGenerate(regenerate)` returns immediately when already generated.
   - `loadUserFiles()` waits for an in-flight generation before resetting state (fast product switching).
   - `requestGenerate()`: silent no-op if running or already generating (no modal dialog).
-  - `std::mutex m_solutionMutex` + `std::atomic<std::uint64_t> m_solutionRevision`;
-    `getSolution()` returns a copy under lock. Needed now because the UI reads while the generation thread writes.
+  - `std::mutex m_solutionMutex` + `std::atomic<std::uint64_t> m_solutionRevision`. Needed now because the UI
+    reads while the generation thread writes. Generation parses with `FromGeneration()` outside the lock, then
+    `ReplaceWith()` and the revision bump happen under it.
+  - Copy on change: `std::uint64_t getSolutionRevision() const` (atomic read) and
+    `Models::Solution getSolution() const` (copy under lock). Each reader (Test Viewer, Test Selection) keeps its
+    own copy and last seen revision; idle frames cost one atomic read:
+    ```cpp
+    if (const auto revision = getSolutionRevision(); revision != m_lastRevision) {
+        m_lastRevision = revision;    // Read before copying: a change in between only costs one extra copy.
+        m_solution     = getSolution();
+    }
+    ```
+    Chosen over a change callback: it would fire on worker threads, where ImGui can't be touched, so it could
+    only set the same "dirty" flag, and it would need a subscriber list.
 - `MainApplicationLayer`:
   - `onUpdate()`: when `getLoadId()` differs from the last seen one, call `requestGenerate()`.
     Works for every app without the derived class having to call anything, and stays on the main thread.
@@ -115,21 +136,25 @@ Needs 1–4 for real data, but can be developed against 1–3.
 - Interface: `getSolution()` by value + `getSolutionRevision()`, `getUutCount()`, `isRunning()`,
   `getUutState(uut)` (to tag disabled UUTs in the combo).
 - Header: `<` combo `>` UUT selector; combo entries show a bullet with the UUT's overall state.
-- Body: 2-column table (bullet+tree, enable checkbox). Sequences via `TreeNodeEx`, tests as
+- Body: bullet + tree, no checkboxes. Sequences via `TreeNodeEx`, tests as
   `Leaf | NoTreePushOnOpen`, iterated via `sequenceOrder` / `testOrder`.
+- Banner at the top when any sequence or test is disabled, so it's obvious every board will fail.
 - Bullet: `ImDrawList::AddCircle` (hollow) / `AddCircleFilled`, colours per the table above;
   tooltip with the state name.
 - Auto fold: per-UUT cache of the last seen sequence state; on `idle→running` → `SetNextItemOpen(true)`,
   on `running→passed` → `SetNextItemOpen(false)`. Only on transitions, so manual toggles stick.
   Switching UUT re-applies the rule from scratch for that UUT (running/failed open, others closed).
 - Optional: `SetScrollHereY()` when a test becomes running on the selected UUT.
-- Checkboxes inside `BeginDisabled(isRunning())`.
+- Remove the skeleton's checkboxes and `setSequenceEnable` / `setTestEnable` from `TestViewer::Interface`.
 
-### Phase 6 — Enable/disable wiring
+### Phase 6 — Test Selection window + enable/disable wiring
 
 Independent of 3–5; only needs Phase 1 (enabled defaults + preservation on regenerate).
 Could be split into its own PR if preferred.
 
+- New `TestSelection` layer: same ordered tree, one checkbox per sequence/test, all inside
+  `BeginDisabled(isRunning())`. "Enable all" button.
+- Not in the operator's menu or hotkeys. How it's unlocked is **to be decided** (see open points).
 - After `loadTests()` in both validation and execution states, push `m_solution` flags into
   `Context.orchestrator.enable_list` as `{ [seq] = { enabled = b, [test] = { enabled = b } } }`.
 - Fix `Orchestrator.Enable/Disable` to write that same shape; `IsScopeEnabled` defaults a missing test entry to `true`.
@@ -137,9 +162,31 @@ Could be split into its own PR if preferred.
 ### Phase 7 — Docs
 
 - Rewrite `docs/panels/test-viewer.md` (drop the "not yet implemented" warning, document bullets/selector/folding).
+- Model changes in `docs/architecture/test-lifecycle.md` are updated in each phase that changes them.
 
 ## Verification
 
 Manual in `demo_mode`: multi-UUT run, one test disabled, one sequence disabled, one forced failure, one stopAll
 abort, one unmet requirement; quick product switching; MCP `load_product` + `run_tests` back-to-back.
 Check headless text and JSON output is unchanged.
+
+Orchestrator-level behaviour (flags kept on regenerate and on same-product reload, cleared on product switch)
+has no automated coverage, since `Orchestrator` has no test fixture; checked manually in `demo_mode`.
+
+### Profiling copy on change (after Phase 5)
+
+- Demo product `src/lua/user/large_solution/`: generated sequences/tests (e.g. 50 sequences × 20 tests,
+  long names), 4+ UUTs, tests that finish fast so progress events arrive at a high rate.
+- `FRASY_PROFILE_SCOPE` around `getSolution()` and the viewer render; read in the Profiler window
+  or `profile_events.json`.
+- Measure: copy time per frame, copies per second during the run, lock wait seen by UUT threads in
+  `__progress.report`, and total run time with the viewer open vs closed.
+- If the copy shows up: split a structure revision (generation) from a state revision (progress), and copy
+  only the state vectors on state changes.
+
+## Open points
+
+- How the Test Selection window is unlocked: derived-app hook (e.g. `virtual bool canSelectTests()` on
+  `MainApplicationLayer`, default `false`), a `config.json` key, build type (non-Dist only), or a mix.
+  Any of these is public API and is flagged before implementation.
+- Whether enable flags persist across runs (current plan) or reset after each run.
