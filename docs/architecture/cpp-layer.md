@@ -266,6 +266,41 @@ m_orchestrator.setLoadUserValues([](sol::state_view lua) -> sol::table {
 });
 ```
 
+These setters wait for an in-flight generation, which may be calling the callback being replaced: don't call
+them from inside one of these callbacks.
+
+#### Progress events
+
+`setProgressCallback()` receives every progress event of a run, from the UUT threads (synchronize your own
+state). The orchestrator already tracks them in the solution's states; the callback is for extra reporting,
+like the headless runner's stdout.
+
+```cpp
+m_orchestrator.setProgressCallback([](const std::string& type, std::size_t uut, const std::string& name,
+                                      const std::string& parentA, const std::string& parentB, bool pass) {
+    // ...
+});
+```
+
+| `type` | `name` | `parentA` | `parentB` | `pass` |
+|---|---|---|---|---|
+| `sequence_start` | sequence | | | `true` |
+| `sequence_end` | sequence | | | result |
+| `sequence_skipped` | sequence | | | `true` |
+| `sequence_disabled` | sequence | | | `true` |
+| `test_start` | test | sequence | | `true` |
+| `test_end` | test | sequence | | result, `true` for a skipped or disabled test |
+| `test_skipped` | test | sequence | | `true` |
+| `test_disabled` | test | sequence | | `true` |
+| `expectation` | expectation | sequence | test | result |
+
+- A skipped or disabled sequence reports `sequence_start` then `sequence_skipped` / `sequence_disabled`, and never
+  a `sequence_end`.
+- A skipped or disabled test reports `test_start`, then `test_skipped` / `test_disabled`, then `test_end` with
+  `pass = true`: check the skip events before treating `test_end` as a pass.
+- An aborted scope (`ErrorPolicy.stopAll`, a Lua error) reports no end at all.
+- Ignore types you don't know: more may be added.
+
 ---
 
 ## The CANopen Bus

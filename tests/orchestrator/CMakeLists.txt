@@ -5,6 +5,7 @@ add_executable(FrasyTest_Orchestrator
     values.cpp
     results.cpp
     enable_disable.cpp
+    progress_events.cpp
 )
 target_link_libraries(FrasyTest_Orchestrator PRIVATE Frasy GTest::gtest_main)
 target_include_directories(FrasyTest_Orchestrator PRIVATE ${CMAKE_CURRENT_LIST_DIR}/..)

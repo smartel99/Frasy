@@ -111,6 +111,37 @@ Sequence("Other", function()
 end)
 )";
 
+// Runs: skipped and disabled scopes. "Setup" runs first and disables in Lua with enable_list directly
+// (Orchestrator.Disable(seq, test) writes a shape IsScopeEnabled can't read until Phase 6a).
+constexpr auto s_productSkips = R"(
+Sequence("Setup", function()
+    Requires(Sequence():ToBeFirst())
+    if Context.info.stage == Stage.execution then
+        Context.orchestrator.enable_list.Off = { enabled = false }
+        Context.orchestrator.enable_list.Partial = { enabled = true, P1 = { enabled = true }, P2 = { enabled = false } }
+    end
+    Test("S1", function() end)
+end)
+Sequence("Gate", function()
+    Test("G1", function() Expect(false, "Falsehood"):ToBeTrue() end)
+end)
+Sequence("Gated", function()
+    Requires(Sequence("Gate"):ToPass())
+    Test("D1", function() end)
+end)
+Sequence("Inner", function()
+    Test("T1", function() Expect(false, "Falsehood"):ToBeTrue() end)
+    Test("T2", function() Requires(Test("T1"):ToPass()) end)
+end)
+Sequence("Off", function()
+    Test("O1", function() end)
+end)
+Sequence("Partial", function()
+    Test("P1", function() end)
+    Test("P2", function() end)
+end)
+)";
+
 // Runs: the sequence body raises a string error when executing, so its tests never run.
 constexpr auto s_productCrash = R"(
 Sequence("Crash", function()
@@ -128,6 +159,7 @@ const std::vector<std::pair<std::string, const char*>> s_products = {
   {"live", s_productLive},
   {"split", s_productSplit},
   {"crash", s_productCrash},
+  {"skips", s_productSkips},
 };
 }    // namespace
 
@@ -757,4 +789,51 @@ TEST_F(OrchestratorSolutionTest, GenerateOnLoadKeepsRunResults)
     ASSERT_TRUE(load("live"));
     EXPECT_TRUE(generateOnLoad.update(m_orchestrator));
     ASSERT_TRUE(waitGeneration());
+}
+
+TEST_F(OrchestratorSolutionTest, RunReportsSkipsAndDisables)
+{
+    m_orchestrator.setProgressCallback([this](const std::string& type,
+                                              std::size_t        uut,
+                                              const std::string& name,
+                                              const std::string& parentA,
+                                              const std::string&,
+                                              bool pass) {
+        std::lock_guard lock(m_eventsMutex);
+        m_events.push_back({type, uut, name, parentA, pass});
+    });
+    ASSERT_TRUE(load("skips"));
+    ASSERT_TRUE(runAndWait());
+    m_orchestrator.setProgressCallback({});
+
+    using enum ExecutionState;
+    const Solution solution = m_orchestrator.getSolution();
+    for (std::size_t uut = 1; uut <= s_uutCount; ++uut) {
+        SCOPED_TRACE(std::format("UUT {}", uut));
+        EXPECT_EQ(stateOf(solution, uut, "Setup"), passed);
+        EXPECT_EQ(stateOf(solution, uut, "Gate"), failed);
+        // Skipped by an unmet sequence requirement: no end reported, and not an error.
+        EXPECT_EQ(stateOf(solution, uut, "Gated"), skipped);
+        EXPECT_EQ(stateOf(solution, uut, "Gated", "D1"), skipped);
+        // Skipped by an unmet test requirement: not shown as passed.
+        EXPECT_EQ(stateOf(solution, uut, "Inner", "T1"), failed);
+        EXPECT_EQ(stateOf(solution, uut, "Inner", "T2"), skipped);
+        EXPECT_EQ(stateOf(solution, uut, "Inner"), failed);
+        // Disabled in Lua.
+        EXPECT_EQ(stateOf(solution, uut, "Off"), disabled);
+        EXPECT_EQ(stateOf(solution, uut, "Off", "O1"), disabled);
+        EXPECT_EQ(stateOf(solution, uut, "Partial", "P1"), passed);
+        EXPECT_EQ(stateOf(solution, uut, "Partial", "P2"), disabled);
+        EXPECT_EQ(stateOf(solution, uut, "Partial"), failed);    // A disabled test never passes.
+    }
+
+    // The new types reach the user callback too.
+    std::lock_guard lock(m_eventsMutex);
+    const auto      has = [&](const std::string& type, const std::string& name) {
+        return std::ranges::any_of(m_events, [&](const Event& e) { return e.type == type && e.name == name; });
+    };
+    EXPECT_TRUE(has("sequence_skipped", "Gated"));
+    EXPECT_TRUE(has("sequence_disabled", "Off"));
+    EXPECT_TRUE(has("test_skipped", "T2"));
+    EXPECT_TRUE(has("test_disabled", "P2"));
 }

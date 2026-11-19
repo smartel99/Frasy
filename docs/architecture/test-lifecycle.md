@@ -240,6 +240,8 @@ The orchestrator updates these states live during a run, from the events Lua rep
 - **Start / end events** set `running`, then `passed` or `failed`. They never overwrite `disabled` or
   `skipped`: Lua still reports the start of those, and the end too for tests.
 - **`*_disabled` / `*_skipped` events** always apply; on a sequence, also to its tests not reached yet.
+  Lua reports `sequence_skipped` / `sequence_disabled` right after `sequence_start` (and never a
+  `sequence_end`), and `test_skipped` / `test_disabled` right before `test_end` (which keeps `pass = true`).
 - **Run end**: whatever is still `running` was aborted (e.g. `ErrorPolicy.stopAll`, a Lua error) and becomes
   `error`. What was never reached stays `idle`.
 

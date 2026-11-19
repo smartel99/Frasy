@@ -99,10 +99,12 @@ function Orchestrator.RunSequence(sIndex, scope)
                 end
                 sequence.result.skipped = true
                 sequence.result.reason = err.what
+                __progress.report("sequence_skipped", Context.info.uut, scope.sequence, "", "", true)
             end
         else
             sequence.result.skipped = true
             sequence.result.reason = "Disabled"
+            __progress.report("sequence_disabled", Context.info.uut, scope.sequence, "", "", true)
         end
     end
 
@@ -214,6 +216,9 @@ function Orchestrator.RunTest(scope)
     if test.result.skipped then
         Log.W(string.format("Test %s SKIPPED\r\nReason: %s", scope.test,
             test.result.reason))
+        -- Before test_end, which keeps reporting pass = true for skipped tests.
+        local skipType = test.result.enabled and "test_skipped" or "test_disabled"
+        __progress.report(skipType, Context.info.uut, scope.test, scope.sequence, "", true)
         __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", true)
     elseif not test.result.pass then
         Log.E(string.format("Test %s FAILED\r\nReason: %s", scope.test,
