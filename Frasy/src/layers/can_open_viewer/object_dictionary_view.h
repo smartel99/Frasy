@@ -46,13 +46,6 @@ public:
 
     void onImGuiRender(CanOpen::Node& node);
 
-    /**
-     * @brief Renders the windows that show the full comment of an entry.
-     *
-     * Separate from the page so that the windows stay when another tab is selected.
-     */
-    void renderCommentWindows();
-
 private:
     enum class Phase : uint8_t {
         Idle,
@@ -106,6 +99,12 @@ private:
     //! Draws a name, which opens the comment window when it has a comment.
     void renderName(const std::string& name, const std::string& comment, const std::string& windowTitle);
     void openCommentWindow(const std::string& title, const std::string& comment);
+    /**
+     * @brief Renders the windows that show the full comment of an entry.
+     *
+     * Rendered with the page: they only show while the page of this node is the one selected in the node explorer.
+     */
+    void renderCommentWindows();
 
     //! Part of the index space, as defined by CiA 301. The indexes are browsed one part at a time.
     struct IndexRange {

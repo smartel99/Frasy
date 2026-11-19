@@ -37,8 +37,6 @@ public:
     OpenNode(uint8_t nodeId, CanOpen::CanOpen* canOpen);
 
     void onImGuiRender();
-    //! Renders the windows opened from the pages of the node. They stay whatever the selected tab.
-    void renderWindows();
 
     [[nodiscard]] bool    open() const { return m_open; }
     [[nodiscard]] uint8_t nodeId() const { return m_nodeId; }

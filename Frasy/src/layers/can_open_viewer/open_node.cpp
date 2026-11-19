@@ -69,11 +69,6 @@ void CanOpenViewer::OpenNode::onImGuiRender()
     }
 }
 
-void CanOpenViewer::OpenNode::renderWindows()
-{
-    m_objectDictionary->renderCommentWindows();
-}
-
 void CanOpenViewer::OpenNode::renderActiveErrors(const CanOpen::Node& node)
 {
     BR_PROFILE_FUNCTION();
