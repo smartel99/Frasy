@@ -18,6 +18,7 @@
 
 #include "utils/communication/can_open/od_value.h"
 #include "utils/communication/can_open/to_string.h"
+#include "utils/communication/can_open/types.h"
 #include "utils/imgui/selector.h"
 
 #include <Brigerad/Core/Log.h>
@@ -48,6 +49,8 @@ constexpr ImVec4 s_errorColor = {0.90f, 0.30f, 0.30f, 1.0f};
 
 //! Raw values longer than this are not copied in the edit field, as they are shown truncated.
 constexpr std::size_t s_maxEditableRawBytes = 64;
+//! Octet strings longer than this do not fit in the 255 characters of the edit field, at 5 characters per byte.
+constexpr std::size_t s_maxEditableOctets = 255 / 5;
 
 std::string toLower(std::string_view text)
 {
@@ -184,7 +187,13 @@ void ObjectDictionaryView::completeRead(EntryState& state)
         state.readDetail = {};
 
         // Start from the value of the device when editing it, unless it was truncated for display.
-        if (state.readType != VarType::Undefined || result->size() <= s_maxEditableRawBytes) {
+        if (state.isReadOctetString) {
+            // Written back as typed: a list of bytes, where hexadecimal needs its 0x prefix.
+            if (result->size() <= s_maxEditableOctets) {
+                copyToBuffer(state.editBuffer, OdValue::formatOctetString(*result));
+            }
+        }
+        else if (state.readType != VarType::Undefined || result->size() <= s_maxEditableRawBytes) {
             copyToBuffer(state.editBuffer, OdValue::format(state.readType, *result, false));
         }
     }
@@ -233,8 +242,9 @@ void ObjectDictionaryView::requestRead(CanOpen::Node& node, uint16_t index, cons
     auto& state = m_states[makeKey(index, entry.subIndex)];
     if (state.readPhase == Phase::Pending) { return; }
 
-    state.readType    = entry.varType;
-    state.readPhase   = Phase::Pending;
+    state.readType          = entry.varType;
+    state.isReadOctetString = entry.dataType == static_cast<uint16_t>(CanOpen::DataType::octetString);
+    state.readPhase         = Phase::Pending;
     state.readText    = {};
     state.readDetail  = {};
     state.readRequest = sdo->uploadData(index,
@@ -253,7 +263,7 @@ void ObjectDictionaryView::requestWrite(CanOpen::Node& node, uint16_t index, con
     auto& state = m_states[makeKey(index, entry.subIndex)];
     if (state.writePhase == Phase::Pending) { return; }
 
-    auto bytes = OdValue::parse(entry.varType, state.editBuffer.data());
+    auto bytes = OdValue::parse(entry, state.editBuffer.data());
     if (!bytes.has_value()) {
         state.writePhase  = Phase::Failed;
         state.writeText   = "Invalid value";

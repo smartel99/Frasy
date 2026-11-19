@@ -1,4 +1,6 @@
 #include "utils/communication/can_open/od_value.h"
+#include "utils/communication/can_open/object_dictionary.h"
+#include "utils/communication/can_open/types.h"
 
 #include <gtest/gtest.h>
 
@@ -93,6 +95,75 @@ TEST(OdValueParse, RawHex)
     EXPECT_FALSE(OdValue::parse(VarType::Undefined, "01A").has_value());
     EXPECT_FALSE(OdValue::parse(VarType::Undefined, "zz").has_value());
     EXPECT_FALSE(OdValue::parse(VarType::Undefined, "  ").has_value());
+}
+
+TEST(OdValueParse, OctetStringDecimalAndHex)
+{
+    const std::vector<uint8_t> expected = {0x01, 0xAB, 0xFF, 0x00};
+    EXPECT_EQ(OdValue::parseOctetString("1 171 255 0").value(), expected);
+    EXPECT_EQ(OdValue::parseOctetString("0x01,0xab,0xFF,0x0").value(), expected);
+    EXPECT_EQ(OdValue::parseOctetString("0x01\t171, 0XFF ,  0").value(), expected);
+    EXPECT_TRUE(OdValue::parseOctetString("").value().empty());
+    EXPECT_TRUE(OdValue::parseOctetString(" , ").value().empty());
+}
+
+TEST(OdValueParse, OctetStringErrors)
+{
+    EXPECT_FALSE(OdValue::parseOctetString("256").has_value());
+    EXPECT_FALSE(OdValue::parseOctetString("0x100").has_value());
+    EXPECT_FALSE(OdValue::parseOctetString("99999999999999999999").has_value());
+    EXPECT_FALSE(OdValue::parseOctetString("-1").has_value());
+    EXPECT_FALSE(OdValue::parseOctetString("+1").has_value());
+    EXPECT_FALSE(OdValue::parseOctetString("0x-1").has_value());
+    EXPECT_FALSE(OdValue::parseOctetString("AB").has_value());
+    EXPECT_FALSE(OdValue::parseOctetString("0x").has_value());
+    EXPECT_FALSE(OdValue::parseOctetString("1;2").has_value());
+}
+
+TEST(OdValueFormat, OctetStringRoundTrip)
+{
+    const std::vector<uint8_t> bytes = {0x01, 0xAB, 0xFF};
+    EXPECT_EQ(OdValue::formatOctetString(bytes), "0x01 0xAB 0xFF");
+    EXPECT_EQ(OdValue::parseOctetString(OdValue::formatOctetString(bytes)).value(), bytes);
+}
+
+TEST(OdValueParse, EntryStringsArePaddedToStringLengthMin)
+{
+    OdEntry octets;
+    octets.dataType        = static_cast<uint16_t>(DataType::octetString);
+    octets.stringLengthMin = 6;
+    EXPECT_EQ(OdValue::parse(octets, "0x01 2").value(), (std::vector<uint8_t> {1, 2, 0, 0, 0, 0}));
+    EXPECT_EQ(OdValue::parse(octets, "").value(), std::vector<uint8_t>(6, 0));
+    EXPECT_FALSE(OdValue::parse(octets, "1 2 3 4 5 6 7").has_value());
+
+    OdEntry text;
+    text.dataType        = static_cast<uint16_t>(DataType::visibleString);
+    text.varType         = VarType::String;
+    text.stringLengthMin = 4;
+    EXPECT_EQ(OdValue::parse(text, "hi").value(), (std::vector<uint8_t> {'h', 'i', 0, 0}));
+    EXPECT_EQ(OdValue::parse(text, "abcd").value(), (std::vector<uint8_t> {'a', 'b', 'c', 'd'}));
+    EXPECT_FALSE(OdValue::parse(text, "abcde").has_value());
+}
+
+TEST(OdValueParse, EntryStringsWithoutStringLengthMinOnlyAcceptEmpty)
+{
+    OdEntry octets;
+    octets.dataType = static_cast<uint16_t>(DataType::octetString);
+    EXPECT_TRUE(OdValue::parse(octets, "").value().empty());
+    EXPECT_FALSE(OdValue::parse(octets, "1").has_value());
+
+    OdEntry text;
+    text.dataType = static_cast<uint16_t>(DataType::visibleString);
+    EXPECT_TRUE(OdValue::parse(text, "").value().empty());
+    EXPECT_FALSE(OdValue::parse(text, "a").has_value());
+}
+
+TEST(OdValueParse, EntryOtherTypesUseVarType)
+{
+    OdEntry entry;
+    entry.dataType = static_cast<uint16_t>(DataType::unsigned16);
+    entry.varType  = VarType::Unsigned16;
+    EXPECT_EQ(OdValue::parse(entry, "0x1234").value(), bytesOf<uint16_t>(0x1234));
 }
 
 TEST(OdValueRoundTrip, ParseThenFormat)
