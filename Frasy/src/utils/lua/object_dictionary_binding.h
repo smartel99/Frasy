@@ -1,5 +1,7 @@
 /**
  * @file    object_dictionary_binding.h
+ * @author  Paul Thomas
+ * @date    2026-11-19
  * @brief   Gives the object dictionaries parsed by C++ to Lua.
  *
  * @copyright

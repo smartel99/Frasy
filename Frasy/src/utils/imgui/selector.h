@@ -1,5 +1,7 @@
 /**
  * @file    selector.h
+ * @author  Paul Thomas
+ * @date    2026-11-19
  * @brief   Dropdown with previous and next arrows, to pick one item of a list.
  *
  * @copyright

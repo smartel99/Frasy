@@ -1,3 +1,9 @@
+/**
+ * @file    od_value_test.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
+ * @brief   Unit tests for the conversion between SDO bytes and their textual representation.
+ */
 #include "utils/communication/can_open/od_value.h"
 #include "utils/communication/can_open/object_dictionary.h"
 #include "utils/communication/can_open/types.h"

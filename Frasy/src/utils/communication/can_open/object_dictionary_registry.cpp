@@ -1,5 +1,7 @@
 /**
  * @file    object_dictionary_registry.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
  * @brief   Keeps the object dictionaries that were read from EDS and XDD files, so that each file is parsed once.
  *
  * @copyright

@@ -1,5 +1,7 @@
 /**
  * @file    object_dictionary.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
  * @brief   Description of the object dictionary of a CANopen device, loaded from its EDS or XDD file.
  *
  * @copyright

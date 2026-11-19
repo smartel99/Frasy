@@ -1,3 +1,9 @@
+/**
+ * @file    lua_object_dictionary_test.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
+ * @brief   Unit tests for the object dictionaries given to Lua by the C++ binding.
+ */
 #include "lua_test_fixture.h"
 
 #include "utils/communication/can_open/object_dictionary_registry.h"

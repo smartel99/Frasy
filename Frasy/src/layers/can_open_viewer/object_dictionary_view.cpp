@@ -1,5 +1,7 @@
 /**
  * @file    object_dictionary_view.cpp
+ * @author  Paul Thomas
+ * @date    2026-11-19
  * @brief   Page of the node explorer that browses the object dictionary of a node, and reads and writes its entries.
  *
  * @copyright
