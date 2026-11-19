@@ -154,6 +154,8 @@ private:
 
     void startWorkers();
     void stopWorkers();
+    //! Gives an answer to the requests that no worker will handle anymore, so that nobody waits for them forever.
+    void abortPendingRequests();
 
     void                                           uploadWorkerThread(const std::stop_token& stopToken);
     std::tuple<HandlerReturnCode, CO_SDO_return_t> handleUploadRequest(SdoUploadRequest& request);

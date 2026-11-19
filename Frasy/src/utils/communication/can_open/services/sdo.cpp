@@ -83,6 +83,27 @@ SdoManager::SdoManager(uint8_t nodeId)
 SdoManager::~SdoManager()
 {
     stopWorkers();
+    // The request a worker is handling gets its answer before the worker stops. Wait for that, then answer the queued
+    // requests, which would otherwise be dropped with their promise unset.
+    if (m_uploadWorkerThread.joinable()) { m_uploadWorkerThread.join(); }
+    if (m_downloadWorkerThread.joinable()) { m_downloadWorkerThread.join(); }
+    abortPendingRequests();
+}
+
+void SdoManager::abortPendingRequests()
+{
+    {
+        std::unique_lock lock {m_uploadLock};
+        for (; !m_pendingUploadRequests.empty(); m_pendingUploadRequests.pop()) {
+            m_pendingUploadRequests.front()->abort(CO_SDO_AB_GENERAL);
+        }
+    }
+    {
+        std::unique_lock lock {m_downloadLock};
+        for (; !m_pendingDownloadRequests.empty(); m_pendingDownloadRequests.pop()) {
+            m_pendingDownloadRequests.front()->abort(CO_SDO_AB_GENERAL);
+        }
+    }
 }
 
 bool SdoManager::hasUploadRequestsPending() const
