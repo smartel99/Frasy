@@ -100,8 +100,11 @@ private:
                           const CanOpen::OdEntry&   entry,
                           const CanOpen::OdObject&  object);
     void renderEntryTooltip(const CanOpen::OdObject& object, const CanOpen::OdEntry& entry) const;
-    //! Draws a name, which opens the comment window when it has a comment.
-    void renderName(const std::string& name, const std::string& comment, const std::string& windowTitle);
+    /**
+     * @brief Draws a name, which is clickable when it has a comment.
+     * @return True when clicked: the caller opens the comment window, so that its title is only built then.
+     */
+    [[nodiscard]] static bool renderName(const std::string& name, const std::string& comment);
     void openCommentWindow(const std::string& title, const std::string& comment);
     /**
      * @brief Renders the windows that show the full comment of an entry.
@@ -133,7 +136,7 @@ private:
     void setAllOpen(bool isOpen);
 
     /**
-     * @brief Finds the objects and entries that match the filter.
+     * @brief Finds the objects and entries that match the filter, and counts them in each range.
      *
      * Only done when the filter or the dictionary changes, as comparing every name allocates.
      */
@@ -158,7 +161,13 @@ private:
     //! Entries (keys from makeKey) shown under their object when the filter is set. Unused when the filter is empty.
     std::unordered_set<uint32_t> m_matchingEntries;
 
-    std::size_t m_selectedRange = s_defaultRange;
+    //! Ranges offered by the selector. The objects outside of them (data types, reserved indexes) are not shown.
+    static constexpr std::array<std::size_t, s_ranges.size()> s_rangeChoices = {0, 1, 2};
+    //! Number of objects of each range that match the filter. The last one counts the objects outside the ranges.
+    std::array<std::size_t, s_ranges.size() + 1> m_rangeCounts = {};
+    //! Name of each range with its count, as shown by the selector.
+    std::array<std::string, s_ranges.size()> m_rangeLabels;
+    std::size_t                                  m_selectedRange = s_defaultRange;
     //! Indexes of the records and arrays that are expanded. Kept here so that they stay as they are when switching range.
     std::unordered_set<uint16_t> m_openObjects;
 
@@ -174,8 +183,6 @@ private:
         bool        isOpen = true;
     };
     std::vector<CommentWindow> m_commentWindows;
-    //! Identifies the node in the title of its windows, as windows of different nodes must not share a title.
-    std::string m_windowPrefix;
 };
 
 }    // namespace Frasy::CanOpenViewer
