@@ -301,13 +301,13 @@ private:
     CO_storage_t                      m_storage          = {};
     std::array<CO_storage_entry_t, 1> m_storageEntries   = {
       CO_storage_entry_t {
-          .addr       = &OD_PERSIST_COMM,
-          .len        = sizeof(OD_PERSIST_COMM),
-          .subIndexOD = 2,
-          .attr       = CO_storage_cmd | CO_storage_restore,
-          .filename   = {'o', 'd', '_', 'c', 'o', 'm', 'm', '.', 'p', 'e', 'r', 's', 'i', 's', 't', '\0'},
-          .crc        = {},
-          .fp         = nullptr,
+        .addr       = &OD_PERSIST_COMM,
+        .len        = sizeof(OD_PERSIST_COMM),
+        .subIndexOD = 2,
+        .attr       = CO_storage_cmd | CO_storage_restore,
+        .filename   = {'o', 'd', '_', 'c', 'o', 'm', 'm', '.', 'p', 'e', 'r', 's', 'i', 's', 't', '\0'},
+        .crc        = {},
+        .fp         = nullptr,
       },
     };
 
