@@ -98,6 +98,8 @@ public:
     void reset();
     void start();
     void stop();
+    //! Starts CANopen if it should be running but isn't, e.g. after its last device was unplugged and came back.
+    void restartIfStopped();
 
     std::vector<Node>&   getNodes();
     std::optional<Node*> getNode(uint8_t nodeId);
@@ -106,7 +108,7 @@ public:
     void                 removeNode(const Node& node);
     void                 clearNodes();
     void                 resetNodes() const;
-    void                 resetNode(uint8_t nodeId) const;
+    bool                 resetNode(uint8_t nodeId) const;
     bool                 isNodeRegistered(uint8_t nodeId);
     bool                 isNodeOnNetwork(uint8_t nodeId);
 
@@ -126,6 +128,7 @@ public:
     void setNodeHeartbeatProdTime(uint8_t nodeId, uint16_t heartbeatTimeMs);
 
 private:
+    void stopThread();
     void canOpenTask(std::stop_token stopToken);
 
     bool               initialInit();
@@ -315,7 +318,9 @@ private:
     std::condition_variable_any m_sleepOrTimeout;
     bool                        m_wakeupNeeded = false;
     std::jthread                m_coThread;
-    bool                        m_isRunning = false;
+    std::atomic<bool>           m_isRunning = false;
+    //! Set by start() and cleared by stop(), even when start() could not run for lack of a device.
+    std::atomic<bool> m_shouldRun = false;
 
     std::chrono::time_point<std::chrono::steady_clock> m_lastTimePoint;
     static constexpr auto                              s_autoSavePeriod = std::chrono::minutes {1};

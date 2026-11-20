@@ -184,9 +184,12 @@ void CanOpen::reset()
 
 void CanOpen::start()
 {
+    m_shouldRun = true;
+    // The previous CANopen thread waits on the previous stop source: stop it before that source is replaced.
+    stopThread();
     m_nodeServicesInitialized = false;
     if (m_devices.devices.empty()) {
-        BR_LOG_WARN(m_tag, "Ignoring CanOpen Start with no associated devices");
+        BR_LOG_WARN(m_tag, "No device attached, CANopen will start when one is");
         return;
     }
     m_stopSource = {};
@@ -200,14 +203,30 @@ void CanOpen::start()
         addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the object dictionary file.
         canOpenTask(m_stopSource.get_token());
         removeNode(0x01);
+        // Releases start() when CANopen failed to initialize and never reached initNodeServices().
+        m_nodeServicesInitialized = true;
+        m_nodeServicesInitialized.notify_all();
     });
     m_nodeServicesInitialized.wait(false);
 }
 
 void CanOpen::stop()
 {
+    m_shouldRun = false;
+    stopThread();
+}
+
+void CanOpen::stopThread()
+{
     if (m_stopSource.stop_possible()) { m_stopSource.request_stop(); }
     if (m_coThread.joinable()) { m_coThread.join(); }
+}
+
+void CanOpen::restartIfStopped()
+{
+    if (!m_shouldRun || m_isRunning || m_devices.devices.empty()) { return; }
+    BR_LOG_INFO(m_tag, "Device attached, restarting CANopen");
+    start();
 }
 
 #pragma region Nodes
@@ -264,8 +283,16 @@ void CanOpen::resetNodes() const
     resetNode(0);    // 0 is broadcast to all nodes
 }
 
-void CanOpen::resetNode(uint8_t nodeId) const
-{ CO_NMT_sendCommand(m_co->NMT, CO_NMT_RESET_NODE, nodeId); }
+bool CanOpen::resetNode(uint8_t nodeId) const
+{
+    if (m_co == nullptr) { return false; }
+    const auto err = CO_NMT_sendCommand(m_co->NMT, CO_NMT_RESET_NODE, nodeId);
+    if (err != CO_ERROR_NO) {
+        BR_LOG_WARN(m_tag, "NMT reset of node {} failed ({})", nodeId, static_cast<int>(err));
+        return false;
+    }
+    return true;
+}
 
 bool CanOpen::isNodeRegistered(uint8_t nodeId)
 {
