@@ -27,6 +27,7 @@
 
 #include <condition_variable>
 #include <cstdint>
+#include <cstring>
 #include <expected>
 #include <functional>
 #include <memory>
@@ -35,7 +36,6 @@
 #include <span>
 #include <string>
 #include <thread>
-#include <cstring>
 #include <utils/lua/profile_events.h>
 
 namespace Frasy::CanOpen {
@@ -148,9 +148,7 @@ private:
     };
 
     [[nodiscard]] bool isAbleToMakeUploadRequests() const
-    {
-        return m_isUploadWorkerActive && m_isDownloadWorkerActive && m_nodeId != s_noNodeId && m_sdoClient != nullptr;
-    }
+    { return m_isUploadWorkerActive && m_isDownloadWorkerActive && m_nodeId != s_noNodeId && m_sdoClient != nullptr; }
 
     void startWorkers();
     void stopWorkers();
@@ -173,8 +171,8 @@ private:
     uint8_t                  m_nodeId    = s_noNodeId;
     CO_SDOclient_t*          m_sdoClient = nullptr;
 
-    SdoClientInfo                    m_clientInfo;
-    std::unique_ptr<OD_obj_record_t[]> m_odObjRecord;
+    SdoClientInfo                                   m_clientInfo;
+    std::unique_ptr<OD_obj_record_t[]>              m_odObjRecord;
     std::queue<std::shared_ptr<SdoUploadRequest>>   m_pendingUploadRequests;
     std::queue<std::shared_ptr<SdoDownloadRequest>> m_pendingDownloadRequests;
 
