@@ -548,6 +548,8 @@ void DeviceViewer::handleSerialConnection(const std::vector<std::string>& ports)
             };
         }
     }
+    // Done after the monitoring hooks are in place, so the CANopen thread never runs while they are being replaced.
+    m_canOpen.restartIfStopped();
 }
 
 void DeviceViewer::handleSerialDisconnection(const std::vector<std::string>& ports)

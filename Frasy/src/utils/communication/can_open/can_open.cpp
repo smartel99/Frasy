@@ -184,9 +184,12 @@ void CanOpen::reset()
 
 void CanOpen::start()
 {
+    m_shouldRun = true;
+    // The previous CANopen thread waits on the previous stop source: stop it before that source is replaced.
+    stopThread();
     m_nodeServicesInitialized = false;
     if (m_devices.devices.empty()) {
-        BR_LOG_WARN(m_tag, "Ignoring CanOpen Start with no associated devices");
+        BR_LOG_WARN(m_tag, "No device attached, CANopen will start when one is");
         return;
     }
     m_stopSource = {};
@@ -200,14 +203,30 @@ void CanOpen::start()
         addNode(0x01, "Frasy", "frasy.eds");    // TODO set the right path for the object dictionary file.
         canOpenTask(m_stopSource.get_token());
         removeNode(0x01);
+        // Releases start() when CANopen failed to initialize and never reached initNodeServices().
+        m_nodeServicesInitialized = true;
+        m_nodeServicesInitialized.notify_all();
     });
     m_nodeServicesInitialized.wait(false);
 }
 
 void CanOpen::stop()
 {
+    m_shouldRun = false;
+    stopThread();
+}
+
+void CanOpen::stopThread()
+{
     if (m_stopSource.stop_possible()) { m_stopSource.request_stop(); }
     if (m_coThread.joinable()) { m_coThread.join(); }
+}
+
+void CanOpen::restartIfStopped()
+{
+    if (!m_shouldRun || m_isRunning || m_devices.devices.empty()) { return; }
+    BR_LOG_INFO(m_tag, "Device attached, restarting CANopen");
+    start();
 }
 
 #pragma region Nodes
@@ -264,8 +283,16 @@ void CanOpen::resetNodes() const
     resetNode(0);    // 0 is broadcast to all nodes
 }
 
-void CanOpen::resetNode(uint8_t nodeId) const
-{ CO_NMT_sendCommand(m_co->NMT, CO_NMT_RESET_NODE, nodeId); }
+bool CanOpen::resetNode(uint8_t nodeId) const
+{
+    if (m_co == nullptr) { return false; }
+    const auto err = CO_NMT_sendCommand(m_co->NMT, CO_NMT_RESET_NODE, nodeId);
+    if (err != CO_ERROR_NO) {
+        BR_LOG_WARN(m_tag, "NMT reset of node {} failed ({})", nodeId, static_cast<int>(err));
+        return false;
+    }
+    return true;
+}
 
 bool CanOpen::isNodeRegistered(uint8_t nodeId)
 {
@@ -468,12 +495,12 @@ bool CanOpen::initialInit()
 
     uint32_t         storageInitError = 0;
     CO_ReturnError_t err              = CO_storageWindows_init(&m_storage,
-                                                  m_co->CANmodule,
-                                                  OD_ENTRY_H1010_storeParameters,
-                                                  OD_ENTRY_H1011_restoreDefaultParameters,
-                                                  m_storageEntries.data(),
-                                                  static_cast<uint8_t>(m_storageEntries.size()),
-                                                  &storageInitError);
+                                                               m_co->CANmodule,
+                                                               OD_ENTRY_H1010_storeParameters,
+                                                               OD_ENTRY_H1011_restoreDefaultParameters,
+                                                               m_storageEntries.data(),
+                                                               static_cast<uint8_t>(m_storageEntries.size()),
+                                                               &storageInitError);
     if (err == CO_ERROR_DATA_CORRUPT) { BR_LOG_WARN(m_tag, "Persistence data corrupted!"); }
     else if (err != CO_ERROR_NO) {
         const char* filename =
@@ -508,22 +535,22 @@ bool CanOpen::runtimeInit()
 
     uint32_t errInfo = 0;
     err              = CO_CANopenInit(m_co,
-                         // CANopen object.
-                         nullptr,
-                         // alternate NMT handle.
-                         nullptr,
-                         // alternate emergency handle, might be required.
-                         OD,
-                         // TODO: Object dictionary must be dynamically built from the loaded environment.
-                         nullptr,
-                         // Optional OD_statusBits.
-                         s_nmtControlFlags,
-                         s_firstHeartbeatTime,
-                         s_sdoServerTimeoutTime,
-                         s_sdoClientTimeoutTime,
-                         s_sdoClientBlockTransfer,
-                         s_defaultNodeId,
-                         &errInfo);
+                                      // CANopen object.
+                                      nullptr,
+                                      // alternate NMT handle.
+                                      nullptr,
+                                      // alternate emergency handle, might be required.
+                                      OD,
+                                      // TODO: Object dictionary must be dynamically built from the loaded environment.
+                                      nullptr,
+                                      // Optional OD_statusBits.
+                                      s_nmtControlFlags,
+                                      s_firstHeartbeatTime,
+                                      s_sdoServerTimeoutTime,
+                                      s_sdoClientTimeoutTime,
+                                      s_sdoClientBlockTransfer,
+                                      s_defaultNodeId,
+                                      &errInfo);
     if (err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
         if (err == CO_ERROR_OD_PARAMETERS) { BR_LOG_ERROR(m_tag, "Error in Object Dictionary entry {:#08x}", errInfo); }
         else {
@@ -660,6 +687,11 @@ void CanOpen::initNodeServices()
 
 void CanOpen::deinitNodeServices()
 {
+    // Stop every node's SDO workers before joining any: they share one SDO client, so a node still running a transfer
+    // would make the others wait for it to time out.
+    for (auto&& node : m_nodes) {
+        node.requestSdoStop();
+    }
     for (auto&& node : m_nodes) {
         node.removeHbConsumer();
         node.removeSdoClient();

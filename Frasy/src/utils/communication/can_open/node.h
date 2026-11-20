@@ -24,10 +24,10 @@
 #include "services/sdo.h"
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <memory>
 
 namespace Frasy::CanOpen {
 class CanOpen;
@@ -44,12 +44,10 @@ public:
     //! Path of the EDS or XDD describing the object dictionary of the node. Empty when unknown.
     [[nodiscard]] std::string_view odPath() const { return m_odPath; }
     [[nodiscard]] CanOpen*         bus() const { return m_canOpen; }
-    void reset() const;
+    void                           reset() const;
 
     constexpr bool operator==(const Node& o) const
-    {
-        return m_nodeId == o.m_nodeId && m_name == o.m_name && m_odPath == o.m_odPath;
-    }
+    { return m_nodeId == o.m_nodeId && m_name == o.m_name && m_odPath == o.m_odPath; }
 
     [[nodiscard]] CO_HBconsumer_state_t  getHbState() const { return m_hbConsumer.getState(); }
     [[nodiscard]] CO_NMT_internalState_t getNmtState() const { return m_hbConsumer.getNmtState(); }
@@ -64,6 +62,7 @@ private:
     void setSdoClient(CO_SDOclient_t* client) { m_sdoManager->setSdoClient(client); }
 
     void removeHbConsumer() { m_hbConsumer = {}; }
+    void requestSdoStop() { m_sdoManager->requestStop(); }
     void removeSdoClient() { m_sdoManager->removeSdoClient(); }
 
 private:
@@ -71,7 +70,7 @@ private:
     std::string m_name;
     std::string m_odPath;
 
-    HbConsumer m_hbConsumer;
+    HbConsumer                  m_hbConsumer;
     std::unique_ptr<SdoManager> m_sdoManager;
 
     std::vector<EmergencyMessage> m_emHistory;
