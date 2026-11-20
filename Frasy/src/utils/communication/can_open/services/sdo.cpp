@@ -140,6 +140,8 @@ SdoUploadDataResult SdoManager::uploadData(
 
 void SdoManager::startWorkers()
 {
+    // The previous workers wait on the previous stop source: stop them before replacing it, or joining them hangs.
+    joinWorkers();
     m_stopSource = {};
 
     m_uploadWorkerThread =
@@ -164,6 +166,13 @@ void SdoManager::stopWorkers()
 {
     m_stopSource.request_stop();
     CO_SDOclientClose(m_sdoClient);
+}
+
+void SdoManager::joinWorkers()
+{
+    m_stopSource.request_stop();
+    if (m_uploadWorkerThread.joinable()) { m_uploadWorkerThread.join(); }
+    if (m_downloadWorkerThread.joinable()) { m_downloadWorkerThread.join(); }
 }
 
 void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
@@ -194,8 +203,12 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
         CO_SDO_return_t lastReturn = CO_SDO_RT_ok_communicationEnd;
         for (int i = 0; i <= request->retries; ++i) {
             FRASY_PROFILE_SCOPE("Upload Request Retries");
+            if (stopToken.stop_requested()) {
+                request->cancel();
+                break;
+            }
 
-            auto [handlerCode, coCode] = handleUploadRequest(*request);
+            auto [handlerCode, coCode] = handleUploadRequest(*request, stopToken);
 
             lastReturn = coCode;
             if (handlerCode == HandlerReturnCode::ok) {
@@ -222,7 +235,8 @@ void SdoManager::uploadWorkerThread(const std::stop_token& stopToken)
     m_isUploadWorkerActive = false;
 }
 
-std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUploadRequest(SdoUploadRequest& request)
+std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUploadRequest(
+  SdoUploadRequest& request, const std::stop_token& stopToken)
 {
     FRASY_PROFILE_FUNCTION();
     // Configure the shared SDO client for this node before the transaction.
@@ -243,7 +257,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleUpl
     // Upload the data.
     do {
         FRASY_PROFILE_SCOPE("SDO Upload Loop");
-        if (request.status == SdoRequestStatus::CancelRequested) {
+        if (request.status == SdoRequestStatus::CancelRequested || stopToken.stop_requested()) {
             return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_RT_ok_communicationEnd);
         }
         uint32_t timeToSleep = 1'000;    // 1ms
@@ -323,7 +337,11 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
 
         request->status = SdoRequestStatus::OnGoing;
         for (uint8_t i = 0; i <= request->retries; ++i) {
-            auto [handlerCode, coCode] = handleDownloadRequest(*request);
+            if (stopToken.stop_requested()) {
+                request->cancel();
+                break;
+            }
+            auto [handlerCode, coCode] = handleDownloadRequest(*request, stopToken);
 
             if (handlerCode == HandlerReturnCode::ok) {
                 request->markAsComplete(coCode);
@@ -350,7 +368,7 @@ void SdoManager::downloadWorkerThread(const std::stop_token& stopToken)
 }
 
 std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDownloadRequest(
-  SdoDownloadRequest& request)
+  SdoDownloadRequest& request, const std::stop_token& stopToken)
 {
     FRASY_PROFILE_FUNCTION();
     // Configure the shared SDO client for this node before the transaction.
@@ -381,7 +399,7 @@ std::tuple<SdoManager::HandlerReturnCode, CO_SDO_return_t> SdoManager::handleDow
                                    request.data.size() - std::min(request.sizeTransferred, request.data.size()));
     do {
         FRASY_PROFILE_SCOPE("SDO Download Loop");
-        if (request.status == SdoRequestStatus::CancelRequested) {
+        if (request.status == SdoRequestStatus::CancelRequested || stopToken.stop_requested()) {
             return std::make_tuple(HandlerReturnCode::cancel, CO_SDO_RT_ok_communicationEnd);
         }
         uint32_t timeToSleep = 1000;    // 1ms
@@ -446,7 +464,8 @@ void SdoManager::setSdoClient(CO_SDOclient_t* sdoClient)
 
 void SdoManager::removeSdoClient()
 {
-    m_stopSource.request_stop();
+    // CANopen deletes the client right after this: the workers must be done with it first.
+    joinWorkers();
     m_sdoClient = nullptr;
 }
 }    // namespace Frasy::CanOpen

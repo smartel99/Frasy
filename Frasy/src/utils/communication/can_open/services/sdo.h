@@ -152,15 +152,20 @@ private:
 
     void startWorkers();
     void stopWorkers();
+    //! Stops the workers and waits for them to exit. A transfer in progress is cancelled.
+    void joinWorkers();
+    void requestStop() { m_stopSource.request_stop(); }
     //! Gives an answer to the requests that no worker will handle anymore, so that nobody waits for them forever.
     void abortPendingRequests();
 
     void                                           uploadWorkerThread(const std::stop_token& stopToken);
-    std::tuple<HandlerReturnCode, CO_SDO_return_t> handleUploadRequest(SdoUploadRequest& request);
+    std::tuple<HandlerReturnCode, CO_SDO_return_t> handleUploadRequest(SdoUploadRequest&      request,
+                                                                       const std::stop_token& stopToken);
     void                                           readUploadBufferIntoRequest(SdoUploadRequest& request);
 
     void                                           downloadWorkerThread(const std::stop_token& stopToken);
-    std::tuple<HandlerReturnCode, CO_SDO_return_t> handleDownloadRequest(SdoDownloadRequest& request);
+    std::tuple<HandlerReturnCode, CO_SDO_return_t> handleDownloadRequest(SdoDownloadRequest&    request,
+                                                                         const std::stop_token& stopToken);
 
     void setNodeId(uint8_t nodeId);
     void setSdoClient(CO_SDOclient_t* sdoClient);
