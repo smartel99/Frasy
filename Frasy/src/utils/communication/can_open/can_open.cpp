@@ -660,6 +660,11 @@ void CanOpen::initNodeServices()
 
 void CanOpen::deinitNodeServices()
 {
+    // Stop every node's SDO workers before joining any: they share one SDO client, so a node still running a transfer
+    // would make the others wait for it to time out.
+    for (auto&& node : m_nodes) {
+        node.requestSdoStop();
+    }
     for (auto&& node : m_nodes) {
         node.removeHbConsumer();
         node.removeSdoClient();

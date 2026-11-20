@@ -62,6 +62,7 @@ private:
     void setSdoClient(CO_SDOclient_t* client) { m_sdoManager->setSdoClient(client); }
 
     void removeHbConsumer() { m_hbConsumer = {}; }
+    void requestSdoStop() { m_sdoManager->requestStop(); }
     void removeSdoClient() { m_sdoManager->removeSdoClient(); }
 
 private:
