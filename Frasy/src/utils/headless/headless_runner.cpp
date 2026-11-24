@@ -204,17 +204,54 @@ bool HeadlessRunner::validateSerials()
     return allValid;
 }
 
+std::string_view getStateLabel(UutState state) noexcept
+{
+    switch (state) {
+        case UutState::Passed: return "PASS";
+        case UutState::Failed: return "FAIL";
+        case UutState::Error: return "ERROR";
+        case UutState::IncompletePassed: return "INCOMPLETE_PASS";
+        case UutState::IncompleteFailed: return "INCOMPLETE_FAIL";
+        case UutState::Disabled:
+        case UutState::Idle:
+        case UutState::Waiting:
+        case UutState::Running: break;
+    }
+    return "UNKNOWN";
+}
+
+std::string_view getVerdictLabel(RunVerdict verdict) noexcept
+{
+    switch (verdict) {
+        case RunVerdict::Passed: return "PASS";
+        case RunVerdict::Incomplete: return "INCOMPLETE";
+        case RunVerdict::Failed: return "FAIL";
+        case RunVerdict::Error: break;
+    }
+    return "ERROR";
+}
+
+int getExitCode(RunVerdict verdict) noexcept
+{
+    switch (verdict) {
+        case RunVerdict::Passed: return 0;
+        case RunVerdict::Failed: return 1;
+        case RunVerdict::Incomplete: return 3;
+        case RunVerdict::Error: break;
+    }
+    return 2;
+}
+
 int HeadlessRunner::reportResults()
 {
-    const auto& map       = m_orchestrator.getMap();
-    bool        anyFailed = false;
-    bool        anyError  = false;
+    const auto& map     = m_orchestrator.getMap();
+    auto        overall = RunVerdict::Passed;
 
     struct UutResult {
         std::size_t uut;
         std::string serial;
-        std::string state;
-        bool        pass;
+        UutState    state       = UutState::Error;
+        RunVerdict  verdict     = RunVerdict::Error;
         int         testsPassed = 0;
         int         testsTotal  = 0;
         double      duration    = 0.0;
@@ -228,28 +265,11 @@ int HeadlessRunner::reportResults()
         r.uut    = uut;
         r.serial = (uut >= 1 && uut <= m_args.serials.size()) ? m_args.serials[uut - 1] : "?";
 
-        auto uutState = m_orchestrator.getUutState(uut);
-        switch (uutState) {
-            case UutState::Passed:
-                r.state = "PASS";
-                r.pass  = true;
-                break;
-            case UutState::Failed:
-                r.state   = "FAIL";
-                r.pass    = false;
-                anyFailed = true;
-                break;
-            case UutState::Error:
-                r.state  = "ERROR";
-                r.pass   = false;
-                anyError = true;
-                break;
-            default:
-                r.state  = "UNKNOWN";
-                r.pass   = false;
-                anyError = true;
-                break;
-        }
+        const auto uutState = m_orchestrator.getUutState(uut);
+        r.state             = uutState;
+        // A UUT without a result after a run is an error.
+        r.verdict = getVerdict(uutState).value_or(RunVerdict::Error);
+        overall   = std::max(overall, r.verdict);
 
         // Read the report JSON for detailed info
         r.reportPath = std::format("{}/last/{}.json", m_args.outputDir, uut);
@@ -276,21 +296,18 @@ int HeadlessRunner::reportResults()
             }
         }
         else {
-            if (uutState != UutState::Disabled) { anyError = true; }
+            if (uutState != UutState::Disabled) { overall = RunVerdict::Error; }
         }
 
         results.push_back(r);
     }
-
-    // Determine overall result
-    bool overallPass = !anyFailed && !anyError;
 
     // Print summary
     std::lock_guard lock(m_ioMutex);
     if (m_args.outputFormat == "json") {
         nlohmann::json summary;
         summary["type"]         = "run_end";
-        summary["overall_pass"] = overallPass;
+        summary["overall_pass"] = overall == RunVerdict::Passed;
         summary["product"]      = m_args.product;
 
         nlohmann::json uutArray = nlohmann::json::array();
@@ -298,8 +315,8 @@ int HeadlessRunner::reportResults()
             nlohmann::json u;
             u["uut"]          = r.uut;
             u["serial"]       = r.serial;
-            u["pass"]         = r.pass;
-            u["state"]        = r.state;
+            u["pass"]         = r.verdict == RunVerdict::Passed;
+            u["state"]        = getStateLabel(r.state);
             u["tests_passed"] = r.testsPassed;
             u["tests_total"]  = r.testsTotal;
             u["duration"]     = r.duration;
@@ -311,9 +328,16 @@ int HeadlessRunner::reportResults()
     }
     else {
         constexpr auto colorReset = "\033[0m";
-        constexpr auto colorGreen = "\033[32m";
-        constexpr auto colorRed   = "\033[31m";
         constexpr auto colorBold  = "\033[1m";
+        const auto     colorOf    = [](RunVerdict verdict) {
+            switch (verdict) {
+                case RunVerdict::Passed: return "\033[32m";
+                case RunVerdict::Incomplete: return "\033[33m";
+                case RunVerdict::Failed:
+                case RunVerdict::Error: break;
+            }
+            return "\033[31m";
+        };
 
         std::cout << "\n";
         std::cout << std::format("{:=<50}\n", "");
@@ -321,13 +345,12 @@ int HeadlessRunner::reportResults()
         std::cout << std::format("{:=<50}\n", "");
 
         for (const auto& r : results) {
-            const char* color = r.pass ? colorGreen : colorRed;
-            std::cout << std::format(" {}{} UUT{} ({}): {}    [{}/{} tests, {:.2f}s]{}\n",
-                                     color,
-                                     r.pass ? "[PASS]" : "[FAIL]",
+            std::cout << std::format(" {}[{}] UUT{} ({}): {}    [{}/{} tests, {:.2f}s]{}\n",
+                                     colorOf(r.verdict),
+                                     getVerdictLabel(r.verdict),
                                      r.uut,
                                      r.serial,
-                                     r.state,
+                                     getStateLabel(r.state),
                                      r.testsPassed,
                                      r.testsTotal,
                                      r.duration,
@@ -335,8 +358,7 @@ int HeadlessRunner::reportResults()
         }
 
         std::cout << std::format("{:-<50}\n", "");
-        const char* overallColor = overallPass ? colorGreen : colorRed;
-        std::cout << std::format(" {}Overall: {}{}\n", overallColor, overallPass ? "PASS" : "FAIL", colorReset);
+        std::cout << std::format(" {}Overall: {}{}\n", colorOf(overall), getVerdictLabel(overall), colorReset);
         std::cout << " Reports:";
         for (const auto& r : results) {
             std::cout << " " << r.reportPath;
@@ -346,9 +368,7 @@ int HeadlessRunner::reportResults()
         std::cout << std::flush;
     }
 
-    if (anyError) { return 2; }
-    if (anyFailed) { return 1; }
-    return 0;
+    return getExitCode(overall);
 }
 
 }    // namespace Frasy::Headless

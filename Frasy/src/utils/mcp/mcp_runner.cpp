@@ -24,6 +24,7 @@
 #include <filesystem>
 #include <fstream>
 #include <thread>
+#include <vector>
 
 namespace Frasy::Mcp {
 
@@ -323,42 +324,22 @@ nlohmann::json McpRunner::handleGetStatus(const nlohmann::json& /*args*/)
     }
     else {
         // Determine overall state from UUT states
-        const auto& map     = m_orchestrator.getMap();
-        bool        anyFail = false;
-        bool        anyErr  = false;
-        for (const auto& uut : map.uuts) {
-            auto s = m_orchestrator.getUutState(uut);
-            if (s == UutState::Failed) { anyFail = true; }
-            if (s == UutState::Error) { anyErr = true; }
+        std::vector<UutState> states;
+        for (const auto& uut : m_orchestrator.getMap().uuts) {
+            states.push_back(m_orchestrator.getUutState(uut));
         }
-        if (anyErr) { status["state"] = "error"; }
-        else if (anyFail) {
-            status["state"] = "failed";
-        }
-        else {
-            status["state"] = "passed";
-        }
+        status["state"] = toString(getRunVerdict(states));
     }
 
     // Per-UUT states
     const auto&    map  = m_orchestrator.getMap();
     nlohmann::json uuts = nlohmann::json::array();
     for (const auto& uut : map.uuts) {
-        auto        state = m_orchestrator.getUutState(uut);
-        std::string stateStr;
-        switch (state) {
-            case UutState::Disabled: stateStr = "disabled"; break;
-            case UutState::Idle: stateStr = "idle"; break;
-            case UutState::Waiting: stateStr = "waiting"; break;
-            case UutState::Running: stateStr = "running"; break;
-            case UutState::Passed: stateStr = "passed"; break;
-            case UutState::Failed: stateStr = "failed"; break;
-            case UutState::Error: stateStr = "error"; break;
-        }
+        auto           state = m_orchestrator.getUutState(uut);
         nlohmann::json uutInfo;
         uutInfo["uut"]    = uut;
         uutInfo["serial"] = (uut < m_serials.size()) ? m_serials[uut] : "";
-        uutInfo["state"]  = stateStr;
+        uutInfo["state"]  = toString(state);
         uuts.push_back(uutInfo);
     }
     status["uuts"]    = uuts;
@@ -390,14 +371,7 @@ nlohmann::json McpRunner::handleGetResults(const nlohmann::json& /*args*/)
         uutResult["serial"] = (uut < m_serials.size()) ? m_serials[uut] : "";
         uutResult["pass"]   = pass;
 
-        std::string stateStr;
-        switch (state) {
-            case UutState::Passed: stateStr = "passed"; break;
-            case UutState::Failed: stateStr = "failed"; break;
-            case UutState::Error: stateStr = "error"; break;
-            default: stateStr = "unknown"; break;
-        }
-        uutResult["state"] = stateStr;
+        uutResult["state"] = toString(state);
 
         // Try to read the report file for detailed info
         std::string reportPath = std::format("logs/last/{}.json", uut);

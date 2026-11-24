@@ -52,8 +52,14 @@ frasy.exe --headless --product MyProduct --operator "John" --serial SN001 --seri
 | Code | Meaning |
 |---|---|
 | `0` | All UUTs passed |
-| `1` | One or more UUTs failed (expectation failures) |
+| `1` | One or more UUTs failed (expectation failures), including incomplete runs where something failed |
 | `2` | Error (setup failure, invalid arguments, missing product, etc.) |
+| `3` | Nothing failed, but one or more UUTs are incomplete (a sequence or test was disabled) |
+
+A UUT's `state` is `PASS`, `FAIL`, `ERROR`, `INCOMPLETE_PASS` (something disabled, the rest passed) or
+`INCOMPLETE_FAIL` (something disabled, something failed).
+
+When several apply, the most severe wins: `2`, then `1`, then `3`.
 
 ### Output Formats
 
@@ -79,7 +85,16 @@ Progress is displayed as a colored indented tree:
 ==================================================
 ```
 
-Colors: green for PASS, red for FAIL, white for start events.
+Progress tree colors: green for PASS, red for FAIL, white for start events.
+
+In the summary, each UUT and the `Overall:` line show a verdict, the most severe one for `Overall:`:
+
+| Verdict | Color | UUT states |
+|---|---|---|
+| `PASS` | green | `PASS` |
+| `INCOMPLETE` | yellow | `INCOMPLETE_PASS` |
+| `FAIL` | red | `FAIL`, `INCOMPLETE_FAIL` |
+| `ERROR` | red | `ERROR`, or a UUT left without a result or report |
 
 #### JSON Lines (`--output-format json`)
 
@@ -192,7 +207,9 @@ With `--mcp-server`, Frasy runs as a [Model Context Protocol](https://modelconte
 
 1. Call `list_products` to see available products
 2. Call `run_tests` with product, operator, and serials
-3. Poll `get_status` until state is `"passed"`, `"failed"`, or `"error"`
+3. Poll `get_status` until state is `"passed"`, `"failed"`, `"incomplete"`, or `"error"`. The overall state is `"failed"` as
+   soon as a UUT failed, even if it was also incomplete; per-UUT states also include `"incomplete_passed"` and
+   `"incomplete_failed"`
 4. If `get_pending_popup` returns a popup, read it and call `respond_to_popup`
 5. Call `get_results` for the full summary
 

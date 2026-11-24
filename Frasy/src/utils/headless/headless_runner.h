@@ -22,12 +22,32 @@
 #include "utils/cli/cli_args.h"
 #include "utils/communication/can_open/can_open.h"
 #include "utils/lua/orchestrator/orchestrator.h"
+#include "utils/UutState.h"
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace Frasy::Headless {
+
+/**
+ * @brief Label of a UUT state in the headless output.
+ * @return "PASS", "FAIL", "ERROR", "INCOMPLETE_PASS", "INCOMPLETE_FAIL", or "UNKNOWN" for states that aren't a result.
+ */
+[[nodiscard]] std::string_view getStateLabel(UutState state) noexcept;
+
+/**
+ * @brief Label of a verdict in the headless summary.
+ * @return "PASS", "INCOMPLETE", "FAIL" or "ERROR".
+ */
+[[nodiscard]] std::string_view getVerdictLabel(RunVerdict verdict) noexcept;
+
+/**
+ * @brief Process exit code of a run.
+ * @return 0 passed, 1 failed (incomplete runs where something failed included), 2 error, 3 incomplete.
+ */
+[[nodiscard]] int getExitCode(RunVerdict verdict) noexcept;
 
 /**
  * @brief Drives the full headless test lifecycle.
@@ -39,7 +59,7 @@ class HeadlessRunner {
 public:
     HeadlessRunner(const CliArgs& args, ProductProvider& provider);
 
-    /// Run the full headless test lifecycle. Returns exit code (0/1/2).
+    /// Run the full headless test lifecycle. Returns the exit code, see getExitCode().
     int run();
 
 private:
