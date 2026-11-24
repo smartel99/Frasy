@@ -228,3 +228,87 @@ TEST(ReportResult, ReadsWholeV2Report)
     EXPECT_EQ(reader.read(report["sequences"]["S"]["tests"]["T1"], sequence), Result::Disabled);
     EXPECT_EQ(reader.read(report["sequences"]["S"]["tests"]["T2"]["expectations"][0]), Result::Pass);
 }
+
+// =============================================================================
+// hasFailedScope
+// =============================================================================
+
+TEST(ReportResult, HasFailedScope_V2)
+{
+    const auto failed = json::parse(R"({
+        "info": { "format_version": 2, "result": "incomplete" },
+        "sequences": { "S": { "result": "fail", "tests": {} }, "D": { "result": "disabled", "tests": {} } }
+    })");
+    EXPECT_TRUE(Frasy::Report::hasFailedScope(failed));
+
+    const auto passed = json::parse(R"({
+        "info": { "format_version": 2, "result": "incomplete" },
+        "sequences": { "S": { "result": "incomplete", "tests": {} }, "K": { "result": "skipped", "tests": {} },
+                       "P": { "result": "pass", "tests": {} } }
+    })");
+    EXPECT_FALSE(Frasy::Report::hasFailedScope(passed));
+}
+
+TEST(ReportResult, HasFailedScope_V1)
+{
+    const auto failed = json::parse(R"({
+        "info": { "pass": false },
+        "sequences": { "S": { "pass": false, "skipped": false, "enabled": true, "tests": {} } }
+    })");
+    EXPECT_TRUE(Frasy::Report::hasFailedScope(failed));
+
+    // Skipped and disabled sequences also had `pass = false` in v1: they aren't failures.
+    const auto notRun = json::parse(R"({
+        "info": { "pass": false },
+        "sequences": { "K": { "pass": false, "skipped": true, "enabled": true, "tests": {} },
+                       "D": { "pass": false, "skipped": true, "enabled": false, "tests": {} } }
+    })");
+    EXPECT_FALSE(Frasy::Report::hasFailedScope(notRun));
+}
+
+TEST(ReportResult, HasFailedScope_NoSequences)
+{
+    EXPECT_FALSE(Frasy::Report::hasFailedScope(v2Report()));
+    EXPECT_FALSE(Frasy::Report::hasFailedScope(v1Report()));
+}
+
+TEST(ReportResult, HasFailedScope_IgnoresEntriesWithoutResult)
+{
+    // A product's onReport may add its own entries next to the scopes.
+    const auto v2 = json::parse(R"({
+        "info": { "format_version": 2, "result": "incomplete" },
+        "sequences": { "S": { "result": "pass", "tests": {} }, "Summary": { "yield": "90%" }, "count": 3 }
+    })");
+    EXPECT_FALSE(Frasy::Report::hasFailedScope(v2));
+
+    const auto v1 = json::parse(R"({
+        "info": { "pass": true },
+        "sequences": { "S": { "pass": true, "tests": {} }, "Summary": { "yield": "90%" } }
+    })");
+    EXPECT_FALSE(Frasy::Report::hasFailedScope(v1));
+}
+
+TEST(ReportResult, HasFailedScope_ThrowsOnUnreadableScope)
+{
+    const auto report = json::parse(R"({
+        "info": { "format_version": 2, "result": "pass" },
+        "sequences": { "S": { "result": "nope", "tests": {} } }
+    })");
+    EXPECT_THROW((void)Frasy::Report::hasFailedScope(report), ReportFormatError);
+}
+
+TEST(ReportResult, HasFailedScope_FailedTestUnderNonFailedSequence)
+{
+    // A sequence cut short by an error in a later section keeps the result of its earlier sections.
+    const auto report = json::parse(R"({
+        "info": { "format_version": 2, "result": "incomplete" },
+        "sequences": { "S": { "result": "incomplete", "tests": { "T1": { "result": "disabled" },
+                                                                 "T2": { "result": "fail" } } } }
+    })");
+    EXPECT_TRUE(Frasy::Report::hasFailedScope(report));
+}
+
+TEST(ReportResult, HasFailedScope_ThrowsOnUnreadableReport)
+{
+    EXPECT_THROW((void)Frasy::Report::hasFailedScope(json::parse(R"({ "sequences": {} })")), ReportFormatError);
+}

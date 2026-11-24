@@ -200,6 +200,7 @@ bool Orchestrator::createOutputDirs()
         fs::create_directory(std::format("{}/{}", m_outputDirectory, m_title));
         fs::create_directory(std::format("{}/{}/{}", m_outputDirectory, m_title, passSubdirectory));
         fs::create_directory(std::format("{}/{}/{}", m_outputDirectory, m_title, failSubdirectory));
+        fs::create_directory(std::format("{}/{}/{}", m_outputDirectory, m_title, debugSubdirectory));
         const auto last = std::format("{}/{}", m_outputDirectory, lastSubdirectory);
         fs::remove_all(last);
         fs::create_directory(last);
@@ -920,30 +921,62 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
     }
 }
 
+Orchestrator::ReportOutcome Orchestrator::getReportOutcome(Report::Result result, bool hasFailedScope) noexcept
+{
+    switch (result) {
+        case Report::Result::Pass: return {.state = UutState::Passed, .subdirectory = passSubdirectory};
+        case Report::Result::Fail: return {.state = UutState::Failed, .subdirectory = failSubdirectory};
+        case Report::Result::Incomplete:
+        case Report::Result::Skipped:
+        case Report::Result::Disabled: break;
+    }
+    return {.state        = hasFailedScope ? UutState::IncompleteFailed : UutState::IncompletePassed,
+            .subdirectory = debugSubdirectory};
+}
+
+UutState Orchestrator::fileReport(const std::filesystem::path& reportFile,
+                                  const std::filesystem::path& archiveRoot,
+                                  std::size_t                  uut)
+{
+    ReportOutcome outcome;
+    std::string   serial;
+    try {
+        std::ifstream              ifs {reportFile};
+        const nlohmann::json       data = nlohmann::json::parse(ifs);
+        const Report::ResultReader reader(data);
+        outcome = getReportOutcome(reader.getInfo(), Report::hasFailedScope(data));
+        serial  = data.at("info").value("serial", std::string {});
+    }
+    catch (const std::exception& e) {
+        BR_LUA_ERROR("Unreadable report for UUT {} in '{}': {}", uut, reportFile.string(), e.what());
+        return UutState::Error;
+    }
+
+    const auto archive = archiveRoot / outcome.subdirectory /
+                         std::format("{}_{}.json", std::chrono::system_clock::now().time_since_epoch().count(), serial);
+    try {
+        std::filesystem::copy(reportFile, archive);
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // The board's result stands; only its copy is missing.
+        BR_LUA_ERROR("Couldn't archive the report of UUT {} to '{}': {}", uut, archive.string(), e.what());
+    }
+    return outcome.state;
+}
+
 void Orchestrator::checkResults(const std::vector<std::size_t>& devices)
 {
     FRASY_PROFILE_FUNCTION();
-    using nlohmann::json;
+    const auto archiveRoot = std::filesystem::path(m_outputDirectory) / m_title;
     for (const auto& uut : devices) {
-        if (std::string resultFile = std::format("{}/{}/{}.json", m_outputDirectory, lastSubdirectory, uut);
+        if (const auto resultFile =
+              std::filesystem::path(m_outputDirectory) / lastSubdirectory / std::format("{}.json", uut);
             std::filesystem::exists(resultFile)) {
-            std::ifstream ifs {resultFile};
-            std::string   content = std::string(std::istreambuf_iterator {ifs}, {});
-            json          data    = json::parse(content);
-            bool          passed  = data["info"]["pass"];
-            std::string   serial  = data["info"]["serial"];
-            m_uutStates[uut]      = passed ? UutState::Passed : UutState::Failed;
-            std::filesystem::copy(resultFile,
-                                  std::format("{}/{}/{}/{}_{}.json",
-                                              m_outputDirectory,
-                                              m_title,
-                                              passed ? passSubdirectory : failSubdirectory,
-                                              std::chrono::system_clock::now().time_since_epoch().count(),
-                                              serial));
+            m_uutStates[uut] = fileReport(resultFile, archiveRoot, uut);
         }
         else if (m_uutStates[uut] != UutState::Disabled) {
             m_uutStates[uut] = UutState::Error;
-            BR_LUA_ERROR("Missing report for UUT {}, files '{}' does not exist.", uut, resultFile);
+            BR_LUA_ERROR("Missing report for UUT {}, files '{}' does not exist.", uut, resultFile.string());
         }
     }
 }

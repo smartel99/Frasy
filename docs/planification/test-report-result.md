@@ -12,19 +12,24 @@ They overlap and are often misread:
 ## Requirements
 
 - Every sequence and test gets a `result` string: `pass`, `fail`, `skipped` or `disabled`.
-- Sequences and `info` aggregate their children by precedence: `fail` > `incomplete` > `pass`.
+- Sequences aggregate their tests by precedence: `fail` > `incomplete` > `pass`.
   - `disabled` child → `incomplete`.
   - `skipped` child → neutral (a skip means the scope did not apply to this run).
   - A test with a failed expectation that then hits an unmet requirement is `fail`, not `skipped`.
   - Team sync keeps sending anything but `pass` as a failure, so a skip on one UUT fails its teammates.
+- `info` aggregates by precedence: `incomplete` > `fail` > `pass`: any disabled sequence or test makes the board a
+  debug run, even when something failed; the sequences keep showing which ones failed.
 - Tests inside a skipped or disabled sequence inherit that state.
 - Expectations get `result` = `pass` or `fail`.
 - `info.format_version = 2`. Readers parse `format_version` first and pick the matching parser. A missing version means v1.
 - Transition: v2 reports keep `pass`, `skipped` and `enabled`, computed from `result` and marked deprecated, so existing `onReport` hooks and external readers keep working. A later format version removes them.
 - An `incomplete` board:
   - goes to a `debug` folder instead of `pass` or `fail`;
-  - gets a dedicated UUT state, never shown as Passed;
-  - skips the other output methods (`Report::Json`, `Report::Kvp`, `Report::Pdf`).
+  - gets a dedicated UUT state, never shown as Passed: `IncompletePassed` if everything that ran passed,
+    `IncompleteFailed` if a sequence or test failed;
+  - skips the other output methods (`Report::Json`, `Report::Kvp`, `Report::Pdf`). Checking `info.result` is enough,
+    since it is `incomplete` whenever anything was disabled.
+- Headless exit codes: 0 pass, 1 fail (incomplete runs where something failed included), 2 error, 3 incomplete.
 - Old (v1) reports still load in the result viewer and the analyzer.
 
 ## Public API impact (flagged)
@@ -32,7 +37,9 @@ They overlap and are often misread:
 | Change | Who is affected | Compatibility |
 |---|---|---|
 | `result` and `format_version` added to the report table given to `Context.map.onReport` | Every product | Additive; old fields kept for the transition |
-| New `UutState::Incomplete` | Products that `switch` over `UutState` (e.g. the `demo_mode` app layer) | Non-exhaustive `switch` warning until handled |
+| New `UutState::IncompletePassed` and `IncompleteFailed`, plus `RunVerdict` helpers | Products that `switch` over `UutState` (e.g. the `demo_mode` app layer) | Non-exhaustive `switch` warning until handled |
+| A board with a failure and something disabled is `IncompleteFailed` in `debug/`, no longer `Failed` in `fail/` | Products testing `== UutState::Failed` | Use `getVerdict()` |
+| Headless exit code `3` and `INCOMPLETE_PASS` / `INCOMPLETE_FAIL` states | CI scripts | New values only |
 | `debug` output folder | Anyone collecting the `pass`/`fail` folders | New folder only |
 | `Report::*::makeReport` returns nothing for incomplete boards | Products calling them from `onReport` | Behaviour change for incomplete boards only |
 | `result` added to headless, MCP and progress outputs | CI and MCP clients | Additive, `pass` kept |
@@ -99,11 +106,13 @@ They overlap and are often misread:
 
 ### Task 5: Orchestrator outcome and folders (C++)
 
-**Objective:** `checkResults` uses the shared parser and sends `incomplete` boards to `debug` with `UutState::Incomplete`.
+**Objective:** `checkResults` uses the shared parser and sends `incomplete` boards to `debug` as `IncompletePassed` or
+`IncompleteFailed`, depending on whether a sequence or test failed.
 
 **Implementation guidance:**
-- Add `UutState::Incomplete` and handle it wherever `UutState` is mapped: main layer textures, MCP state strings, headless state.
-- Handle it in the `demo_mode` app layer.
+- Add both states and handle them wherever `UutState` is mapped: main layer textures (one icon each), MCP state strings,
+  headless state, labels and exit code. Share the severity rule (`RunVerdict`) instead of repeating it.
+- Handle them in the `demo_mode` app layer.
 
 **Tests:** fixture-level test of the outcome → state and folder mapping.
 

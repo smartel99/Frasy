@@ -17,6 +17,7 @@
 
 #include "result.h"
 
+#include <algorithm>
 #include <cmath>
 #include <format>
 #include <limits>
@@ -128,6 +129,31 @@ Result ResultReader::read(const nlohmann::json& node, std::optional<Result> pare
 {
     if (m_version == 1) { return readV1(node, parent); }
     return readV2(node);
+}
+
+bool ResultReader::isScope(const nlohmann::json& node) const noexcept
+{
+    if (!node.is_object()) { return false; }
+    if (m_version == 1) { return node.contains("pass") || node.contains("skipped") || node.contains("enabled"); }
+    return node.contains("result");
+}
+
+bool hasFailedScope(const nlohmann::json& report)
+{
+    const ResultReader reader(report);
+    const auto         sequences = report.find("sequences");
+    if (sequences == report.end() || !sequences->is_object()) { return false; }
+    for (const auto& sequence : *sequences) {
+        if (!reader.isScope(sequence)) { continue; }
+        const auto result = reader.read(sequence);
+        if (result == Result::Fail) { return true; }
+        const auto tests = sequence.find("tests");
+        if (tests == sequence.end() || !tests->is_object()) { continue; }
+        for (const auto& test : *tests) {
+            if (reader.isScope(test) && reader.read(test, result) == Result::Fail) { return true; }
+        }
+    }
+    return false;
 }
 
 }    // namespace Frasy::Report

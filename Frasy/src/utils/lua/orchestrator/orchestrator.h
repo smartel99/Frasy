@@ -24,6 +24,7 @@
 #include "../map.h"
 #include "utils/lua/popup.h"
 #include "utils/models/solution.h"
+#include "utils/report/result.h"
 
 #include "../expectation.h"
 #include <functional>
@@ -52,8 +53,38 @@ public:
 
     static constexpr std::string_view passSubdirectory = "pass";
     static constexpr std::string_view failSubdirectory = "fail";
-    static constexpr std::string_view lastSubdirectory = "last";
-    static constexpr std::string_view solutionFile     = "lua/solution.json";
+    //! Incomplete boards: neither passed nor failed, kept apart for debugging.
+    static constexpr std::string_view debugSubdirectory = "debug";
+    static constexpr std::string_view lastSubdirectory  = "last";
+    static constexpr std::string_view solutionFile      = "lua/solution.json";
+
+    /** Where a finished board ends up, given its report. */
+    struct ReportOutcome {
+        UutState         state        = UutState::Error;
+        std::string_view subdirectory = failSubdirectory;
+    };
+
+    /**
+     * @brief State and output folder of a board.
+     * @param result         The report's `info` result. `incomplete` means something was disabled: the board is a
+     *                       debug run, filed apart from production results whether what ran passed or failed.
+     * @param hasFailedScope Whether any sequence or test failed, which tells IncompleteFailed from IncompletePassed.
+     * Anything that isn't a clear pass or fail is filed as incomplete, never as passed.
+     * @return The board's state and the folder its report is archived to.
+     */
+    [[nodiscard]] static ReportOutcome getReportOutcome(Report::Result result, bool hasFailedScope) noexcept;
+
+    /**
+     * @brief Read a finished board's report, decide its state and archive the report.
+     * @param reportFile  The report, in the last folder. It stays there whatever happens.
+     * @param archiveRoot Folder holding the pass, fail and debug folders.
+     * @param uut         The board, for logging.
+     * @return The board's state, or Error if the report can't be read. Failing to archive it is logged and doesn't
+     *         change the state.
+     */
+    [[nodiscard]] static UutState fileReport(const std::filesystem::path& reportFile,
+                                             const std::filesystem::path& archiveRoot,
+                                             std::size_t                  uut);
 
     Orchestrator() = default;
 

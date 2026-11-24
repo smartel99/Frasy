@@ -37,6 +37,8 @@ void MainApplicationLayer::onAttach()
     CREATE_TEXTURE(m_runWarn, "runWarn", "assets/textures/run_warn.png");
     CREATE_TEXTURE(m_pass, "pass", "assets/textures/pass.png");
     CREATE_TEXTURE(m_fail, "fail", "assets/textures/fail.png");
+    CREATE_TEXTURE(m_incompletePass, "incompletePass", "assets/textures/incomplete_pass.png");
+    CREATE_TEXTURE(m_incompleteFail, "incompleteFail", "assets/textures/incomplete_fail.png");
     CREATE_TEXTURE(m_error, "error", "assets/textures/error.png");
     CREATE_TEXTURE(m_testing, "testing", "assets/textures/testing.png");
     CREATE_TEXTURE(m_waiting, "waiting", "assets/textures/waiting.png");
@@ -506,7 +508,10 @@ void MainApplicationLayer::handleResultAnalyserPopup()
 
     // else
     for (const auto map = m_orchestrator.getMap(); const auto& uut : map.uuts) {
-        if (m_orchestrator.getUutState(uut) != UutState::Failed) { continue; }
+        if (const auto verdict = getVerdict(m_orchestrator.getUutState(uut));
+            verdict != RunVerdict::Failed && verdict != RunVerdict::Incomplete) {
+            continue;
+        }
         m_resultViewer->setVisibility(true);
         break;
     }

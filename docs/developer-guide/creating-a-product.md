@@ -321,7 +321,11 @@ end)
     |---|---|
     | Test | `pass`, `fail`, `skipped`, `disabled` |
     | Sequence | `pass`, `fail`, `skipped`, `disabled`, `incomplete` |
-    | `report.info` | `pass`, `fail`, `incomplete` |
+    | `report.info` | `pass`, `fail`, `incomplete` (anything disabled, even with a failure) |
+
+    Entries the hook adds under `report.sequences` or a sequence's `tests` must either be a real scope
+    with a valid `result`, or carry no `result` at all (they are then ignored). An invalid `result` makes
+    the report unreadable, and the UUT ends in `Error`.
 
     `report.info.result` and `report.info.pass` are computed **before** `onReport` runs and are not
     recomputed afterwards. A hook that changes the outcome, for example by removing a failed

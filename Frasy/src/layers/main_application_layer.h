@@ -113,6 +113,8 @@ protected:
     Brigerad::Ref<Brigerad::Texture2D> m_runWarn;
     Brigerad::Ref<Brigerad::Texture2D> m_pass;
     Brigerad::Ref<Brigerad::Texture2D> m_fail;
+    Brigerad::Ref<Brigerad::Texture2D> m_incompletePass;
+    Brigerad::Ref<Brigerad::Texture2D> m_incompleteFail;
     Brigerad::Ref<Brigerad::Texture2D> m_error;
     Brigerad::Ref<Brigerad::Texture2D> m_testing;
     Brigerad::Ref<Brigerad::Texture2D> m_waiting;

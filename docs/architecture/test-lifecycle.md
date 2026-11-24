@@ -156,9 +156,13 @@ stateDiagram-v2
     Waiting --> Running : first section begins
     Running --> Passed : all expectations pass
     Running --> Failed : one or more expectations fail
+    Running --> IncompletePassed : something disabled, rest passed
+    Running --> IncompleteFailed : something disabled, something failed
     Running --> Error : uncaught exception
     Passed --> Idle : next run
     Failed --> Idle : next run
+    IncompletePassed --> Idle : next run
+    IncompleteFailed --> Idle : next run
     Error --> Idle : next run
 ```
 
@@ -170,7 +174,9 @@ stateDiagram-v2
 | **Running** | Actively executing tests |
 | **Passed** | All sequences and tests passed |
 | **Failed** | One or more expectations did not pass |
-| **Error** | An unrecoverable error occurred (Lua crash, hardware timeout, etc.) |
+| **IncompletePassed** | A sequence or test was disabled; everything that ran passed. The board is not passed |
+| **IncompleteFailed** | A sequence or test was disabled, and something that ran failed |
+| **Error** | An unrecoverable error occurred (Lua crash, hardware timeout, etc.), or its report couldn't be read |
 
 The state is queryable via:
 
@@ -267,7 +273,8 @@ After execution completes for each UUT, the orchestrator:
 
 3. Saves the report as JSON to:
     - `logs/last/` — always overwritten.
-    - `logs/pass/` or `logs/fail/` — organized by outcome.
+    - `logs/<title>/pass/` (Passed), `logs/<title>/fail/` (Failed) or `logs/<title>/debug/` (IncompletePassed and
+      IncompleteFailed: anything was disabled, so the run is kept apart from production results).
 
 4. Invokes the C++ `onDoneCallback` to signal the UI.
 
@@ -314,9 +321,10 @@ After execution completes for each UUT, the orchestrator:
 }
 ```
 
-`info.result` combines the sequence results the same way a sequence combines its tests (see
-[Scope Results](#scope-results)): `fail` if any sequence failed, otherwise `incomplete` if any
-sequence is `disabled` or `incomplete`, otherwise `pass`. `pass`, `skipped` and `enabled` are the
+`info.result` combines the sequence results with a different precedence than sequences use (see
+[Scope Results](#scope-results)): `incomplete` if any sequence or test is `disabled` (or a sequence `incomplete`), **even if
+something failed**, otherwise `fail` if any sequence or test failed, otherwise `pass`. Anything disabled makes the
+board a debug run; the sequences still show which ones failed. `pass`, `skipped` and `enabled` are the
 deprecated v1 fields, still written during the transition.
 
 `info.format_version` tells readers which layout to expect. A report without it is v1, where only

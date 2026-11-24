@@ -1,4 +1,5 @@
 #include "orchestrator/execution_fixture.h"
+#include "utils/lua/orchestrator/orchestrator.h"
 #include "utils/lua/save_as_json.h"
 #include "utils/report/result.h"
 
@@ -81,7 +82,9 @@ TEST_F(SavedReportTest, EveryScopeResultRoundTrips)
     const ResultReader reader(report);
     const auto&        sequences = report.at("sequences");
 
-    EXPECT_EQ(reader.getInfo(), Result::Fail);
+    // A disabled test makes the board incomplete, even with a failure elsewhere.
+    EXPECT_EQ(reader.getInfo(), Result::Incomplete);
+    EXPECT_TRUE(Frasy::Report::hasFailedScope(report));
 
     const auto partial = reader.read(sequences.at("Partial"));
     EXPECT_EQ(partial, Result::Incomplete);
@@ -119,4 +122,72 @@ TEST_F(SavedReportTest, DeprecatedFieldsAgreeWithResult)
     }
     EXPECT_EQ(v2.getInfo(), Result::Incomplete);
     EXPECT_EQ(v1.getInfo(), Result::Fail);    // v1 had no incomplete: `info.pass` is false.
+}
+
+TEST_F(SavedReportTest, FailWithDisabledTest_IsIncompleteWithFailure)
+{
+    lua.script(R"(Define({
+        { name = 'A', tests = { { name = 'T1', func = Fail } } },
+        { name = 'B', tests = { { name = 'T1' }, { name = 'T2' } } },
+    }))");
+    lua.script(
+      "Context.orchestrator.enable_list = { B = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    const auto         report = compileAndLoad();
+    const ResultReader reader(report);
+    EXPECT_EQ(reader.getInfo(), Result::Incomplete);
+    EXPECT_TRUE(Frasy::Report::hasFailedScope(report));
+    EXPECT_EQ(Frasy::Lua::Orchestrator::getReportOutcome(reader.getInfo(), Frasy::Report::hasFailedScope(report)).state,
+              Frasy::UutState::IncompleteFailed);
+}
+
+TEST_F(SavedReportTest, DisabledTestOnly_IsIncompleteWithoutFailure)
+{
+    lua.script("Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2' } } } })");
+    lua.script(
+      "Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    const auto         report = compileAndLoad();
+    const ResultReader reader(report);
+    EXPECT_EQ(reader.getInfo(), Result::Incomplete);
+    EXPECT_FALSE(Frasy::Report::hasFailedScope(report));
+    EXPECT_EQ(Frasy::Lua::Orchestrator::getReportOutcome(reader.getInfo(), Frasy::Report::hasFailedScope(report)).state,
+              Frasy::UutState::IncompletePassed);
+}
+
+TEST_F(SavedReportTest, DisabledAndFailingTestInSameSequence_IsIncompleteWithFailure)
+{
+    lua.script("Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2', func = Fail } } } })");
+    lua.script(
+      "Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    const auto         report = compileAndLoad();
+    const ResultReader reader(report);
+    EXPECT_EQ(reader.read(report.at("sequences").at("A")), Result::Fail);
+    EXPECT_EQ(reader.getInfo(), Result::Incomplete);
+    EXPECT_EQ(Frasy::Lua::Orchestrator::getReportOutcome(reader.getInfo(), Frasy::Report::hasFailedScope(report)).state,
+              Frasy::UutState::IncompleteFailed);
+}
+
+TEST_F(SavedReportTest, ErrorInLaterSectionWithDisabledTest_IsIncompleteWithFailure)
+{
+    lua.script(
+      "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', section = 2, "
+      "func = function() error('boom') end }, { name = 'T3' } } } })");
+    lua.script(
+      "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true }, T3 = { enabled = true } } }");
+    ASSERT_TRUE(runSection(1)) << lastError;
+    EXPECT_FALSE(runSection(2));
+    const auto         report = compileAndLoad();
+    const ResultReader reader(report);
+    // S still reads its section-1 result; only its failed test shows the failure.
+    EXPECT_NE(reader.read(report.at("sequences").at("S")), Result::Fail);
+    EXPECT_EQ(reader.getInfo(), Result::Incomplete);
+    EXPECT_TRUE(Frasy::Report::hasFailedScope(report));
+    EXPECT_EQ(Frasy::Lua::Orchestrator::getReportOutcome(reader.getInfo(), Frasy::Report::hasFailedScope(report)).state,
+              Frasy::UutState::IncompleteFailed);
 }

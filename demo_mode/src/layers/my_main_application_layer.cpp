@@ -211,6 +211,8 @@ void MyMainApplicationLayer::renderUutIcon(std::size_t uut)
         case Frasy::UutState::Passed: texture = m_pass->getRenderId(); break;
         case Frasy::UutState::Failed: texture = m_fail->getRenderId(); break;
         case Frasy::UutState::Error: texture = m_error->getRenderId(); break;
+        case Frasy::UutState::IncompletePassed: texture = m_incompletePass->getRenderId(); break;
+        case Frasy::UutState::IncompleteFailed: texture = m_incompleteFail->getRenderId(); break;
     }
     if (m_orchestrator.getMap().uuts.size() > 1) {
         if (ImGui::ImageButton(reinterpret_cast<void*>(texture), m_buttonSize)) { m_orchestrator.toggleUut(uut); }

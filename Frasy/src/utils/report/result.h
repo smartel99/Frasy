@@ -94,14 +94,32 @@ public:
      * @param node   The node to read.
      * @param parent Result of the enclosing scope. v1 reports left the tests of a skipped or disabled sequence
      *               untouched, so they take the sequence's result. v2 reports already carry it.
+     * @return The node's result.
      * @throws ReportFormatError if the node's result is of the wrong type or unknown.
      */
     [[nodiscard]] Result read(const nlohmann::json& node, std::optional<Result> parent = std::nullopt) const;
+
+    /**
+     * @brief Whether @p node carries a result in this reader's layout.
+     * Entries without one aren't scopes, e.g. added by a product's `onReport`.
+     * @return true if @p node is a sequence, test or expectation result.
+     */
+    [[nodiscard]] bool isScope(const nlohmann::json& node) const noexcept;
 
 private:
     int    m_version = 1;
     Result m_info    = Result::Fail;
 };
+
+/**
+ * @brief Whether any sequence or test of @p report failed.
+ * Tells an incomplete board where something that ran failed from one where everything that ran passed. Tests are read
+ * as well as sequences: a sequence cut short by an error in a later section keeps the result of its earlier sections.
+ * @param report The whole report.
+ * @return true if a sequence or test result is a failure.
+ * @throws ReportFormatError if the report or a scope result can't be read.
+ */
+[[nodiscard]] bool hasFailedScope(const nlohmann::json& report);
 
 }    // namespace Frasy::Report
 
