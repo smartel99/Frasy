@@ -16,6 +16,9 @@
  */
 
 #include "expectation.h"
+
+#include "utils/report/result.h"
+
 #include <Brigerad.h>
 
 namespace Frasy::Lua {
@@ -47,8 +50,9 @@ Expectation Expectation::fromTable(const sol::table& table)
 {
     Expectation expectation;
     expectation.name = table["name"].get_or<std::string>("");
-    expectation.pass = table["pass"].get<bool>();
-    if (table["inverted"].get<bool>()) { expectation.pass = !expectation.pass; }
+    // Lua already applied `inverted` to `result`; inverting again would show the opposite verdict.
+    const auto result = Report::resultFromString(table["result"].get_or<std::string>(""));
+    expectation.pass  = result ? *result == Report::Result::Pass : table["pass"].get_or(false);
     if (const auto method = table["method"].get_or<std::string>(""); method == "ToBeTrue") {
         expectation.method  = toBeTrue;
         expectation.max     = "True";
