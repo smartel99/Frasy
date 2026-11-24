@@ -17,11 +17,11 @@
 #ifndef FRASY_UTILS_HEADLESS_RUNNER_H
 #define FRASY_UTILS_HEADLESS_RUNNER_H
 
+#include "layers/device_viewer.h"
 #include "product_provider.h"
 #include "utils/cli/cli_args.h"
 #include "utils/communication/can_open/can_open.h"
 #include "utils/lua/orchestrator/orchestrator.h"
-#include "layers/device_viewer.h"
 
 #include <memory>
 #include <string>

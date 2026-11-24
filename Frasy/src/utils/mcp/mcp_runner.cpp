@@ -606,6 +606,8 @@ nlohmann::json McpRunner::handleUploadSdo(const nlohmann::json& args)
 }
 
 nlohmann::json McpRunner::handleDownloadSdo([[maybe_unused]] const nlohmann::json& args)
-{ return makeToolResult("{\"error\":\"Not implemented\"}", true); }
+{
+    return makeToolResult("{\"error\":\"Not implemented\"}", true);
+}
 
 }    // namespace Frasy::Mcp

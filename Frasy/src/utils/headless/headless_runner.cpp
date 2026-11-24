@@ -33,8 +33,7 @@ namespace {
 constexpr auto s_tag = "Headless";
 }
 
-HeadlessRunner::HeadlessRunner(const CliArgs& args, ProductProvider& provider)
-: m_args(args), m_provider(provider)
+HeadlessRunner::HeadlessRunner(const CliArgs& args, ProductProvider& provider) : m_args(args), m_provider(provider)
 {
 }
 
@@ -61,11 +60,9 @@ int HeadlessRunner::run()
     const auto& product = *it;
 
     // 3. Validate serial numbers
-    if (!validateSerials()) {
-        return 2;
-    }
+    if (!validateSerials()) { return 2; }
 
-    m_deviceViewer   = std::make_unique<DeviceViewer>(m_canOpen);
+    m_deviceViewer = std::make_unique<DeviceViewer>(m_canOpen);
     m_deviceViewer->onAttach();
 
     // 4. Set up orchestrator via ProductProvider
@@ -76,11 +73,14 @@ int HeadlessRunner::run()
     }
 
     // 5. Validate serial count matches UUT count
-    const auto& map     = m_orchestrator.getMap();
+    const auto& map      = m_orchestrator.getMap();
     size_t      uutCount = map.uuts.size();
     if (m_args.serials.size() != uutCount) {
-        BR_LOG_ERROR(s_tag, "Serial count mismatch: provided {} serials but product '{}' has {} UUTs",
-                     m_args.serials.size(), product.name, uutCount);
+        BR_LOG_ERROR(s_tag,
+                     "Serial count mismatch: provided {} serials but product '{}' has {} UUTs",
+                     m_args.serials.size(),
+                     product.name,
+                     uutCount);
         return 2;
     }
 
@@ -93,42 +93,57 @@ int HeadlessRunner::run()
     }
 
     // 7. Install console popup handler
-    m_orchestrator.setPopupImport(
-      [this](sol::state_view lua, std::size_t uut, Lua::Orchestrator::Stage) {
-          importHeadlessPopup(lua, uut, m_args.outputFormat, m_args.popupTimeoutSeconds, m_ioMutex);
-      });
+    m_orchestrator.setPopupImport([this](sol::state_view lua, std::size_t uut, Lua::Orchestrator::Stage) {
+        importHeadlessPopup(lua, uut, m_args.outputFormat, m_args.popupTimeoutSeconds, m_ioMutex);
+    });
 
     // 8. Start progress reporter
     ProgressReporter progressReporter(m_args.outputFormat, product.name, m_args.serials, m_ioMutex);
     progressReporter.reportStart();
 
-    m_orchestrator.setProgressCallback(
-      [&progressReporter](const std::string& type, std::size_t uut, const std::string& name,
-                           const std::string& parentA, const std::string& parentB, bool pass) {
-          ProgressEvent event;
-          event.uut  = uut;
-          event.name = name;
-          event.pass = pass;
-          if (type == "sequence_start") { event.type = ProgressEvent::SequenceStart; }
-          else if (type == "sequence_end") { event.type = ProgressEvent::SequenceEnd; }
-          else if (type == "test_start") { event.type = ProgressEvent::TestStart; event.sequence = parentA; }
-          else if (type == "test_end") { event.type = ProgressEvent::TestEnd; event.sequence = parentA; }
-          else if (type == "expectation") { event.type = ProgressEvent::Expectation; event.sequence = parentA; event.test = parentB; }
-          else { return; }
-          progressReporter.onEvent(event);
-      });
+    m_orchestrator.setProgressCallback([&progressReporter](const std::string& type,
+                                                           std::size_t        uut,
+                                                           const std::string& name,
+                                                           const std::string& parentA,
+                                                           const std::string& parentB,
+                                                           bool               pass) {
+        ProgressEvent event;
+        event.uut  = uut;
+        event.name = name;
+        event.pass = pass;
+        if (type == "sequence_start") { event.type = ProgressEvent::SequenceStart; }
+        else if (type == "sequence_end") {
+            event.type = ProgressEvent::SequenceEnd;
+        }
+        else if (type == "test_start") {
+            event.type     = ProgressEvent::TestStart;
+            event.sequence = parentA;
+        }
+        else if (type == "test_end") {
+            event.type     = ProgressEvent::TestEnd;
+            event.sequence = parentA;
+        }
+        else if (type == "expectation") {
+            event.type     = ProgressEvent::Expectation;
+            event.sequence = parentA;
+            event.test     = parentB;
+        }
+        else {
+            return;
+        }
+        progressReporter.onEvent(event);
+    });
 
     // 9. Run the solution
-    BR_LOG_INFO(s_tag, "Running tests: product='{}' operator='{}' uuts={}",
-                product.name, m_args.operatorName, uutCount);
+    BR_LOG_INFO(
+      s_tag, "Running tests: product='{}' operator='{}' uuts={}", product.name, m_args.operatorName, uutCount);
 
     std::atomic<bool> done = false;
-    m_orchestrator.runSolution(
-      m_args.operatorName,
-      serials,
-      true,    // regenerate
-      m_args.skipVerification,
-      [&done] { done = true; });
+    m_orchestrator.runSolution(m_args.operatorName,
+                               serials,
+                               true,    // regenerate
+                               m_args.skipVerification,
+                               [&done] { done = true; });
 
     // 10. Wait for completion (poll)
     while (!done) {
@@ -215,10 +230,25 @@ int HeadlessRunner::reportResults()
 
         auto uutState = m_orchestrator.getUutState(uut);
         switch (uutState) {
-            case UutState::Passed: r.state = "PASS"; r.pass = true; break;
-            case UutState::Failed: r.state = "FAIL"; r.pass = false; anyFailed = true; break;
-            case UutState::Error: r.state = "ERROR"; r.pass = false; anyError = true; break;
-            default: r.state = "UNKNOWN"; r.pass = false; anyError = true; break;
+            case UutState::Passed:
+                r.state = "PASS";
+                r.pass  = true;
+                break;
+            case UutState::Failed:
+                r.state   = "FAIL";
+                r.pass    = false;
+                anyFailed = true;
+                break;
+            case UutState::Error:
+                r.state  = "ERROR";
+                r.pass   = false;
+                anyError = true;
+                break;
+            default:
+                r.state  = "UNKNOWN";
+                r.pass   = false;
+                anyError = true;
+                break;
         }
 
         // Read the report JSON for detailed info
@@ -293,9 +323,15 @@ int HeadlessRunner::reportResults()
         for (const auto& r : results) {
             const char* color = r.pass ? colorGreen : colorRed;
             std::cout << std::format(" {}{} UUT{} ({}): {}    [{}/{} tests, {:.2f}s]{}\n",
-                                     color, r.pass ? "[PASS]" : "[FAIL]",
-                                     r.uut, r.serial, r.state,
-                                     r.testsPassed, r.testsTotal, r.duration, colorReset);
+                                     color,
+                                     r.pass ? "[PASS]" : "[FAIL]",
+                                     r.uut,
+                                     r.serial,
+                                     r.state,
+                                     r.testsPassed,
+                                     r.testsTotal,
+                                     r.duration,
+                                     colorReset);
         }
 
         std::cout << std::format("{:-<50}\n", "");

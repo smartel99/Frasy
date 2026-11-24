@@ -17,11 +17,9 @@
 #ifndef COPY_LUA_PY_FRASY_SRC_UTILS_LUA_UUTSTATE_H
 #define COPY_LUA_PY_FRASY_SRC_UTILS_LUA_UUTSTATE_H
 
-namespace Frasy
-{
+namespace Frasy {
 
-enum class UutState
-{
+enum class UutState {
     Disabled,
     Idle,
     Waiting,

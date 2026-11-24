@@ -22,9 +22,9 @@
 #include "../args_checker.h"
 #include "../dummy_table_deserializer.h"
 #include "../ib_info.h"
+#include "../object_dictionary_binding.h"
 #include "../ode_deserializer.h"
 #include "../ode_serializer.h"
-#include "../object_dictionary_binding.h"
 #include "../team.h"
 #include "utils/lua/save_as_json.h"
 
@@ -123,8 +123,7 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     return true;
 }
 
-bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
-                              const std::filesystem::path&        hashfile)
+bool Orchestrator::verifyHash(const std::filesystem::path& folder, const std::filesystem::path& hashfile)
 {
 #ifndef BR_DEBUG
     if (!exists(hashfile)) {
@@ -188,7 +187,9 @@ void Orchestrator::runSolution(const std::string&              operatorName,
 }
 
 const Models::Solution& Orchestrator::getSolution()
-{ return m_solution; }
+{
+    return m_solution;
+}
 
 bool Orchestrator::createOutputDirs()
 {
@@ -342,9 +343,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         };
         lua.require_file("Json", "lua/core/vendor/json.lua");
         importLog(lua, uut, stage);
-        if (m_popupImport) {
-            m_popupImport(lua, uut, stage);
-        }
+        if (m_popupImport) { m_popupImport(lua, uut, stage); }
         else {
             importPopup(lua, uut, stage);
         }
@@ -353,18 +352,20 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         // Progress callback binding
         if (m_progressCallback && stage == Stage::execution) {
-            lua["__progress"] = lua.create_table();
-            lua["__progress"]["report"] = [this](const std::string& type, std::size_t uut,
-                                                  const std::string& name, const std::string& parentA,
-                                                  const std::string& parentB, bool pass) {
+            lua["__progress"]           = lua.create_table();
+            lua["__progress"]["report"] = [this](const std::string& type,
+                                                 std::size_t        uut,
+                                                 const std::string& name,
+                                                 const std::string& parentA,
+                                                 const std::string& parentB,
+                                                 bool               pass) {
                 m_progressCallback(type, uut, name, parentA, parentB, pass);
             };
         }
         else {
             lua["__progress"] = lua.create_table();
-            lua["__progress"]["report"] = [](const std::string&, std::size_t,
-                                              const std::string&, const std::string&,
-                                              const std::string&, bool) {};
+            lua["__progress"]["report"] =
+              [](const std::string&, std::size_t, const std::string&, const std::string&, const std::string&, bool) {};
         }
         lua.script_file("lua/core/framework/exception.lua");
 
@@ -978,16 +979,22 @@ void Orchestrator::generate()
 
     m_running = std::async(std::launch::async, [this] {
         BR_BEGIN_GUARDED_SCOPE
-        { runStageGenerate(true); }
+        {
+            runStageGenerate(true);
+        }
         BR_END_GUARDED_SCOPE
     });
 }
 
 void Orchestrator::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
-{ m_solution.SetTestEnable(sequence, test, enable); }
+{
+    m_solution.SetTestEnable(sequence, test, enable);
+}
 
 void Orchestrator::setSequenceEnable(const std::string& sequence, bool enable)
-{ m_solution.SetSequenceEnable(sequence, enable); }
+{
+    m_solution.SetSequenceEnable(sequence, enable);
+}
 
 bool Orchestrator::isRunning() const
 {
@@ -996,22 +1003,39 @@ bool Orchestrator::isRunning() const
 }
 
 [[nodiscard]] UutState Orchestrator::getUutState(std::size_t uut) const
-{ return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle; }
+{
+    return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
+}
 
 void Orchestrator::setLoadUserFunctions(const std::function<void(sol::state_view)>& callback)
-{ m_loadUserFunctions = callback; }
+{
+    m_loadUserFunctions = callback;
+}
 
 void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback)
-{ m_loadUserBoards = callback; }
+{
+    m_loadUserBoards = callback;
+}
 
 void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback)
-{ m_loadUserValues = callback; }
+{
+    m_loadUserValues = callback;
+}
 
 void Orchestrator::setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback)
-{ m_popupImport = std::move(callback); }
+{
+    m_popupImport = std::move(callback);
+}
 
-void Orchestrator::setProgressCallback(std::function<void(const std::string& type, std::size_t uut, const std::string& name, const std::string& parentA, const std::string& parentB, bool pass)> callback)
-{ m_progressCallback = std::move(callback); }
+void Orchestrator::setProgressCallback(std::function<void(const std::string& type,
+                                                          std::size_t        uut,
+                                                          const std::string& name,
+                                                          const std::string& parentA,
+                                                          const std::string& parentB,
+                                                          bool               pass)> callback)
+{
+    m_progressCallback = std::move(callback);
+}
 #pragma endregion
 
 #pragma region Exclusive
