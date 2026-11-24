@@ -1,4 +1,5 @@
 #include "execution_fixture.h"
+#include "utils/report/result.h"
 
 #include <gtest/gtest.h>
 
@@ -36,7 +37,7 @@ TEST_F(ReportTest, AllPass)
     compile();
     EXPECT_EQ(info(), "pass");
     EXPECT_TRUE(infoPass());
-    EXPECT_EQ(lua.script("return saved.info.format_version").get<int>(), 2);
+    EXPECT_EQ(lua.script("return saved.info.format_version").get<int>(), Frasy::Report::s_currentFormatVersion);
 }
 
 TEST_F(ReportTest, OneFailure_Fails)
@@ -117,7 +118,7 @@ TEST_F(ReportTest, NoSequence_Pass)
     compile();
     EXPECT_EQ(info(), "pass");
     EXPECT_TRUE(infoPass());
-    EXPECT_EQ(lua.script("return saved.info.format_version").get<int>(), 2);
+    EXPECT_EQ(lua.script("return saved.info.format_version").get<int>(), Frasy::Report::s_currentFormatVersion);
 }
 
 TEST_F(ReportTest, OnReportError_StillSaved)
@@ -128,7 +129,7 @@ TEST_F(ReportTest, OnReportError_StillSaved)
     compile();
     EXPECT_EQ(info(), "fail");
     EXPECT_FALSE(infoPass());
-    EXPECT_EQ(lua.script("return saved.info.format_version").get<int>(), 2);
+    EXPECT_EQ(lua.script("return saved.info.format_version").get<int>(), Frasy::Report::s_currentFormatVersion);
 }
 
 TEST_F(ReportTest, OnReportMutation_IsSaved)
@@ -195,6 +196,6 @@ TEST_F(ReportTest, OnReport_SeesResultAndVersion)
     ASSERT_TRUE(runSection()) << lastError;
     compile();
     EXPECT_EQ(info("seen"), "fail");
-    EXPECT_EQ(lua.script("return seen.info.format_version").get<int>(), 2);
+    EXPECT_EQ(lua.script("return seen.info.format_version").get<int>(), Frasy::Report::s_currentFormatVersion);
     EXPECT_FALSE(lua.script("return seen.info.pass").get<bool>());
 }
