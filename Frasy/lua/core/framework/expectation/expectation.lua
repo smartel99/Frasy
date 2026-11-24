@@ -101,7 +101,9 @@ ExpectationResult.__index = ExpectationResult
 ---@param expectation Expectation
 ---@param result table
 function ExpectationResult:New(expectation, result)
-    if expectation.__consumed then error(ConsumedExpectation("Expectation has already been consumed by another matcher")) end
+    if expectation.__consumed then
+        error(ConsumedExpectation("Expectation has already been consumed by another matcher"))
+    end
     expectation.__consumed = true
     local result = setmetatable({
         value = expectation.value,
