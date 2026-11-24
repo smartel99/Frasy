@@ -16,14 +16,14 @@ Team = {}
 if Context.team == nil then
     Context.team = {
         players = {},
-        teams   = {},
+        teams = {},
         hasTeam = false,
     }
 end
 
 Team.Status = {
-    pass             = 0,
-    fail             = 1,
+    pass = 0,
+    fail = 1,
     critical_failure = 2,
 }
 function Team.Wait(fun)
@@ -60,7 +60,7 @@ function Team.Get()
 end
 
 function Team.Sync(result)
-    if (Team.HasTeam()) then
+    if Team.HasTeam() then
         local status
         if result.time.stop == 0 then
             status = Team.Status.critical_failure
@@ -69,13 +69,13 @@ function Team.Sync(result)
         else
             status = Team.Status.pass
         end
-        local team_status = Team.__sync(status)
-        if team_status ~= status then
-            if team_status == Team.Status.fail then
-                result.pass   = false
+        local teamStatus = Team.__sync(status)
+        if teamStatus ~= status then
+            if teamStatus == Team.Status.fail then
+                result.pass = false
                 result.reason = "Teammate failure"
-            elseif team_status == Team.Status.critical_failure then
-                result.pass   = false
+            elseif teamStatus == Team.Status.critical_failure then
+                result.pass = false
                 result.reason = "Teammate critical failure"
                 error(TeamError("Teammate critical failure"))
             else
@@ -86,7 +86,7 @@ function Team.Sync(result)
 end
 
 function Team.Fail()
-    if (Team.HasTeam()) then
+    if Team.HasTeam() then
         Team.__fail()
     end
 end
