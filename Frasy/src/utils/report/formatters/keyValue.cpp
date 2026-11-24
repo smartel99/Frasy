@@ -38,7 +38,7 @@ void KeyValue::reportInfo()
     *m_output << "Info-Operator: " << m_result["info"]["operator"].get_or<std::string>("<N/A>").c_str() << endline;
     *m_output << "Info-Serial: " << m_result["info"]["serial"].get_or<std::string>("<N/A>").c_str() << endline;
     *m_output << "Info-UUT: " << static_cast<int>(m_result["info"]["uut"].get_or<double>(0.0f)) << endline;
-    *m_output << "Info-Result: " << resultToString(m_result["info"]["pass"]) << endline;
+    *m_output << "Info-Result: " << resultToString(m_result["info"]) << endline;
     *m_output << "Info-Version-Frasy: " << m_result["info"]["version"]["frasy"].get<std::string>() << endline;
     *m_output << "Info-Version-Orchestrator: " << m_result["info"]["version"]["orchestrator"].get<std::string>()
               << endline;
@@ -94,7 +94,7 @@ void KeyValue::reportToBeEqualBoolean(const sol::table& expectation)
 {
     const auto prefix = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << prefix << "Result: " << resultToString(expectation) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << prefix << "Expected: " << getFieldAsStr<bool>(expectation["expected"]) << endline;
@@ -105,7 +105,7 @@ void KeyValue::reportToBeEqualNumber(const sol::table& expectation)
 {
     const auto prefix = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << prefix << "Result: " << resultToString(expectation) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << prefix << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
@@ -116,7 +116,7 @@ void KeyValue::reportToBeEqualString(const sol::table& expectation)
 {
     const auto prefix = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << prefix << "Result: " << resultToString(expectation) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << prefix << "Expected: " << getFieldAsStr<std::string>(expectation["expected"]) << endline;
@@ -127,7 +127,7 @@ void KeyValue::reportToBeInPercentage(const sol::table& expectation)
 {
     const auto prefix = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << prefix << "Result: " << resultToString(expectation) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << prefix << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
@@ -140,7 +140,7 @@ void KeyValue::reportToBeInRange(const sol::table& expectation)
 {
     const auto prefix = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << prefix << "Result: " << resultToString(expectation) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << prefix << "Min: " << getFieldAsStr<double>(expectation["min"]) << endline;
@@ -152,7 +152,7 @@ void KeyValue::reportToBeGreater(const sol::table& expectation)
 {
     const auto prefix = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << prefix << "Result: " << resultToString(expectation) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << prefix << "Min: " << getFieldAsStr<double>(expectation["min"]) << endline;
@@ -163,7 +163,7 @@ void KeyValue::reportToBeLesser(const sol::table& expectation)
 {
     const auto prefix = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << prefix << "Result: " << resultToString(expectation) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << prefix << "Max: " << getFieldAsStr<double>(expectation["max"]) << endline;
@@ -174,7 +174,7 @@ void KeyValue::reportToBeNear(const sol::table& expectation)
 {
     const auto prefix = m_sectionPrefix + "-" + std::to_string(m_expectationIndex) + "-";
     *m_output << prefix << "Note: " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << prefix << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << prefix << "Result: " << resultToString(expectation) << endline;
     *m_output << prefix << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << prefix << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << prefix << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;

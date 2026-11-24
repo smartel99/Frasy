@@ -336,6 +336,24 @@ end)
     still saved in its current state (the error is logged but does not block report generation).
     Test your hook thoroughly to avoid corrupted reports.
 
+### Report outputs
+
+The C++ report writers, `Frasy::Report::Json::makeReport`, `Frasy::Report::Kvp::makeReport` and
+`Frasy::Report::PDF::makeReport`, turn the report table into client-facing files (JSON, SMT key-value
+text, PDF):
+
+- **`result` decides.** The pass/fail folder and every printed verdict come from `result`; the deprecated
+  `pass`, `skipped` and `enabled` are only read for entries that have no `result` (entries built by hand).
+  An `onReport` hook that changes a verdict before calling a writer must set `result`, and should keep
+  `pass` in sync during the transition.
+- The KVP and PDF writers print `PASS`, `FAIL` or `SKIPPED`. The JSON writer adds the report's own
+  lowercase `result` (`"pass"`, `"fail"`, `"skipped"`) next to the deprecated `pass`, `skipped` and
+  `enabled`.
+- They **write nothing for an incomplete board** (`info.result == "incomplete"`, i.e. anything was
+  disabled) and return an empty list: a debug run never reaches the client outputs. They also delete
+  their previous `last_uut<N>` file for that UUT, so it can't be mistaken for this board's. The board's
+  report is still saved under `debug/`.
+
 ---
 
 ## Checklist

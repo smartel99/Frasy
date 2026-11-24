@@ -33,12 +33,14 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
     std::vector<std::string> reports = {};
     // Load the solution up, building a list of the sections-solutions-tests-expectations
     // Format them from the results into a kvp format, where keys are <solution>#<test>#<expectation>
+
+
     try {
         using namespace Frasy::Report::SolutionLoader;
         Solution solution = loadSolution();
 
-        auto title = results["info"]["title"].get<std::string>();
-        auto pass  = results["info"]["pass"].get<bool>();
+        auto       title = results["info"]["title"].get<std::string>();
+        const auto pass  = getResult(results["info"]) == Result::Pass;
 
         namespace fs = std::filesystem;
         // Create log directory if needed.
@@ -59,6 +61,14 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
         auto jsonFileDir = pass ? jsonPassDir : jsonFailDir;
         auto lastReportFilepath =
           jsonDirectory / std::format("last_uut{}.json", results.get<sol::table>("info").get_or("uut", 0));
+        if (Formatter::isIncomplete(results)) {
+            // Debug run: client outputs are only made for complete boards, and the previous board's report
+            // mustn't pass for this one's.
+            std::error_code ec;
+            fs::remove(lastReportFilepath, ec);
+            BR_LOG_INFO(s_tag, "Incomplete board, no report written");
+            return {};
+        }
 
         auto formatter = Formatter::Json(results);
 

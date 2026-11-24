@@ -138,6 +138,18 @@ bool ResultReader::isScope(const nlohmann::json& node) const noexcept
     return node.contains("result");
 }
 
+std::optional<Result> getResult(const sol::table& node)
+{
+    if (!node.valid()) { return std::nullopt; }
+    if (const sol::optional<std::string> text = node["result"]; text) {
+        if (const auto result = resultFromString(*text)) { return result; }
+    }
+    if (const sol::optional<bool> enabled = node["enabled"]; enabled && !*enabled) { return Result::Disabled; }
+    if (const sol::optional<bool> skipped = node["skipped"]; skipped && *skipped) { return Result::Skipped; }
+    if (const sol::optional<bool> pass = node["pass"]; pass) { return *pass ? Result::Pass : Result::Fail; }
+    return std::nullopt;
+}
+
 bool hasFailedScope(const nlohmann::json& report)
 {
     const ResultReader reader(report);

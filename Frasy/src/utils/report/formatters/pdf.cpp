@@ -272,7 +272,7 @@ void PDF::reportInfo()
     m_ss << "<tr>\n<td><b>Host:</b></td><td>" << hostname << "</td>\n</tr>\n";
     reportLine("Operator", m_result["info"]["operator"], Defaults::s_string);
     m_ss << "<tr>\n<td><b>Test Result:</b></td><td>";
-    printResult(m_result["info"]["pass"].get_or(false));
+    m_ss << resultToHtml(getResult(m_result["info"]));
     m_ss << "</td>\n</table>\n</div>\n</div>\n";
     divLine();
 }
@@ -452,9 +452,7 @@ void PDF::reportSectionBaseResult([[maybe_unused]] const sol::table& section) co
 
 std::string PDF::sectionResultToString(const sol::table& section) const
 {
-    if (section["skipped"] != sol::nil && section["skipped"].get<bool>()) { return "<b>SKIPPED</b>"; }
-    if (section["pass"] == sol::nil) { return "<mark>Not provided</mark>"; }
-    return section["pass"].get<bool>() ? "<b style=\"color:green;\">PASS</b>" : "<b style=\"color:red;\">FAIL</b>";
+    return resultToHtml(getResult(section));
 }
 
 void PDF::divLine()
@@ -467,11 +465,17 @@ void PDF::smallDivLine()
     m_ss << "<div class=\"small-line\"></div>\n";
 }
 
-void PDF::printResult(bool passed)
+std::string resultToHtml(std::optional<Result> result)
 {
-    if (passed) { m_ss << "<b style=\"color:green;\">PASS</b>"; }
-    else {
-        m_ss << "<b style=\"color:red;\">FAIL</b>";
+    if (!result) { return "<mark>Not provided</mark>"; }
+    const auto label = toLabel(*result);
+    switch (*result) {
+        case Result::Pass: return std::format("<b style=\"color:green;\">{}</b>", label);
+        case Result::Fail: return std::format("<b style=\"color:red;\">{}</b>", label);
+        case Result::Incomplete: return std::format("<b style=\"color:darkorange;\">{}</b>", label);
+        case Result::Skipped:
+        case Result::Disabled: break;
     }
+    return std::format("<b>{}</b>", label);
 }
 }    // namespace Frasy::Report::Formatter

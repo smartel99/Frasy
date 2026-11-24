@@ -23,6 +23,7 @@
 #define FRASY_UTILS_REPORT_RESULT_H
 
 #include <json.hpp>
+#include <sol/sol.hpp>
 
 #include <cstdint>
 #include <optional>
@@ -110,6 +111,14 @@ private:
     int    m_version = 1;
     Result m_info    = Result::Fail;
 };
+
+/**
+ * @brief Result of a node of an in-process report table (`info`, sequence, test or expectation).
+ * In-process tables are always s_currentFormatVersion: `result` is read. Entries a product built by hand may only carry
+ * the deprecated booleans; they are read like v1 nodes (`enabled`, then `skipped`, then `pass`).
+ * @return The result, or nothing if the node carries none of them.
+ */
+[[nodiscard]] std::optional<Result> getResult(const sol::table& node);
 
 /**
  * @brief Whether any sequence or test of @p report failed.

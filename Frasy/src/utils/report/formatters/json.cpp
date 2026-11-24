@@ -37,12 +37,13 @@ void Json::reportInfo()
     const auto& section = m_result["info"];
     info["date"]        = section["date"].get<std::string>();
     info["operator"]    = section["operator"].get<std::string>().c_str();
-    info["pass"]        = section["pass"].get<bool>();
-    info["serial"]      = section["serial"].get<std::string>().c_str();
-    info["time"]        = reportSectionTime(section);
-    info["title"]       = section["title"].get<std::string>();
-    info["uut"]         = section["uut"].get<int>();
-    info["version"]     = nlohmann::ordered_json::object();
+    if (const auto result = getResult(section)) { info["result"] = std::string(toString(*result)); }
+    info["pass"]    = section["pass"].get<bool>();
+    info["serial"]  = section["serial"].get<std::string>().c_str();
+    info["time"]    = reportSectionTime(section);
+    info["title"]   = section["title"].get<std::string>();
+    info["uut"]     = section["uut"].get<int>();
+    info["version"] = nlohmann::ordered_json::object();
     for (const auto& field : {"frasy", "orchestrator", "scripts", "application"}) {
         info["version"][field] = section["version"][field].get<std::string>();
     }
@@ -117,7 +118,8 @@ void Json::reportExpectation(const sol::table& expectation)
 
 void Json::reportSectionBaseResult(const sol::table& section) const
 {
-    auto& obj      = *m_section;
+    auto& obj = *m_section;
+    if (const auto result = getResult(section)) { obj["result"] = std::string(toString(*result)); }
     obj["enabled"] = section["enabled"].get_or(false);
     obj["pass"]    = section["pass"].get_or(false);
     obj["skipped"] = section["skipped"].get_or(true);

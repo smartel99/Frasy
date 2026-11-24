@@ -35,7 +35,7 @@ void Markdown::reportInfo()
     *m_output << "Date: " << m_result["info"]["date"].get<std::string>() << endline;
     *m_output << "Duration: " << m_result["info"]["time"]["elapsed"].get<double>() << endline;
     *m_output << "Operator: " << m_result["info"]["operator"].get<std::string>() << endline;
-    *m_output << "Result: " << resultToString(m_result["info"]["pass"]) << endline;
+    *m_output << "Result: " << resultToString(m_result["info"]) << endline;
     *m_output << "## Version" << endline;
     *m_output << "Frasy: " << m_result["info"]["version"]["frasy"].get<std::string>() << endline;
     *m_output << "Orchestrator: " << m_result["info"]["version"]["orchestrator"].get<std::string>() << endline;
@@ -80,7 +80,7 @@ void Markdown::reportTestResult(const std::string& name)
 void Markdown::reportToBeEqualBoolean(const sol::table& expectation)
 {
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << "Result: " << resultToString(expectation) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << "Expected: " << getFieldAsStr<bool>(expectation["expected"]) << endline;
@@ -90,7 +90,7 @@ void Markdown::reportToBeEqualBoolean(const sol::table& expectation)
 void Markdown::reportToBeEqualNumber(const sol::table& expectation)
 {
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << "Result: " << resultToString(expectation) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
@@ -100,7 +100,7 @@ void Markdown::reportToBeEqualNumber(const sol::table& expectation)
 void Markdown::reportToBeEqualString(const sol::table& expectation)
 {
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << "Result: " << resultToString(expectation) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << "Expected: " << getFieldAsStr<std::string>(expectation["expected"]) << endline;
@@ -110,7 +110,7 @@ void Markdown::reportToBeEqualString(const sol::table& expectation)
 void Markdown::reportToBeInPercentage(const sol::table& expectation)
 {
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << "Result: " << resultToString(expectation) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
@@ -122,7 +122,7 @@ void Markdown::reportToBeInPercentage(const sol::table& expectation)
 void Markdown::reportToBeInRange(const sol::table& expectation)
 {
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << "Result: " << resultToString(expectation) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
@@ -134,7 +134,7 @@ void Markdown::reportToBeInRange(const sol::table& expectation)
 void Markdown::reportToBeGreater(const sol::table& expectation)
 {
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << "Result: " << resultToString(expectation) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
@@ -145,7 +145,7 @@ void Markdown::reportToBeGreater(const sol::table& expectation)
 void Markdown::reportToBeLesser(const sol::table& expectation)
 {
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << "Result: " << resultToString(expectation) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;
@@ -156,7 +156,7 @@ void Markdown::reportToBeLesser(const sol::table& expectation)
 void Markdown::reportToBeNear(const sol::table& expectation)
 {
     *m_output << "### " << expectation["note"].get_or<std::string>("Unnamed") << endline;
-    *m_output << "Result: " << resultToString(expectation["pass"]) << endline;
+    *m_output << "Result: " << resultToString(expectation) << endline;
     *m_output << "Method: " << getFieldAsStr<std::string>(expectation["method"]) << endline;
     *m_output << "Inverted: " << getFieldAsStr<bool>(expectation["inverted"]) << endline;
     *m_output << "Expected: " << getFieldAsStr<double>(expectation["expected"]) << endline;

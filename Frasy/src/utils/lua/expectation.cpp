@@ -51,8 +51,7 @@ Expectation Expectation::fromTable(const sol::table& table)
     Expectation expectation;
     expectation.name = table["name"].get_or<std::string>("");
     // Lua already applied `inverted` to `result`; inverting again would show the opposite verdict.
-    const auto result = Report::resultFromString(table["result"].get_or<std::string>(""));
-    expectation.pass  = result ? *result == Report::Result::Pass : table["pass"].get_or(false);
+    expectation.pass = Report::getResult(table) == Report::Result::Pass;
     if (const auto method = table["method"].get_or<std::string>(""); method == "ToBeTrue") {
         expectation.method  = toBeTrue;
         expectation.max     = "True";

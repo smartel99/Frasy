@@ -27,6 +27,13 @@
 
 namespace Frasy::Report::Formatter {
 
+/**
+ * @brief HTML of a result in the PDF report: a bold label, coloured for pass (green), fail (red) and incomplete
+ * (orange).
+ * @return The HTML, or a highlighted "Not provided" without a result.
+ */
+[[nodiscard]] std::string resultToHtml(std::optional<Result> result);
+
 class PDF final : public Formatter {
 public:
     PDF(std::string_view outPath, std::string_view outName, const sol::table& result);
@@ -82,7 +89,6 @@ protected:
 private:
     void divLine();
     void smallDivLine();
-    void printResult(bool passed);
 
     void reportLine(std::string_view fieldName, auto field)
     {

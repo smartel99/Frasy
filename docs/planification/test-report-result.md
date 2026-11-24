@@ -41,7 +41,8 @@ They overlap and are often misread:
 | A board with a failure and something disabled is `IncompleteFailed` in `debug/`, no longer `Failed` in `fail/` | Products testing `== UutState::Failed` | Use `getVerdict()` |
 | Headless exit code `3` and `INCOMPLETE_PASS` / `INCOMPLETE_FAIL` states | CI scripts | New values only |
 | `debug` output folder | Anyone collecting the `pass`/`fail` folders | New folder only |
-| `Report::*::makeReport` returns nothing for incomplete boards | Products calling them from `onReport` | Behaviour change for incomplete boards only |
+| `Report::*::makeReport` returns nothing for incomplete boards, and removes the stale `last_uut<N>` file | Products calling them from `onReport` | Behaviour change for incomplete boards only |
+| Report writers read `result` rather than `pass` | `onReport` hooks that change `pass` before calling a writer | Hooks must set `result` too |
 | `result` added to headless, MCP and progress outputs | CI and MCP clients | Additive, `pass` kept |
 
 `Orchestrator.HasPassed` and `HasBeenSkipped` keep their current semantics (a disabled scope counts as skipped).
@@ -122,7 +123,7 @@ They overlap and are often misread:
 
 ### Task 6: Report writers and formatters (C++)
 
-**Objective:** `Report::Json`, `Report::Kvp` and `Report::Pdf` skip incomplete boards. The formatters print the result string (PASS / FAIL / SKIPPED / DISABLED / INCOMPLETE) instead of working it out from the booleans.
+**Objective:** `Report::Json`, `Report::Kvp` and `Report::PDF` skip incomplete boards (`info.result == incomplete`, which covers failed boards with anything disabled). The formatters print the result string (PASS / FAIL / SKIPPED / DISABLED / INCOMPLETE) instead of working it out from the booleans.
 
 **Implementation guidance:** the JSON formatter's own output gains `result` and keeps `pass` / `skipped` / `enabled` for the transition.
 

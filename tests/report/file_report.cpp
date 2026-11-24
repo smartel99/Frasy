@@ -1,7 +1,7 @@
 #include "utils/lua/orchestrator/orchestrator.h"
 #include "utils/UutState.h"
 
-#include <Brigerad/Core/Log.h>
+#include "log_once.h"
 #include <gtest/gtest.h>
 
 #include <filesystem>
@@ -21,7 +21,7 @@ protected:
     fs::path m_root;
     fs::path m_report;
 
-    static void SetUpTestSuite() { Brigerad::Log::Init(false, true); }
+    static void SetUpTestSuite() { initLogOnce(); }
 
     void SetUp() override
     {
