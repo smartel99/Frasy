@@ -80,7 +80,7 @@ local Verdict = {
 ---@return boolean
 local function HasFailedExpectation(test)
     for _, expectation in ipairs(test.expectations) do
-        if not expectation.pass then return true end
+        if expectation.result ~= ScopeResult.Value.Pass then return true end
     end
     return false
 end
@@ -632,6 +632,10 @@ function Orchestrator.AddExpectationResult(result)
         error(BadScope())
     end
     local scope = Context.orchestrator.scope
+    -- Entries built by hand may only carry the deprecated `pass`.
+    if result.result == nil then
+        result.result = result.pass and ScopeResult.Value.Pass or ScopeResult.Value.Fail
+    end
     table.insert(Context.orchestrator.sequences[scope.sequence].tests[scope.test].expectations, result)
 
     local function getName()
@@ -641,12 +645,13 @@ function Orchestrator.AddExpectationResult(result)
             return result.name
         end
     end
-    if result.pass then
-        Log.I(string.format("%s - PASSED", getName()))
+    local hasPassed = result.result == ScopeResult.Value.Pass
+    if hasPassed then
+        Log.I(string.format("%s - %s", getName(), Verdict[ScopeResult.Value.Pass]))
     else
-        Log.E(string.format("%s - FAILED", getName()))
+        Log.E(string.format("%s - %s", getName(), Verdict[ScopeResult.Value.Fail]))
     end
-    __progress.report("expectation", Context.info.uut, getName(), scope.sequence, scope.test, result.pass)
+    __progress.report("expectation", Context.info.uut, getName(), scope.sequence, scope.test, hasPassed)
 end
 
 function Orchestrator.GetScope()

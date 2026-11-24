@@ -1,5 +1,6 @@
 require("lua/core/utils/checkers")
 require("lua/core/framework/expectation/utils")
+local ScopeResult = require("lua/core/framework/scope_result")
 
 --- @enum ErrorPolicy
 ErrorPolicy = {
@@ -11,7 +12,8 @@ ErrorPolicy = {
 --- @field value any
 --- @field name string
 --- @field note string?
---- @field pass boolean? tell if the value fulfilled requirement
+--- @field result ScopeResultValue `pass` or `fail`, with the inversion applied
+--- @field pass boolean Deprecated, use `result`. Removed after the report format v2 transition.
 --- @field inverted boolean tell if the result should be interpreted with invert logic
 --- @field extra any? additional data that could be useful for developer
 --- @field method string
@@ -105,11 +107,13 @@ function ExpectationResult:New(expectation, result)
         error(ConsumedExpectation("Expectation has already been consumed by another matcher"))
     end
     expectation.__consumed = true
+    local pass = result.pass ~= expectation.inverted
     local result = setmetatable({
         value = expectation.value,
         name = expectation.name,
         note = expectation.note,
-        pass = result.pass ~= expectation.inverted,
+        result = pass and ScopeResult.Value.Pass or ScopeResult.Value.Fail,
+        pass = pass,
         inverted = expectation.inverted,
         extra = expectation.extra,
         method = result.method,
@@ -121,7 +125,7 @@ function ExpectationResult:New(expectation, result)
         type = result.type,
     }, ExpectationResult)
     Orchestrator.AddExpectationResult(result)
-    if not result.pass then
+    if not pass then
         if expectation.onErrorExtra then
             result.extra = result.extra or {}
             for k, v in pairs(expectation.onErrorExtra) do result.extra[k] = v end

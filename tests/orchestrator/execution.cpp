@@ -31,6 +31,26 @@ TEST_F(ExecutionTest, FailedExpectation_FailsTestAndSequence)
     EXPECT_FALSE(query("HasPassed", "S"));
 }
 
+TEST_F(ExecutionTest, RealExpectations_DecideTestResult)
+{
+    lua.script(R"(
+        local Expectation = require('lua/core/framework/expectation/expectation')
+        Define({ { name = 'S', tests = {
+            { name = 'Met', func = function() Expectation:New(1, 'x'):ToBeEqual(1) end },
+            { name = 'Unmet', func = function() Expectation:New(1, 'x'):ToBeEqual(2) end },
+            { name = 'InvertedUnmet', func = function()
+                Expectation:New(1, 'x', { inverted = true }):ToBeEqual(2)
+            end },
+        } } })
+    )");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "Met"), "pass");
+    EXPECT_EQ(result("S", "Unmet"), "fail");
+    EXPECT_EQ(reason("S", "Unmet"), "Unmet expectation");
+    EXPECT_EQ(result("S", "InvertedUnmet"), "pass");
+    EXPECT_EQ(result("S"), "fail");
+}
+
 TEST_F(ExecutionTest, UnmetRequirement_SkipsTestOnly)
 {
     lua.script(R"(Define({ { name = 'S', tests = {

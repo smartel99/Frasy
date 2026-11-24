@@ -89,6 +89,9 @@ They overlap and are often misread:
   - v1 rebuilds the result from `pass` / `skipped` / `enabled`.
   - v2 reads `result`.
 - Unknown versions and unknown strings raise a clear error.
+- `Expectation::fromTable` (`Frasy/src/utils/lua/expectation.cpp`) inverts `pass` a second time when `inverted` is
+  set, although Lua already applied it; live expectation views show inverted expectations backwards. Read `result`
+  there and drop the extra inversion.
 
 **Tests:** new test module: v1 and v2 nodes for each state, a missing version, an unknown version, an unknown string.
 

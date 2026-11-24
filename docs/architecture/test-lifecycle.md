@@ -305,7 +305,7 @@ After execution completes for each UUT, the orchestrator:
           "enabled": true,
           "time": { "start": 0.0, "stop": 0.5, "elapsed": 0.5, "process": 0.5 },
           "expectations": [
-            { "name": "Supply Voltage", "method": "ToBeInRange", "value": 5.02, "min": 4.9, "max": 5.1, "pass": true }
+            { "name": "Supply Voltage", "method": "ToBeInRange", "value": 5.02, "min": 4.9, "max": 5.1, "result": "pass", "pass": true }
           ]
         }
       }
