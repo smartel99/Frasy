@@ -25,21 +25,17 @@
 #include <variant>
 #include <vector>
 
-namespace Frasy::Analyzers
-{
-struct ResultAnalysisResults
-{
-    struct Expectation
-    {
-        virtual ~Expectation()                                       = default;
+namespace Frasy::Analyzers {
+struct ResultAnalysisResults {
+    struct Expectation {
+        virtual ~Expectation() = default;
         std::string            Name;
         virtual void           AddValue(const nlohmann::json& value) = 0;
         virtual void           MakeStats()                           = 0;
         virtual void           Render()                              = 0;
         virtual nlohmann::json serialize()                           = 0;
     };
-    struct Test
-    {
+    struct Test {
         std::string                                         Name;
         size_t                                              Passed          = 0;
         float                                               PassedPercent   = 0.0f;
@@ -52,8 +48,7 @@ struct ResultAnalysisResults
         double                                              AverageDuration = 0.0;
         std::map<std::string, std::shared_ptr<Expectation>> Expectations    = {};
     };
-    struct Sequence
-    {
+    struct Sequence {
         std::string                 Name;
         size_t                      Passed          = 0;
         float                       PassedPercent   = 0.0f;
@@ -66,8 +61,7 @@ struct ResultAnalysisResults
         double                      AverageDuration = 0.0;
         std::map<std::string, Test> Tests           = {};
     };
-    struct Location
-    {
+    struct Location {
         std::string                     Name;
         std::string                     Version;
         size_t                          Passed          = 0;

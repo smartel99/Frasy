@@ -23,8 +23,7 @@
 #include <string>
 
 
-namespace Frasy::Analyzers
-{
+namespace Frasy::Analyzers {
 ResultAnalysisResults Load(const std::string& path);
 void                  Save(const ResultAnalysisResults& results, const std::string& path);
 }    // namespace Frasy::Analyzers

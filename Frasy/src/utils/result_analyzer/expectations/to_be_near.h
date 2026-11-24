@@ -19,10 +19,8 @@
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_NEAR_H
 #include "to_be_value_base.h"
 
-namespace Frasy::Analyzers
-{
-struct ToBeNearExpectation : public ToBeValueBase
-{
+namespace Frasy::Analyzers {
+struct ToBeNearExpectation : public ToBeValueBase {
     ToBeNearExpectation(float expected, float deviation)
     : ToBeValueBase(expected, expected - deviation, expected + deviation), Deviation(deviation)
     {

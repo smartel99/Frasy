@@ -40,7 +40,9 @@
 namespace Frasy::Analyzers {
 namespace {
 float Percent(size_t v, size_t tot)
-{ return (static_cast<float>(v) / static_cast<float>(tot)) * 100.0f; }
+{
+    return (static_cast<float>(v) / static_cast<float>(tot)) * 100.0f;
+}
 
 nlohmann::json LoadJson(const std::string& path)
 {
@@ -247,7 +249,9 @@ void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResul
 
 void ResultAnalyzer::AnalyzeExpectation(const nlohmann::json&                                expectation,
                                         std::shared_ptr<ResultAnalysisResults::Expectation>& results)
-{ results->AddValue(expectation); }
+{
+    results->AddValue(expectation);
+}
 
 std::shared_ptr<ResultAnalysisResults::Expectation> ResultAnalyzer::MakeExpectationFromDetails(
   const nlohmann::json& expectation)

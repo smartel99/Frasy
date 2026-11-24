@@ -22,11 +22,9 @@
 #include <implot.h>
 #include <limits>
 
-namespace Frasy::Analyzers
-{
+namespace Frasy::Analyzers {
 
-struct ToBeValueBase : public ResultAnalysisResults::Expectation
-{
+struct ToBeValueBase : public ResultAnalysisResults::Expectation {
     ToBeValueBase(float expected, float min, float max) : Expected(expected), Min(min), Max(max) {}
     ~ToBeValueBase() override = default;
     void AddValue(const nlohmann::json& value) override
@@ -56,16 +54,14 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
 
     void Render() override
     {
-        ImGui::BulletText(
-          "Seen: %zu times, Passed: %zu times (%0.2f%%)",
-          Total,
-          Passed,
-          (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
+        ImGui::BulletText("Seen: %zu times, Passed: %zu times (%0.2f%%)",
+                          Total,
+                          Passed,
+                          (static_cast<float>(Passed) / static_cast<float>(Total)) * 100.0f);
 
         ShowStats();
 
-        if (ImGui::TreeNode("Settings"))
-        {
+        if (ImGui::TreeNode("Settings")) {
             ImGui::SetNextItemWidth(200);
             if (ImGui::RadioButton("Sqrt", Bins == ImPlotBin_Sqrt)) { Bins = ImPlotBin_Sqrt; }
             ImGui::SameLine();
@@ -76,8 +72,7 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
             if (ImGui::RadioButton("Scott", Bins == ImPlotBin_Scott)) { Bins = ImPlotBin_Scott; }
             ImGui::SameLine();
             if (ImGui::RadioButton("N Bins", Bins >= 0)) { Bins = 50; }
-            if (Bins >= 0)
-            {
+            if (Bins >= 0) {
                 ImGui::SameLine();
                 ImGui::SetNextItemWidth(200);
                 ImGui::SliderInt("##Bins", &Bins, 1, 100);
@@ -97,9 +92,8 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
             ImGui::TreePop();
         }
 
-        if (ImPlot::BeginPlot("##Historgram", ImVec2 {-1, 0}, ImPlotFlags_Crosshairs))
-        {
-            auto xFlags = ImPlotAxisFlags_None;// | ImPlotAxisFlags_AutoFit;
+        if (ImPlot::BeginPlot("##Historgram", ImVec2 {-1, 0}, ImPlotFlags_Crosshairs)) {
+            auto xFlags = ImPlotAxisFlags_None;    // | ImPlotAxisFlags_AutoFit;
             ImPlot::SetupAxes(nullptr, nullptr, xFlags, ImPlotAxisFlags_AutoFit);
             ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
 
@@ -157,19 +151,20 @@ struct ToBeValueBase : public ResultAnalysisResults::Expectation
 private:
     void FindMedian()
     {
-        if ((Values.size() % 2) == 1)
-        {
+        if ((Values.size() % 2) == 1) {
             // Odd size, median is right at the middle.
             if (Values.size() == 1) { Median = Values[0]; }
-            else { Median = Values[(Values.size() / 2) + 1]; }
+            else {
+                Median = Values[(Values.size() / 2) + 1];
+            }
         }
-        else
-        {
+        else {
             // Even size, median is the average of the two values around the middle.
             if (Values.empty()) { Median = 0.0f; }
-            else if (Values.size() == 2) { Median = (Values[0] + Values[1]) / 2.0f; }
-            else
-            {
+            else if (Values.size() == 2) {
+                Median = (Values[0] + Values[1]) / 2.0f;
+            }
+            else {
                 size_t idx = (Values.size() / 2);
                 Median     = (Values[idx] + Values[idx + 1]) / 2.0f;
             }
@@ -185,13 +180,10 @@ private:
         size_t currentCount = 0;
         size_t maxCount     = 0;
 
-        for (auto&& value : Values)
-        {
+        for (auto&& value : Values) {
             if (value == current) { currentCount++; }
-            else
-            {
-                if (currentCount > maxCount)
-                {
+            else {
+                if (currentCount > maxCount) {
                     maxCount = currentCount;
                     Mode     = current;
                 }
@@ -203,11 +195,9 @@ private:
 
     void FindStdDev()
     {
-        StdDev = std::accumulate(
-          Values.begin(),
-          Values.end(),
-          0.0f,
-          [mean = Mean](float tot, float value) { return tot + std::pow(value - mean, 2.0f); });
+        StdDev = std::accumulate(Values.begin(), Values.end(), 0.0f, [mean = Mean](float tot, float value) {
+            return tot + std::pow(value - mean, 2.0f);
+        });
         StdDev = std::sqrt(StdDev / static_cast<float>(Values.size()));
     }
 
@@ -245,13 +235,11 @@ private:
         ImGui::BulletText("Mode: %f", Mode);
 
         ImGui::BulletText("Standard Deviation: %f", StdDev);
-        if (ImGui::IsItemHovered())
-        {
+        if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("How spread out the values are in relation to the mean, lower is better.");
         }
 
-        auto ValueWithHint = [](const float& v, std::string_view label, std::string_view hint)
-        {
+        auto ValueWithHint = [](const float& v, std::string_view label, std::string_view hint) {
             ImGui::BulletText("%s: %f", label.data(), v);
             if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%s", hint.data()); }
         };
@@ -259,11 +247,10 @@ private:
 
         ValueWithHint(Pp, "Pp", "");
         ImGui::SameLine();
-        ValueWithHint(
-          Ppk,
-          "Ppk",
-          "How close the process is performing compared to its specification limits and accounting for "
-          "the natural variability of the process. Larger is better, negative is bad");
+        ValueWithHint(Ppk,
+                      "Ppk",
+                      "How close the process is performing compared to its specification limits and accounting for "
+                      "the natural variability of the process. Larger is better, negative is bad");
     }
 };
 }    // namespace Frasy::Analyzers

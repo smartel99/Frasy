@@ -23,10 +23,8 @@
 
 #include <json.hpp>
 
-namespace Frasy::Analyzers
-{
-class ResultAnalyzer
-{
+namespace Frasy::Analyzers {
+class ResultAnalyzer {
 public:
     ResultAnalyzer() = default;
     ResultAnalyzer(const ResultOptions& options) : m_options(options) {}
@@ -34,13 +32,13 @@ public:
     ResultAnalysisResults Analyze(const std::string& title);
 
     size_t ToAnalyze = 0;
-    size_t Analyzed = 0;
+    size_t Analyzed  = 0;
 
 private:
     void AnalyzeFile(const std::string& path);
     void AnalyzeSequence(const nlohmann::json& sequence, ResultAnalysisResults::Sequence& results);
     void AnalyzeTest(const nlohmann::json& test, ResultAnalysisResults::Test& results);
-    void AnalyzeExpectation(const nlohmann::json&                               expectation,
+    void AnalyzeExpectation(const nlohmann::json&                                expectation,
                             std::shared_ptr<ResultAnalysisResults::Expectation>& results);
 
     std::shared_ptr<ResultAnalysisResults::Expectation> MakeExpectationFromDetails(const nlohmann::json& expectation);

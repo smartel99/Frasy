@@ -19,10 +19,8 @@
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_EQUAL_H
 #include "to_be_exact_base.h"
 
-namespace Frasy::Analyzers
-{
-struct ToBeEqualExpectation : public ToBeExactBase
-{
+namespace Frasy::Analyzers {
+struct ToBeEqualExpectation : public ToBeExactBase {
     ToBeEqualExpectation(const nlohmann::json& expected) : Expected(expected.dump(2, ' ', true)) {}
     ~ToBeEqualExpectation() override = default;
 

@@ -19,10 +19,8 @@
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TRUE_H
 #include "to_be_exact_base.h"
 
-namespace Frasy::Analyzers
-{
-struct ToBeTrueExpectation : public ToBeExactBase
-{
+namespace Frasy::Analyzers {
+struct ToBeTrueExpectation : public ToBeExactBase {
     ~ToBeTrueExpectation() override = default;
     void AddValue(const nlohmann::json& value) override
     {

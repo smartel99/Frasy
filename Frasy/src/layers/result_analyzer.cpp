@@ -114,7 +114,9 @@ void ResultAnalyzer::onImGuiRender()
 }
 
 void ResultAnalyzer::setVisibility(bool visibility)
-{ m_isVisible = visibility; }
+{
+    m_isVisible = visibility;
+}
 
 void ResultAnalyzer::renderStringList(std::string_view                   name,
                                       std::string_view                   tooltip,

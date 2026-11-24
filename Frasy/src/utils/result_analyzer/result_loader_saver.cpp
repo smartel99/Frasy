@@ -31,11 +31,9 @@
 #include <fstream>
 #include <json.hpp>
 
-namespace Frasy::Analyzers
-{
+namespace Frasy::Analyzers {
 
-namespace
-{
+namespace {
 nlohmann::json LoadJson(const std::string& path)
 {
     BR_PROFILE_FUNCTION();
@@ -44,7 +42,9 @@ nlohmann::json LoadJson(const std::string& path)
     std::string fullFile;
     std::string line;
 
-    while (std::getline(j, line)) { fullFile += line; }
+    while (std::getline(j, line)) {
+        fullFile += line;
+    }
     j.close();
 
     return nlohmann::json::parse(fullFile);
@@ -102,8 +102,7 @@ void LoadToBeExactExpectation(std::shared_ptr<ResultAnalysisResults::Expectation
     ptr->Total         = data.at("total").get<size_t>();
     ptr->Passed        = data.at("passed").get<size_t>();
 
-    for (auto&& [name, value] : data.at("values").items())
-    {
+    for (auto&& [name, value] : data.at("values").items()) {
         ptr->Values[name] = {
           .Type   = value.at("type").get<std::string>(),
           .Passed = value.at("passed").get<bool>(),
@@ -174,16 +173,14 @@ ResultAnalysisResults::Test LoadTest(const nlohmann::json& data)
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Expectations =
-        [&data]()
-      {
-          std::map<std::string, std::shared_ptr<ResultAnalysisResults::Expectation>> expectations;
+        [&data]() {
+            std::map<std::string, std::shared_ptr<ResultAnalysisResults::Expectation>> expectations;
 
-          for (auto&& [name, expectation] : data.at("expectations").items())
-          {
-              expectations[name] = LoadExpectation(expectation);
-          }
-          return expectations;
-      }(),
+            for (auto&& [name, expectation] : data.at("expectations").items()) {
+                expectations[name] = LoadExpectation(expectation);
+            }
+            return expectations;
+        }(),
     };
 }
 
@@ -201,13 +198,14 @@ ResultAnalysisResults::Sequence LoadSequence(const nlohmann::json& data)
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Tests =
-        [&data]()
-      {
-          std::map<std::string, ResultAnalysisResults::Test> tests;
+        [&data]() {
+            std::map<std::string, ResultAnalysisResults::Test> tests;
 
-          for (auto&& [name, test] : data.at("tests").items()) { tests[name] = LoadTest(test); }
-          return tests;
-      }(),
+            for (auto&& [name, test] : data.at("tests").items()) {
+                tests[name] = LoadTest(test);
+            }
+            return tests;
+        }(),
     };
 }
 
@@ -222,13 +220,14 @@ ResultAnalysisResults::Location LoadLocation(const nlohmann::json& data)
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Sequences =
-        [&data]()
-      {
-          std::map<std::string, ResultAnalysisResults::Sequence> sequences = {};
-          for (auto&& [name, sequence] : data.at("sequences").items()) { sequences[name] = LoadSequence(sequence); }
+        [&data]() {
+            std::map<std::string, ResultAnalysisResults::Sequence> sequences = {};
+            for (auto&& [name, sequence] : data.at("sequences").items()) {
+                sequences[name] = LoadSequence(sequence);
+            }
 
-          return sequences;
-      }(),
+            return sequences;
+        }(),
     };
 }
 
@@ -239,13 +238,14 @@ ResultAnalysisResults Load(const std::string& path)
     auto                  j       = LoadJson(path);
     ResultAnalysisResults results = {};
 
-    for (auto&& [name, location] : j.items()) { results.Locations[name] = LoadLocation(location); }
+    for (auto&& [name, location] : j.items()) {
+        results.Locations[name] = LoadLocation(location);
+    }
 
     return results;
 }
 
-namespace
-{
+namespace {
 nlohmann::json SaveTest(const ResultAnalysisResults::Test& test)
 {
     BR_PROFILE_FUNCTION();
@@ -261,7 +261,9 @@ nlohmann::json SaveTest(const ResultAnalysisResults::Test& test)
     j["durations"]        = test.Durations;
     j["average_duration"] = test.AverageDuration;
     j["expectations"]     = {};
-    for (auto&& [name, expectation] : test.Expectations) { j["expectations"][name] = expectation->serialize(); }
+    for (auto&& [name, expectation] : test.Expectations) {
+        j["expectations"][name] = expectation->serialize();
+    }
 
     return j;
 }
@@ -281,7 +283,9 @@ nlohmann::json SaveSequence(const ResultAnalysisResults::Sequence& sequence)
     j["durations"]        = sequence.Durations;
     j["average_duration"] = sequence.AverageDuration;
     j["tests"]            = {};
-    for (auto&& [name, test] : sequence.Tests) { j["tests"][name] = SaveTest(test); }
+    for (auto&& [name, test] : sequence.Tests) {
+        j["tests"][name] = SaveTest(test);
+    }
 
     return j;
 }
@@ -298,7 +302,9 @@ nlohmann::json SaveLocation(const ResultAnalysisResults::Location& location)
     j["durations"]        = location.Durations;
     j["average_duration"] = location.AverageDuration;
     j["sequences"]        = {};
-    for (auto&& [name, sequence] : location.Sequences) { j["sequences"][name] = SaveSequence(sequence); }
+    for (auto&& [name, sequence] : location.Sequences) {
+        j["sequences"][name] = SaveSequence(sequence);
+    }
 
     return j;
 }
@@ -309,7 +315,9 @@ void Save(const ResultAnalysisResults& results, const std::string& path)
     BR_PROFILE_FUNCTION();
     nlohmann::json j = {};
 
-    for (auto&& [name, location] : results.Locations) { j[name] = SaveLocation(location); }
+    for (auto&& [name, location] : results.Locations) {
+        j[name] = SaveLocation(location);
+    }
 
     std::ofstream file = std::ofstream(path);
 

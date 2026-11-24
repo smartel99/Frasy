@@ -296,7 +296,7 @@ std::vector<ResultViewer::ExpectationDetails> ResultViewer::LoadExpectations(con
 
 nlohmann::json ResultViewer::SanitizeExpectation(const nlohmann::json& expectation)
 {
-    auto           sanitize = [](this auto&& self, const nlohmann::json& field) -> nlohmann::json {
+    auto sanitize = [](this auto&& self, const nlohmann::json& field) -> nlohmann::json {
         nlohmann::json sanitized;
         if (field.is_object() || field.is_array()) {
             for (const auto& [fieldName, fieldVal] : field.items()) {
@@ -321,8 +321,7 @@ nlohmann::json ResultViewer::SanitizeExpectation(const nlohmann::json& expectati
                 sanitized = std::move(str);
             }
             else {
-                sanitized = std::views::split(std::string_view {str}, '\n') |
-                            std::views::transform([](auto&& line) {
+                sanitized = std::views::split(std::string_view {str}, '\n') | std::views::transform([](auto&& line) {
                                 std::string_view sanitizedLine {line};
                                 // Don't keep the carriage returns of CRLF line endings, they render as garbage.
                                 if (sanitizedLine.ends_with('\r')) { sanitizedLine.remove_suffix(1); }
@@ -337,9 +336,7 @@ nlohmann::json ResultViewer::SanitizeExpectation(const nlohmann::json& expectati
         return sanitized;
     };
 
-    if (!expectation.is_object() && !expectation.is_array()) {
-        return sanitize(expectation);
-    }
+    if (!expectation.is_object() && !expectation.is_array()) { return sanitize(expectation); }
 
     nlohmann::json exp;
     for (const auto& [fieldName, fieldVal] : expectation.items()) {
