@@ -97,7 +97,7 @@ std::string_view toString(Result result) noexcept
 
 std::optional<Result> resultFromString(std::string_view text) noexcept
 {
-    for (auto result : {Result::Pass, Result::Fail, Result::Skipped, Result::Disabled, Result::Incomplete}) {
+    for (const auto result : s_allResults) {
         if (toString(result) == text) { return result; }
     }
     return std::nullopt;

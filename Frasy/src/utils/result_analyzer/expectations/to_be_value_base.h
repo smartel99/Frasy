@@ -27,16 +27,18 @@ namespace Frasy::Analyzers {
 struct ToBeValueBase : public ResultAnalysisResults::Expectation {
     ToBeValueBase(float expected, float min, float max) : Expected(expected), Min(min), Max(max) {}
     ~ToBeValueBase() override = default;
-    void AddValue(const nlohmann::json& value) override
+    void AddValue(const nlohmann::json& value, bool passed) override
     {
+        // Read first: a run without a value isn't counted, so stats always have values.
+        const float v = value.at("value").get<float>();
         Total++;
-        if (value.at("pass").get<bool>()) { Passed++; }
-        float v = value.at("value").get<float>();
+        if (passed) { Passed++; }
         Values.push_back(v);
     }
 
     void MakeStats() override
     {
+        if (Values.empty()) { return; }
         const auto [min, max] = std::minmax_element(Values.begin(), Values.end());
         MinObserved           = *min;
         MaxObserved           = *max;

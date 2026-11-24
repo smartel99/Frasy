@@ -22,11 +22,11 @@
 namespace Frasy::Analyzers {
 struct ToBeTrueExpectation : public ToBeExactBase {
     ~ToBeTrueExpectation() override = default;
-    void AddValue(const nlohmann::json& value) override
+    void AddValue(const nlohmann::json& value, bool passed) override
     {
         nlohmann::json fakeValue = value;    // Add a value field for the base class.
-        fakeValue["value"]       = value.at("pass").get<bool>();
-        ToBeExactBase::AddValue(fakeValue);
+        fakeValue["value"]       = passed;
+        ToBeExactBase::AddValue(fakeValue, passed);
     }
 
     void Render() override

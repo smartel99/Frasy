@@ -20,6 +20,7 @@
 
 #include "analytic_results.h"
 #include "options.h"
+#include "utils/report/result.h"
 
 #include <json.hpp>
 
@@ -36,10 +37,13 @@ public:
 
 private:
     void AnalyzeFile(const std::string& path);
-    void AnalyzeSequence(const nlohmann::json& sequence, ResultAnalysisResults::Sequence& results);
-    void AnalyzeTest(const nlohmann::json& test, ResultAnalysisResults::Test& results);
-    void AnalyzeExpectation(const nlohmann::json&                                expectation,
-                            std::shared_ptr<ResultAnalysisResults::Expectation>& results);
+    void AnalyzeSequence(const Report::ResultReader&      reader,
+                         const nlohmann::json&            sequence,
+                         ResultAnalysisResults::Sequence& results);
+    void AnalyzeTest(const Report::ResultReader&  reader,
+                     const nlohmann::json&        test,
+                     Report::Result               sequenceResult,
+                     ResultAnalysisResults::Test& results);
 
     std::shared_ptr<ResultAnalysisResults::Expectation> MakeExpectationFromDetails(const nlohmann::json& expectation);
 

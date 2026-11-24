@@ -25,6 +25,7 @@
 #include <json.hpp>
 #include <sol/sol.hpp>
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
@@ -39,6 +40,15 @@ enum class Result : uint8_t {
     Skipped,
     Disabled,
     Incomplete,
+};
+
+/** Every result, in enumeration order. */
+inline constexpr std::array s_allResults = {
+  Result::Pass,
+  Result::Fail,
+  Result::Skipped,
+  Result::Disabled,
+  Result::Incomplete,
 };
 
 /** Report layout written by the current orchestrator (`info.format_version`). */

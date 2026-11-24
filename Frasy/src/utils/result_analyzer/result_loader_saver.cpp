@@ -34,6 +34,48 @@
 namespace Frasy::Analyzers {
 
 namespace {
+/** @return a - b, or 0 if b is larger. */
+size_t saturatingSub(size_t a, size_t b)
+{
+    return a > b ? a - b : 0;
+}
+
+/**
+ * @brief Counts of a saved analysis.
+ * Analyses saved before `results` existed only kept passed, skipped and enabled counts. Disabled scopes were counted as
+ * skipped too; anything else is counted as a failure.
+ */
+ResultCounts loadResultCounts(const nlohmann::json& data)
+{
+    ResultCounts counts;
+    if (const auto it = data.find("results"); it != data.end()) {
+        for (const auto result : Report::s_allResults) {
+            counts.Counts.at(static_cast<size_t>(result)) = it->value(Report::toString(result), size_t {0});
+        }
+        return counts;
+    }
+
+    const auto total    = data.at("total").get<size_t>();
+    const auto passed   = data.at("passed").get<size_t>();
+    const auto disabled = saturatingSub(total, data.value("enabled", total));
+    const auto skipped  = saturatingSub(data.value("skipped", size_t {0}), disabled);
+    counts.Counts.at(static_cast<size_t>(Report::Result::Pass))     = passed;
+    counts.Counts.at(static_cast<size_t>(Report::Result::Disabled)) = disabled;
+    counts.Counts.at(static_cast<size_t>(Report::Result::Skipped))  = skipped;
+    counts.Counts.at(static_cast<size_t>(Report::Result::Fail))     = saturatingSub(total, passed + disabled + skipped);
+    return counts;
+}
+
+/** @return The counts as an object keyed by result name ("pass", "fail", ...). */
+nlohmann::json saveResultCounts(const ResultCounts& counts)
+{
+    nlohmann::json j = nlohmann::json::object();
+    for (const auto result : Report::s_allResults) {
+        j[std::string(Report::toString(result))] = counts.get(result);
+    }
+    return j;
+}
+
 nlohmann::json LoadJson(const std::string& path)
 {
     BR_PROFILE_FUNCTION();
@@ -163,13 +205,7 @@ ResultAnalysisResults::Test LoadTest(const nlohmann::json& data)
 {
     return ResultAnalysisResults::Test {
       .Name            = data.at("name").get<std::string>(),
-      .Passed          = data.at("passed").get<size_t>(),
-      .PassedPercent   = data.at("passed_percent").get<float>(),
-      .Enabled         = data.at("enabled").get<size_t>(),
-      .EnabledPercent  = data.at("enabled_percent").get<float>(),
-      .Skipped         = data.at("skipped").get<size_t>(),
-      .SkippedPercent  = data.at("skipped_percent").get<float>(),
-      .Total           = data.at("total").get<size_t>(),
+      .Results         = loadResultCounts(data),
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Expectations =
@@ -188,13 +224,7 @@ ResultAnalysisResults::Sequence LoadSequence(const nlohmann::json& data)
 {
     return ResultAnalysisResults::Sequence {
       .Name            = data.at("name").get<std::string>(),
-      .Passed          = data.at("passed").get<size_t>(),
-      .PassedPercent   = data.at("passed_percent").get<float>(),
-      .Enabled         = data.at("enabled").get<size_t>(),
-      .EnabledPercent  = data.at("enabled_percent").get<float>(),
-      .Skipped         = data.at("skipped").get<size_t>(),
-      .SkippedPercent  = data.at("skipped_percent").get<float>(),
-      .Total           = data.at("total").get<size_t>(),
+      .Results         = loadResultCounts(data),
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Tests =
@@ -214,9 +244,7 @@ ResultAnalysisResults::Location LoadLocation(const nlohmann::json& data)
     return ResultAnalysisResults::Location {
       .Name            = data.at("name").get<std::string>(),
       .Version         = data.at("version").get<std::string>(),
-      .Passed          = data.at("passed").get<size_t>(),
-      .PassedPercent   = data.at("passed_percent").get<float>(),
-      .Total           = data.at("total").get<size_t>(),
+      .Results         = loadResultCounts(data),
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Sequences =
@@ -251,13 +279,7 @@ nlohmann::json SaveTest(const ResultAnalysisResults::Test& test)
     BR_PROFILE_FUNCTION();
     nlohmann::json j      = {};
     j["name"]             = test.Name;
-    j["passed"]           = test.Passed;
-    j["passed_percent"]   = test.PassedPercent;
-    j["enabled"]          = test.Enabled;
-    j["enabled_percent"]  = test.EnabledPercent;
-    j["skipped"]          = test.Skipped;
-    j["skipped_percent"]  = test.SkippedPercent;
-    j["total"]            = test.Total;
+    j["results"]          = saveResultCounts(test.Results);
     j["durations"]        = test.Durations;
     j["average_duration"] = test.AverageDuration;
     j["expectations"]     = {};
@@ -273,13 +295,7 @@ nlohmann::json SaveSequence(const ResultAnalysisResults::Sequence& sequence)
     BR_PROFILE_FUNCTION();
     nlohmann::json j      = {};
     j["name"]             = sequence.Name;
-    j["passed"]           = sequence.Passed;
-    j["passed_percent"]   = sequence.PassedPercent;
-    j["enabled"]          = sequence.Enabled;
-    j["enabled_percent"]  = sequence.EnabledPercent;
-    j["skipped"]          = sequence.Skipped;
-    j["skipped_percent"]  = sequence.SkippedPercent;
-    j["total"]            = sequence.Total;
+    j["results"]          = saveResultCounts(sequence.Results);
     j["durations"]        = sequence.Durations;
     j["average_duration"] = sequence.AverageDuration;
     j["tests"]            = {};
@@ -296,9 +312,7 @@ nlohmann::json SaveLocation(const ResultAnalysisResults::Location& location)
     nlohmann::json j      = {};
     j["name"]             = location.Name;
     j["version"]          = location.Version;
-    j["passed"]           = location.Passed;
-    j["passed_percent"]   = location.PassedPercent;
-    j["total"]            = location.Total;
+    j["results"]          = saveResultCounts(location.Results);
     j["durations"]        = location.Durations;
     j["average_duration"] = location.AverageDuration;
     j["sequences"]        = {};
