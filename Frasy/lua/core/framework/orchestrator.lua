@@ -63,6 +63,10 @@ local function IsScopeEnabled(scope)
     end
 end
 
+--- Report layout version, written as `info.format_version`. Readers should select their parser from it.
+--- v1 (no version): `pass`/`skipped`/`enabled` booleans. v2: `result` strings.
+local ReportFormatVersion = 2
+
 --- Log wording of each result.
 local Verdict = {
     [ScopeResult.Value.Pass] = "PASSED",
@@ -450,7 +454,7 @@ function Orchestrator.CompileExecutionResults(outputDir)
         serial = Context.info.serial,
         uut = Context.info.uut,
         date = os.date(),
-        pass = true,
+        format_version = ReportFormatVersion,
         time = {
             start = Context.info.time.start,
             stop = os.clock(),
@@ -471,10 +475,9 @@ function Orchestrator.CompileExecutionResults(outputDir)
     end
 
     report.sequences = {}
+    local sequenceResults = {}
     for sName, sequence in pairs(Context.orchestrator.sequences) do
-        if not sequence.result.pass then
-            report.info.pass = false
-        end
+        table.insert(sequenceResults, sequence.result.result)
         report.sequences[sName] = sequence.result
         report.sequences[sName].tests = {}
         for tName, test in pairs(sequence.tests) do
@@ -496,6 +499,9 @@ function Orchestrator.CompileExecutionResults(outputDir)
             report.info.time.process = report.info.time.process + report.sequences[sName].time.process
         end
     end
+    report.info.result = ScopeResult.Aggregate(sequenceResults)
+    -- Deprecated, kept for the transition to report format v2.
+    report.info.pass = report.info.result == ScopeResult.Value.Pass
     xpcall(function() Context.map.onReport(report) end, function(error)
         Log.E("On Report failed")
         Log.E(ToString(error))

@@ -302,7 +302,7 @@ Environment.SetOnReport(function(report)
     for _, seq in pairs(report.sequences) do
         for _, test in pairs(seq.tests or {}) do
             total = total + 1
-            if test.pass then passed = passed + 1 end
+            if test.result == "pass" then passed = passed + 1 end
         end
     end
     report.info.yield = string.format("%.1f%%", (passed / total) * 100)
@@ -311,6 +311,21 @@ Environment.SetOnReport(function(report)
     report.sequences["Debug Checks"] = nil
 end)
 ```
+
+!!! note "Report format v2"
+    Read `result` instead of the `pass`, `skipped` and `enabled` booleans. Those are deprecated and
+    will be removed in a later format; `report.info.format_version` tells which layout the report
+    uses. See [Report Structure](../architecture/test-lifecycle.md#report-structure-json).
+
+    | Level | `result` values |
+    |---|---|
+    | Test | `pass`, `fail`, `skipped`, `disabled` |
+    | Sequence | `pass`, `fail`, `skipped`, `disabled`, `incomplete` |
+    | `report.info` | `pass`, `fail`, `incomplete` |
+
+    `report.info.result` and `report.info.pass` are computed **before** `onReport` runs and are not
+    recomputed afterwards. A hook that changes the outcome, for example by removing a failed
+    sequence, must update both fields itself while the format is in transition.
 
 !!! warning
     The report table is passed by reference. If your `onReport` function errors, the report is

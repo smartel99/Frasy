@@ -151,6 +151,11 @@ execution (see below).
 The report hooks registered via `Environment.SetOnReport()` and `Environment.SetOnReportInfo()`.
 These are called by the framework — you typically don't invoke them directly.
 
+`onReport` receives the report before it is saved. Its `info.result`, `info.pass` and
+`info.format_version` are already set and are not recomputed after the hook; a hook that changes
+the outcome must update `info.result` and `info.pass` itself. See
+[Report Structure](../architecture/test-lifecycle.md#report-structure-json).
+
 ---
 
 ## `Context.values`

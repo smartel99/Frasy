@@ -258,7 +258,7 @@ a disabled test is `incomplete` (see [Scope Results](#scope-results)).
 After execution completes for each UUT, the orchestrator:
 
 1. Compiles a **report** containing:
-    - Metadata: versions, operator, serial, date, overall pass/fail, timing.
+    - Metadata: versions, operator, serial, date, overall `result`, report `format_version`, timing.
     - IB info: each board's software/hardware version and serial.
     - Per-sequence results with timing.
     - Per-test results with timing and all expectation details.
@@ -282,6 +282,8 @@ After execution completes for each UUT, the orchestrator:
     "serial": "SN123456789",
     "uut": 1,
     "date": "2024-05-15 14:30:00",
+    "format_version": 2,
+    "result": "pass",
     "pass": true,
     "time": { "start": 0.0, "stop": 2.5, "elapsed": 2.5, "process": 2.1 }
   },
@@ -290,11 +292,17 @@ After execution completes for each UUT, the orchestrator:
   },
   "sequences": {
     "Power On": {
+      "result": "pass",
       "pass": true,
+      "skipped": false,
+      "enabled": true,
       "time": { "start": 0.0, "stop": 1.2, "elapsed": 1.2, "process": 1.1 },
       "tests": {
         "Check Voltage": {
+          "result": "pass",
           "pass": true,
+          "skipped": false,
+          "enabled": true,
           "time": { "start": 0.0, "stop": 0.5, "elapsed": 0.5, "process": 0.5 },
           "expectations": [
             { "name": "Supply Voltage", "method": "ToBeInRange", "value": 5.02, "min": 4.9, "max": 5.1, "pass": true }
@@ -305,6 +313,14 @@ After execution completes for each UUT, the orchestrator:
   }
 }
 ```
+
+`info.result` combines the sequence results the same way a sequence combines its tests (see
+[Scope Results](#scope-results)): `fail` if any sequence failed, otherwise `incomplete` if any
+sequence is `disabled` or `incomplete`, otherwise `pass`. `pass`, `skipped` and `enabled` are the
+deprecated v1 fields, still written during the transition.
+
+`info.format_version` tells readers which layout to expect. A report without it is v1, where only
+the `pass`, `skipped` and `enabled` booleans exist.
 
 ---
 
