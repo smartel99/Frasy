@@ -22,8 +22,8 @@
 #include "utils/solution_loader.h"
 #include <Brigerad/Core/Log.h>
 #include <filesystem>
-#include <fstream>
 #include <format>
+#include <fstream>
 
 namespace Frasy::Report::Json {
 std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames)

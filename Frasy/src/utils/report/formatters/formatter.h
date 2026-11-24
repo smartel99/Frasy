@@ -19,15 +19,15 @@
 #ifndef FORMATTER_H
 #define FORMATTER_H
 
+#include <format>
 #include <sol/sol.hpp>
 #include <string>
-#include <format>
 #include <type_traits>
 
 namespace Frasy::Report::Formatter {
 template<typename T>
-    requires (!std::is_same_v<T, std::string>)
-             static std::string getFieldAsStr(const sol::object& field)
+    requires(!std::is_same_v<T, std::string>)
+static std::string getFieldAsStr(const sol::object& field)
 {
     if (field == sol::nil) { return "Not provided"; }
     return std::format("{}", field.as<T>());

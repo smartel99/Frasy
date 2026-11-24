@@ -42,9 +42,9 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
     using Microsoft::WRL::ComPtr;
     static constexpr UINT s_timeoutMs = 30'000;
 
-    LPWSTR runtimeVersion = nullptr;
-    HRESULT runtimeHr     = GetAvailableCoreWebView2BrowserVersionString(nullptr, &runtimeVersion);
-    const bool hasRuntime = SUCCEEDED(runtimeHr) && runtimeVersion != nullptr;
+    LPWSTR     runtimeVersion = nullptr;
+    HRESULT    runtimeHr      = GetAvailableCoreWebView2BrowserVersionString(nullptr, &runtimeVersion);
+    const bool hasRuntime     = SUCCEEDED(runtimeHr) && runtimeVersion != nullptr;
     CoTaskMemFree(runtimeVersion);
     if (!hasRuntime) {
         BR_LOG_ERROR(s_tag,
@@ -57,10 +57,7 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
     wchar_t url[4096] = {};
     DWORD   urlLen    = static_cast<DWORD>(std::size(url));
     if (HRESULT hr = UrlCreateFromPathW(std::filesystem::absolute(htmlPath).c_str(), url, &urlLen, 0); FAILED(hr)) {
-        BR_LOG_ERROR(s_tag,
-                     "Unable to create a URL from '{}': 0x{:08X}",
-                     htmlPath.string(),
-                     static_cast<uint32_t>(hr));
+        BR_LOG_ERROR(s_tag, "Unable to create a URL from '{}': 0x{:08X}", htmlPath.string(), static_cast<uint32_t>(hr));
         return false;
     }
     std::wstring pdf = std::filesystem::absolute(pdfPath).wstring();
@@ -128,7 +125,8 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
             // US Letter, in inches.
             settings->put_PageWidth(8.5);
             settings->put_PageHeight(11.0);
-            // Keeps text and table sizes close to what wkhtmltopdf produced (only the content scale, not the page size).
+            // Keeps text and table sizes close to what wkhtmltopdf produced (only the content scale, not the page
+            // size).
             settings->put_ScaleFactor(0.8);
             // The divider lines and table row colors are backgrounds, which are skipped by default.
             settings->put_ShouldPrintBackgrounds(TRUE);
@@ -165,9 +163,7 @@ bool htmlToPdf(const std::filesystem::path& htmlPath, const std::filesystem::pat
           userDataFolder.empty() ? nullptr : userDataFolder.c_str(),
           nullptr,
           Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(onEnvironmentCreated).Get());
-        if (FAILED(hr)) {
-            failHr("CreateCoreWebView2EnvironmentWithOptions", hr);
-        }
+        if (FAILED(hr)) { failHr("CreateCoreWebView2EnvironmentWithOptions", hr); }
         else {
             UINT_PTR timer = SetTimer(nullptr, 0, s_timeoutMs, nullptr);
             MSG      msg;
@@ -282,7 +278,9 @@ void PDF::reportInfo()
 }
 
 void PDF::reportUserInfo([[maybe_unused]] const sol::table& table)
-{ throw std::runtime_error("Not implemented"); }
+{
+    throw std::runtime_error("Not implemented");
+}
 
 void PDF::startReportIb()
 {
@@ -315,7 +313,9 @@ void PDF::endReportIb()
 }
 
 void PDF::startReportSequences()
-{ m_ss << "<h2>Test Sequences:</h2>\n"; }
+{
+    m_ss << "<h2>Test Sequences:</h2>\n";
+}
 
 void PDF::reportSequenceResult(const std::string& name)
 {
@@ -379,13 +379,19 @@ bool PDF::convert()
 }
 
 void PDF::reportToBeEqualBoolean(const sol::table& expectation)
-{ reportToBeEqual<bool>(expectation); }
+{
+    reportToBeEqual<bool>(expectation);
+}
 
 void PDF::reportToBeEqualNumber(const sol::table& expectation)
-{ reportToBeEqual<double>(expectation); }
+{
+    reportToBeEqual<double>(expectation);
+}
 
 void PDF::reportToBeEqualString(const sol::table& expectation)
-{ reportToBeEqual<std::string>(expectation); }
+{
+    reportToBeEqual<std::string>(expectation);
+}
 
 void PDF::reportToBeInPercentage(const sol::table& e)
 {
@@ -452,10 +458,14 @@ std::string PDF::sectionResultToString(const sol::table& section) const
 }
 
 void PDF::divLine()
-{ m_ss << "<div class=\"report-line\"></div>\n"; }
+{
+    m_ss << "<div class=\"report-line\"></div>\n";
+}
 
 void PDF::smallDivLine()
-{ m_ss << "<div class=\"small-line\"></div>\n"; }
+{
+    m_ss << "<div class=\"small-line\"></div>\n";
+}
 
 void PDF::printResult(bool passed)
 {

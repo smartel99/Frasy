@@ -97,8 +97,8 @@ private:
         reportLine(fieldName, (field.valid() ? field.template get_or<decltype(defaultVal)>(defaultVal) : defaultVal));
     }
 
-    std::stringstream    m_ss;
-    std::string          m_outPath;
+    std::stringstream m_ss;
+    std::string       m_outPath;
 };
 }    // namespace Frasy::Report::Formatter
 #endif    // FRASY_SRC_UTILS_REPORT_FORMATTERS_TABLE_H

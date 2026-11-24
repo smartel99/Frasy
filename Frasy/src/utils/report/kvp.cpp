@@ -23,9 +23,9 @@
 
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <string>
-#include <format>
 #include <vector>
 
 
@@ -48,7 +48,7 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
 
         namespace fs = std::filesystem;
         // Create log directory if needed.
-        static auto frasyLogDirectory = fs::current_path() / ".."/ "logs";
+        static auto frasyLogDirectory = fs::current_path() / ".." / "logs";
         create_directories(frasyLogDirectory);
         auto logDirectory = frasyLogDirectory / title;
         create_directories(logDirectory);
@@ -62,8 +62,9 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
         create_directories(smtFailDir);
 
         // Create the log file.
-        auto smtFileDir         = pass ? smtPassDir : smtFailDir;
-        auto lastReportFilepath = smtDirectory / std::format("last_uut{}.txt", results.get<sol::table>("info").get_or("uut", 0));
+        auto smtFileDir = pass ? smtPassDir : smtFailDir;
+        auto lastReportFilepath =
+          smtDirectory / std::format("last_uut{}.txt", results.get<sol::table>("info").get_or("uut", 0));
 
         std::ofstream report(lastReportFilepath, std::ios::out | std::ios::trunc | std::ios::binary);
         if (!report.is_open()) {

@@ -25,5 +25,5 @@
 
 namespace Frasy::Report::PDF {
 std::vector<std::string> makeReport(const sol::table& results, const std::vector<std::string>& filenames);
-}    // namespace Frasy::Report::Table
+}    // namespace Frasy::Report::PDF
 #endif    // FRASY_SRC_UTILS_REPORT_TABLE_H
