@@ -77,4 +77,23 @@ function ScopeResult.Aggregate(children)
     return aggregate
 end
 
+--- Combine results into the board result, by precedence: incomplete > fail > pass.
+--- Anything disabled makes the whole board a debug run, even when something that ran failed. Tests are read too:
+--- a sequence holding a disabled test and a failing one reads `fail`, and a sequence cut short by an error in a later
+--- section keeps the result of its earlier sections.
+---@param sequences ScopeResultValue[]
+---@param tests ScopeResultValue[] Results of every test of every sequence.
+---@return ScopeResultValue
+function ScopeResult.AggregateBoard(sequences, tests)
+    for _, results in ipairs({ sequences, tests }) do
+        for _, result in ipairs(results) do
+            if result == Value.Disabled or result == Value.Incomplete then return Value.Incomplete end
+        end
+    end
+    for _, result in ipairs(tests) do
+        if result == Value.Fail then return Value.Fail end
+    end
+    return ScopeResult.Aggregate(sequences)
+end
+
 return ScopeResult

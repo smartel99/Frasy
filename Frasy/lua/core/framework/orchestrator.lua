@@ -476,11 +476,13 @@ function Orchestrator.CompileExecutionResults(outputDir)
 
     report.sequences = {}
     local sequenceResults = {}
+    local testResults = {}
     for sName, sequence in pairs(Context.orchestrator.sequences) do
         table.insert(sequenceResults, sequence.result.result)
         report.sequences[sName] = sequence.result
         report.sequences[sName].tests = {}
         for tName, test in pairs(sequence.tests) do
+            table.insert(testResults, test.result.result)
             report.sequences[sName].tests[tName] = test.result
             report.sequences[sName].tests[tName].expectations = {}
             for _, expectation in pairs(test.expectations) do
@@ -499,7 +501,7 @@ function Orchestrator.CompileExecutionResults(outputDir)
             report.info.time.process = report.info.time.process + report.sequences[sName].time.process
         end
     end
-    report.info.result = ScopeResult.Aggregate(sequenceResults)
+    report.info.result = ScopeResult.AggregateBoard(sequenceResults, testResults)
     -- Deprecated, kept for the transition to report format v2.
     report.info.pass = report.info.result == ScopeResult.Value.Pass
     xpcall(function() Context.map.onReport(report) end, function(error)

@@ -141,6 +141,22 @@ TEST_F(ScopeResultTest, Aggregate_IncompleteChildMakesIncomplete)
     EXPECT_EQ(aggregate("{ 'pass', 'incomplete', 'skipped' }"), "incomplete");
 }
 
+TEST_F(ScopeResultTest, AggregateBoard_IncompleteWinsOverFail)
+{
+    const auto board = [this](const std::string& sequences, const std::string& tests) {
+        return lua.script("return ScopeResult.AggregateBoard(" + sequences + ", " + tests + ")").get<std::string>();
+    };
+    EXPECT_EQ(board("{ 'fail', 'disabled' }", "{}"), "incomplete");
+    EXPECT_EQ(board("{ 'incomplete', 'fail' }", "{}"), "incomplete");
+    // A sequence holding a disabled test and a failing one reads `fail`: the tests tell.
+    EXPECT_EQ(board("{ 'fail' }", "{ 'disabled', 'fail' }"), "incomplete");
+    // A sequence cut short by an error in a later section keeps its earlier result: the tests tell.
+    EXPECT_EQ(board("{ 'pass' }", "{ 'pass', 'fail' }"), "fail");
+    EXPECT_EQ(board("{ 'fail', 'pass', 'skipped' }", "{ 'fail', 'pass', 'skipped' }"), "fail");
+    EXPECT_EQ(board("{ 'pass', 'skipped' }", "{ 'pass', 'skipped' }"), "pass");
+    EXPECT_EQ(board("{}", "{}"), "pass");
+}
+
 TEST_F(ScopeResultTest, Aggregate_FailWinsInAnyOrder)
 {
     EXPECT_EQ(aggregate("{ 'fail', 'disabled' }"), "fail");

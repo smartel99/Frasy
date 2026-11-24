@@ -73,7 +73,7 @@ TEST_F(ReportTest, DisabledSequence_Incomplete)
     EXPECT_FALSE(infoPass());
 }
 
-TEST_F(ReportTest, DisabledAndFailure_Fails)
+TEST_F(ReportTest, DisabledSequenceAndFailure_Incomplete)
 {
     lua.script(
       "Define({ { name = 'A', tests = { { name = 'T1', func = Fail } } }, "
@@ -81,11 +81,12 @@ TEST_F(ReportTest, DisabledAndFailure_Fails)
     lua.script("Context.orchestrator.enable_list = { B = { enabled = false } }");
     ASSERT_TRUE(runSection()) << lastError;
     compile();
-    EXPECT_EQ(info(), "fail");
+    // Anything disabled makes the board a debug run, even with a failure.
+    EXPECT_EQ(info(), "incomplete");
     EXPECT_FALSE(infoPass());
 }
 
-TEST_F(ReportTest, IncompleteAndFailure_Fails)
+TEST_F(ReportTest, IncompleteSequenceAndFailure_Incomplete)
 {
     lua.script(
       "Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2' } } }, "
@@ -96,8 +97,22 @@ TEST_F(ReportTest, IncompleteAndFailure_Fails)
     ASSERT_TRUE(runSection()) << lastError;
     compile();
     EXPECT_EQ(lua.script("return saved.sequences.A.result").get<std::string>(), "incomplete");
-    EXPECT_EQ(info(), "fail");
+    EXPECT_EQ(lua.script("return saved.sequences.B.result").get<std::string>(), "fail");
+    EXPECT_EQ(info(), "incomplete");
     EXPECT_FALSE(infoPass());
+}
+
+TEST_F(ReportTest, DisabledTestAndFailureInSameSequence_SequenceFailsBoardIncomplete)
+{
+    lua.script("Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2', func = Fail } } } })");
+    lua.script(
+      "Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    compile();
+    // The sequence keeps showing its failure; the board is still a debug run.
+    EXPECT_EQ(lua.script("return saved.sequences.A.result").get<std::string>(), "fail");
+    EXPECT_EQ(info(), "incomplete");
 }
 
 TEST_F(ReportTest, AllSequencesSkipped_Pass)
@@ -198,4 +213,32 @@ TEST_F(ReportTest, OnReport_SeesResultAndVersion)
     EXPECT_EQ(info("seen"), "fail");
     EXPECT_EQ(lua.script("return seen.info.format_version").get<int>(), Frasy::Report::s_currentFormatVersion);
     EXPECT_FALSE(lua.script("return seen.info.pass").get<bool>());
+}
+
+TEST_F(ReportTest, ErrorInLaterSection_FailedTestStillFailsBoard)
+{
+    // T2 runs in section 2 and raises: RunSequence never re-aggregates S, which keeps its section-1 result.
+    lua.script(
+      "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', section = 2, "
+      "func = function() error('boom') end } } } })");
+    ASSERT_TRUE(runSection(1)) << lastError;
+    EXPECT_FALSE(runSection(2));
+    compile();
+    EXPECT_EQ(lua.script("return saved.sequences.S.tests.T2.result").get<std::string>(), "fail");
+    EXPECT_EQ(info(), "fail");
+    EXPECT_FALSE(infoPass());
+}
+
+TEST_F(ReportTest, ErrorInLaterSectionWithDisabledTest_Incomplete)
+{
+    lua.script(
+      "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', section = 2, "
+      "func = function() error('boom') end } } } })");
+    lua.script(
+      "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
+    ASSERT_TRUE(runSection(1)) << lastError;
+    EXPECT_FALSE(runSection(2));
+    compile();
+    EXPECT_EQ(info(), "incomplete");
 }
