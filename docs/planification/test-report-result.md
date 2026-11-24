@@ -14,7 +14,9 @@ They overlap and are often misread:
 - Every sequence and test gets a `result` string: `pass`, `fail`, `skipped` or `disabled`.
 - Sequences and `info` aggregate their children by precedence: `fail` > `incomplete` > `pass`.
   - `disabled` child → `incomplete`.
-  - `skipped` child → neutral (a skip comes from an unmet requirement, whose cause already fails the board).
+  - `skipped` child → neutral (a skip means the scope did not apply to this run).
+  - A test with a failed expectation that then hits an unmet requirement is `fail`, not `skipped`.
+  - Team sync keeps sending anything but `pass` as a failure, so a skip on one UUT fails its teammates.
 - Tests inside a skipped or disabled sequence inherit that state.
 - Expectations get `result` = `pass` or `fail`.
 - `info.format_version = 2`. Readers parse `format_version` first and pick the matching parser. A missing version means v1.

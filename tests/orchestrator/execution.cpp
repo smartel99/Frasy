@@ -1,0 +1,405 @@
+#include "orchestrator_test_fixture.h"
+
+#include <gtest/gtest.h>
+
+// =============================================================================
+// RunSequence / RunTest — results set during execution
+// =============================================================================
+
+class ExecutionTest : public OrchestratorTestFixture
+{
+protected:
+    void SetUp() override
+    {
+        OrchestratorTestFixture::SetUp();
+        // Execution times scopes with os.clock().
+        lua.open_libraries(sol::lib::os);
+        // Define({ { name, func?, tests = { { name, func? }, ... }, section? }, ... })
+        // Tests of a sequence are put in the section given by their `section` field (default 1).
+        lua.script(R"(
+            local Scope = require('lua/core/framework/scope')
+            ran = {}
+            function Define(sequences)
+                local solution = {}
+                for _, s in ipairs(sequences) do
+                    Context.orchestrator.scope = nil
+                    Orchestrator.CreateSequence(s.name, s.func or function() end, 'test', 0)
+                    Context.orchestrator.scope = Scope:New(s.name)
+                    local bySection = {}
+                    for _, t in ipairs(s.tests) do
+                        local func = t.func or function() end
+                        Orchestrator.CreateTest(t.name, function()
+                            ran[s.name .. '.' .. t.name] = true
+                            func()
+                        end, 'test', 0)
+                        local section = t.section or 1
+                        bySection[section] = bySection[section] or {}
+                        table.insert(bySection[section], t.name)
+                    end
+                    for section, names in pairs(bySection) do
+                        solution[section] = solution[section] or { {} }
+                        table.insert(solution[section][1], { name = s.name, tests = { names } })
+                    end
+                end
+                Context.orchestrator.scope = nil
+                Context.orchestrator.solution = solution
+                Context.info.stage = Stage.execution
+            end
+            function ResultOf(sequence, test)
+                local s = Context.orchestrator.sequences[sequence]
+                if test ~= nil then s = s.tests[test] end
+                return s.result
+            end
+            function Fail() Orchestrator.AddExpectationResult({ name = 'E', pass = false }) end
+        )");
+    }
+
+    std::string lastError;
+
+    bool runSection(int index = 1)
+    {
+        auto run = lua.safe_script("Orchestrator.ExecuteSection(" + std::to_string(index) + ")",
+                                   sol::script_pass_on_error);
+        if (!run.valid()) {
+            sol::error err = run;
+            lastError      = err.what();
+        }
+        return run.valid();
+    }
+
+    std::string result(const std::string& sequence, const std::string& test = "")
+    {
+        return lua.script("return ResultOf('" + sequence + "'" + (test.empty() ? "" : ", '" + test + "'") +
+                          ").result")
+          .get<std::string>();
+    }
+
+    std::string reason(const std::string& sequence, const std::string& test = "")
+    {
+        return lua.script("return tostring(ResultOf('" + sequence + "'" + (test.empty() ? "" : ", '" + test + "'") +
+                          ").reason)")
+          .get<std::string>();
+    }
+
+    bool field(const std::string& sequence, const std::string& test, const std::string& name)
+    {
+        return lua.script("return ResultOf('" + sequence + "', '" + test + "')." + name).get<bool>();
+    }
+
+    bool ran(const std::string& sequence, const std::string& test)
+    {
+        return lua.script("return ran['" + sequence + "." + test + "'] == true").get<bool>();
+    }
+
+    bool query(const std::string& function, const std::string& sequence, const std::string& test = "")
+    {
+        return lua
+          .script("return Orchestrator." + function + "(require('lua/core/framework/scope'):New('" + sequence + "'" +
+                  (test.empty() ? "" : ", '" + test + "'") + "))")
+          .get<bool>();
+    }
+};
+
+TEST_F(ExecutionTest, AllPass)
+{
+    lua.script("Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2' } } } })");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "pass");
+    EXPECT_EQ(result("S", "T2"), "pass");
+    EXPECT_EQ(result("S"), "pass");
+    EXPECT_TRUE(field("S", "T1", "pass"));
+    EXPECT_FALSE(field("S", "T1", "skipped"));
+    EXPECT_TRUE(field("S", "T1", "enabled"));
+    EXPECT_TRUE(query("HasPassed", "S"));
+}
+
+TEST_F(ExecutionTest, FailedExpectation_FailsTestAndSequence)
+{
+    lua.script("Define({ { name = 'S', tests = { { name = 'T1', func = Fail }, { name = 'T2' } } } })");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "fail");
+    EXPECT_EQ(reason("S", "T1"), "Unmet expectation");
+    EXPECT_EQ(result("S", "T2"), "pass");
+    EXPECT_EQ(result("S"), "fail");
+    EXPECT_FALSE(field("S", "T1", "pass"));
+    EXPECT_FALSE(query("HasPassed", "S"));
+}
+
+TEST_F(ExecutionTest, UnmetRequirement_SkipsTestOnly)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1', func = function() error(UnmetRequirement('needs X')) end },
+        { name = 'T2' },
+    } } }))");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "skipped");
+    EXPECT_NE(reason("S", "T1").find("needs X"), std::string::npos);
+    EXPECT_TRUE(field("S", "T1", "skipped"));
+    EXPECT_TRUE(field("S", "T1", "enabled"));
+    EXPECT_TRUE(query("HasBeenSkipped", "S", "T1"));
+    EXPECT_FALSE(query("HasPassed", "S", "T1"));
+    EXPECT_EQ(result("S"), "pass");
+}
+
+TEST_F(ExecutionTest, FailedExpectationThenUnmetRequirement_Fails)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1', func = function() Fail(); error(UnmetRequirement('late')) end },
+    } } }))");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "fail");
+    EXPECT_EQ(reason("S", "T1"), "Unmet expectation");
+    EXPECT_EQ(result("S"), "fail");
+}
+
+TEST_F(ExecutionTest, RequirementOnDisabledTest_SkipsDependent)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1' },
+        { name = 'T2', func = function()
+            local ScopeRequirement = require('lua/core/framework/scope_requirement/execution')
+            local Scope = require('lua/core/framework/scope')
+            Requires(ScopeRequirement:New(Orchestrator, Scope:New('S', 'T1')):ToPass())
+        end },
+    } } }))");
+    lua.script("Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
+               "T2 = { enabled = true } } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "disabled");
+    EXPECT_EQ(result("S", "T2"), "skipped");
+    EXPECT_EQ(result("S"), "incomplete");
+}
+
+TEST_F(ExecutionTest, AllTestsSkipped_SequencePasses)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1', func = function() error(UnmetRequirement('no')) end },
+    } } }))");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "skipped");
+    EXPECT_EQ(result("S"), "pass");
+}
+
+TEST_F(ExecutionTest, DisabledTest_SequenceIncomplete)
+{
+    lua.script("Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2' } } } })");
+    lua.script("Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
+               "T2 = { enabled = true } } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_FALSE(ran("S", "T1"));
+    EXPECT_EQ(result("S", "T1"), "disabled");
+    EXPECT_EQ(reason("S", "T1"), "Disabled");
+    EXPECT_FALSE(field("S", "T1", "enabled"));
+    EXPECT_TRUE(field("S", "T1", "skipped"));
+    EXPECT_TRUE(query("HasBeenSkipped", "S", "T1"));
+    EXPECT_EQ(result("S", "T2"), "pass");
+    EXPECT_EQ(result("S"), "incomplete");
+    EXPECT_FALSE(query("HasPassed", "S"));
+    EXPECT_FALSE(query("HasBeenSkipped", "S"));
+}
+
+TEST_F(ExecutionTest, DisabledTestAndFailure_SequenceFails)
+{
+    lua.script("Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', func = Fail } } } })");
+    lua.script("Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
+               "T2 = { enabled = true } } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "disabled");
+    EXPECT_EQ(result("S"), "fail");
+}
+
+TEST_F(ExecutionTest, DisabledSequence_TestsInheritDisabled)
+{
+    lua.script(R"(
+        sequenceRan = false
+        Define({ { name = 'S', func = function() sequenceRan = true end,
+                   tests = { { name = 'T1' }, { name = 'T2' } } } })
+        Context.orchestrator.enable_list = { S = { enabled = false } }
+    )");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_FALSE(lua.script("return sequenceRan").get<bool>());
+    EXPECT_EQ(result("S"), "disabled");
+    for (const char* test : {"T1", "T2"}) {
+        EXPECT_FALSE(ran("S", test)) << test;
+        EXPECT_EQ(result("S", test), "disabled") << test;
+        EXPECT_EQ(reason("S", test), "Disabled") << test;
+        EXPECT_FALSE(field("S", test, "enabled")) << test;
+    }
+    EXPECT_TRUE(query("HasBeenSkipped", "S"));
+}
+
+TEST_F(ExecutionTest, SkippedSequence_TestsInheritSkipped)
+{
+    lua.script(R"(Define({ { name = 'S', func = function() error(UnmetRequirement('no fixture')) end,
+                            tests = { { name = 'T1' }, { name = 'T2' } } } }))");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S"), "skipped");
+    EXPECT_NE(reason("S").find("no fixture"), std::string::npos);
+    for (const char* test : {"T1", "T2"}) {
+        EXPECT_FALSE(ran("S", test)) << test;
+        EXPECT_EQ(result("S", test), "skipped") << test;
+        EXPECT_EQ(reason("S", test), reason("S")) << test;
+        EXPECT_TRUE(field("S", test, "enabled")) << test;
+    }
+}
+
+TEST_F(ExecutionTest, SequenceError_FailsSequenceWithStringReason)
+{
+    lua.script("Define({ { name = 'S', func = function() error('boom') end, tests = { { name = 'T1' } } } })");
+    EXPECT_FALSE(runSection());
+    EXPECT_EQ(result("S"), "fail");
+    EXPECT_TRUE(lua.script("return type(ResultOf('S').reason) == 'string'").get<bool>());
+    EXPECT_NE(reason("S").find("boom"), std::string::npos);
+    EXPECT_FALSE(ran("S", "T1"));
+}
+
+TEST_F(ExecutionTest, TestError_FailsTestWithStringReason)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1', func = function() error('boom') end },
+        { name = 'T2' },
+    } } }))");
+    EXPECT_FALSE(runSection());
+    EXPECT_EQ(result("S", "T1"), "fail");
+    EXPECT_TRUE(lua.script("return type(ResultOf('S', 'T1').reason) == 'string'").get<bool>());
+    EXPECT_NE(reason("S", "T1").find("boom"), std::string::npos);
+    EXPECT_EQ(teamFailCount, 1);
+    // A test cut off by the error keeps the default result.
+    EXPECT_FALSE(ran("S", "T2"));
+    EXPECT_EQ(result("S", "T2"), "fail");
+}
+
+TEST_F(ExecutionTest, StopCurrentExpectation_FailsTestAndContinues)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1', func = function() error(UnmetExpectation(ErrorPolicy.stopCurrent, 'limit')) end },
+        { name = 'T2' },
+    } } }))");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "fail");
+    EXPECT_NE(reason("S", "T1").find("limit"), std::string::npos);
+    EXPECT_TRUE(ran("S", "T2"));
+    EXPECT_EQ(result("S", "T2"), "pass");
+    EXPECT_EQ(result("S"), "fail");
+}
+
+TEST_F(ExecutionTest, StopAllExpectation_FailsTestAndStops)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1', func = function() error(UnmetExpectation(ErrorPolicy.stopAll, 'halt')) end },
+        { name = 'T2' },
+    } } }))");
+    EXPECT_FALSE(runSection());
+    EXPECT_EQ(result("S", "T1"), "fail");
+    EXPECT_NE(reason("S", "T1").find("halt"), std::string::npos);
+    EXPECT_FALSE(ran("S", "T2"));
+}
+
+TEST_F(ExecutionTest, PendingTestsOfLaterSections_AreNotCounted)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1' },
+        { name = 'T2', section = 2 },
+    } } }))");
+    lua.script("Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = true }, "
+               "T2 = { enabled = false } } }");
+    ASSERT_TRUE(runSection(1)) << lastError;
+    EXPECT_EQ(result("S"), "pass");
+    ASSERT_TRUE(runSection(2)) << lastError;
+    EXPECT_EQ(result("S", "T2"), "disabled");
+    EXPECT_EQ(result("S"), "incomplete");
+}
+
+TEST_F(ExecutionTest, DisabledSequenceAcrossSections_StaysDisabled)
+{
+    lua.script(R"(
+        sequenceRuns = 0
+        Define({ { name = 'S', func = function() sequenceRuns = sequenceRuns + 1 end,
+                   tests = { { name = 'T1' }, { name = 'T2', section = 2 } } } })
+        Context.orchestrator.enable_list = { S = { enabled = false } }
+    )");
+    ASSERT_TRUE(runSection(1)) << lastError;
+    ASSERT_TRUE(runSection(2)) << lastError;
+    EXPECT_EQ(lua.script("return sequenceRuns").get<int>(), 0);
+    EXPECT_EQ(result("S"), "disabled");
+    EXPECT_FALSE(ran("S", "T2"));
+    EXPECT_EQ(result("S", "T2"), "disabled");
+}
+
+TEST_F(ExecutionTest, SkippedSequenceAcrossSections_RunsBodyOnce)
+{
+    lua.script(R"(
+        sequenceRuns = 0
+        Define({ { name = 'S', func = function()
+                       sequenceRuns = sequenceRuns + 1
+                       error(UnmetRequirement('no'))
+                   end,
+                   tests = { { name = 'T1' }, { name = 'T2', section = 2 } } } })
+    )");
+    ASSERT_TRUE(runSection(1)) << lastError;
+    ASSERT_TRUE(runSection(2)) << lastError;
+    EXPECT_EQ(lua.script("return sequenceRuns").get<int>(), 1);
+    EXPECT_EQ(result("S"), "skipped");
+    EXPECT_FALSE(ran("S", "T2"));
+    EXPECT_EQ(result("S", "T2"), "skipped");
+}
+
+TEST_F(ExecutionTest, SeveralSequences_AreIndependent)
+{
+    lua.script(R"(Define({
+        { name = 'A', tests = { { name = 'T1', func = Fail } } },
+        { name = 'B', tests = { { name = 'T1' } } },
+        { name = 'C', tests = { { name = 'T1' } } },
+    }))");
+    lua.script("Context.orchestrator.enable_list = { C = { enabled = false } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("A"), "fail");
+    EXPECT_EQ(result("B"), "pass");
+    EXPECT_EQ(result("C"), "disabled");
+}
+
+// =============================================================================
+// Team.Sync inside RunTest — real team.lua, host side mocked through Team.__sync
+// =============================================================================
+
+class TeamExecutionTest : public ExecutionTest
+{
+protected:
+    void SetUp() override
+    {
+        ExecutionTest::SetUp();
+        lua.script_file(getLuaBaseDir() + "/lua/core/sdk/environment/team.lua");
+        lua.script("Context.team.hasTeam = true");
+    }
+};
+
+TEST_F(TeamExecutionTest, TeammateFailure_FailsPassingTest)
+{
+    lua.script("function Team.__sync(status) return Team.Status.fail end");
+    lua.script("Define({ { name = 'S', tests = { { name = 'T1' } } } })");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "fail");
+    EXPECT_EQ(reason("S", "T1"), "Teammate failure");
+    EXPECT_EQ(result("S"), "fail");
+}
+
+TEST_F(TeamExecutionTest, TeammateCriticalFailure_FailsTestAndStops)
+{
+    lua.script("function Team.__sync(status) return Team.Status.critical_failure end");
+    lua.script("Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2' } } } })");
+    EXPECT_FALSE(runSection());
+    EXPECT_EQ(result("S", "T1"), "fail");
+    EXPECT_EQ(reason("S", "T1"), "Teammate critical failure");
+    EXPECT_FALSE(ran("S", "T2"));
+}
+
+TEST_F(TeamExecutionTest, SkippedTest_SentAsFail)
+{
+    lua.script("sent = {}; function Team.__sync(status) table.insert(sent, status); return status end");
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1', func = function() error(UnmetRequirement('no')) end },
+    } } }))");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(lua.script("return sent[1]").get<int>(), 1);
+    EXPECT_EQ(result("S", "T1"), "skipped");
+}

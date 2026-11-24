@@ -12,6 +12,8 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+local ScopeResult = require("lua/core/framework/scope_result")
+
 Team = {}
 if Context.team == nil then
     Context.team = {
@@ -64,19 +66,17 @@ function Team.Sync(result)
         local status
         if result.time.stop == 0 then
             status = Team.Status.critical_failure
-        elseif result.skipped or not result.pass then
-            status = Team.Status.fail
-        else
+        elseif result:HasPassed() then
             status = Team.Status.pass
+        else
+            status = Team.Status.fail
         end
         local teamStatus = Team.__sync(status)
         if teamStatus ~= status then
             if teamStatus == Team.Status.fail then
-                result.pass = false
-                result.reason = "Teammate failure"
+                result:Set(ScopeResult.Value.Fail, "Teammate failure")
             elseif teamStatus == Team.Status.critical_failure then
-                result.pass = false
-                result.reason = "Teammate critical failure"
+                result:Set(ScopeResult.Value.Fail, "Teammate critical failure")
                 error(TeamError("Teammate critical failure"))
             else
                 error(TeamError("Invalid team status"))

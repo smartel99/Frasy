@@ -74,7 +74,7 @@ protected:
             }
         )");
 
-        lua.set_function("Team.Fail", [this]() { teamFailCount++; });
+        lua["Team"]["Fail"] = [this]() { teamFailCount++; };
 
         // Team.Sync needs to be a Lua function that accesses result
         // We'll override it as a no-op that does nothing when HasTeam is false

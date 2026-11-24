@@ -111,6 +111,34 @@ In debug mode (or when `skipVerification` is passed to `runSolution()`), hash ch
 | Any other Lua error | Test **fails** with the error message |
 | Uncaught sequence-level error | Sequence **fails**; remaining tests in it are not run |
 
+### Scope Results
+
+Every sequence and test ends with a `result`:
+
+| Result | Meaning |
+|---|---|
+| `pass` | Ran, and every expectation passed |
+| `fail` | An expectation failed or an error was raised. A scope that never ran also reads `fail` |
+| `skipped` | A requirement was unmet. The scope did not run |
+| `disabled` | The scope was disabled. It did not run |
+| `incomplete` | Sequences only: at least one test was disabled, and none failed |
+
+Tests inside a skipped or disabled sequence take the sequence's result and reason.
+
+A sequence combines the results of its tests by precedence: `fail` > `incomplete` > `pass`.
+A `disabled` test makes the sequence `incomplete`; a `skipped` test doesn't change it, since a skip
+means the test did not apply to this run.
+
+A test that records a failed expectation and then hits an unmet requirement is `fail`, not `skipped`.
+
+!!! note "Teams"
+    Team synchronization still sends anything other than `pass` as a failure. A test that is
+    `skipped` on one UUT therefore fails the same test on its teammates ("Teammate failure").
+
+!!! note "Deprecated fields"
+    The `pass`, `skipped` and `enabled` booleans are still set from `result` for the transition to
+    report format v2. Read `result` instead; they will be removed in a later report format.
+
 ---
 
 ## UUT States
@@ -220,7 +248,8 @@ m_orchestrator.setSequenceEnable("Power On", false);
 m_orchestrator.setTestEnable("Power On", "Check Voltage", false);
 ```
 
-Disabled items are skipped during execution with reason "Disabled".
+Disabled items don't run. Their result is `disabled` with reason "Disabled", and the sequence holding
+a disabled test is `incomplete` (see [Scope Results](#scope-results)).
 
 ---
 

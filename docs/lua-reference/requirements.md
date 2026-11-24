@@ -159,7 +159,8 @@ actually runs based on the results of previously-executed scopes.
 
 ### `:ToPass()`
 
-The scope runs only if the referenced scope **passed** (all expectations met).
+The scope runs only if the referenced scope's result is `pass`. A `skipped`, `disabled` or
+`incomplete` scope doesn't count as passed.
 
 ```lua
 Sequence("Functional", function()
@@ -178,7 +179,8 @@ This is the most common runtime requirement. It also implicitly creates an order
 
 ### `:ToFail()`
 
-The scope runs only if the referenced scope **failed**.
+The scope runs only if the referenced scope did **not pass**: its result is `fail`, `skipped`,
+`disabled` or `incomplete`.
 
 ```lua
 Sequence("Error Recovery", function()
@@ -190,7 +192,8 @@ end)
 ### `:ToBeComplete()`
 
 The scope runs only if the referenced scope was **not skipped** (it ran to completion,
-regardless of pass/fail).
+regardless of pass/fail). A `disabled` scope counts as skipped. An `incomplete` sequence counts as
+complete: only `skipped` and `disabled` scopes fail this requirement.
 
 ```lua
 Test("Cleanup", function()

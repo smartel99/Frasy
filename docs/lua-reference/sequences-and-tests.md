@@ -129,7 +129,11 @@ Requires(Test("Setup"):ToPass())
   always return `true`.
 - During **validation**: all requirements return `true`.
 - During **execution**: requirements are evaluated for real. If unmet, an `UnmetRequirement`
-  error is raised, which the orchestrator catches and marks the scope as skipped.
+  error is raised, which the orchestrator catches and sets the scope's result to `skipped`. When a
+  sequence is skipped, all its tests are `skipped` too.
+
+See [Scope Results](../architecture/test-lifecycle.md#scope-results) for every result a scope can
+end with.
 
 See [Requirements](requirements.md) for the full requirement system.
 
