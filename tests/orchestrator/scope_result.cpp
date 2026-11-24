@@ -6,8 +6,7 @@
 // ScopeResult
 // =============================================================================
 
-class ScopeResultTest : public OrchestratorTestFixture
-{
+class ScopeResultTest : public OrchestratorTestFixture {
 protected:
     void SetUp() override
     {
@@ -45,9 +44,7 @@ struct DeprecatedFields {
     bool        enabled;
 };
 
-class ScopeResultSetTest : public ScopeResultTest, public ::testing::WithParamInterface<DeprecatedFields>
-{
-};
+class ScopeResultSetTest : public ScopeResultTest, public ::testing::WithParamInterface<DeprecatedFields> {};
 
 TEST_P(ScopeResultSetTest, Set_DerivesDeprecatedFields)
 {
@@ -117,9 +114,15 @@ TEST_F(ScopeResultTest, IsSkipped_ForSkippedAndDisabled)
     }
 }
 
-TEST_F(ScopeResultTest, Aggregate_EmptyIsPass) { EXPECT_EQ(aggregate("{}"), "pass"); }
+TEST_F(ScopeResultTest, Aggregate_EmptyIsPass)
+{
+    EXPECT_EQ(aggregate("{}"), "pass");
+}
 
-TEST_F(ScopeResultTest, Aggregate_AllPass) { EXPECT_EQ(aggregate("{ 'pass', 'pass' }"), "pass"); }
+TEST_F(ScopeResultTest, Aggregate_AllPass)
+{
+    EXPECT_EQ(aggregate("{ 'pass', 'pass' }"), "pass");
+}
 
 TEST_F(ScopeResultTest, Aggregate_SkippedIsNeutral)
 {

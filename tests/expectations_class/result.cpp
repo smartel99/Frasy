@@ -6,8 +6,7 @@
 // ExpectationResult.result
 // =============================================================================
 
-class ExpectationResultTest : public OrchestratorTestFixture
-{
+class ExpectationResultTest : public OrchestratorTestFixture {
 protected:
     void SetUp() override
     {
@@ -24,10 +23,7 @@ protected:
         )");
     }
 
-    bool progress(int index)
-    {
-        return lua.script("return progress[" + std::to_string(index) + "]").get<bool>();
-    }
+    bool progress(int index) { return lua.script("return progress[" + std::to_string(index) + "]").get<bool>(); }
 
     std::string result(int index)
     {

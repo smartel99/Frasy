@@ -10,8 +10,7 @@
 
 #include <string>
 
-class ExecutionTest : public OrchestratorTestFixture
-{
+class ExecutionTest : public OrchestratorTestFixture {
 protected:
     void SetUp() override
     {
@@ -62,8 +61,8 @@ protected:
 
     bool runSection(int index = 1)
     {
-        auto run = lua.safe_script("Orchestrator.ExecuteSection(" + std::to_string(index) + ")",
-                                   sol::script_pass_on_error);
+        auto run =
+          lua.safe_script("Orchestrator.ExecuteSection(" + std::to_string(index) + ")", sol::script_pass_on_error);
         if (!run.valid()) {
             sol::error err = run;
             lastError      = err.what();
@@ -73,15 +72,15 @@ protected:
 
     std::string result(const std::string& sequence, const std::string& test = "")
     {
-        return lua.script("return ResultOf('" + sequence + "'" + (test.empty() ? "" : ", '" + test + "'") +
-                          ").result")
+        return lua.script("return ResultOf('" + sequence + "'" + (test.empty() ? "" : ", '" + test + "'") + ").result")
           .get<std::string>();
     }
 
     std::string reason(const std::string& sequence, const std::string& test = "")
     {
-        return lua.script("return tostring(ResultOf('" + sequence + "'" + (test.empty() ? "" : ", '" + test + "'") +
-                          ").reason)")
+        return lua
+          .script("return tostring(ResultOf('" + sequence + "'" + (test.empty() ? "" : ", '" + test + "'") +
+                  ").reason)")
           .get<std::string>();
     }
 
@@ -104,4 +103,4 @@ protected:
     }
 };
 
-#endif // FRASY_TESTS_ORCHESTRATOR_EXECUTION_FIXTURE_H
+#endif    // FRASY_TESTS_ORCHESTRATOR_EXECUTION_FIXTURE_H

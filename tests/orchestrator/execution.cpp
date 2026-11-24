@@ -88,8 +88,9 @@ TEST_F(ExecutionTest, RequirementOnDisabledTest_SkipsDependent)
             Requires(ScopeRequirement:New(Orchestrator, Scope:New('S', 'T1')):ToPass())
         end },
     } } }))");
-    lua.script("Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
-               "T2 = { enabled = true } } }");
+    lua.script(
+      "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
     ASSERT_TRUE(runSection()) << lastError;
     EXPECT_EQ(result("S", "T1"), "disabled");
     EXPECT_EQ(result("S", "T2"), "skipped");
@@ -109,8 +110,9 @@ TEST_F(ExecutionTest, AllTestsSkipped_SequencePasses)
 TEST_F(ExecutionTest, DisabledTest_SequenceIncomplete)
 {
     lua.script("Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2' } } } })");
-    lua.script("Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
-               "T2 = { enabled = true } } }");
+    lua.script(
+      "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
     ASSERT_TRUE(runSection()) << lastError;
     EXPECT_FALSE(ran("S", "T1"));
     EXPECT_EQ(result("S", "T1"), "disabled");
@@ -127,8 +129,9 @@ TEST_F(ExecutionTest, DisabledTest_SequenceIncomplete)
 TEST_F(ExecutionTest, DisabledTestAndFailure_SequenceFails)
 {
     lua.script("Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', func = Fail } } } })");
-    lua.script("Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
-               "T2 = { enabled = true } } }");
+    lua.script(
+      "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
     ASSERT_TRUE(runSection()) << lastError;
     EXPECT_EQ(result("S", "T1"), "disabled");
     EXPECT_EQ(result("S"), "fail");
@@ -227,8 +230,9 @@ TEST_F(ExecutionTest, PendingTestsOfLaterSections_AreNotCounted)
         { name = 'T1' },
         { name = 'T2', section = 2 },
     } } }))");
-    lua.script("Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = true }, "
-               "T2 = { enabled = false } } }");
+    lua.script(
+      "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = true }, "
+      "T2 = { enabled = false } } }");
     ASSERT_TRUE(runSection(1)) << lastError;
     EXPECT_EQ(result("S"), "pass");
     ASSERT_TRUE(runSection(2)) << lastError;
@@ -288,8 +292,7 @@ TEST_F(ExecutionTest, SeveralSequences_AreIndependent)
 // Team.Sync inside RunTest — real team.lua, host side mocked through Team.__sync
 // =============================================================================
 
-class TeamExecutionTest : public ExecutionTest
-{
+class TeamExecutionTest : public ExecutionTest {
 protected:
     void SetUp() override
     {

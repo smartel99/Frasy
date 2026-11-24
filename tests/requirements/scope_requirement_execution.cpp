@@ -6,8 +6,7 @@
 // ScopeRequirement — Execution stage
 // =============================================================================
 
-class ScopeRequirementExecutionTest : public OrchestratorTestFixture
-{
+class ScopeRequirementExecutionTest : public OrchestratorTestFixture {
 protected:
     void SetUp() override
     {
@@ -29,117 +28,141 @@ TEST_F(ScopeRequirementExecutionTest, ToPass_ChecksHasPassed)
 {
     // SeqA has not passed yet (default pass=false)
     lua.script("local ScopeReq = require('lua/core/framework/scope_requirement/execution')");
-    auto isMet = lua.script(R"(
+    auto isMet = lua
+                   .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         local rt = req:ToPass()
         return rt:IsMet()
-    )").get<bool>();
+    )")
+                   .get<bool>();
     EXPECT_FALSE(isMet);
 
     // Mark SeqA as passed
     lua.script("Context.orchestrator.sequences['SeqA'].result:Set('pass')");
-    auto isMetNow = lua.script(R"(
+    auto isMetNow = lua
+                      .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         local rt = req:ToPass()
         return rt:IsMet()
-    )").get<bool>();
+    )")
+                      .get<bool>();
     EXPECT_TRUE(isMetNow);
 }
 
 TEST_F(ScopeRequirementExecutionTest, ToFail_ChecksNotPassed)
 {
     // SeqA has not passed (default)
-    auto isMet = lua.script(R"(
+    auto isMet = lua
+                   .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         local rt = req:ToFail()
         return rt:IsMet()
-    )").get<bool>();
-    EXPECT_TRUE(isMet); // not passed = "failed"
+    )")
+                   .get<bool>();
+    EXPECT_TRUE(isMet);    // not passed = "failed"
 
     // Mark SeqA as passed
     lua.script("Context.orchestrator.sequences['SeqA'].result:Set('pass')");
-    auto isMetNow = lua.script(R"(
+    auto isMetNow = lua
+                      .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         local rt = req:ToFail()
         return rt:IsMet()
-    )").get<bool>();
+    )")
+                      .get<bool>();
     EXPECT_FALSE(isMetNow);
 }
 
 TEST_F(ScopeRequirementExecutionTest, ToBeComplete_ChecksNotSkipped)
 {
-    auto isMet = lua.script(R"(
+    auto isMet = lua
+                   .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         local rt = req:ToBeComplete()
         return rt:IsMet()
-    )").get<bool>();
-    EXPECT_TRUE(isMet); // not skipped by default
+    )")
+                   .get<bool>();
+    EXPECT_TRUE(isMet);    // not skipped by default
 
     lua.script("Context.orchestrator.sequences['SeqA'].result:Set('skipped')");
-    auto isMetNow = lua.script(R"(
+    auto isMetNow = lua
+                      .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         local rt = req:ToBeComplete()
         return rt:IsMet()
-    )").get<bool>();
+    )")
+                      .get<bool>();
     EXPECT_FALSE(isMetNow);
 }
 
 TEST_F(ScopeRequirementExecutionTest, ToBeComplete_UnmetWhenDisabled)
 {
     lua.script("Context.orchestrator.sequences['SeqA'].result:Set('disabled')");
-    EXPECT_FALSE(lua.script(R"(
+    EXPECT_FALSE(lua
+                   .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         return req:ToBeComplete():IsMet()
-    )").get<bool>());
+    )")
+                   .get<bool>());
 }
 
 TEST_F(ScopeRequirementExecutionTest, ToPass_UnmetWhenIncomplete)
 {
     lua.script("Context.orchestrator.sequences['SeqA'].result:Set('incomplete')");
-    EXPECT_FALSE(lua.script(R"(
+    EXPECT_FALSE(lua
+                   .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         return req:ToPass():IsMet()
-    )").get<bool>());
+    )")
+                   .get<bool>());
 }
 
 TEST_F(ScopeRequirementExecutionTest, OrderMethods_ReturnAlwaysTrue)
 {
     // In execution, ordering is already resolved — these always return true
-    EXPECT_TRUE(lua.script(R"(
+    EXPECT_TRUE(lua
+                  .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         return req:ToBeFirst():IsMet()
-    )").get<bool>());
+    )")
+                  .get<bool>());
 
-    EXPECT_TRUE(lua.script(R"(
+    EXPECT_TRUE(lua
+                  .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         return req:ToBeLast():IsMet()
-    )").get<bool>());
+    )")
+                  .get<bool>());
 }
 
 TEST_F(ScopeRequirementExecutionTest, HasPassed_ReflectsActualResult)
 {
-    EXPECT_FALSE(lua.script(R"(
+    EXPECT_FALSE(lua
+                   .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         return req:HasPassed()
-    )").get<bool>());
+    )")
+                   .get<bool>());
 
     lua.script("Context.orchestrator.sequences['SeqA'].result:Set('pass')");
-    EXPECT_TRUE(lua.script(R"(
+    EXPECT_TRUE(lua
+                  .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         return req:HasPassed()
-    )").get<bool>());
+    )")
+                  .get<bool>());
 }
 
 TEST_F(ScopeRequirementExecutionTest, Value_RetrievesExportedValue)
@@ -148,11 +171,13 @@ TEST_F(ScopeRequirementExecutionTest, Value_RetrievesExportedValue)
     lua.script(R"(
         Context.orchestrator.values['SeqA']['T1']['voltage'] = 3.3
     )");
-    auto val = lua.script(R"(
+    auto val = lua
+                 .script(R"(
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA', 'T1'))
         return req:Value('voltage')
-    )").get<double>();
+    )")
+                 .get<double>();
     EXPECT_DOUBLE_EQ(val, 3.3);
 }
 
@@ -173,6 +198,7 @@ TEST_F(ScopeRequirementExecutionTest, Test_NonExistentThrows)
         local ScopeReq = require('lua/core/framework/scope_requirement/execution')
         local req = ScopeReq:New(Orchestrator, require('lua/core/framework/scope'):New('SeqA'))
         req:Test('NoSuchTest')
-    )", sol::script_pass_on_error);
+    )",
+                                                            sol::script_pass_on_error);
     EXPECT_FALSE(result.valid());
 }

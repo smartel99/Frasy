@@ -6,8 +6,7 @@
 // CompileExecutionResults — info.result and format_version
 // =============================================================================
 
-class ReportTest : public ExecutionTest
-{
+class ReportTest : public ExecutionTest {
 protected:
     void SetUp() override
     {
@@ -42,8 +41,9 @@ TEST_F(ReportTest, AllPass)
 
 TEST_F(ReportTest, OneFailure_Fails)
 {
-    lua.script("Define({ { name = 'A', tests = { { name = 'T1', func = Fail } } }, "
-               "{ name = 'B', tests = { { name = 'T1' } } } })");
+    lua.script(
+      "Define({ { name = 'A', tests = { { name = 'T1', func = Fail } } }, "
+      "{ name = 'B', tests = { { name = 'T1' } } } })");
     ASSERT_TRUE(runSection()) << lastError;
     compile();
     EXPECT_EQ(info(), "fail");
@@ -53,8 +53,9 @@ TEST_F(ReportTest, OneFailure_Fails)
 TEST_F(ReportTest, DisabledTest_Incomplete)
 {
     lua.script("Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2' } } } })");
-    lua.script("Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
-               "T2 = { enabled = true } } }");
+    lua.script(
+      "Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
     ASSERT_TRUE(runSection()) << lastError;
     compile();
     EXPECT_EQ(info(), "incomplete");
@@ -73,8 +74,9 @@ TEST_F(ReportTest, DisabledSequence_Incomplete)
 
 TEST_F(ReportTest, DisabledAndFailure_Fails)
 {
-    lua.script("Define({ { name = 'A', tests = { { name = 'T1', func = Fail } } }, "
-               "{ name = 'B', tests = { { name = 'T1' } } } })");
+    lua.script(
+      "Define({ { name = 'A', tests = { { name = 'T1', func = Fail } } }, "
+      "{ name = 'B', tests = { { name = 'T1' } } } })");
     lua.script("Context.orchestrator.enable_list = { B = { enabled = false } }");
     ASSERT_TRUE(runSection()) << lastError;
     compile();
@@ -84,10 +86,12 @@ TEST_F(ReportTest, DisabledAndFailure_Fails)
 
 TEST_F(ReportTest, IncompleteAndFailure_Fails)
 {
-    lua.script("Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2' } } }, "
-               "{ name = 'B', tests = { { name = 'T1', func = Fail } } } })");
-    lua.script("Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
-               "T2 = { enabled = true } } }");
+    lua.script(
+      "Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2' } } }, "
+      "{ name = 'B', tests = { { name = 'T1', func = Fail } } } })");
+    lua.script(
+      "Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
     ASSERT_TRUE(runSection()) << lastError;
     compile();
     EXPECT_EQ(lua.script("return saved.sequences.A.result").get<std::string>(), "incomplete");
@@ -134,8 +138,9 @@ TEST_F(ReportTest, OnReportMutation_IsSaved)
         report.info.result = 'pass'
         report.info.pass = true
     end)");
-    lua.script("Define({ { name = 'A', tests = { { name = 'T1', func = Fail } } }, "
-               "{ name = 'B', tests = { { name = 'T1' } } } })");
+    lua.script(
+      "Define({ { name = 'A', tests = { { name = 'T1', func = Fail } } }, "
+      "{ name = 'B', tests = { { name = 'T1' } } } })");
     ASSERT_TRUE(runSection()) << lastError;
     compile();
     EXPECT_TRUE(lua.script("return saved.sequences.A == nil").get<bool>());
@@ -170,8 +175,9 @@ TEST_F(ReportTest, SequenceThatNeverRan_Fails)
 TEST_F(ReportTest, ScopeResultsAreReported)
 {
     lua.script("Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2' } } } })");
-    lua.script("Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
-               "T2 = { enabled = true } } }");
+    lua.script(
+      "Context.orchestrator.enable_list = { A = { enabled = true, T1 = { enabled = false }, "
+      "T2 = { enabled = true } } }");
     ASSERT_TRUE(runSection()) << lastError;
     compile();
     EXPECT_EQ(lua.script("return saved.sequences.A.result").get<std::string>(), "incomplete");

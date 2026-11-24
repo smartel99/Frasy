@@ -5,8 +5,7 @@
 // Team.Sync — real team.lua, host side mocked through Team.__sync
 // =============================================================================
 
-class TeamSyncTest : public OrchestratorTestFixture
-{
+class TeamSyncTest : public OrchestratorTestFixture {
 protected:
     void SetUp() override
     {
