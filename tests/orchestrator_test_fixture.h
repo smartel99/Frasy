@@ -86,7 +86,7 @@ protected:
         // Progress reporting mock
         lua.script(R"(
             __progress = {
-                report = function(type, uut, name, parentA, parentB, pass) end
+                report = function(type, uut, name, parentA, parentB, result) end
             }
         )");
 

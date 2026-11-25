@@ -359,14 +359,18 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
                                                  const std::string& name,
                                                  const std::string& parentA,
                                                  const std::string& parentB,
-                                                 bool               pass) {
-                m_progressCallback(type, uut, name, parentA, parentB, pass);
+                                                 const sol::object& result) {
+                m_progressCallback(type, uut, name, parentA, parentB, toProgressResult(name, result));
             };
         }
         else {
-            lua["__progress"] = lua.create_table();
-            lua["__progress"]["report"] =
-              [](const std::string&, std::size_t, const std::string&, const std::string&, const std::string&, bool) {};
+            lua["__progress"]           = lua.create_table();
+            lua["__progress"]["report"] = [](const std::string&,
+                                             std::size_t,
+                                             const std::string&,
+                                             const std::string&,
+                                             const std::string&,
+                                             const sol::object&) {};
         }
         lua.script_file("lua/core/framework/exception.lua");
 
@@ -1060,12 +1064,17 @@ void Orchestrator::setPopupImport(std::function<void(sol::state_view, std::size_
     m_popupImport = std::move(callback);
 }
 
-void Orchestrator::setProgressCallback(std::function<void(const std::string& type,
-                                                          std::size_t        uut,
-                                                          const std::string& name,
-                                                          const std::string& parentA,
-                                                          const std::string& parentB,
-                                                          bool               pass)> callback)
+Report::Result Orchestrator::toProgressResult(std::string_view name, const sol::object& result)
+{
+    if (const auto text = result.as<std::optional<std::string>>()) {
+        if (const auto value = Report::resultFromString(*text)) { return *value; }
+    }
+    // Never report an unknown result as a pass.
+    BR_LOG_ERROR(s_tag, "Progress of '{}' has an unknown result", name);
+    return Report::Result::Fail;
+}
+
+void Orchestrator::setProgressCallback(ProgressCallback callback)
 {
     m_progressCallback = std::move(callback);
 }

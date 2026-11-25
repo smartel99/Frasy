@@ -15,6 +15,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 #include "mcp_http_server_layer.h"
+#include "utils/mcp/uut_results.h"
 
 #include "utils/misc/deserializer.h"
 
@@ -762,56 +763,16 @@ nlohmann::json McpHttpServerLayer::handleGetResults(const nlohmann::json& /*args
         return makeToolResult("{\"error\":\"No test results available (no tests have been run)\"}", true);
     }
 
-    const auto&    map = m_orchestrator.getMap();
-    nlohmann::json results;
-    results["product"]      = m_activeProduct;
-    results["overall_pass"] = true;
-
-    nlohmann::json uutResults = nlohmann::json::array();
+    const auto&           map = m_orchestrator.getMap();
+    std::vector<UutState> states;
+    nlohmann::json        uutResults = nlohmann::json::array();
     for (const auto& uut : map.uuts) {
-        auto state = m_orchestrator.getUutState(uut);
-        bool pass  = (state == UutState::Passed);
-        if (!pass) { results["overall_pass"] = false; }
-
-        nlohmann::json uutResult;
-        uutResult["uut"]    = uut;
-        uutResult["serial"] = (uut < m_serials.size()) ? m_serials[uut] : "";
-        uutResult["pass"]   = pass;
-
-        uutResult["state"] = toString(state);
-
-        std::string reportPath = std::format("logs/last/{}.json", uut);
-        if (std::filesystem::exists(reportPath)) {
-            uutResult["report_path"] = reportPath;
-            try {
-                std::ifstream ifs(reportPath);
-                auto          report = nlohmann::json::parse(ifs);
-                if (report.contains("info")) {
-                    uutResult["duration"] =
-                      report["info"].value("time", nlohmann::json::object()).value("elapsed", 0.0);
-                }
-                int totalTests  = 0;
-                int passedTests = 0;
-                if (report.contains("sequences")) {
-                    for (auto& [seqName, seq] : report["sequences"].items()) {
-                        if (seq.contains("tests")) {
-                            for (auto& [testName, test] : seq["tests"].items()) {
-                                totalTests++;
-                                if (test.value("pass", false)) { passedTests++; }
-                            }
-                        }
-                    }
-                }
-                uutResult["tests_passed"] = passedTests;
-                uutResult["tests_total"]  = totalTests;
-            }
-            catch (...) {
-            }
-        }
-        uutResults.push_back(uutResult);
+        const auto state = m_orchestrator.getUutState(uut);
+        states.push_back(state);
+        uutResults.push_back(Mcp::makeUutResult(
+          uut, (uut < m_serials.size()) ? m_serials[uut] : "", state, std::format("logs/last/{}.json", uut)));
     }
-    results["uuts"] = uutResults;
-    return makeToolResult(results.dump());
+    return makeToolResult(Mcp::makeRunResults(m_activeProduct, states, std::move(uutResults)).dump());
 }
 
 nlohmann::json McpHttpServerLayer::handleGetPendingPopup(const nlohmann::json& /*args*/)

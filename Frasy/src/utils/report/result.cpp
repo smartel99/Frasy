@@ -83,26 +83,6 @@ std::optional<int64_t> toWholeNumber(const nlohmann::json& value)
 
 }    // namespace
 
-std::string_view toString(Result result) noexcept
-{
-    switch (result) {
-        case Result::Pass: return "pass";
-        case Result::Fail: return "fail";
-        case Result::Skipped: return "skipped";
-        case Result::Disabled: return "disabled";
-        case Result::Incomplete: return "incomplete";
-    }
-    return "unknown";
-}
-
-std::optional<Result> resultFromString(std::string_view text) noexcept
-{
-    for (const auto result : s_allResults) {
-        if (toString(result) == text) { return result; }
-    }
-    return std::nullopt;
-}
-
 int getFormatVersion(const nlohmann::json& report)
 {
     const auto info = report.find("info");
@@ -148,6 +128,33 @@ std::optional<Result> getResult(const sol::table& node)
     if (const sol::optional<bool> skipped = node["skipped"]; skipped && *skipped) { return Result::Skipped; }
     if (const sol::optional<bool> pass = node["pass"]; pass) { return *pass ? Result::Pass : Result::Fail; }
     return std::nullopt;
+}
+
+nlohmann::json ResultCounts::toJson() const
+{
+    nlohmann::json j = nlohmann::json::object();
+    for (const auto result : s_allResults) {
+        j[std::string(toString(result))] = get(result);
+    }
+    return j;
+}
+
+ResultCounts countTests(const nlohmann::json& report)
+{
+    const ResultReader reader(report);
+    ResultCounts       counts;
+    const auto         sequences = report.find("sequences");
+    if (sequences == report.end() || !sequences->is_object()) { return counts; }
+    for (const auto& sequence : *sequences) {
+        if (!reader.isScope(sequence)) { continue; }
+        const auto result = reader.read(sequence);
+        const auto tests  = sequence.find("tests");
+        if (tests == sequence.end() || !tests->is_object()) { continue; }
+        for (const auto& test : *tests) {
+            if (reader.isScope(test)) { counts.add(reader.read(test, result)); }
+        }
+    }
+    return counts;
 }
 
 bool hasFailedScope(const nlohmann::json& report)

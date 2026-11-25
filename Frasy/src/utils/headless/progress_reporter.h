@@ -17,6 +17,8 @@
 #ifndef FRASY_UTILS_HEADLESS_PROGRESS_REPORTER_H
 #define FRASY_UTILS_HEADLESS_PROGRESS_REPORTER_H
 
+#include "utils/report/result_value.h"
+
 #include <functional>
 #include <mutex>
 #include <string>
@@ -36,12 +38,12 @@ struct ProgressEvent {
         Expectation,
     };
 
-    Type        type;
-    std::size_t uut;
-    std::string name;           ///< Sequence name, test name, or expectation name
-    std::string sequence;       ///< Parent sequence (for test/expectation events)
-    std::string test;           ///< Parent test (for expectation events)
-    bool        pass = true;    ///< Result (meaningful for End and Expectation events)
+    Type                  type;
+    std::size_t           uut;
+    std::string           name;                                    ///< Sequence name, test name, or expectation name
+    std::string           sequence;                                ///< Parent sequence (for test/expectation events)
+    std::string           test;                                    ///< Parent test (for expectation events)
+    Frasy::Report::Result result = Frasy::Report::Result::Pass;    ///< Meaningful for End and Expectation events
 };
 
 /**

@@ -44,6 +44,9 @@ They overlap and are often misread:
 | `Report::*::makeReport` returns nothing for incomplete boards, and removes the stale `last_uut<N>` file | Products calling them from `onReport` | Behaviour change for incomplete boards only |
 | Report writers read `result` rather than `pass` | `onReport` hooks that change `pass` before calling a writer | Hooks must set `result` too |
 | `result` added to headless, MCP and progress outputs | CI and MCP clients | Additive, `pass` kept |
+| Progress `test_end` has `pass: false` for skipped and disabled tests (was `true`) | CI scripts reading `pass` from progress events | Read `result` to tell skipped and disabled from failed |
+| `Orchestrator::setProgressCallback` gets a `Report::Result` instead of `bool pass`; disabled and skipped tests no longer report as passed | Products installing their own progress callback | Compile error until the callback takes `Report::Result` |
+| Analyses saved by the result analyzer store per-result counts | Older Frasy versions loading them | Older versions can't load them; older files still load |
 
 `Orchestrator.HasPassed` and `HasBeenSkipped` keep their current semantics (a disabled scope counts as skipped).
 

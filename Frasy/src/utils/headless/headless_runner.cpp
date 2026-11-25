@@ -17,6 +17,7 @@
 #include "headless_runner.h"
 #include "console_popup_handler.h"
 #include "progress_reporter.h"
+#include "utils/report/result.h"
 
 #include <Brigerad/Core/Log.h>
 
@@ -106,11 +107,11 @@ int HeadlessRunner::run()
                                                            const std::string& name,
                                                            const std::string& parentA,
                                                            const std::string& parentB,
-                                                           bool               pass) {
+                                                           Report::Result     result) {
         ProgressEvent event;
-        event.uut  = uut;
-        event.name = name;
-        event.pass = pass;
+        event.uut    = uut;
+        event.name   = name;
+        event.result = result;
         if (type == "sequence_start") { event.type = ProgressEvent::SequenceStart; }
         else if (type == "sequence_end") {
             event.type = ProgressEvent::SequenceEnd;
@@ -248,14 +249,13 @@ int HeadlessRunner::reportResults()
     auto        overall = RunVerdict::Passed;
 
     struct UutResult {
-        std::size_t uut;
-        std::string serial;
-        UutState    state       = UutState::Error;
-        RunVerdict  verdict     = RunVerdict::Error;
-        int         testsPassed = 0;
-        int         testsTotal  = 0;
-        double      duration    = 0.0;
-        std::string reportPath;
+        std::size_t          uut;
+        std::string          serial;
+        UutState             state   = UutState::Error;
+        RunVerdict           verdict = RunVerdict::Error;
+        Report::ResultCounts tests;
+        double               duration = 0.0;
+        std::string          reportPath;
     };
 
     std::vector<UutResult> results;
@@ -280,19 +280,10 @@ int HeadlessRunner::reportResults()
                 if (report.contains("info")) {
                     r.duration = report["info"].value("time", nlohmann::json::object()).value("elapsed", 0.0);
                 }
-                if (report.contains("sequences")) {
-                    for (auto& [seqName, seq] : report["sequences"].items()) {
-                        if (seq.contains("tests")) {
-                            for (auto& [testName, test] : seq["tests"].items()) {
-                                r.testsTotal++;
-                                if (test.value("pass", false)) { r.testsPassed++; }
-                            }
-                        }
-                    }
-                }
+                r.tests = Report::countTests(report);
             }
-            catch (...) {
-                // Report parsing failed — leave counts at 0
+            catch (const std::exception& e) {
+                BR_LOG_ERROR(s_tag, "Unable to read the tests of '{}': {}", r.reportPath, e.what());
             }
         }
         else {
@@ -313,12 +304,14 @@ int HeadlessRunner::reportResults()
         nlohmann::json uutArray = nlohmann::json::array();
         for (const auto& r : results) {
             nlohmann::json u;
-            u["uut"]          = r.uut;
-            u["serial"]       = r.serial;
-            u["pass"]         = r.verdict == RunVerdict::Passed;
+            u["uut"]    = r.uut;
+            u["serial"] = r.serial;
+            u["pass"]   = r.verdict == RunVerdict::Passed;
+            if (const auto result = Report::getUutResult(r.state)) { u["result"] = Report::toString(*result); }
             u["state"]        = getStateLabel(r.state);
-            u["tests_passed"] = r.testsPassed;
-            u["tests_total"]  = r.testsTotal;
+            u["tests_passed"] = r.tests.get(Report::Result::Pass);
+            u["tests_total"]  = r.tests.getTotal();
+            u["test_results"] = r.tests.toJson();
             u["duration"]     = r.duration;
             u["report"]       = r.reportPath;
             uutArray.push_back(u);
@@ -351,8 +344,8 @@ int HeadlessRunner::reportResults()
                                      r.uut,
                                      r.serial,
                                      getStateLabel(r.state),
-                                     r.testsPassed,
-                                     r.testsTotal,
+                                     r.tests.get(Report::Result::Pass),
+                                     r.tests.getTotal(),
                                      r.duration,
                                      colorReset);
         }

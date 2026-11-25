@@ -312,3 +312,78 @@ TEST(ReportResult, HasFailedScope_ThrowsOnUnreadableReport)
 {
     EXPECT_THROW((void)Frasy::Report::hasFailedScope(json::parse(R"({ "sequences": {} })")), ReportFormatError);
 }
+
+// =============================================================================
+// countTests, getResult(UutState), ResultCounts::toJson
+// =============================================================================
+
+TEST(ReportCountTests, V2_CountsEachResultAndIgnoresEntriesWithoutResult)
+{
+    const auto report = json::parse(R"({ "info": { "format_version": 2, "result": "incomplete" }, "sequences": {
+        "S1": { "result": "incomplete", "tests": { "A": { "result": "pass" }, "B": { "result": "disabled" },
+                                                   "extra": { "note": "onReport" } } },
+        "S2": { "result": "fail", "tests": { "C": { "result": "fail" }, "D": { "result": "skipped" } } },
+        "extra": { "note": "onReport" } } })");
+    const auto counts = Frasy::Report::countTests(report);
+    EXPECT_EQ(counts.Counts, (std::array<size_t, 5> {1, 1, 1, 1, 0}));
+}
+
+TEST(ReportCountTests, V1_TestsOfDisabledSequenceAreDisabled)
+{
+    const auto report = json::parse(R"({ "info": { "pass": true }, "sequences": {
+        "S": { "pass": false, "skipped": true, "enabled": false, "tests": { "T": { "pass": false, "skipped": false } } },
+        "R": { "pass": true, "skipped": false, "enabled": true, "tests": { "U": { "pass": true } } } } })");
+    const auto counts = Frasy::Report::countTests(report);
+    EXPECT_EQ(counts.get(Result::Disabled), 1U);
+    EXPECT_EQ(counts.get(Result::Pass), 1U);
+    EXPECT_EQ(counts.getTotal(), 2U);
+}
+
+TEST(ReportCountTests, NoSequences_Zero)
+{
+    EXPECT_EQ(Frasy::Report::countTests(json::parse(R"({ "info": { "pass": true } })")).getTotal(), 0U);
+}
+
+TEST(ReportCountTests, UnknownResult_Throws)
+{
+    const auto report = json::parse(R"({ "info": { "format_version": 2, "result": "fail" }, "sequences": {
+        "S": { "result": "fail", "tests": { "T": { "result": "great" } } } } })");
+    EXPECT_THROW((void)Frasy::Report::countTests(report), ReportFormatError);
+}
+
+TEST(ReportUutResult, EachState)
+{
+    using Frasy::UutState;
+    using Frasy::Report::getUutResult;
+    EXPECT_EQ(getUutResult(UutState::Passed), Result::Pass);
+    EXPECT_EQ(getUutResult(UutState::Failed), Result::Fail);
+    EXPECT_EQ(getUutResult(UutState::Disabled), Result::Disabled);
+    EXPECT_EQ(getUutResult(UutState::IncompletePassed), Result::Incomplete);
+    EXPECT_EQ(getUutResult(UutState::IncompleteFailed), Result::Incomplete);
+    for (const auto state : {UutState::Idle, UutState::Waiting, UutState::Running, UutState::Error}) {
+        EXPECT_EQ(getUutResult(state), std::nullopt) << Frasy::toString(state);
+    }
+}
+
+TEST(ReportResultCounts, ToJson_EveryResultKeyed)
+{
+    Frasy::Report::ResultCounts counts;
+    counts.add(Result::Pass);
+    counts.add(Result::Incomplete);
+    counts.add(Result::Incomplete);
+    EXPECT_EQ(counts.toJson(),
+              json::parse(R"({ "pass": 1, "fail": 0, "skipped": 0, "disabled": 0, "incomplete": 2 })"));
+}
+
+TEST(ReportCountTests, NoInfo_Throws)
+{
+    EXPECT_THROW((void)Frasy::Report::countTests(json::parse(R"({ "sequences": {} })")), ReportFormatError);
+}
+
+TEST(ReportCountTests, SequenceWithoutTests_Skipped)
+{
+    const auto report = json::parse(R"({ "info": { "format_version": 2, "result": "pass" }, "sequences": {
+        "A": { "result": "pass" }, "B": { "result": "pass", "tests": [ 1, 2 ] },
+        "C": { "result": "pass", "tests": { "T": { "result": "pass" } } } } })");
+    EXPECT_EQ(Frasy::Report::countTests(report).getTotal(), 1U);
+}

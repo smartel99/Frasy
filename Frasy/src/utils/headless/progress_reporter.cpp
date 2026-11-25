@@ -22,6 +22,36 @@
 #include <json.hpp>
 
 namespace Frasy::Headless {
+namespace {
+using Frasy::Report::Result;
+
+/** @return The tag of a result in human output, e.g. "[PASS]". */
+constexpr std::string_view getTag(Result result)
+{
+    switch (result) {
+        case Result::Pass: return "[PASS]";
+        case Result::Fail: return "[FAIL]";
+        case Result::Skipped: return "[SKIPPED]";
+        case Result::Disabled: return "[DISABLED]";
+        case Result::Incomplete: return "[INCOMPLETE]";
+    }
+    return "[UNKNOWN]";
+}
+
+/** @return The ANSI colour of a result: green for pass, red for fail, yellow for anything else. */
+constexpr const char* getColor(Result result)
+{
+    switch (result) {
+        case Result::Pass: return "\033[32m";
+        case Result::Fail: return "\033[31m";
+        case Result::Skipped:
+        case Result::Disabled:
+        case Result::Incomplete: break;
+    }
+    return "\033[33m";
+}
+}    // namespace
+
 
 ProgressReporter::ProgressReporter(const std::string&              outputFormat,
                                    const std::string&              product,
@@ -69,7 +99,8 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
             case ProgressEvent::SequenceEnd:
                 j["type"]     = "sequence_end";
                 j["sequence"] = event.name;
-                j["pass"]     = event.pass;
+                j["pass"]     = event.result == Frasy::Report::Result::Pass;
+                j["result"]   = Frasy::Report::toString(event.result);
                 break;
             case ProgressEvent::TestStart:
                 j["type"]     = "test_start";
@@ -80,28 +111,27 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
                 j["type"]     = "test_end";
                 j["sequence"] = event.sequence;
                 j["test"]     = event.name;
-                j["pass"]     = event.pass;
+                j["pass"]     = event.result == Frasy::Report::Result::Pass;
+                j["result"]   = Frasy::Report::toString(event.result);
                 break;
             case ProgressEvent::Expectation:
                 j["type"]     = "expectation";
                 j["sequence"] = event.sequence;
                 j["test"]     = event.test;
                 j["name"]     = event.name;
-                j["pass"]     = event.pass;
+                j["pass"]     = event.result == Frasy::Report::Result::Pass;
+                j["result"]   = Frasy::Report::toString(event.result);
                 break;
         }
         std::cout << j.dump() << "\n" << std::flush;
     }
     else {
-        // ANSI color codes
         constexpr auto colorReset = "\033[0m";
-        constexpr auto colorGreen = "\033[32m";
-        constexpr auto colorRed   = "\033[31m";
 
-        // White (no color) for start events, green for pass, red for fail
+        // No colour for start events.
         const char* color = colorReset;
         if (event.type != ProgressEvent::SequenceStart && event.type != ProgressEvent::TestStart) {
-            color = event.pass ? colorGreen : colorRed;
+            color = getColor(event.result);
         }
 
         switch (event.type) {
@@ -115,7 +145,7 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
                                          color,
                                          timestamp(),
                                          event.uut,
-                                         event.pass ? "[PASS]" : "[FAIL]",
+                                         getTag(event.result),
                                          event.name,
                                          colorReset)
                           << std::flush;
@@ -135,7 +165,7 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
                                          color,
                                          timestamp(),
                                          event.uut,
-                                         event.pass ? "[PASS]" : "[FAIL]",
+                                         getTag(event.result),
                                          event.sequence,
                                          event.name,
                                          colorReset)
@@ -146,7 +176,7 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
                                          color,
                                          timestamp(),
                                          event.uut,
-                                         event.pass ? "[PASS]" : "[FAIL]",
+                                         getTag(event.result),
                                          event.name,
                                          colorReset)
                           << std::flush;

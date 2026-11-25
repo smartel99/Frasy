@@ -17,8 +17,8 @@ protected:
         lua.script_file(getLuaBaseDir() + "/lua/core/framework/expectation/utils.lua");
         lua.script(R"(
             progress = {}
-            __progress.report = function(kind, uut, name, sequence, test, pass)
-                if kind == 'expectation' then table.insert(progress, pass) end
+            __progress.report = function(kind, uut, name, sequence, test, result)
+                if kind == 'expectation' then table.insert(progress, result == 'pass') end
             end
         )");
     }

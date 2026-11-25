@@ -66,16 +66,6 @@ ResultCounts loadResultCounts(const nlohmann::json& data)
     return counts;
 }
 
-/** @return The counts as an object keyed by result name ("pass", "fail", ...). */
-nlohmann::json saveResultCounts(const ResultCounts& counts)
-{
-    nlohmann::json j = nlohmann::json::object();
-    for (const auto result : Report::s_allResults) {
-        j[std::string(Report::toString(result))] = counts.get(result);
-    }
-    return j;
-}
-
 nlohmann::json LoadJson(const std::string& path)
 {
     BR_PROFILE_FUNCTION();
@@ -279,7 +269,7 @@ nlohmann::json SaveTest(const ResultAnalysisResults::Test& test)
     BR_PROFILE_FUNCTION();
     nlohmann::json j      = {};
     j["name"]             = test.Name;
-    j["results"]          = saveResultCounts(test.Results);
+    j["results"]          = test.Results.toJson();
     j["durations"]        = test.Durations;
     j["average_duration"] = test.AverageDuration;
     j["expectations"]     = {};
@@ -295,7 +285,7 @@ nlohmann::json SaveSequence(const ResultAnalysisResults::Sequence& sequence)
     BR_PROFILE_FUNCTION();
     nlohmann::json j      = {};
     j["name"]             = sequence.Name;
-    j["results"]          = saveResultCounts(sequence.Results);
+    j["results"]          = sequence.Results.toJson();
     j["durations"]        = sequence.Durations;
     j["average_duration"] = sequence.AverageDuration;
     j["tests"]            = {};
@@ -312,7 +302,7 @@ nlohmann::json SaveLocation(const ResultAnalysisResults::Location& location)
     nlohmann::json j      = {};
     j["name"]             = location.Name;
     j["version"]          = location.Version;
-    j["results"]          = saveResultCounts(location.Results);
+    j["results"]          = location.Results.toJson();
     j["durations"]        = location.Durations;
     j["average_duration"] = location.AverageDuration;
     j["sequences"]        = {};

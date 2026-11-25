@@ -22,6 +22,9 @@
 #ifndef FRASY_UTILS_REPORT_RESULT_H
 #define FRASY_UTILS_REPORT_RESULT_H
 
+#include "result_value.h"
+#include "utils/UutState.h"
+
 #include <json.hpp>
 #include <sol/sol.hpp>
 
@@ -33,22 +36,43 @@
 
 namespace Frasy::Report {
 
-/** Outcome of a test, sequence, expectation or of the whole report (`info`). */
-enum class Result : uint8_t {
-    Pass,
-    Fail,
-    Skipped,
-    Disabled,
-    Incomplete,
-};
+/** How many times a scope ended with each result. */
+struct ResultCounts {
+    std::array<size_t, s_allResults.size()> Counts = {};    //!< Indexed by Result.
 
-/** Every result, in enumeration order. */
-inline constexpr std::array s_allResults = {
-  Result::Pass,
-  Result::Fail,
-  Result::Skipped,
-  Result::Disabled,
-  Result::Incomplete,
+    void add(Result result) { Counts.at(static_cast<size_t>(result))++; }
+
+    [[nodiscard]] size_t get(Result result) const { return Counts.at(static_cast<size_t>(result)); }
+
+    [[nodiscard]] size_t getTotal() const
+    {
+        size_t total = 0;
+        for (const auto count : Counts) {
+            total += count;
+        }
+        return total;
+    }
+
+    /** Share of all runs that ended with @p result, in percent. 0 without any run. */
+    [[nodiscard]] float getPercent(Result result) const
+    {
+        const auto total = getTotal();
+        return total == 0 ? 0.0f : static_cast<float>(get(result)) * 100.0f / static_cast<float>(total);
+    }
+
+    /**
+     * @brief Pass rate among the runs that got a verdict, in percent.
+     * Skipped, disabled and incomplete runs are left out: they say nothing about the board's quality.
+     * @return pass / (pass + fail), 0 without any verdict.
+     */
+    [[nodiscard]] float getPassRate() const
+    {
+        const auto verdicts = get(Result::Pass) + get(Result::Fail);
+        return verdicts == 0 ? 0.0f : static_cast<float>(get(Result::Pass)) * 100.0f / static_cast<float>(verdicts);
+    }
+
+    /** @return The counts as an object keyed by result name ("pass", "fail", ...). */
+    [[nodiscard]] nlohmann::json toJson() const;
 };
 
 /** Report layout written by the current orchestrator (`info.format_version`). */
@@ -59,18 +83,6 @@ class ReportFormatError : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
 };
-
-/**
- * @brief Name of a result as written in v2 reports ("pass", "fail", ...).
- * @return "unknown" for a value outside the enumeration.
- */
-[[nodiscard]] std::string_view toString(Result result) noexcept;
-
-/**
- * @brief Parse a result as written in v2 reports.
- * @return The result, or nothing if @p text isn't a known result.
- */
-[[nodiscard]] std::optional<Result> resultFromString(std::string_view text) noexcept;
 
 /**
  * @brief Layout version of a report.
@@ -139,6 +151,33 @@ private:
  * @throws ReportFormatError if the report or a scope result can't be read.
  */
 [[nodiscard]] bool hasFailedScope(const nlohmann::json& report);
+
+/**
+ * @brief How many tests of a report ended with each result.
+ * @param report The whole report.
+ * @throws ReportFormatError if the report or a scope result can't be read.
+ */
+[[nodiscard]] ResultCounts countTests(const nlohmann::json& report);
+
+/**
+ * @brief Result of a UUT: its report's `info.result`, or Disabled for a UUT that was turned off and never ran.
+ * @return The result, or nothing for states that aren't one (idle, waiting, running, error).
+ */
+[[nodiscard]] constexpr std::optional<Result> getUutResult(UutState state) noexcept
+{
+    switch (state) {
+        case UutState::Passed: return Result::Pass;
+        case UutState::Failed: return Result::Fail;
+        case UutState::Disabled: return Result::Disabled;
+        case UutState::IncompletePassed:
+        case UutState::IncompleteFailed: return Result::Incomplete;
+        case UutState::Idle:
+        case UutState::Waiting:
+        case UutState::Running:
+        case UutState::Error: break;
+    }
+    return std::nullopt;
+}
 
 }    // namespace Frasy::Report
 

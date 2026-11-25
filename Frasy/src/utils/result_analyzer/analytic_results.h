@@ -30,42 +30,7 @@
 #include <vector>
 
 namespace Frasy::Analyzers {
-/** How many times a scope ended with each result. */
-struct ResultCounts {
-    std::array<size_t, Report::s_allResults.size()> Counts = {};    //!< Indexed by Report::Result.
-
-    void add(Report::Result result) { Counts.at(static_cast<size_t>(result))++; }
-
-    [[nodiscard]] size_t get(Report::Result result) const { return Counts.at(static_cast<size_t>(result)); }
-
-    [[nodiscard]] size_t getTotal() const
-    {
-        size_t total = 0;
-        for (const auto count : Counts) {
-            total += count;
-        }
-        return total;
-    }
-
-    /** Share of all runs that ended with @p result, in percent. 0 without any run. */
-    [[nodiscard]] float getPercent(Report::Result result) const
-    {
-        const auto total = getTotal();
-        return total == 0 ? 0.0f : static_cast<float>(get(result)) * 100.0f / static_cast<float>(total);
-    }
-
-    /**
-     * @brief Pass rate among the runs that got a verdict, in percent.
-     * Skipped, disabled and incomplete runs are left out: they say nothing about the board's quality.
-     * @return pass / (pass + fail), 0 without any verdict.
-     */
-    [[nodiscard]] float getPassRate() const
-    {
-        const auto verdicts = get(Report::Result::Pass) + get(Report::Result::Fail);
-        return verdicts == 0 ? 0.0f
-                             : static_cast<float>(get(Report::Result::Pass)) * 100.0f / static_cast<float>(verdicts);
-    }
-};
+using Report::ResultCounts;
 
 struct ResultAnalysisResults {
     struct Expectation {

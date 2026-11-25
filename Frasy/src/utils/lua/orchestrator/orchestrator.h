@@ -38,6 +38,14 @@
 #include <vector>
 
 namespace Frasy::Lua {
+/** Progress of an execution: event type, UUT, name, parent sequence, parent test, result. */
+using ProgressCallback = std::function<void(const std::string& type,
+                                            std::size_t        uut,
+                                            const std::string& name,
+                                            const std::string& parentA,
+                                            const std::string& parentB,
+                                            Report::Result     result)>;
+
 class Orchestrator {
 public:
     class Interface;
@@ -169,19 +177,25 @@ public:
 
     [[nodiscard]] const Map& getMap() const { return m_map; }
 
-    [[nodiscard]] bool        isRunning() const;
-    [[nodiscard]] UutState    getUutState(std::size_t uut) const;
-    void                      setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
-    void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
-    void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
-    void                      setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback);
-    void                      setProgressCallback(std::function<void(const std::string& type,
-                                                std::size_t        uut,
-                                                const std::string& name,
-                                                const std::string& parentA,
-                                                const std::string& parentB,
-                                                bool               pass)> callback);
-    [[nodiscard]] std::string getTitle() const { return m_title; }
+    [[nodiscard]] bool     isRunning() const;
+    [[nodiscard]] UutState getUutState(std::size_t uut) const;
+    void                   setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
+    void                   setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
+    void                   setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
+    void                   setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback);
+    /**
+     * @brief Receive the progress of the execution stage: sequences and tests starting and ending, expectations.
+     * The result is Pass for start events.
+     */
+    void setProgressCallback(ProgressCallback callback);
+
+    /**
+     * @brief Result of a progress event sent by Lua.
+     * @param result A result name ("pass", "fail", ...).
+     * @return The result, or Fail (logged) for anything else, so an unknown result never reads as a pass.
+     */
+    [[nodiscard]] static Report::Result toProgressResult(std::string_view name, const sol::object& result);
+    [[nodiscard]] std::string           getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
     [[nodiscard]] std::mutex* getExpectationsMutex(std::size_t uut)
@@ -254,16 +268,10 @@ private:
         return lua.create_table();
     };
     std::function<void(sol::state_view, std::size_t, Stage)> m_popupImport;
-    std::function<void(const std::string& type,
-                       std::size_t        uut,
-                       const std::string& name,
-                       const std::string& parentA,
-                       const std::string& parentB,
-                       bool               pass)>
-                                             m_progressCallback;
-    Models::Solution                         m_solution = {};
-    std::vector<std::vector<Expectation>>    m_expectationsVectors;
-    std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes;
+    ProgressCallback                                         m_progressCallback;
+    Models::Solution                                         m_solution = {};
+    std::vector<std::vector<Expectation>>                    m_expectationsVectors;
+    std::vector<std::unique_ptr<std::mutex>>                 m_expectationsMutexes;
 
     CanOpen::CanOpen* m_canOpen = nullptr;
 
