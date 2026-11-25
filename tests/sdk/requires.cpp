@@ -26,7 +26,8 @@ TEST_F(SdkRequiresTest, Requires_UnmetRequirementThrows)
     sol::protected_function_result result = lua.safe_script(R"(
         local req = RuntimeRequirement:New(function() return false end, "test failed")
         Requires(req)
-    )", sol::script_pass_on_error);
+    )",
+                                                            sol::script_pass_on_error);
     EXPECT_FALSE(result.valid());
 }
 
@@ -51,9 +52,11 @@ TEST_F(SdkRequiresTest, Requires_UnmetThrowsWithReasonInWhat)
 
 TEST_F(SdkRequiresTest, RequirementSpecifier_CreatesRuntimeRequirement)
 {
-    auto isMet = lua.script(R"(
+    auto isMet = lua
+                   .script(R"(
         local req = RequirementSpecifier(function() return true end)
         return req:IsMet()
-    )").get<bool>();
+    )")
+                   .get<bool>();
     EXPECT_TRUE(isMet);
 }
