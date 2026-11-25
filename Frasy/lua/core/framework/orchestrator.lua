@@ -115,11 +115,38 @@ local function HasFailedExpectation(test)
     return false
 end
 
---- A sequence that doesn't run takes its tests along with it.
+--- Declares the tests the solution lists for a sequence that its body didn't declare: a disabled sequence never runs
+--- its body, and a skipped one stops at its `Requires`.
+---@param name string
+---@param sequence Sequence
+local function DeclareListedTests(name, sequence)
+    local values = Context.orchestrator.values
+    values[name] = values[name] or {}
+    for _, section in pairs(Context.orchestrator.solution or {}) do
+        for _, sqStage in ipairs(section) do
+            for _, sq in ipairs(sqStage) do
+                if sq.name == name then
+                    for _, tStage in ipairs(sq.tests) do
+                        for _, test in ipairs(tStage) do
+                            if sequence.tests[test] == nil then
+                                sequence.tests[test] = Test:New(nil, test)
+                                values[name][test] = values[name][test] or {}
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+--- A sequence that doesn't run takes its tests along with it, including those its body didn't get to declare.
+---@param name string
 ---@param sequence Sequence
 ---@param value ScopeResultValue
 ---@param reason string
-local function SetSequenceResult(sequence, value, reason)
+local function SetSequenceResult(name, sequence, value, reason)
+    DeclareListedTests(name, sequence)
     sequence.result:Set(value, reason)
     for _, test in pairs(sequence.tests) do
         test.result:Set(value, reason)
@@ -165,10 +192,10 @@ function Orchestrator.RunSequence(sIndex, scope)
                     sequence.result:Set(ScopeResult.Value.Fail, err.what)
                     stop(err)
                 end
-                SetSequenceResult(sequence, ScopeResult.Value.Skipped, err.what)
+                SetSequenceResult(scope.sequence, sequence, ScopeResult.Value.Skipped, err.what)
             end
         else
-            SetSequenceResult(sequence, ScopeResult.Value.Disabled, "Disabled")
+            SetSequenceResult(scope.sequence, sequence, ScopeResult.Value.Disabled, "Disabled")
         end
     end
 

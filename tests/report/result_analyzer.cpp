@@ -133,6 +133,9 @@ TEST_F(ResultAnalyzerTest, MixedSet_CountedPerResult)
     EXPECT_EQ(t1.Results.get(Result::Pass), 2U);
     EXPECT_EQ(t1.Results.get(Result::Disabled), 1U);
     EXPECT_EQ(t1.Results.get(Result::Skipped), 1U);
+    // Only the boards where T1 ran give it a duration.
+    EXPECT_EQ(t1.Durations.size(), 2U);
+    EXPECT_DOUBLE_EQ(t1.AverageDuration, 1.0);
 
     const auto& t2 = sequence.Tests.at("T2");
     EXPECT_EQ(t2.Results.get(Result::Pass), 2U);
@@ -211,6 +214,8 @@ TEST_F(ResultAnalyzerTest, V1SkippedAndDisabledSequences_TestsTakeTheirResult)
     EXPECT_EQ(sequences.at("Skipped").Tests.at("T").Results.get(Result::Skipped), 1U);
     EXPECT_EQ(sequences.at("Disabled").Results.get(Result::Disabled), 1U);
     EXPECT_EQ(sequences.at("Disabled").Tests.at("T").Results.get(Result::Disabled), 1U);
+    EXPECT_TRUE(sequences.at("Skipped").Tests.at("T").Durations.empty());
+    EXPECT_TRUE(sequences.at("Disabled").Tests.at("T").Durations.empty());
 }
 
 // =============================================================================

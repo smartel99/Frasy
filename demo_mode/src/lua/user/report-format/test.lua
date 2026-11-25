@@ -33,9 +33,8 @@ Sequence("Mixed", function()
 end)
 
 Sequence("Not Applicable", function()
+    Requires(NotApplicable())
     Test("Never Runs", function()
         Expect(true, "Never checked"):ToBeTrue()
     end)
-    -- After the tests, so they are declared and reported as skipped.
-    Requires(NotApplicable())
 end)

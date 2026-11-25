@@ -328,9 +328,15 @@ void ResultAnalyzer::renderTestAnalysisResults(const Analyzers::ResultAnalysisRe
     renderResultCounts("Analyzed", test.Results);
 
 
-    const auto [min, max] = std::minmax_element(test.Durations.begin(), test.Durations.end());
-    ImGui::BulletText(
-      "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)", test.AverageDuration, *min, *max);
+    if (test.Durations.empty()) {
+        // Skipped or disabled on every board.
+        ImGui::BulletText("Average Duration: never ran");
+    }
+    else {
+        const auto [min, max] = std::minmax_element(test.Durations.begin(), test.Durations.end());
+        ImGui::BulletText(
+          "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)", test.AverageDuration, *min, *max);
+    }
 
     ImGui::Separator();
 

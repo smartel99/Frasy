@@ -189,6 +189,83 @@ TEST_F(ReportTest, SequenceThatNeverRan_Fails)
     EXPECT_EQ(info(), "fail");
 }
 
+// =============================================================================
+// Sequences that don't run still report the tests the solution lists
+// =============================================================================
+
+TEST_F(ReportTest, DisabledSequence_ReportsListedTests)
+{
+    lua.script("Define({ { name = 'A', tests = { { name = 'T1' } } }, { name = 'B', tests = { { name = 'T1' } } } })");
+    // A disabled sequence never runs its body, so its tests are never declared.
+    lua.script("Context.orchestrator.sequences.B.tests = {}");
+    lua.script("Context.orchestrator.enable_list = { B = { enabled = false } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    compile();
+    EXPECT_EQ(lua.script("return saved.sequences.B.tests.T1.result").get<std::string>(), "disabled");
+    EXPECT_EQ(lua.script("return saved.sequences.B.tests.T1.reason").get<std::string>(), "Disabled");
+    EXPECT_EQ(info(), "incomplete");
+}
+
+TEST_F(ReportTest, SkippedSequence_ReportsTestsDeclaredAfterRequires)
+{
+    lua.script(R"(Define({ { name = 'A', func = function() error(UnmetRequirement('no')) end,
+                             tests = { { name = 'T1' }, { name = 'T2', section = 2 } } } }))");
+    lua.script("Context.orchestrator.sequences.A.tests = {}");
+    ASSERT_TRUE(runSection(1)) << lastError;
+    ASSERT_TRUE(runSection(2)) << lastError;
+    compile();
+    for (const auto* test : {"T1", "T2"}) {
+        EXPECT_EQ(lua.script(std::string("return saved.sequences.A.tests.") + test + ".result").get<std::string>(),
+                  "skipped")
+          << test;
+    }
+    EXPECT_EQ(info(), "pass");
+}
+
+TEST_F(ReportTest, DisabledSequence_SolutionFromJson)
+{
+    lua.script("Define({ { name = 'A', tests = { { name = 'T1' } } }, { name = 'B', tests = { { name = 'T1' } } } })");
+    lua.script(R"(
+        local Json = require('lua/core/vendor/json')
+        Context.orchestrator.solution = Json.decode(Json.encode(Context.orchestrator.solution))
+        Context.orchestrator.sequences.B.tests = {}
+        Context.orchestrator.enable_list = { B = { enabled = false } }
+    )");
+    ASSERT_TRUE(runSection()) << lastError;
+    compile();
+    EXPECT_EQ(lua.script("return saved.sequences.B.tests.T1.result").get<std::string>(), "disabled");
+}
+
+TEST_F(ReportTest, ListedTest_ValuesAndRequirementsWork)
+{
+    lua.script("Scope = require('lua/core/framework/scope')");
+    lua.script(R"(Define({
+        { name = 'A', tests = { { name = 'T1' } } },
+        { name = 'B', func = function()
+            hasValue = Orchestrator.HasValue(Scope:New('A', 'T1'), 'x')
+            if not Orchestrator.HasPassed(Scope:New('A', 'T1')) then error(UnmetRequirement('A.T1')) end
+        end, tests = { { name = 'T1' } } },
+    }))");
+    lua.script("Context.orchestrator.sequences.A.tests = {}");
+    lua.script("Context.orchestrator.enable_list = { A = { enabled = false } }");
+    // A's listed test exists: B finds no value in it, and is skipped by its unmet requirement, as the execution
+    // `ToPass()` requirement does.
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_FALSE(lua.script("return hasValue").get<bool>());
+    EXPECT_EQ(result("B"), "skipped");
+}
+
+TEST_F(ReportTest, SkippedSequence_DeclaredTestsKept)
+{
+    lua.script(R"(Define({ { name = 'A', func = function() error(UnmetRequirement('no')) end,
+                             tests = { { name = 'T1' }, { name = 'T2' } } } }))");
+    lua.script("Context.orchestrator.sequences.A.tests.T2 = nil; declared = Context.orchestrator.sequences.A.tests.T1");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_TRUE(lua.script("return Context.orchestrator.sequences.A.tests.T1 == declared").get<bool>());
+    EXPECT_EQ(result("A", "T1"), "skipped");
+    EXPECT_EQ(result("A", "T2"), "skipped");
+}
+
 TEST_F(ReportTest, ScopeResultsAreReported)
 {
     lua.script("Define({ { name = 'A', tests = { { name = 'T1' }, { name = 'T2' } } } })");
@@ -374,4 +451,19 @@ TEST_F(ReportFormatTest, Unknown_Errors)
         EXPECT_FALSE(run.valid()) << format;
     }
     EXPECT_EQ(lua.script("return Context.map.reportFormat").get<int>(), 1);
+}
+
+TEST_F(ReportV1Test, ListedTests_Counted)
+{
+    lua.script("Define({ { name = 'A', tests = { { name = 'T1' } } }, { name = 'B', tests = { { name = 'T1' } } } })");
+    lua.script("Context.orchestrator.sequences.B.tests = {}");
+    lua.script("Context.orchestrator.enable_list = { B = { enabled = false } }");
+    ASSERT_TRUE(runSection()) << lastError;
+    compile();
+    const auto report =
+      nlohmann::json::parse(lua.script("return require('lua/core/vendor/json').encode(saved)").get<std::string>());
+    const auto counts = Frasy::Report::countTests(report);
+    EXPECT_EQ(counts.get(Frasy::Report::Result::Pass), 1U);
+    EXPECT_EQ(counts.get(Frasy::Report::Result::Disabled), 1U);
+    EXPECT_EQ(Frasy::Report::ResultReader(report).getInfo(), Frasy::Report::Result::Incomplete);
 }

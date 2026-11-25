@@ -241,11 +241,15 @@ void ResultAnalyzer::AnalyzeTest(const Report::ResultReader&  reader,
                                  Report::Result               sequenceResult,
                                  ResultAnalysisResults::Test& results)
 {
-    results.Results.add(reader.read(test, sequenceResult));
+    const auto result = reader.read(test, sequenceResult);
+    results.Results.add(result);
 
-    results.Durations.push_back(test.at("time").at("process").get<double>());
-    results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
-    results.AverageDuration /= static_cast<double>(results.Durations.size());
+    // Tests that didn't run have no duration to average.
+    if (result != Report::Result::Skipped && result != Report::Result::Disabled) {
+        results.Durations.push_back(test.at("time").at("process").get<double>());
+        results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
+        results.AverageDuration /= static_cast<double>(results.Durations.size());
+    }
 
     auto expectations = test.at("expectations");
     for (auto expectation : expectations) {
