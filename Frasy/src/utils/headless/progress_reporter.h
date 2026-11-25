@@ -38,10 +38,10 @@ struct ProgressEvent {
 
     Type        type;
     std::size_t uut;
-    std::string name;        ///< Sequence name, test name, or expectation name
-    std::string sequence;    ///< Parent sequence (for test/expectation events)
-    std::string test;        ///< Parent test (for expectation events)
-    bool        pass = true; ///< Result (meaningful for End and Expectation events)
+    std::string name;           ///< Sequence name, test name, or expectation name
+    std::string sequence;       ///< Parent sequence (for test/expectation events)
+    std::string test;           ///< Parent test (for expectation events)
+    bool        pass = true;    ///< Result (meaningful for End and Expectation events)
 };
 
 /**

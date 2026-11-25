@@ -44,8 +44,7 @@ void ProgressReporter::reportStart()
         std::cout << j.dump() << "\n" << std::flush;
     }
     else {
-        std::cout << std::format("[{}] Starting: product=\"{}\" uuts={}\n",
-                                 timestamp(), m_product, m_serials.size())
+        std::cout << std::format("[{}] Starting: product=\"{}\" uuts={}\n", timestamp(), m_product, m_serials.size())
                   << std::flush;
     }
 }
@@ -107,33 +106,49 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
 
         switch (event.type) {
             case ProgressEvent::SequenceStart:
-                std::cout << std::format("{}[{}] [UUT{}] >> {}{}\n",
-                                         color, timestamp(), event.uut, event.name, colorReset)
+                std::cout << std::format(
+                               "{}[{}] [UUT{}] >> {}{}\n", color, timestamp(), event.uut, event.name, colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::SequenceEnd:
                 std::cout << std::format("{}[{}] [UUT{}] {} << {}{}\n",
-                                         color, timestamp(), event.uut,
-                                         event.pass ? "[PASS]" : "[FAIL]", event.name, colorReset)
+                                         color,
+                                         timestamp(),
+                                         event.uut,
+                                         event.pass ? "[PASS]" : "[FAIL]",
+                                         event.name,
+                                         colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::TestStart:
                 std::cout << std::format("{}[{}] [UUT{}]   > {} > {}{}\n",
-                                         color, timestamp(), event.uut, event.sequence, event.name, colorReset)
+                                         color,
+                                         timestamp(),
+                                         event.uut,
+                                         event.sequence,
+                                         event.name,
+                                         colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::TestEnd:
                 std::cout << std::format("{}[{}] [UUT{}]   {} {} > {}{}\n",
-                                         color, timestamp(), event.uut,
+                                         color,
+                                         timestamp(),
+                                         event.uut,
                                          event.pass ? "[PASS]" : "[FAIL]",
-                                         event.sequence, event.name, colorReset)
+                                         event.sequence,
+                                         event.name,
+                                         colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::Expectation:
                 std::cout << std::format("{}[{}] [UUT{}]     {} {}{}\n",
-                                         color, timestamp(), event.uut,
+                                         color,
+                                         timestamp(),
+                                         event.uut,
                                          event.pass ? "[PASS]" : "[FAIL]",
-                                         event.name, colorReset)
+                                         event.name,
+                                         colorReset)
                           << std::flush;
                 break;
         }
@@ -142,10 +157,10 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
 
 std::string ProgressReporter::timestamp()
 {
-    auto        now  = std::chrono::system_clock::now();
-    auto        time = std::chrono::system_clock::to_time_t(now);
-    auto        ms   = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-    std::tm     tm   = {};
+    auto    now  = std::chrono::system_clock::now();
+    auto    time = std::chrono::system_clock::to_time_t(now);
+    auto    ms   = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    std::tm tm   = {};
     localtime_s(&tm, &time);
     return std::format("{:02}:{:02}:{:02}.{:03}", tm.tm_hour, tm.tm_min, tm.tm_sec, ms.count());
 }

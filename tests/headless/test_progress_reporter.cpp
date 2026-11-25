@@ -3,9 +3,9 @@
  * @brief   Unit tests for progress reporter event formatting.
  */
 #include <gtest/gtest.h>
-#include <utils/headless/progress_reporter.h>
 #include <json.hpp>
 #include <sstream>
+#include <utils/headless/progress_reporter.h>
 
 using namespace Frasy::Headless;
 using json = nlohmann::json;
