@@ -41,7 +41,10 @@ local function ErrorHandler(err)
     if type(err) ~= "table" then
         err = GenericError(tostring(err))
     end
-    err.what = tostring(err.what) .. "\r\n" .. debug.traceback(nil, 2)
+    -- An unmet requirement is a skip, not a bug: its reason is enough.
+    if err.code ~= UnmetRequirement().code then
+        err.what = tostring(err.what) .. "\r\n" .. debug.traceback(nil, 2)
+    end
     return err
 end
 

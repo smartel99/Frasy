@@ -114,8 +114,11 @@ Evaluated live during execution; if unmet, the current scope is **skipped** (not
 ```lua
 Requires(RequirementSpecifier(function()
     return someCondition == true
-end))
+end, "Some condition holds"))
 ```
+
+Unlike the methods above, a custom requirement is evaluated in **every stage**, generation included: return `true`
+outside `Stage.execution` when the condition only makes sense at run time. Its optional reason becomes the skip reason.
 
 See [Test Lifecycle](test-lifecycle.md) for how requirements interact with the generation and execution stages.
 

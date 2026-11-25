@@ -102,9 +102,30 @@ function Test(name, func)
     end
 end
 
+--- Where a requirement without a reason was required: the line of the `Requires()` call, in its file's path under
+--- `lua/user`, or its file name.
+---@param info debuginfo?
+---@return string
+local function RequirementLocation(info)
+    -- A tail call or `pcall(Requires, ...)` leaves no Lua line to point at.
+    if info == nil or info.what == "C" or (info.currentline or -1) < 0 then
+        return "requirement (no reason given)"
+    end
+    local source = info.source or ""
+    if string.sub(source, 1, 1) == "@" then
+        source = string.gsub(string.sub(source, 2), "\\", "/")
+        source = string.match(source, "lua/user/(.*)$") or string.match(source, "([^/]+)$") or source
+    else
+        -- Loaded from a string: its source is the code itself.
+        source = info.short_src
+    end
+    return string.format("requirement at %s:%d", source, info.currentline)
+end
+
+--- Skips the current scope if @p requirement is unmet. The skip reason tells which requirement.
 function Requires(requirement)
     if not requirement:IsMet() then
-        error(UnmetRequirement(requirement.reason))
+        error(UnmetRequirement(requirement.reason or RequirementLocation(debug.getinfo(2, "Sl"))))
     end
 end
 
@@ -114,8 +135,13 @@ function Sync()
     return requirement
 end
 
-function RequirementSpecifier(func)
-    return RuntimeRequirement:New(func)
+---@param func fun(): boolean `true` when met.
+---@param reason string? Says what is required, in the skip reason when unmet.
+function RequirementSpecifier(func, reason)
+    if reason ~= nil and type(reason) ~= "string" then
+        error("RequirementSpecifier: reason must be a string, got " .. type(reason))
+    end
+    return RuntimeRequirement:New(func, reason)
 end
 
 --- Expect

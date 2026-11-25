@@ -355,3 +355,31 @@ TEST_F(GenerateTest, ForwardReferenceTestLevel)
     buildTestOrderList("Seq");
     EXPECT_LT(testPositionOf("T1"), testPositionOf("T2"));
 }
+
+TEST_F(GenerateTest, UnmetCustomRequirement_FailsGeneration)
+{
+    // Custom requirements are evaluated during generation too.
+    lua.script(R"(
+        Sequence("Seq", function()
+            Test("T1", function()
+                Requires(RequirementSpecifier(function() return false end, "never met"))
+            end)
+        end)
+    )");
+    auto result = lua.safe_script("Orchestrator.Generate()", sol::script_pass_on_error);
+    EXPECT_FALSE(result.valid());
+}
+
+TEST_F(GenerateTest, CustomRequirementGuardedByStage_Generates)
+{
+    lua.script(R"(
+        Sequence("Seq", function()
+            Test("T1", function()
+                Requires(RequirementSpecifier(function() return Context.info.stage ~= Stage.execution end))
+            end)
+        end)
+    )");
+    generate();
+    buildTestOrderList("Seq");
+    EXPECT_NE(testPositionOf("T1"), -1);
+}

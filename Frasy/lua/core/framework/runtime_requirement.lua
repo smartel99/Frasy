@@ -21,8 +21,9 @@ end
 
 function RuntimeRequirement:IsMet()
     local r = self.func()
-    if type(r) ~= "boolean" then error(InvalidRequirement(self.reason)) end
-    return self.func() == true
+    if type(r) ~= "boolean" then error(InvalidRequirement(self.reason, self)) end
+    -- Called once: the function may not give the same answer twice.
+    return r
 end
 
 return RuntimeRequirement

@@ -202,3 +202,35 @@ TEST_F(ScopeRequirementExecutionTest, Test_NonExistentThrows)
                                                             sol::script_pass_on_error);
     EXPECT_FALSE(result.valid());
 }
+
+TEST_F(ScopeRequirementExecutionTest, Reasons_NameTheScope)
+{
+    const auto reason = [this](const std::string& scope, const std::string& method) {
+        return lua
+          .script(
+            "local ScopeReq = require('lua/core/framework/scope_requirement/execution')\n"
+            "local Scope = require('lua/core/framework/scope')\n"
+            "return ScopeReq:New(Orchestrator, Scope:New(" +
+            scope + ")):" + method + "().reason")
+          .get<std::string>();
+    };
+    EXPECT_EQ(reason("'SeqA'", "ToPass"), "Sequence \"SeqA\" has not passed");
+    EXPECT_EQ(reason("'SeqA', 'T1'", "ToPass"), "Test \"T1\" of sequence \"SeqA\" has not passed");
+    EXPECT_EQ(reason("'SeqA'", "ToFail"), "Sequence \"SeqA\" has passed");
+    EXPECT_EQ(reason("'SeqA', 'T1'", "ToBeComplete"), "Test \"T1\" of sequence \"SeqA\" has been skipped");
+}
+
+TEST_F(ScopeRequirementExecutionTest, RequiresTestToFail_UnmetReason)
+{
+    lua.script("Context.orchestrator.sequences['SeqA'].tests['T1'].result:Set('pass')");
+    const auto what = lua
+                        .script(R"(
+        local ScopeReq = require('lua/core/framework/scope_requirement/execution')
+        local Scope = require('lua/core/framework/scope')
+        local ok, err = pcall(Requires, ScopeReq:New(Orchestrator, Scope:New('SeqA', 'T1')):ToFail())
+        assert(not ok, 'requirement was met')
+        return err.what
+    )")
+                        .get<std::string>();
+    EXPECT_EQ(what, "UnmetRequirement: Test \"T1\" of sequence \"SeqA\" has passed");
+}

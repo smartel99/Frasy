@@ -59,7 +59,8 @@ TEST_F(ExecutionTest, UnmetRequirement_SkipsTestOnly)
     } } }))");
     ASSERT_TRUE(runSection()) << lastError;
     EXPECT_EQ(result("S", "T1"), "skipped");
-    EXPECT_NE(reason("S", "T1").find("needs X"), std::string::npos);
+    // The reason says what was required, without a traceback.
+    EXPECT_EQ(reason("S", "T1"), "UnmetRequirement: needs X");
     EXPECT_TRUE(field("S", "T1", "skipped"));
     EXPECT_TRUE(field("S", "T1", "enabled"));
     EXPECT_TRUE(query("HasBeenSkipped", "S", "T1"));
@@ -163,7 +164,7 @@ TEST_F(ExecutionTest, SkippedSequence_TestsInheritSkipped)
                             tests = { { name = 'T1' }, { name = 'T2' } } } }))");
     ASSERT_TRUE(runSection()) << lastError;
     EXPECT_EQ(result("S"), "skipped");
-    EXPECT_NE(reason("S").find("no fixture"), std::string::npos);
+    EXPECT_EQ(reason("S"), "UnmetRequirement: no fixture");
     for (const char* test : {"T1", "T2"}) {
         EXPECT_FALSE(ran("S", test)) << test;
         EXPECT_EQ(result("S", test), "skipped") << test;
@@ -331,4 +332,26 @@ TEST_F(TeamExecutionTest, SkippedTest_SentAsFail)
     ASSERT_TRUE(runSection()) << lastError;
     EXPECT_EQ(lua.script("return sent[1]").get<int>(), 1);
     EXPECT_EQ(result("S", "T1"), "skipped");
+}
+
+TEST_F(ExecutionTest, ErrorReason_KeepsTraceback)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'T1', func = function() error(UnmetExpectation(ErrorPolicy.stopCurrent, 'bad value')) end },
+    } } }))");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_NE(reason("S", "T1").find("bad value"), std::string::npos);
+    EXPECT_NE(reason("S", "T1").find("stack traceback:"), std::string::npos);
+}
+
+TEST_F(ExecutionTest, RequirementWithoutReason_SkipReasonIsItsLocation)
+{
+    lua.script(R"(
+Define({ { name = 'S', tests = {
+    { name = 'T1', func = function() Requires(RequirementSpecifier(function() return false end)) end },
+} } }))",
+               "@C:/frasy/lua/user/product/test.lua");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(result("S", "T1"), "skipped");
+    EXPECT_EQ(reason("S", "T1"), "UnmetRequirement: requirement at product/test.lua:3");
 }

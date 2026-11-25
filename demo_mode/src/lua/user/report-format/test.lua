@@ -15,7 +15,8 @@
 
 --- Unmet only when running for real, so generation keeps the scope.
 local function NotApplicable()
-    return RequirementSpecifier(function() return Context.info.stage ~= Stage.execution end)
+    return RequirementSpecifier(function() return Context.info.stage ~= Stage.execution end,
+        "Not applicable to this board")
 end
 
 Sequence("Mixed", function()
@@ -24,6 +25,14 @@ Sequence("Mixed", function()
     end)
     Test("Skipped", function()
         Requires(NotApplicable())
+        Expect(true, "Never checked"):ToBeTrue()
+    end)
+    Test("Needs Skipped", function()
+        Requires(Test("Skipped"):ToPass())
+        Expect(true, "Never checked"):ToBeTrue()
+    end)
+    Test("Needs Pass To Fail", function()
+        Requires(Test("Pass"):ToFail())
         Expect(true, "Never checked"):ToBeTrue()
     end)
     -- Disable this test to get an incomplete board, saved under debug/.
