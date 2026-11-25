@@ -82,7 +82,9 @@ TEST(ImpedanceScan, FindsResultDirectlyInExtra)
 
 TEST(ImpedanceScan, FindsResultsNestedInExtra)
 {
-    const json extra = {{"note", "text"}, {"result", makeImpedanceResults({1.0, 2.0})}, {"others", json::array({makeImpedanceResults({3.0, 4.0})})}};
+    const json extra = {{"note", "text"},
+                        {"result", makeImpedanceResults({1.0, 2.0})},
+                        {"others", json::array({makeImpedanceResults({3.0, 4.0})})}};
     const auto scan  = scanReport(makeReport(makeExpectation(extra)));
 
     ASSERT_EQ(scan.found.size(), 2u);
@@ -157,7 +159,7 @@ TEST(ImpedanceScan, NullMeasuresIsAStructureIssue)
 
 TEST(ImpedanceScan, NullMeasuredValueIsATimeoutNotAStructureIssue)
 {
-    auto results        = makeImpedanceResults({99.0, 100.0, 101.0});
+    auto results                    = makeImpedanceResults({99.0, 100.0, 101.0});
     results["measures"][1]["value"] = nullptr;
 
     const auto scan = scanReport(makeReport(makeExpectation(results, 101.0)));
@@ -292,7 +294,7 @@ TEST(ImpedanceStats, ExtractChannelPicksRequestedField)
 
 TEST(ImpedanceScan, ReadsTheTimeOfEachSample)
 {
-    auto results = makeImpedanceResults({99.0, 100.0});
+    auto results                   = makeImpedanceResults({99.0, 100.0});
     results["measures"][0]["time"] = 120.0;
     results["measures"][1]["time"] = 250.0;
 
@@ -304,7 +306,7 @@ TEST(ImpedanceScan, ReadsTheTimeOfEachSample)
 
 TEST(ImpedanceScan, NoTimesWhenOneSampleHasNone)
 {
-    auto results = makeImpedanceResults({99.0, 100.0});
+    auto results                   = makeImpedanceResults({99.0, 100.0});
     results["measures"][0]["time"] = 120.0;
 
     const auto scan = scanReport(makeReport(makeExpectation(results)));
@@ -417,8 +419,8 @@ TEST(ImpedanceExcitation, DefaultExcitationIs100mV)
 {
     const auto check = checkExcitation(makeMeasurement({{0.098, 0.0}}));
     EXPECT_DOUBLE_EQ(check.expected, 0.1);
-    EXPECT_DOUBLE_EQ(check.min, 0.07);    // -30 %
-    EXPECT_DOUBLE_EQ(check.max, 0.105);   // +5 %
+    EXPECT_DOUBLE_EQ(check.min, 0.07);     // -30 %
+    EXPECT_DOUBLE_EQ(check.max, 0.105);    // +5 %
 }
 
 TEST(ImpedanceExcitation, SumNearTheExcitationVoltageIsOk)

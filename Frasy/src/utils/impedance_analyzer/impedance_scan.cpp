@@ -47,20 +47,20 @@ struct FieldSpec {
 
 /// Mirrors DAQ_ImpedanceResults in daq.lua. `value` and `confidence` are too generic to be identifying.
 constexpr auto s_fields = std::to_array<FieldSpec>({
-  {"mode",          FieldKind::Parameter, true },
-  {"shape",         FieldKind::Parameter, true },
-  {"rangeResistor", FieldKind::Parameter, true },
-  {"frequency",     FieldKind::Parameter, true },
-  {"amplitude",     FieldKind::Parameter, true },
-  {"delay",         FieldKind::Parameter, true },
-  {"samplesToTake", FieldKind::Parameter, true },
-  {"expectedValue", FieldKind::Parameter, true },
-  {"favorSpeed",    FieldKind::Flag,      true },
-  {"confidence",    FieldKind::Measured,  false},
-  {"value",         FieldKind::Measured,  false},
-  {"vin",           FieldKind::Measured,  true },
-  {"vout",          FieldKind::Measured,  true },
-  {"measures",      FieldKind::List,      true },
+  {"mode", FieldKind::Parameter, true},
+  {"shape", FieldKind::Parameter, true},
+  {"rangeResistor", FieldKind::Parameter, true},
+  {"frequency", FieldKind::Parameter, true},
+  {"amplitude", FieldKind::Parameter, true},
+  {"delay", FieldKind::Parameter, true},
+  {"samplesToTake", FieldKind::Parameter, true},
+  {"expectedValue", FieldKind::Parameter, true},
+  {"favorSpeed", FieldKind::Flag, true},
+  {"confidence", FieldKind::Measured, false},
+  {"value", FieldKind::Measured, false},
+  {"vin", FieldKind::Measured, true},
+  {"vout", FieldKind::Measured, true},
+  {"measures", FieldKind::List, true},
 });
 
 /// Fields of one entry of `measures` (DAQ_ImpedanceMeasure).
@@ -68,15 +68,15 @@ constexpr auto s_sampleFields = std::to_array<std::string_view>({"confidence", "
 
 constexpr std::size_t s_minIdentifyingFields  = 3;
 constexpr std::size_t s_minAnalyzableMeasures = 2;
-constexpr double      s_sigmaSpan            = 6.0;    // +/- 3 sigma
-constexpr double      s_goodBandUsage        = 0.5;
-constexpr double      s_marginalBandUsage    = 1.0;
-constexpr double      s_relativeTolerance    = 1e-9;
+constexpr double      s_sigmaSpan             = 6.0;    // +/- 3 sigma
+constexpr double      s_goodBandUsage         = 0.5;
+constexpr double      s_marginalBandUsage     = 1.0;
+constexpr double      s_relativeTolerance     = 1e-9;
 
 // --- Stability ---
-constexpr double      s_noiseSigmas            = 4.0;
-constexpr double      s_relativeToleranceFloor = 1e-3;    // 0.1 % of the final value
-constexpr double      s_absoluteToleranceFloor = 1e-12;
+constexpr double s_noiseSigmas            = 4.0;
+constexpr double s_relativeToleranceFloor = 1e-3;    // 0.1 % of the final value
+constexpr double s_absoluteToleranceFloor = 1e-12;
 
 double median(std::vector<double> values)
 {
@@ -88,14 +88,10 @@ double median(std::vector<double> values)
 std::string_view typeName(FieldKind kind)
 {
     switch (kind) {
-        case FieldKind::Parameter:
-            return "number";
-        case FieldKind::Flag:
-            return "boolean";
-        case FieldKind::Measured:
-            return "number or null";
-        case FieldKind::List:
-            return "array";
+        case FieldKind::Parameter: return "number";
+        case FieldKind::Flag: return "boolean";
+        case FieldKind::Measured: return "number or null";
+        case FieldKind::List: return "array";
     }
     std::unreachable();
 }
@@ -103,14 +99,10 @@ std::string_view typeName(FieldKind kind)
 bool isOfKind(const nlohmann::json& json, FieldKind kind)
 {
     switch (kind) {
-        case FieldKind::Parameter:
-            return json.is_number();
-        case FieldKind::Flag:
-            return json.is_boolean();
-        case FieldKind::Measured:
-            return json.is_number() || json.is_null();
-        case FieldKind::List:
-            return json.is_array();
+        case FieldKind::Parameter: return json.is_number();
+        case FieldKind::Flag: return json.is_boolean();
+        case FieldKind::Measured: return json.is_number() || json.is_null();
+        case FieldKind::List: return json.is_array();
     }
     std::unreachable();
 }
@@ -150,14 +142,11 @@ FieldCheck checkField(const nlohmann::json& object, const FieldSpec& spec)
 std::string describe(const FieldCheck& check)
 {
     switch (check.status) {
-        case FieldStatus::Missing:
-            return std::format("Field '{}' is missing.", check.name);
-        case FieldStatus::Null:
-            return std::format("Field '{}' is null, expected {}.", check.name, check.expectedType);
+        case FieldStatus::Missing: return std::format("Field '{}' is missing.", check.name);
+        case FieldStatus::Null: return std::format("Field '{}' is null, expected {}.", check.name, check.expectedType);
         case FieldStatus::WrongType:
             return std::format("Field '{}' has the wrong type, expected {}.", check.name, check.expectedType);
-        case FieldStatus::Ok:
-            break;
+        case FieldStatus::Ok: break;
     }
     return {};
 }
@@ -231,8 +220,8 @@ ImpedanceMeasurement analyse(std::string path, const nlohmann::json& object, con
     if (!measurement.measures.empty() && !nearlyEqual(measurement.summary.value, measurement.measures.back().value)) {
         measurement.issues.push_back("Top level value is not the value of the last measure.");
     }
-    if (const auto timeouts = std::ranges::count_if(measurement.measures,
-                                                    [](const Sample& sample) { return std::isnan(sample.value); });
+    if (const auto timeouts =
+          std::ranges::count_if(measurement.measures, [](const Sample& sample) { return std::isnan(sample.value); });
         timeouts != 0) {
         measurement.issues.push_back(
           std::format("{} of {} measures timed out (null).", timeouts, measurement.measures.size()));
@@ -247,9 +236,7 @@ ImpedanceMeasurement analyse(std::string path, const nlohmann::json& object, con
     return measurement;
 }
 
-ExpectationInfo makeExpectationInfo(std::string sequence,
-                                    std::string test,
-                                    const nlohmann::json& expectation)
+ExpectationInfo makeExpectationInfo(std::string sequence, std::string test, const nlohmann::json& expectation)
 {
     ExpectationInfo info {.sequence = std::move(sequence), .test = std::move(test)};
 
@@ -263,7 +250,7 @@ ExpectationInfo makeExpectationInfo(std::string sequence,
         return it->get<double>();
     };
 
-    info.name     = text("note");
+    info.name = text("note");
     if (info.name.empty()) { info.name = text("name"); }
     info.method          = text("method");
     info.value           = number("value");
@@ -277,13 +264,11 @@ ExpectationInfo makeExpectationInfo(std::string sequence,
 }
 
 /// Calls `onFound` for every impedance result in `json`, without looking inside the ones found.
-void findImpedanceResults(const nlohmann::json&                                           json,
-                          const std::string&                                              path,
+void findImpedanceResults(const nlohmann::json&                                                 json,
+                          const std::string&                                                    path,
                           const std::function<void(const std::string&, const nlohmann::json&)>& onFound)
 {
-    if (looksLikeImpedanceResults(json)) {
-        onFound(path, json);
-    }
+    if (looksLikeImpedanceResults(json)) { onFound(path, json); }
     else if (json.is_object()) {
         for (const auto& [key, value] : json.items()) {
             findImpedanceResults(value, std::format("{}.{}", path, key), onFound);
@@ -319,13 +304,13 @@ Stats computeStats(std::span<const double> values, const Limits& limits)
     stats.invalidCount = stats.count - valid.size();
     if (valid.empty()) { return stats; }
 
-    stats.first      = valid.front();
-    stats.last       = valid.back();
-    stats.mean       = std::accumulate(valid.begin(), valid.end(), 0.0) / static_cast<double>(valid.size());
+    stats.first               = valid.front();
+    stats.last                = valid.back();
+    stats.mean                = std::accumulate(valid.begin(), valid.end(), 0.0) / static_cast<double>(valid.size());
     const auto [minIt, maxIt] = std::ranges::minmax_element(valid);
-    stats.min        = *minIt;
-    stats.max        = *maxIt;
-    stats.peakToPeak = stats.max - stats.min;
+    stats.min                 = *minIt;
+    stats.max                 = *maxIt;
+    stats.peakToPeak          = stats.max - stats.min;
 
     if (valid.size() > 1) {
         const double squares = std::accumulate(valid.begin(), valid.end(), 0.0, [&stats](double sum, double value) {
@@ -336,7 +321,8 @@ Stats computeStats(std::span<const double> values, const Limits& limits)
 
     if (limits.min.has_value() || limits.max.has_value()) {
         const auto inBand = std::ranges::count_if(valid, [&limits](double value) {
-            return (!limits.min.has_value() || value >= *limits.min) && (!limits.max.has_value() || value <= *limits.max);
+            return (!limits.min.has_value() || value >= *limits.min) &&
+                   (!limits.max.has_value() || value <= *limits.max);
         });
         stats.inBandRatio = static_cast<double>(inBand) / static_cast<double>(valid.size());
     }
@@ -363,18 +349,10 @@ std::vector<double> extractChannel(std::span<const Sample> samples, Channel chan
     values.reserve(samples.size());
     for (const auto& sample : samples) {
         switch (channel) {
-            case Channel::Value:
-                values.push_back(sample.value);
-                break;
-            case Channel::Vin:
-                values.push_back(sample.vin);
-                break;
-            case Channel::Vout:
-                values.push_back(sample.vout);
-                break;
-            case Channel::Confidence:
-                values.push_back(sample.confidence);
-                break;
+            case Channel::Value: values.push_back(sample.value); break;
+            case Channel::Vin: values.push_back(sample.vin); break;
+            case Channel::Vout: values.push_back(sample.vout); break;
+            case Channel::Confidence: values.push_back(sample.confidence); break;
         }
     }
     return values;
@@ -385,7 +363,8 @@ ExcitationCheck checkExcitation(const ImpedanceMeasurement& measurement)
     ExcitationCheck check;
 
     double amplitude = 0.0;
-    if (const auto it = measurement.parameters.find("amplitude"); it != measurement.parameters.end() && it->is_number()) {
+    if (const auto it = measurement.parameters.find("amplitude");
+        it != measurement.parameters.end() && it->is_number()) {
         amplitude = it->get<double>();
     }
     check.expected = amplitude > 0.0 ? amplitude : s_defaultExcitationVoltage;
@@ -451,14 +430,16 @@ Stability computeStability(std::span<const double> values, std::span<const doubl
     }
     double noise = 0.0;
     if (differences.size() >= 2) {
-        const double mean = std::accumulate(differences.begin(), differences.end(), 0.0) /
-                            static_cast<double>(differences.size());
-        const double squares = std::accumulate(differences.begin(), differences.end(), 0.0, [mean](double sum, double d) {
-            return sum + (d - mean) * (d - mean);
-        });
+        const double mean =
+          std::accumulate(differences.begin(), differences.end(), 0.0) / static_cast<double>(differences.size());
+        const double squares =
+          std::accumulate(differences.begin(), differences.end(), 0.0, [mean](double sum, double d) {
+              return sum + (d - mean) * (d - mean);
+          });
         noise = std::sqrt(squares / static_cast<double>(differences.size() - 1)) / std::numbers::sqrt2;
     }
-    result.tolerance = std::max({s_noiseSigmas * noise, s_relativeToleranceFloor * std::abs(result.reference), s_absoluteToleranceFloor});
+    result.tolerance = std::max(
+      {s_noiseSigmas * noise, s_relativeToleranceFloor * std::abs(result.reference), s_absoluteToleranceFloor});
 
     // Walk back from the end while the signal stays around the final value.
     std::size_t first = count;
