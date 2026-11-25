@@ -45,6 +45,19 @@ local function ErrorHandler(err)
     return err
 end
 
+--- Adds where @p err was raised, unless it already says so, before it is raised again elsewhere.
+local function KeepTraceback(err)
+    local traceback = debug.traceback(nil, 2)
+    if type(err) == "table" then
+        if not string.find(tostring(err.what), "stack traceback:", 1, true) then
+            err.what = tostring(err.what) .. "\r\n" .. traceback
+        end
+        return err
+    end
+    if string.find(tostring(err), "stack traceback:", 1, true) then return err end
+    return tostring(err) .. "\r\n" .. traceback
+end
+
 local function IsScopeEnabled(scope)
     if not Orchestrator.HasScope(scope) then
         error(NotFound())
@@ -128,6 +141,15 @@ function Orchestrator.RunSequence(sIndex, scope)
         end
     end
 
+    -- Ends the sequence as failed and raises @p err: the run stops.
+    local stop = function(err)
+        reportEnd()
+        __profileEndEvent(scope.sequence, sequence.source, sequence.line)
+        Log.E(string.format("Sequence %s %s", scope.sequence, Verdict[ScopeResult.Value.Fail]))
+        __progress.report("sequence_end", Context.info.uut, scope.sequence, "", "", ScopeResult.Value.Fail)
+        error(err, 0)
+    end
+
     if sequence.time == nil then
         Context.orchestrator.values[scope.sequence] = {}
         Log.I("Start sequence: " .. scope.sequence)
@@ -137,13 +159,11 @@ function Orchestrator.RunSequence(sIndex, scope)
             if not status then
                 if type(err) == "string" then
                     sequence.result:Set(ScopeResult.Value.Fail, err)
-                    reportEnd()
-                    error(GenericError(err))
+                    stop(GenericError(err))
                 end
                 if err.code ~= UnmetRequirement().code then
                     sequence.result:Set(ScopeResult.Value.Fail, err.what)
-                    reportEnd()
-                    error(err)
+                    stop(err)
                 end
                 SetSequenceResult(sequence, ScopeResult.Value.Skipped, err.what)
             end
@@ -153,17 +173,21 @@ function Orchestrator.RunSequence(sIndex, scope)
     end
 
     if not sequence.result:IsSkipped() then
-        for _, sqStage in ipairs(Context.orchestrator.solution[sIndex]) do
-            for _, sq in ipairs(sqStage) do
-                if sq.name == scope.sequence then
-                    for _, tStage in ipairs(sq.tests) do
-                        for _, test in ipairs(tStage) do
-                            Orchestrator.RunTest(Scope:New(scope.sequence, test))
+        -- A test that stops the run stops its sequence too. Its result keeps what earlier sections gave.
+        local status, err = xpcall(function()
+            for _, sqStage in ipairs(Context.orchestrator.solution[sIndex]) do
+                for _, sq in ipairs(sqStage) do
+                    if sq.name == scope.sequence then
+                        for _, tStage in ipairs(sq.tests) do
+                            for _, test in ipairs(tStage) do
+                                Orchestrator.RunTest(Scope:New(scope.sequence, test))
+                            end
                         end
                     end
                 end
             end
-        end
+        end, KeepTraceback)
+        if not status then stop(err) end
 
         -- Tests of later sections have not run yet and don't count until they do.
         local hasPendingTests = false
@@ -211,10 +235,24 @@ function Orchestrator.RunTest(scope)
     test.result.time = {}
     test.result.time.start = os.clock()
 
-    local reportEnd = function()
+    -- Also called before raising, so a test that stops the run still ends.
+    local finish = function()
+        __profileEndEvent(scope.test, test.source, test.line)
         test.result.time.stop = os.clock()
         test.result.time.elapsed = test.result.time.stop - test.result.time.start -- Might change in the future
         test.result.time.process = test.result.time.stop - test.result.time.start
+        -- A teammate's critical failure raises; the test still ends first.
+        local synced, syncErr = xpcall(Team.Sync, KeepTraceback, test.result)
+        local verdict = Verdict[test.result.result]
+        if test.result:IsSkipped() then
+            Log.W(string.format("Test %s %s\r\nReason: %s", scope.test, verdict, test.result.reason))
+        elseif not test.result:HasPassed() then
+            Log.E(string.format("Test %s %s\r\nReason: %s", scope.test, verdict, test.result.reason))
+        else
+            Log.I(string.format("Test %s %s", scope.test, verdict))
+        end
+        __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", test.result.result)
+        if not synced then error(syncErr, 0) end
     end
 
     __profileStartEvent(scope.test, test.source, test.line)
@@ -224,14 +262,12 @@ function Orchestrator.RunTest(scope)
             Team.Fail()
             if type(err) == "string" then
                 test.result:Set(ScopeResult.Value.Fail, err)
-                reportEnd()
-                Team.Sync(test.result)
+                finish()
                 error(GenericError(err))
             elseif err.code == UnmetExpectation().code then
                 test.result:Set(ScopeResult.Value.Fail, err.what)
                 if err.policy == ErrorPolicy.stopAll then
-                    reportEnd()
-                    Team.Sync(test.result)
+                    finish()
                     error(err)
                 end
             elseif err.code == UnmetRequirement().code then
@@ -243,8 +279,7 @@ function Orchestrator.RunTest(scope)
                 end
             else
                 test.result:Set(ScopeResult.Value.Fail, tostring(err.what))
-                reportEnd()
-                Team.Sync(test.result)
+                finish()
                 error(err)
             end
         elseif HasFailedExpectation(test) then
@@ -255,18 +290,7 @@ function Orchestrator.RunTest(scope)
     else
         test.result:Set(ScopeResult.Value.Disabled, "Disabled")
     end
-    __profileEndEvent(scope.test, test.source, test.line)
-    reportEnd()
-    Team.Sync(test.result)
-    local verdict = Verdict[test.result.result]
-    if test.result:IsSkipped() then
-        Log.W(string.format("Test %s %s\r\nReason: %s", scope.test, verdict, test.result.reason))
-    elseif not test.result:HasPassed() then
-        Log.E(string.format("Test %s %s\r\nReason: %s", scope.test, verdict, test.result.reason))
-    else
-        Log.I(string.format("Test %s %s", scope.test, verdict))
-    end
-    __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", test.result.result)
+    finish()
 end
 
 function Orchestrator.Generate()

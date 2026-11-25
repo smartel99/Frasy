@@ -114,7 +114,10 @@ Each event is a newline-delimited JSON object:
 
 `result` is the same string as in the reports: `pass`, `fail`, `skipped`, `disabled` or `incomplete`. `pass` is
 `true` only for `pass`: skipped and disabled tests are no longer `true`. Skipped and disabled sequences also end with
-a `sequence_end`. In `run_end`:
+a `sequence_end`. A test that stops the run (an error, an `ErrorPolicy.stopAll` failure or a teammate's critical
+failure) ends with a `fail` `test_end`, and its sequence with a `fail` `sequence_end`; so does a sequence whose own
+body raises an error. That `sequence_end` is `fail` even when the report keeps the result of the sequence's earlier
+sections. In `run_end`:
 
 - a UUT's `result` is its report's result (`pass`, `fail` or `incomplete`), or `disabled` for a UUT that was turned
   off and never ran. It is missing for a UUT that ended in error;

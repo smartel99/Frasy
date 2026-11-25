@@ -32,7 +32,125 @@ protected:
         const auto all = events();
         return std::ranges::find(all, event) != all.end();
     }
+
+    std::size_t count(const std::string& event)
+    {
+        const auto all = events();
+        return static_cast<std::size_t>(std::ranges::count(all, event));
+    }
+
+    /** Runs a section that must raise; returns the message of what it raised. */
+    std::string raisedBy(int section = 1)
+    {
+        return lua
+          .script("local ok, err = pcall(Orchestrator.ExecuteSection, " + std::to_string(section) +
+                  ")\n"
+                  "assert(not ok, 'section did not raise')\n"
+                  "return type(err) == 'table' and tostring(err.what) or tostring(err)")
+          .get<std::string>();
+    }
+
+    static bool contains(const std::string& text, const std::string& part)
+    {
+        return text.find(part) != std::string::npos;
+    }
 };
+
+TEST_F(ProgressTest, TestEnd_SentOncePerTest)
+{
+    lua.script(R"(Define({ { name = 'S', tests = {
+        { name = 'Skip', func = function() error(UnmetRequirement('no')) end },
+        { name = 'Bad', func = Fail },
+        { name = 'Ok' },
+    } } }))");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(count("test_end:Skip:skipped"), 1U);
+    EXPECT_EQ(count("test_end:Bad:fail"), 1U);
+    EXPECT_EQ(count("test_end:Ok:pass"), 1U);
+}
+
+/** A test that stops the run still ends, once. */
+class ProgressStopTest : public ProgressTest, public ::testing::WithParamInterface<const char*> {};
+
+TEST_P(ProgressStopTest, TestEnd_Fail)
+{
+    lua.script(std::string("Define({ { name = 'S', tests = { { name = 'T', func = function() ") + GetParam() +
+               " end }, { name = 'After' } } } })");
+    const auto raised = raisedBy();
+    // The original error still reaches the caller.
+    EXPECT_TRUE(contains(raised, "boom") || contains(raised, "stop all")) << raised;
+    EXPECT_EQ(count("test_start:T:pass"), 1U);
+    EXPECT_EQ(count("test_end:T:fail"), 1U);
+    EXPECT_EQ(result("S", "T"), "fail");
+    EXPECT_EQ(count("sequence_end:S:fail"), 1U);
+    EXPECT_FALSE(hasEvent("test_start:After:pass"));
+}
+
+TEST_F(ProgressTest, StopCurrent_TestEndsAndRunGoesOn)
+{
+    lua.script(
+      "Define({ { name = 'S', tests = { { name = 'T', func = function() error(UnmetExpectation(1, 'stop current')) "
+      "end }, { name = 'After' } } } })");
+    ASSERT_TRUE(runSection()) << lastError;
+    EXPECT_EQ(count("test_end:T:fail"), 1U);
+    EXPECT_EQ(count("test_end:After:pass"), 1U);
+    EXPECT_EQ(count("sequence_end:S:fail"), 1U);
+}
+
+TEST_F(ProgressTest, TeammateCriticalFailure_TestEndsThenRaises)
+{
+    lua.script(R"(function Team.Sync(result)
+        result:Set('fail', 'Teammate critical failure')
+        error(TeamError('Teammate critical failure'))
+    end)");
+    lua.script("Define({ { name = 'S', tests = { { name = 'T' }, { name = 'After' } } } })");
+    const auto raised = raisedBy();
+    EXPECT_TRUE(contains(raised, "Teammate critical failure")) << raised;
+    // Raised outside the test body: where it came from is kept.
+    EXPECT_TRUE(contains(raised, "stack traceback:")) << raised;
+    EXPECT_EQ(count("test_end:T:fail"), 1U);
+    EXPECT_EQ(count("sequence_end:S:fail"), 1U);
+    EXPECT_FALSE(hasEvent("test_start:After:pass"));
+}
+
+TEST_F(ProgressTest, ErrorOutsideTestBody_TracebackKept)
+{
+    lua.script("function Team.Sync(result) error('sync broke') end");
+    lua.script("Define({ { name = 'S', tests = { { name = 'T' } } } })");
+    const auto raised = raisedBy();
+    EXPECT_TRUE(contains(raised, "sync broke")) << raised;
+    EXPECT_TRUE(contains(raised, "stack traceback:")) << raised;
+    EXPECT_EQ(count("test_end:T:pass"), 1U);
+}
+
+TEST_F(ProgressTest, SequenceBodyRaises_SequenceEndFail)
+{
+    lua.script("Define({ { name = 'S', func = function() error('boom') end, tests = { { name = 'T' } } } })");
+    EXPECT_TRUE(contains(raisedBy(), "boom"));
+    EXPECT_EQ(count("sequence_start:S:pass"), 1U);
+    EXPECT_EQ(count("sequence_end:S:fail"), 1U);
+    EXPECT_EQ(result("S"), "fail");
+}
+
+TEST_F(ProgressTest, TestRaisesInLaterSection_SequenceEndOnce)
+{
+    lua.script(
+      "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', section = 2, "
+      "func = function() error('boom') end } } } })");
+    ASSERT_TRUE(runSection(1)) << lastError;
+    EXPECT_EQ(count("sequence_end:S:pass") + count("sequence_end:S:fail"), 0U);
+    EXPECT_FALSE(runSection(2));
+    EXPECT_EQ(count("sequence_end:S:fail"), 1U);
+    EXPECT_EQ(count("test_end:T2:fail"), 1U);
+    // The report keeps the result of the sections that completed.
+    EXPECT_EQ(result("S"), "pass");
+}
+
+INSTANTIATE_TEST_SUITE_P(Raises,
+                         ProgressStopTest,
+                         ::testing::Values("error('boom')",
+                                           "error(UnmetExpectation(2, 'stop all'))",
+                                           "error(GenericError('boom'))"));
 
 TEST_F(ProgressTest, TestEnd_CarriesEveryResult)
 {
