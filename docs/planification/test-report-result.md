@@ -22,7 +22,14 @@ They overlap and are often misread:
 - Tests inside a skipped or disabled sequence inherit that state.
 - Expectations get `result` = `pass` or `fail`.
 - `info.format_version = 2`. Readers parse `format_version` first and pick the matching parser. A missing version means v1.
-- Transition: v2 reports keep `pass`, `skipped` and `enabled`, computed from `result` and marked deprecated, so existing `onReport` hooks and external readers keep working. A later format version removes them.
+- Report scheme: a product picks its report layout with `SetReportFormat(ReportFormat.v1 | ReportFormat.v2)` in
+  `Environment.Make`. The default is v1, so existing products keep working until they opt in.
+  - v1: `pass`, `skipped` and `enabled`, no `result` nor `format_version`. An incomplete board has `info.pass = false`.
+  - v2: `format_version = 2` and `result` only, expectations included.
+  - The scheme only changes what is written: the orchestrator keeps `result` internally, incomplete boards still go
+    to `debug/`, skip the other writers and get the incomplete UUT states, and the Lua expectation helpers are
+    unchanged.
+  - Headless, MCP and progress outputs don't follow the scheme: they carry `result` and `pass`.
 - An `incomplete` board:
   - goes to a `debug` folder instead of `pass` or `fail`;
   - gets a dedicated UUT state, never shown as Passed: `IncompletePassed` if everything that ran passed,
@@ -36,7 +43,7 @@ They overlap and are often misread:
 
 | Change | Who is affected | Compatibility |
 |---|---|---|
-| `result` and `format_version` added to the report table given to `Context.map.onReport` | Every product | Additive; old fields kept for the transition |
+| `SetReportFormat(ReportFormat.v2)` gives the report table and files `result` and `format_version`, without `pass`, `skipped` and `enabled` | Products opting in | v1 is the default: no change until a product opts in |
 | New `UutState::IncompletePassed` and `IncompleteFailed`, plus `RunVerdict` helpers | Products that `switch` over `UutState` (e.g. the `demo_mode` app layer) | Non-exhaustive `switch` warning until handled |
 | A board with a failure and something disabled is `IncompleteFailed` in `debug/`, no longer `Failed` in `fail/` | Products testing `== UutState::Failed` | Use `getVerdict()` |
 | Headless exit code `3` and `INCOMPLETE_PASS` / `INCOMPLETE_FAIL` states | CI scripts | New values only |
@@ -160,13 +167,29 @@ They overlap and are often misread:
 
 ---
 
-### Task 9: `demo_mode`
+### Task 9: Report scheme selection
 
-**Objective:** A demo product whose `onReport` reads `result` and `format_version`, with a sequence that exercises skipped and disabled scopes.
+**Objective:** `SetReportFormat` in `Environment.Make` picks the layout of the report given to `onReport` and saved.
+
+**Implementation guidance:**
+- `ReportFormat = { v1 = 1, v2 = 2 }`, stored in `Context`; default v1. An unknown value is an error at `Make` time.
+- `CompileExecutionResults` and `AddExpectationResult` write the chosen layout from `result`, before `onReport`.
+- The JSON formatter writes the same layout; the writers and formatters read either one (`getResult(sol::table)`).
+
+**Tests:** both layouts of `info`, sequences, tests and expectations; default is v1; an unknown format is an error;
+`onReport` and the writers see the chosen layout; a v1 incomplete board has `info.pass = false` and still goes to
+`debug/`.
+
+**Docs:** `creating-a-product.md` (the setter and both layouts), `test-lifecycle.md` report example.
+
+---
+
+### Task 10: `demo_mode`
+
+**Objective:** A demo product on `ReportFormat.v2` whose `onReport` reads `result` and `format_version`, with a sequence that exercises skipped and disabled scopes.
 
 **Implementation guidance:** regenerate the hashes with `demo_mode/generate_hashes.bat`; build `demo_mode` with 0 new warnings.
 
 ## Out of scope
 
 - Aborted or crashed runs. Tests that never ran because of a crash or `ErrorPolicy.stopAll` keep today's behaviour.
-- Removing the deprecated fields (next format version).
