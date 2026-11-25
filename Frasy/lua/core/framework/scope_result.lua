@@ -32,9 +32,9 @@ for _, v in pairs(Value) do table.insert(values, v) end
 ---@field time {start: number, stop: number, elapsed: number, process: number}
 ---@field result ScopeResultValue
 ---@field reason string?
----@field pass boolean Deprecated, use `result`. Removed after the report format v2 transition.
----@field skipped boolean Deprecated, use `result`. Removed after the report format v2 transition.
----@field enabled boolean Deprecated, use `result`. Removed after the report format v2 transition.
+---@field pass boolean Use `result`. Only v1 reports carry it.
+---@field skipped boolean Use `result`. Only v1 reports carry it.
+---@field enabled boolean Use `result`. Only v1 reports carry it.
 local ScopeResult = { Value = Value }
 ScopeResult.__index = ScopeResult
 

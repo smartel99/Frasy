@@ -94,6 +94,20 @@ TEST(ImpedanceScan, FindsResultsNestedInExtra)
     EXPECT_EQ(paths[1], "extra.result");
 }
 
+TEST(ImpedanceScan, ReadsPassFromEitherLayout)
+{
+    auto v2 = makeExpectation(makeImpedanceResults({99.0}));
+    v2.erase("pass");
+    v2["result"] = "fail";
+    EXPECT_FALSE(scanReport(makeReport(v2)).found.at(0).expectation.pass);
+    v2["result"] = "pass";
+    EXPECT_TRUE(scanReport(makeReport(v2)).found.at(0).expectation.pass);
+
+    auto v1    = makeExpectation(makeImpedanceResults({99.0}));
+    v1["pass"] = false;
+    EXPECT_FALSE(scanReport(makeReport(v1)).found.at(0).expectation.pass);
+}
+
 TEST(ImpedanceScan, IgnoresExpectationsWithoutImpedanceResults)
 {
     const auto noExtra = scanReport(makeReport({{"name", "x"}, {"pass", true}}));

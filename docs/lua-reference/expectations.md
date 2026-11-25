@@ -72,8 +72,8 @@ Expect(connected, "Device Connected", { policy =  ErrorPolicy.stopCurrent }):ToB
 Each matcher asserts the value against a specific criterion.
 
 They all return an `ExpectationResult`. Its `result` is `"pass"` or `"fail"`, with `inverted`
-already applied. The `pass` boolean holds the same information; it is deprecated and will be
-removed after the report format v2 transition.
+already applied. The `pass` boolean holds the same information. Reports carry one or the other, depending on
+`Environment.SetReportFormat`.
 
 ### `:ToBeTrue()`
 

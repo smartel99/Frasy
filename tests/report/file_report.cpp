@@ -101,6 +101,28 @@ TEST_F(FileReportTest, V1Report_StillFiled)
     EXPECT_EQ(archived(Orchestrator::passSubdirectory), 1U);
 }
 
+TEST_F(FileReportTest, V1Incomplete_ArchivedInDebug)
+{
+    // A disabled test and a passing one: the sequence reads incomplete, not failed.
+    writeReport(R"({ "info": { "pass": false, "serial": "SN1" },
+                     "sequences": { "S": { "pass": false, "skipped": false, "enabled": true, "tests": {
+                         "T1": { "pass": false, "skipped": true, "enabled": false },
+                         "T2": { "pass": true, "skipped": false, "enabled": true } } } } })");
+    EXPECT_EQ(Orchestrator::fileReport(m_report, m_root / "archive", 1), UutState::IncompletePassed);
+    EXPECT_EQ(archived(Orchestrator::debugSubdirectory), 1U);
+    EXPECT_EQ(archivedAnywhere(), 1U);
+}
+
+TEST_F(FileReportTest, V1IncompleteWithFailure_ArchivedInDebug)
+{
+    writeReport(R"({ "info": { "pass": false, "serial": "SN1" },
+                     "sequences": { "S": { "pass": false, "skipped": false, "enabled": true, "tests": {
+                         "T1": { "pass": false, "skipped": true, "enabled": false },
+                         "T2": { "pass": false, "skipped": false, "enabled": true } } } } })");
+    EXPECT_EQ(Orchestrator::fileReport(m_report, m_root / "archive", 1), UutState::IncompleteFailed);
+    EXPECT_EQ(archived(Orchestrator::debugSubdirectory), 1U);
+}
+
 TEST_F(FileReportTest, InvalidResult_ErrorAndNotArchived)
 {
     writeReport(R"({ "info": { "format_version": 2, "result": "great", "serial": "SN1" }, "sequences": {} })");

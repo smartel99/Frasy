@@ -82,8 +82,10 @@ TEST_F(ResultViewerLoadTest, V1_BooleansRead)
                                  "T3": { "pass": false, "skipped": true, "enabled": false, "time": { "process": 0.0 },
                                          "expectations": [] } } } })",
                           R"("pass": false)");
-    EXPECT_EQ(log.Result, Result::Fail);
+    // A disabled test makes the board incomplete, like the orchestrator decides it.
+    EXPECT_EQ(log.Result, Result::Incomplete);
     EXPECT_TRUE(log.HasFailure);
+    EXPECT_EQ(log.Sequences.at("S").Result, Result::Fail);
     const auto& tests = log.Sequences.at("S").Tests;
     EXPECT_EQ(tests.at("T1").Result, Result::Pass);
     EXPECT_EQ(tests.at("T1").Expectations.at(0).Result, Result::Pass);

@@ -257,8 +257,11 @@ ExpectationInfo makeExpectationInfo(std::string sequence, std::string test, cons
     info.limits.min      = number("min");
     info.limits.max      = number("max");
     info.limits.expected = number("expected");
-    if (const auto it = expectation.find("pass"); it != expectation.end() && it->is_boolean()) {
-        info.pass = it->get<bool>();
+    if (const auto it = expectation.find("result"); it != expectation.end() && it->is_string()) {
+        info.pass = it->get<std::string>() == "pass";
+    }
+    else if (const auto pass = expectation.find("pass"); pass != expectation.end() && pass->is_boolean()) {
+        info.pass = pass->get<bool>();
     }
     return info;
 }

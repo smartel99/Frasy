@@ -37,16 +37,70 @@ std::optional<bool> findBool(const nlohmann::json& node, std::string_view key)
     return it->get<bool>();
 }
 
+bool isScopeV1(const nlohmann::json& node)
+{
+    return node.is_object() && (node.contains("pass") || node.contains("skipped") || node.contains("enabled"));
+}
+
 /**
- * v1: booleans only. A disabled scope was also flagged as skipped, so `enabled` is checked first.
+ * v1 booleans of a node. A disabled scope was also flagged as skipped, so `enabled` is checked first.
  * A missing `pass` reads as a failure, like Lua does for expectation entries built by hand.
  */
-Result readV1(const nlohmann::json& node, std::optional<Result> parent)
+Result readV1Booleans(const nlohmann::json& node)
 {
-    if (parent == Result::Skipped || parent == Result::Disabled) { return *parent; }
     if (findBool(node, "enabled") == false) { return Result::Disabled; }
     if (findBool(node, "skipped") == true) { return Result::Skipped; }
     return findBool(node, "pass").value_or(false) ? Result::Pass : Result::Fail;
+}
+
+/** Test that never ran, e.g. in a section cut short by an error. The orchestrator leaves it out of its sequence. */
+bool isPendingV1(const nlohmann::json& test)
+{
+    const auto time = test.find("time");
+    if (time == test.end() || !time->is_object()) { return false; }
+    const auto stop = time->find("stop");
+    return stop != time->end() && stop->is_number() && stop->get<double>() == 0.0;
+}
+
+/** v1 sequence that isn't a pass: incomplete if it holds a disabled test and no failed one. */
+bool isIncompleteV1(const nlohmann::json& node)
+{
+    const auto tests = node.find("tests");
+    if (tests == node.end() || !tests->is_object()) { return false; }
+    bool disabled = false;
+    for (const auto& test : *tests) {
+        if (!isScopeV1(test) || isPendingV1(test)) { continue; }
+        const auto result = readV1Booleans(test);
+        if (result == Result::Fail) { return false; }
+        disabled = disabled || result == Result::Disabled;
+    }
+    return disabled;
+}
+
+/** v1: booleans only, plus the incomplete sequence rule. */
+Result readV1(const nlohmann::json& node, std::optional<Result> parent)
+{
+    if (parent == Result::Skipped || parent == Result::Disabled) { return *parent; }
+    const auto result = readV1Booleans(node);
+    if (result != Result::Fail) { return result; }
+    return isIncompleteV1(node) ? Result::Incomplete : Result::Fail;
+}
+
+/** v1 board: incomplete as soon as a sequence or test is disabled, like the orchestrator decides it. */
+bool hasDisabledScopeV1(const nlohmann::json& report)
+{
+    const auto sequences = report.find("sequences");
+    if (sequences == report.end() || !sequences->is_object()) { return false; }
+    for (const auto& sequence : *sequences) {
+        if (!isScopeV1(sequence)) { continue; }
+        if (findBool(sequence, "enabled") == false) { return true; }
+        const auto tests = sequence.find("tests");
+        if (tests == sequence.end() || !tests->is_object()) { continue; }
+        for (const auto& test : *tests) {
+            if (isScopeV1(test) && findBool(test, "enabled") == false) { return true; }
+        }
+    }
+    return false;
 }
 
 Result readV2(const nlohmann::json& node)
@@ -103,6 +157,7 @@ ResultReader::ResultReader(const nlohmann::json& report) : m_version(Report::get
           std::format("Report format_version {} is newer than supported ({})", m_version, s_currentFormatVersion));
     }
     m_info = read(report.at("info"));
+    if (m_version == 1 && hasDisabledScopeV1(report)) { m_info = Result::Incomplete; }
 }
 
 Result ResultReader::read(const nlohmann::json& node, std::optional<Result> parent) const
@@ -114,9 +169,32 @@ Result ResultReader::read(const nlohmann::json& node, std::optional<Result> pare
 bool ResultReader::isScope(const nlohmann::json& node) const noexcept
 {
     if (!node.is_object()) { return false; }
-    if (m_version == 1) { return node.contains("pass") || node.contains("skipped") || node.contains("enabled"); }
+    if (m_version == 1) { return isScopeV1(node); }
     return node.contains("result");
 }
+
+namespace {
+
+/** v1 booleans of an in-process node, nothing if it carries none. */
+std::optional<Result> readBooleans(const sol::table& node)
+{
+    if (const sol::optional<bool> enabled = node["enabled"]; enabled && !*enabled) { return Result::Disabled; }
+    if (const sol::optional<bool> skipped = node["skipped"]; skipped && *skipped) { return Result::Skipped; }
+    const sol::optional<bool> pass = node["pass"];
+    if (!pass) { return std::nullopt; }
+    return *pass ? Result::Pass : Result::Fail;
+}
+
+/** Test that never ran: the orchestrator leaves it out of its sequence. */
+bool isPending(const sol::table& test)
+{
+    const sol::optional<sol::table> time = test["time"];
+    if (!time) { return false; }
+    const sol::optional<double> stop = (*time)["stop"];
+    return stop && *stop == 0.0;
+}
+
+}    // namespace
 
 std::optional<Result> getResult(const sol::table& node)
 {
@@ -124,10 +202,47 @@ std::optional<Result> getResult(const sol::table& node)
     if (const sol::optional<std::string> text = node["result"]; text) {
         if (const auto result = resultFromString(*text)) { return result; }
     }
-    if (const sol::optional<bool> enabled = node["enabled"]; enabled && !*enabled) { return Result::Disabled; }
-    if (const sol::optional<bool> skipped = node["skipped"]; skipped && *skipped) { return Result::Skipped; }
-    if (const sol::optional<bool> pass = node["pass"]; pass) { return *pass ? Result::Pass : Result::Fail; }
-    return std::nullopt;
+    const auto result = readBooleans(node);
+    if (result != Result::Fail) { return result; }
+    // v1 sequence: incomplete if it holds a disabled test and no failed one.
+    const sol::optional<sol::table> tests = node["tests"];
+    if (!tests) { return Result::Fail; }
+    bool disabled = false;
+    for (const auto& [key, value] : *tests) {
+        if (!value.is<sol::table>()) { continue; }
+        const auto test = value.as<sol::table>();
+        if (isPending(test)) { continue; }
+        const auto testResult = readBooleans(test);
+        if (testResult == Result::Fail) { return Result::Fail; }
+        disabled = disabled || testResult == Result::Disabled;
+    }
+    return disabled ? Result::Incomplete : Result::Fail;
+}
+
+std::optional<Result> getBoardResult(const sol::table& report)
+{
+    if (!report.valid()) { return std::nullopt; }
+    const sol::optional<sol::table> info = report["info"];
+    if (!info) { return std::nullopt; }
+    if (info->get<sol::optional<int>>("format_version")) { return getResult(*info); }
+    // v1: a stray `info.result` is ignored. Incomplete as soon as a sequence or test is disabled.
+    const auto result = readBooleans(*info);
+    if (!result) { return result; }
+    const sol::optional<sol::table> sequences = report["sequences"];
+    if (!sequences) { return result; }
+    for (const auto& [sKey, sValue] : *sequences) {
+        if (!sValue.is<sol::table>()) { continue; }
+        const auto sequence = sValue.as<sol::table>();
+        if (sequence.get<sol::optional<bool>>("enabled") == false) { return Result::Incomplete; }
+        const sol::optional<sol::table> tests = sequence["tests"];
+        if (!tests) { continue; }
+        for (const auto& [tKey, tValue] : *tests) {
+            if (tValue.is<sol::table>() && tValue.as<sol::table>().get<sol::optional<bool>>("enabled") == false) {
+                return Result::Incomplete;
+            }
+        }
+    }
+    return result;
 }
 
 nlohmann::json ResultCounts::toJson() const

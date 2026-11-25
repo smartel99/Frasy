@@ -135,9 +135,10 @@ A test that records a failed expectation and then hits an unmet requirement is `
     Team synchronization still sends anything other than `pass` as a failure. A test that is
     `skipped` on one UUT therefore fails the same test on its teammates ("Teammate failure").
 
-!!! note "Deprecated fields"
-    The `pass`, `skipped` and `enabled` booleans are still set from `result` for the transition to
-    report format v2. Read `result` instead; they will be removed in a later report format.
+!!! note "Report layout"
+    Results are kept as `result` internally. The report only carries them as `result` with
+    `ReportFormat.v2`; the default v1 layout writes the `pass`, `skipped` and `enabled` booleans instead.
+    See [Report Structure](#report-structure-json).
 
 ---
 
@@ -264,7 +265,7 @@ a disabled test is `incomplete` (see [Scope Results](#scope-results)).
 After execution completes for each UUT, the orchestrator:
 
 1. Compiles a **report** containing:
-    - Metadata: versions, operator, serial, date, overall `result`, report `format_version`, timing.
+    - Metadata: versions, operator, serial, date, overall result, timing, and `format_version` in v2.
     - IB info: each board's software/hardware version and serial.
     - Per-sequence results with timing.
     - Per-test results with timing and all expectation details.
@@ -280,6 +281,8 @@ After execution completes for each UUT, the orchestrator:
 
 ### Report Structure (JSON)
 
+The layout is picked with `Environment.SetReportFormat`. With `ReportFormat.v2`:
+
 ```json
 {
   "info": {
@@ -291,7 +294,6 @@ After execution completes for each UUT, the orchestrator:
     "date": "2024-05-15 14:30:00",
     "format_version": 2,
     "result": "pass",
-    "pass": true,
     "time": { "start": 0.0, "stop": 2.5, "elapsed": 2.5, "process": 2.1 }
   },
   "ib": {
@@ -300,19 +302,13 @@ After execution completes for each UUT, the orchestrator:
   "sequences": {
     "Power On": {
       "result": "pass",
-      "pass": true,
-      "skipped": false,
-      "enabled": true,
       "time": { "start": 0.0, "stop": 1.2, "elapsed": 1.2, "process": 1.1 },
       "tests": {
         "Check Voltage": {
           "result": "pass",
-          "pass": true,
-          "skipped": false,
-          "enabled": true,
           "time": { "start": 0.0, "stop": 0.5, "elapsed": 0.5, "process": 0.5 },
           "expectations": [
-            { "name": "Supply Voltage", "method": "ToBeInRange", "value": 5.02, "min": 4.9, "max": 5.1, "result": "pass", "pass": true }
+            { "name": "Supply Voltage", "method": "ToBeInRange", "value": 5.02, "min": 4.9, "max": 5.1, "result": "pass" }
           ]
         }
       }
@@ -324,11 +320,15 @@ After execution completes for each UUT, the orchestrator:
 `info.result` combines the sequence results with a different precedence than sequences use (see
 [Scope Results](#scope-results)): `incomplete` if any sequence or test is `disabled` (or a sequence `incomplete`), **even if
 something failed**, otherwise `fail` if any sequence or test failed, otherwise `pass`. Anything disabled makes the
-board a debug run; the sequences still show which ones failed. `pass`, `skipped` and `enabled` are the
-deprecated v1 fields, still written during the transition.
+board a debug run; the sequences still show which ones failed.
 
-`info.format_version` tells readers which layout to expect. A report without it is v1, where only
-the `pass`, `skipped` and `enabled` booleans exist.
+The default `ReportFormat.v1` writes no `result` nor `format_version`: `info` has `pass`, and sequences, tests and
+expectations have `pass`, `skipped` and `enabled` (`enabled = false` for a disabled scope, which is also
+`skipped`). An incomplete board has `info.pass = false`, and an incomplete sequence `pass = false`.
+
+Readers select their parser from `info.format_version`; a report without it is v1. In v1, a board is incomplete when
+any sequence or test is disabled, and a sequence that isn't a pass is incomplete when it holds a disabled test and no
+failed one.
 
 ---
 

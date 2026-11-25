@@ -5,8 +5,8 @@
  * @brief   Outcome of a report node, read from any supported report format version.
  *
  * Saved reports (JSON files) can be of any version and go through ResultReader. Report tables inside
- * the running process (`onReport`, the report formatters) are always s_currentFormatVersion: read their
- * `result` field with resultFromString().
+ * the running process (`onReport`, the report formatters) have the layout the product picked: read them
+ * with getResult() and getBoardResult().
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under the
@@ -136,11 +136,20 @@ private:
 
 /**
  * @brief Result of a node of an in-process report table (`info`, sequence, test or expectation).
- * In-process tables are always s_currentFormatVersion: `result` is read. Entries a product built by hand may only carry
- * the deprecated booleans; they are read like v1 nodes (`enabled`, then `skipped`, then `pass`).
+ * `result` is read when present (v2). Otherwise the node is read like a v1 node (`enabled`, then `skipped`, then
+ * `pass`), and a sequence that isn't a pass is incomplete if it holds a disabled test and no failed one. Tests that
+ * never ran (`time.stop == 0`) are left out, like the orchestrator does.
  * @return The result, or nothing if the node carries none of them.
  */
 [[nodiscard]] std::optional<Result> getResult(const sol::table& node);
+
+/**
+ * @brief Result of a whole in-process report table.
+ * v2 if `info.format_version` is set: `info.result` is read. Otherwise v1: `info.result` is ignored, `info.pass` is
+ * read, and the board is incomplete as soon as a sequence or test is disabled.
+ * @return The result, or nothing if `info` carries none.
+ */
+[[nodiscard]] std::optional<Result> getBoardResult(const sol::table& report);
 
 /**
  * @brief Whether any sequence or test of @p report failed.

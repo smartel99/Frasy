@@ -106,7 +106,7 @@ std::string toLabel(Result result)
 
 bool isIncomplete(const sol::table& results)
 {
-    return getResult(results["info"].get_or(sol::table {})) == Result::Incomplete;
+    return getBoardResult(results) == Result::Incomplete;
 }
 
 }    // namespace Frasy::Report::Formatter

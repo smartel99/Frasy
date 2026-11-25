@@ -122,6 +122,33 @@ TEST_F(ReportFormatterTest, GetResult_FallsBackToBooleansLikeV1)
     EXPECT_EQ(Frasy::Report::getResult(table("{ result = 'bogus', pass = true }")), Result::Pass);
 }
 
+TEST_F(ReportFormatterTest, GetResult_V1SequenceWithDisabledTest_Incomplete)
+{
+    EXPECT_EQ(
+      Frasy::Report::getResult(table(
+        "{ pass = false, tests = { T1 = { enabled = false, skipped = true, pass = false }, T2 = { pass = true } } }")),
+      Result::Incomplete);
+    EXPECT_EQ(
+      Frasy::Report::getResult(table(
+        "{ pass = false, tests = { T1 = { enabled = false, skipped = true, pass = false }, T2 = { pass = false } } }")),
+      Result::Fail);
+    EXPECT_EQ(Frasy::Report::getResult(table("{ pass = false, tests = { T2 = { pass = true } } }")), Result::Fail);
+    // A test that never ran is left out.
+    EXPECT_EQ(Frasy::Report::getResult(table("{ pass = false, tests = { T1 = { enabled = false, skipped = true }, "
+                                             "T2 = { pass = false, time = { stop = 0 } } } }")),
+              Result::Incomplete);
+    // Tests aren't read recursively.
+    EXPECT_EQ(Frasy::Report::getResult(table("{ pass = false, tests = { T1 = { enabled = false }, "
+                                             "T2 = { pass = false, tests = { X = { enabled = false } } } } }")),
+              Result::Fail);
+}
+
+TEST_F(ReportFormatterTest, GetResult_CyclicTable_NoOverflow)
+{
+    lua.script("cyclic = { pass = false, tests = {} }; cyclic.tests.self = cyclic");
+    EXPECT_EQ(Frasy::Report::getResult(lua["cyclic"].get<sol::table>()), Result::Fail);
+}
+
 TEST_F(ReportFormatterTest, GetResult_NothingWithoutResultOrBooleans)
 {
     EXPECT_FALSE(Frasy::Report::getResult(table("{}")).has_value());
@@ -131,10 +158,27 @@ TEST_F(ReportFormatterTest, GetResult_NothingWithoutResultOrBooleans)
 
 TEST_F(ReportFormatterTest, IsIncomplete)
 {
-    EXPECT_TRUE(Formatter::isIncomplete(table("{ info = { result = 'incomplete', pass = false } }")));
-    EXPECT_FALSE(Formatter::isIncomplete(table("{ info = { result = 'fail', pass = false } }")));
+    EXPECT_TRUE(Formatter::isIncomplete(table("{ info = { format_version = 2, result = 'incomplete' } }")));
+    EXPECT_FALSE(Formatter::isIncomplete(table("{ info = { format_version = 2, result = 'fail' } }")));
     EXPECT_FALSE(Formatter::isIncomplete(table("{ info = { pass = false } }")));
     EXPECT_FALSE(Formatter::isIncomplete(table("{}")));
+}
+
+TEST_F(ReportFormatterTest, IsIncomplete_V1FromDisabledScopes)
+{
+    EXPECT_TRUE(Formatter::isIncomplete(
+      table("{ info = { pass = false }, sequences = { A = { pass = false, tests = { T = { enabled = false } } } } }")));
+    EXPECT_TRUE(Formatter::isIncomplete(table("{ info = { pass = false }, sequences = { A = { enabled = false } } }")));
+    EXPECT_FALSE(Formatter::isIncomplete(
+      table("{ info = { pass = false }, sequences = { A = { pass = false, tests = { T = { enabled = true } } } } }")));
+    // v2 tables carry their result.
+    EXPECT_FALSE(Formatter::isIncomplete(table(
+      "{ info = { format_version = 2, result = 'fail' }, sequences = { A = { result = 'fail', enabled = false } } }")));
+    // A v1 hook setting `info.result` doesn't hide disabled scopes.
+    EXPECT_TRUE(Formatter::isIncomplete(
+      table("{ info = { pass = false, result = 'fail' }, sequences = { A = { pass = false, enabled = false } } }")));
+    EXPECT_TRUE(Formatter::isIncomplete(
+      table("{ info = { pass = false, result = 'bogus' }, sequences = { A = { pass = false, enabled = false } } }")));
 }
 
 TEST_F(ReportFormatterTest, Labels)
@@ -198,24 +242,52 @@ TEST_F(ReportFormatterTest, Markdown_PrintsEachResult)
     EXPECT_EQ(text.find("Result: Not provided"), std::string::npos) << text;
 }
 
-TEST_F(ReportFormatterTest, Json_AddsResultNextToDeprecatedFields)
+TEST_F(ReportFormatterTest, Json_V2_ResultOnly)
 {
     const auto file = m_dir / "report.json";
     {
-        auto formatter = Formatter::Json(mixedReport("result = 'fail', pass = false"));
+        auto formatter = Formatter::Json(mixedReport("format_version = 2, result = 'fail'"));
         formatter.reportInfo();
         walk(formatter, "S", {"T", "D", "K"});
         formatter.toFile(file.string());
     }
     const auto json = nlohmann::json::parse(read(file));
+    EXPECT_EQ(json["info"]["format_version"], 2);
     EXPECT_EQ(json["info"]["result"], "fail");
-    EXPECT_EQ(json["info"]["pass"], false);
+    EXPECT_FALSE(json["info"].contains("pass"));
     const auto& sequence = json["sequences"]["S"];
     EXPECT_EQ(sequence["result"], "fail");
     EXPECT_EQ(sequence["tests"]["T"]["result"], "fail");
     EXPECT_EQ(sequence["tests"]["D"]["result"], "disabled");
     EXPECT_EQ(sequence["tests"]["K"]["result"], "skipped");
-    EXPECT_TRUE(sequence["tests"]["K"].contains("skipped"));
+    for (const auto* field : {"pass", "skipped", "enabled"}) {
+        EXPECT_FALSE(sequence.contains(field)) << field;
+        EXPECT_FALSE(sequence["tests"]["K"].contains(field)) << field;
+    }
+}
+
+TEST_F(ReportFormatterTest, Json_V1_BooleansOnly)
+{
+    const auto file = m_dir / "report.json";
+    {
+        auto formatter = Formatter::Json(report("pass = false", R"({ S = { pass = false, skipped = false,
+            enabled = true, time = { elapsed = 1.0 }, tests = {
+            T = { pass = false, skipped = false, enabled = true, time = { elapsed = 1.0 }, expectations = {} },
+            D = { pass = false, skipped = true, enabled = false, time = { elapsed = 0 }, expectations = {} } } } })"));
+        formatter.reportInfo();
+        walk(formatter, "S", {"T", "D"});
+        formatter.toFile(file.string());
+    }
+    const auto json = nlohmann::json::parse(read(file));
+    EXPECT_FALSE(json["info"].contains("format_version"));
+    EXPECT_FALSE(json["info"].contains("result"));
+    EXPECT_EQ(json["info"]["pass"], false);
+    const auto& tests = json["sequences"]["S"]["tests"];
+    EXPECT_FALSE(json["sequences"]["S"].contains("result"));
+    EXPECT_FALSE(tests["D"].contains("result"));
+    EXPECT_EQ(tests["D"]["enabled"], false);
+    EXPECT_EQ(tests["D"]["skipped"], true);
+    EXPECT_EQ(tests["T"]["pass"], false);
 }
 
 TEST_F(ReportFormatterTest, Pdf_ResultHtml)
@@ -258,7 +330,14 @@ protected:
     sol::table incomplete()
     {
         return table(std::string("{ info = { title = '") + s_title +
-                     "', uut = 1, result = 'incomplete', pass = false }, ib = {}, sequences = {} }");
+                     "', uut = 1, format_version = 2, result = 'incomplete' }, ib = {}, sequences = {} }");
+    }
+
+    sol::table incompleteV1()
+    {
+        return table(std::string("{ info = { title = '") + s_title +
+                     "', uut = 1, pass = false }, ib = {}, sequences = { A = { pass = false, skipped = true, "
+                     "enabled = false, tests = {} } } }");
     }
 };
 
@@ -284,4 +363,18 @@ TEST_F(IncompleteWriterTest, Pdf_NothingWrittenAndStaleReportRemoved)
     EXPECT_TRUE(Frasy::Report::PDF::makeReport(incomplete(), {"a.pdf"}).empty());
     EXPECT_FALSE(fs::exists(m_pdf));
     EXPECT_FALSE(fs::exists(m_pdf.parent_path() / "fail" / "a.pdf"));
+}
+
+TEST_F(IncompleteWriterTest, V1_NothingWritten)
+{
+    stale(m_json);
+    stale(m_kvp);
+    stale(m_pdf);
+    EXPECT_TRUE(Frasy::Report::Json::makeReport(incompleteV1(), {"a.json"}).empty());
+    EXPECT_TRUE(Frasy::Report::Kvp::makeReport(incompleteV1(), {"a.txt"}).empty());
+    EXPECT_TRUE(Frasy::Report::PDF::makeReport(incompleteV1(), {"a.pdf"}).empty());
+    EXPECT_FALSE(fs::exists(m_json));
+    EXPECT_FALSE(fs::exists(m_kvp));
+    EXPECT_FALSE(fs::exists(m_pdf));
+    EXPECT_FALSE(fs::exists(m_json.parent_path() / "fail" / "a.json"));
 }

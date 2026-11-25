@@ -48,6 +48,8 @@ private:
     static nlohmann::ordered_json reportSectionTime(const sol::table& section);
     nlohmann::ordered_json        m_object  = nlohmann::json::object();
     nlohmann::ordered_json*       m_section = nullptr;
+    /** Layout of the report fed in, written back as is: v2 if `info.format_version` is set. */
+    bool m_isV2 = false;
 };
 }    // namespace Frasy::Report::Formatter
 

@@ -141,6 +141,7 @@ Context.values.calibration = {
 | `Environment.Team.Add(leader, ...)` | Group UUTs into a team (for team-based synchronization). See [Teams](teams.md). |
 | `Environment.UutValue.Add(key)` | Declare a per-UUT value (e.g., different test point routing per slot) |
 | `Environment.SetOnReport(fn)` | Hook called on report generation to transform the report |
+| `Environment.SetReportFormat(format)` | `ReportFormat.v1` (default) or `ReportFormat.v2`: layout of the report |
 | `Environment.SetOnReportInfo(fn)` | Hook to inject extra metadata into reports |
 
 ---
@@ -253,6 +254,26 @@ end)
 Frasy generates test reports in multiple formats (JSON, Key-Value, Markdown, PDF) after each run.
 Two hooks let you inject extra information or transform the report before it is saved to disk.
 
+### `Environment.SetReportFormat(format)`
+
+Picks the layout of the report given to `onReport` and saved to disk. It defaults to `ReportFormat.v1`, so existing
+products keep their reports until they opt in.
+
+```lua
+Environment.Make(function()
+    Environment.SetReportFormat(ReportFormat.v2)
+end)
+```
+
+| Layout | `info` | Sequences, tests and expectations |
+|---|---|---|
+| `ReportFormat.v1` | `pass` (`false` for an incomplete board) | `pass`, `skipped`, `enabled` |
+| `ReportFormat.v2` | `format_version = 2`, `result` | `result` |
+
+Only the report changes: incomplete boards go to `debug/` and skip the other writers with either layout, and the
+expectation helpers keep working the same way. See
+[Report Structure](../architecture/test-lifecycle.md#report-structure-json).
+
 ### `Environment.SetOnReportInfo(fn)`
 
 Called during report generation to inject extra metadata into the report header. The function
@@ -313,9 +334,8 @@ end)
 ```
 
 !!! note "Report format v2"
-    Read `result` instead of the `pass`, `skipped` and `enabled` booleans. Those are deprecated and
-    will be removed in a later format; `report.info.format_version` tells which layout the report
-    uses. See [Report Structure](../architecture/test-lifecycle.md#report-structure-json).
+    This example reads `result`, so it needs `Environment.SetReportFormat(ReportFormat.v2)`. With the default v1
+    layout, read `test.pass` instead. See [Report Structure](../architecture/test-lifecycle.md#report-structure-json).
 
     | Level | `result` values |
     |---|---|
@@ -327,9 +347,9 @@ end)
     with a valid `result`, or carry no `result` at all (they are then ignored). An invalid `result` makes
     the report unreadable, and the UUT ends in `Error`.
 
-    `report.info.result` and `report.info.pass` are computed **before** `onReport` runs and are not
-    recomputed afterwards. A hook that changes the outcome, for example by removing a failed
-    sequence, must update both fields itself while the format is in transition.
+    `report.info.result` (v2) or `report.info.pass` (v1) is computed **before** `onReport` runs and is not
+    recomputed afterwards. A hook that changes the outcome, for example by removing a failed sequence, must
+    update it itself.
 
 !!! warning
     The report table is passed by reference. If your `onReport` function errors, the report is
@@ -342,15 +362,13 @@ The C++ report writers, `Frasy::Report::Json::makeReport`, `Frasy::Report::Kvp::
 `Frasy::Report::PDF::makeReport`, turn the report table into client-facing files (JSON, SMT key-value
 text, PDF):
 
-- **`result` decides.** The pass/fail folder and every printed verdict come from `result`; the deprecated
-  `pass`, `skipped` and `enabled` are only read for entries that have no `result` (entries built by hand).
-  An `onReport` hook that changes a verdict before calling a writer must set `result`, and should keep
-  `pass` in sync during the transition.
-- The KVP and PDF writers print `PASS`, `FAIL` or `SKIPPED`. The JSON writer adds the report's own
-  lowercase `result` (`"pass"`, `"fail"`, `"skipped"`) next to the deprecated `pass`, `skipped` and
-  `enabled`.
-- They **write nothing for an incomplete board** (`info.result == "incomplete"`, i.e. anything was
-  disabled) and return an empty list: a debug run never reaches the client outputs. They also delete
+- **They read either layout.** The pass/fail folder and every printed verdict come from `result` when an entry
+  has one, otherwise from `enabled`, `skipped` and `pass`. An `onReport` hook that changes a verdict before calling
+  a writer must update the field of its layout.
+- The KVP and PDF writers print `PASS`, `FAIL` or `SKIPPED`. The JSON writer keeps the report's layout: lowercase
+  `result` (`"pass"`, `"fail"`, `"skipped"`) and `format_version` in v2, `pass`, `skipped` and `enabled` in v1.
+- They **write nothing for an incomplete board** (anything was disabled: `info.result == "incomplete"` in v2, a
+  sequence or test with `enabled = false` in v1) and return an empty list: a debug run never reaches the client outputs. They also delete
   their previous `last_uut<N>` file for that UUT, so it can't be mistaken for this board's. The board's
   report is still saved under `debug/`.
 

@@ -14,6 +14,7 @@
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 local Scope = require("lua/core/framework/scope")
 local ScopeResult = require("lua/core/framework/scope_result")
+local ReportFormat = require("lua/core/framework/report_format")
 local Sequence = require("lua/core/framework/sequence")
 local Test = require("lua/core/framework/test")
 local ScopeRequirement = require("lua/core/framework/scope_requirement/module")
@@ -63,9 +64,25 @@ local function IsScopeEnabled(scope)
     end
 end
 
---- Report layout version, written as `info.format_version`. Readers should select their parser from it.
---- v1 (no version): `pass`/`skipped`/`enabled` booleans. v2: `result` strings.
-local ReportFormatVersion = 2
+--- Copy of a scope or expectation result holding only the fields of @p format.
+---@param entry table
+---@param format ReportFormatValue
+---@return table
+local function ToReportLayout(entry, format)
+    local copy = {}
+    for k, v in pairs(entry) do copy[k] = v end
+    if type(entry.time) == "table" then
+        copy.time = {}
+        for k, v in pairs(entry.time) do copy.time[k] = v end
+    end
+    if format == ReportFormat.v2 then
+        copy.pass, copy.skipped, copy.enabled = nil, nil, nil
+    else
+        if copy.pass == nil then copy.pass = copy.result == ScopeResult.Value.Pass end
+        copy.result = nil
+    end
+    return copy
+end
 
 --- Log wording of each result.
 local Verdict = {
@@ -453,7 +470,6 @@ function Orchestrator.CompileExecutionResults(outputDir)
         serial = Context.info.serial,
         uut = Context.info.uut,
         date = os.date(),
-        format_version = ReportFormatVersion,
         time = {
             start = Context.info.time.start,
             stop = os.clock(),
@@ -473,19 +489,20 @@ function Orchestrator.CompileExecutionResults(outputDir)
         }
     end
 
+    local format = Context.map.reportFormat or ReportFormat.default
     report.sequences = {}
     local sequenceResults = {}
     local testResults = {}
     for sName, sequence in pairs(Context.orchestrator.sequences) do
         table.insert(sequenceResults, sequence.result.result)
-        report.sequences[sName] = sequence.result
+        report.sequences[sName] = ToReportLayout(sequence.result, format)
         report.sequences[sName].tests = {}
         for tName, test in pairs(sequence.tests) do
             table.insert(testResults, test.result.result)
-            report.sequences[sName].tests[tName] = test.result
+            report.sequences[sName].tests[tName] = ToReportLayout(test.result, format)
             report.sequences[sName].tests[tName].expectations = {}
             for _, expectation in pairs(test.expectations) do
-                table.insert(report.sequences[sName].tests[tName].expectations, expectation)
+                table.insert(report.sequences[sName].tests[tName].expectations, ToReportLayout(expectation, format))
             end
         end
         report.sequences[sName].time = { start = 0, stop = 0, elapsed = 0, process = 0 }
@@ -500,9 +517,14 @@ function Orchestrator.CompileExecutionResults(outputDir)
             report.info.time.process = report.info.time.process + report.sequences[sName].time.process
         end
     end
-    report.info.result = ScopeResult.AggregateBoard(sequenceResults, testResults)
-    -- Deprecated, kept for the transition to report format v2.
-    report.info.pass = report.info.result == ScopeResult.Value.Pass
+    local result = ScopeResult.AggregateBoard(sequenceResults, testResults)
+    if format == ReportFormat.v2 then
+        report.info.format_version = ReportFormat.v2
+        report.info.result = result
+    else
+        -- An incomplete board reads as a failure; readers find it from its disabled scopes.
+        report.info.pass = result == ScopeResult.Value.Pass
+    end
     xpcall(function() Context.map.onReport(report) end, function(error)
         Log.E("On Report failed")
         Log.E(ToString(error))

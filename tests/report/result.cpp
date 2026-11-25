@@ -190,6 +190,63 @@ TEST(ReportResult, V1_ThrowsOnNonBooleanField)
     }
 }
 
+/** v1 report of an incomplete board: T1 disabled, T2 passed or failed. */
+json v1Incomplete(bool t2Passed)
+{
+    auto report = json::parse(R"({ "info": { "pass": false }, "sequences": { "A": {
+        "pass": false, "skipped": false, "enabled": true, "tests": {
+            "T1": { "pass": false, "skipped": true, "enabled": false },
+            "T2": { "pass": true, "skipped": false, "enabled": true } } } } })");
+    report["sequences"]["A"]["tests"]["T2"]["pass"] = t2Passed;
+    return report;
+}
+
+TEST(ReportResult, V1_DisabledScope_BoardIncomplete)
+{
+    EXPECT_EQ(ResultReader(v1Incomplete(true)).getInfo(), Result::Incomplete);
+    EXPECT_EQ(ResultReader(v1Incomplete(false)).getInfo(), Result::Incomplete);
+    auto disabledSequence = json::parse(R"({ "info": { "pass": false }, "sequences": {
+        "A": { "pass": true, "skipped": false, "enabled": true, "tests": {} },
+        "B": { "pass": false, "skipped": true, "enabled": false, "tests": {} } } })");
+    EXPECT_EQ(ResultReader(disabledSequence).getInfo(), Result::Incomplete);
+}
+
+TEST(ReportResult, V1_NothingDisabled_BoardFromPass)
+{
+    const auto report = json::parse(R"({ "info": { "pass": false }, "sequences": { "A": {
+        "pass": false, "skipped": false, "enabled": true, "tests": {
+            "T1": { "pass": false, "skipped": false, "enabled": true } } } } })");
+    EXPECT_EQ(ResultReader(report).getInfo(), Result::Fail);
+}
+
+TEST(ReportResult, V1_SequenceWithDisabledTest_IncompleteUnlessATestFailed)
+{
+    const ResultReader reader(v1Report());
+    EXPECT_EQ(reader.read(v1Incomplete(true)["sequences"]["A"]), Result::Incomplete);
+    EXPECT_EQ(reader.read(v1Incomplete(false)["sequences"]["A"]), Result::Fail);
+}
+
+TEST(ReportResult, V1_PendingTest_LeftOutOfSequence)
+{
+    auto report                                     = v1Incomplete(false);
+    report["sequences"]["A"]["tests"]["T2"]["time"] = {{"stop", 0.0}};
+    EXPECT_EQ(ResultReader(v1Report()).read(report["sequences"]["A"]), Result::Incomplete);
+}
+
+TEST(ReportResult, V1_NestedTests_NotReadRecursively)
+{
+    const auto sequence = json::parse(R"({ "pass": false, "tests": {
+        "T1": { "enabled": false },
+        "T2": { "pass": false, "tests": { "X": { "enabled": false } } } } })");
+    EXPECT_EQ(ResultReader(v1Report()).read(sequence), Result::Fail);
+}
+
+TEST(ReportResult, V1_IncompleteBoard_FailedScopeOnlyWhenATestFailed)
+{
+    EXPECT_FALSE(Frasy::Report::hasFailedScope(v1Incomplete(true)));
+    EXPECT_TRUE(Frasy::Report::hasFailedScope(v1Incomplete(false)));
+}
+
 TEST(ReportResult, V2_ReadsResult)
 {
     EXPECT_EQ(readV2(R"({ "result": "pass" })"), Result::Pass);

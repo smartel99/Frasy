@@ -15,6 +15,7 @@
 local _worker = require("lua/core/sdk/environment/worker")
 local _team = require("lua/core/sdk/environment/team")
 local _ib = require("lua/core/sdk/environment/ib")
+ReportFormat = require("lua/core/framework/report_format")
 
 if (Context.map == nil) then
     Context.map = {
@@ -22,6 +23,7 @@ if (Context.map == nil) then
         ibs = {},
         team = {},
         values = {},
+        reportFormat = ReportFormat.default,
         onReport = function(report)
             return report
         end,
@@ -112,6 +114,15 @@ local function SetOnReportInfo(fun)
     Context.map.onReportInfo = fun
 end
 
+--- Layout of the report given to `onReport` and saved. v1 by default.
+---@param format ReportFormatValue
+local function SetReportFormat(format)
+    if not ReportFormat.IsValid(format) then
+        error("Invalid report format: " .. tostring(format) .. ". Use ReportFormat.v1 or ReportFormat.v2")
+    end
+    Context.map.reportFormat = format
+end
+
 local function ScriptVersion(version)
     if version == nil then
         return Context.info.version.scripts
@@ -146,4 +157,5 @@ Environment = {
     SetExecutionPolicy = setExecutionPolicy,
     SetOnReport = SetOnReport,
     SetOnReportInfo = SetOnReportInfo,
+    SetReportFormat = SetReportFormat,
 }

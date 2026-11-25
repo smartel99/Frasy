@@ -13,7 +13,7 @@ ErrorPolicy = {
 --- @field name string
 --- @field note string?
 --- @field result ScopeResultValue `pass` or `fail`, with the inversion applied
---- @field pass boolean Deprecated, use `result`. Removed after the report format v2 transition.
+--- @field pass boolean Same as `result`. Only v1 reports carry it.
 --- @field inverted boolean tell if the result should be interpreted with invert logic
 --- @field extra any? additional data that could be useful for developer
 --- @field method string

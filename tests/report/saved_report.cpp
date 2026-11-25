@@ -25,7 +25,7 @@ protected:
         ExecutionTest::SetUp();
         lua.set_function("SaveAsJson", &Frasy::Lua::SaveAsJson);
         lua.script(R"(
-            Context.map = { ibs = {}, onReport = function(report) end }
+            Context.map = { ibs = {}, reportFormat = 2, onReport = function(report) end }
             Context.info.version = { frasy = '1', orchestrator = '1', scripts = '1', application = '1' }
             Context.info.title = 'Demo'
         )");
@@ -103,26 +103,51 @@ TEST_F(SavedReportTest, EveryScopeResultRoundTrips)
     EXPECT_EQ(reader.read(sequences.at("NotApplicable").at("tests").at("T1"), notApplicable), Result::Skipped);
 }
 
-TEST_F(SavedReportTest, DeprecatedFieldsAgreeWithResult)
+/** Same run saved in both layouts: a v1 reader gets the same results as a v2 one. */
+class SavedReportLayoutTest : public SavedReportTest, public ::testing::WithParamInterface<const char*> {};
+
+TEST_P(SavedReportLayoutTest, V1ReadsLikeV2)
 {
-    lua.script("Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2' } } } })");
-    lua.script(
-      "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, "
-      "T2 = { enabled = true } } }");
+    lua.script(GetParam());
     ASSERT_TRUE(runSection()) << lastError;
-    const auto report = compileAndLoad();
-    // A v1 reader of the same file still gets a consistent picture from the booleans.
-    auto asV1 = report;
-    asV1["info"].erase("format_version");
-    const ResultReader v1(asV1);
-    const ResultReader v2(report);
-    const auto&        tests = report.at("sequences").at("S").at("tests");
-    for (const auto* name : {"T1", "T2"}) {
-        EXPECT_EQ(v1.read(tests.at(name)), v2.read(tests.at(name))) << name;
+    const auto v2Report = compileAndLoad();
+    lua.script("Context.map.reportFormat = 1");
+    const auto v1Report = compileAndLoad();
+    ASSERT_FALSE(v1Report.at("info").contains("format_version"));
+
+    const ResultReader v1(v1Report);
+    const ResultReader v2(v2Report);
+    EXPECT_EQ(v1.getInfo(), v2.getInfo());
+    EXPECT_EQ(Frasy::Report::hasFailedScope(v1Report), Frasy::Report::hasFailedScope(v2Report));
+    for (const auto& [sName, sequence] : v2Report.at("sequences").items()) {
+        const auto& v1Sequence = v1Report.at("sequences").at(sName);
+        const auto  result     = v2.read(sequence);
+        EXPECT_EQ(v1.read(v1Sequence), result) << sName;
+        for (const auto& [tName, test] : sequence.at("tests").items()) {
+            EXPECT_EQ(v1.read(v1Sequence.at("tests").at(tName), v1.read(v1Sequence)), v2.read(test, result)) << tName;
+        }
     }
-    EXPECT_EQ(v2.getInfo(), Result::Incomplete);
-    EXPECT_EQ(v1.getInfo(), Result::Fail);    // v1 had no incomplete: `info.pass` is false.
 }
+
+INSTANTIATE_TEST_SUITE_P(
+  Runs,
+  SavedReportLayoutTest,
+  ::testing::Values(
+    "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2' } } } })",
+    "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', func = Fail } } } })",
+    "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2' } } } }); "
+    "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, T2 = { enabled = true } } }",
+    "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', func = Fail } } }, "
+    "{ name = 'B', tests = { { name = 'T1' } } } }); "
+    "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, T2 = { enabled = true } }, "
+    "B = { enabled = true, T1 = { enabled = true } } }",
+    "Define({ { name = 'S', tests = { { name = 'T1' } } }, { name = 'B', tests = { { name = 'T1' } } } }); "
+    "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = true } }, B = { enabled = false } }",
+    "Define({ { name = 'S', func = function() error(UnmetRequirement('no')) end, tests = { { name = 'T1' } } } })",
+    // T2 never runs: section 2 is not run.
+    "Define({ { name = 'S', tests = { { name = 'T1' }, { name = 'T2', section = 2 } } } }); "
+    "Context.orchestrator.enable_list = { S = { enabled = true, T1 = { enabled = false }, T2 = { enabled = true } } "
+    "}"));
 
 TEST_F(SavedReportTest, FailWithDisabledTest_IsIncompleteWithFailure)
 {
