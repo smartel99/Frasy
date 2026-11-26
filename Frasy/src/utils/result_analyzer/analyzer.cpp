@@ -244,9 +244,13 @@ void ResultAnalyzer::AnalyzeTest(const Report::ResultReader&  reader,
     const auto result = reader.read(test, sequenceResult);
     results.Results.add(result);
 
-    // Tests that didn't run have no duration to average.
-    if (result != Report::Result::Skipped && result != Report::Result::Disabled) {
-        results.Durations.push_back(test.at("time").at("process").get<double>());
+    // Tests that didn't run have no duration to average. A test that never started has `time.stop == 0`, e.g. one of
+    // a sequence whose body raised.
+    const auto& time     = test.at("time");
+    const auto  stop     = time.find("stop");
+    const bool  neverRan = stop != time.end() && stop->is_number() && stop->get<double>() == 0.0;
+    if (result != Report::Result::Skipped && result != Report::Result::Disabled && !neverRan) {
+        results.Durations.push_back(time.at("process").get<double>());
         results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
         results.AverageDuration /= static_cast<double>(results.Durations.size());
     }

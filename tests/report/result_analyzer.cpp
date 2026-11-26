@@ -197,6 +197,28 @@ TEST_F(ResultAnalyzerTest, BadExpectation_OnlyThatExpectationDropped)
     EXPECT_EQ(test.Expectations.at("Ok")->serialize().at("passed"), 1);
 }
 
+TEST_F(ResultAnalyzerTest, TestThatNeverRan_NoDuration)
+{
+    // A sequence whose body raised: its test failed without starting.
+    write("fail",
+          "SN1.json",
+          R"({ "info": { "format_version": 2.0, "result": "fail", "uut": 1, "time": { "process": 1.0 } },
+               "sequences": { "S": { "result": "fail", "time": { "process": 1.0 }, "tests": {
+                   "T": { "result": "fail", "time": { "process": 0.0, "stop": 0.0 }, "expectations": [] } } } } })");
+    write("pass",
+          "SN2.json",
+          R"({ "info": { "format_version": 2.0, "result": "pass", "uut": 1, "time": { "process": 1.0 } },
+               "sequences": { "S": { "result": "pass", "time": { "process": 1.0 }, "tests": {
+                   "T": { "result": "pass", "time": { "process": 2.0, "stop": 3.0 }, "expectations": [] } } } } })");
+
+    ResultAnalyzer analyzer;
+    const auto     results = analyzer.Analyze(s_title);
+    const auto&    test    = results.Locations.at("Total").Sequences.at("S").Tests.at("T");
+    EXPECT_EQ(test.Results.get(Result::Fail), 1U);
+    EXPECT_EQ(test.Durations.size(), 1U);
+    EXPECT_DOUBLE_EQ(test.AverageDuration, 2.0);
+}
+
 TEST_F(ResultAnalyzerTest, V1SkippedAndDisabledSequences_TestsTakeTheirResult)
 {
     write("pass",
