@@ -123,9 +123,10 @@ Every sequence and test ends with a `result`:
 | `disabled` | The scope was disabled. It did not run |
 | `incomplete` | Sequences only: at least one test was disabled, and none failed |
 
-Tests inside a skipped or disabled sequence take the sequence's result and reason. That includes the tests its
-body never declared (a disabled sequence doesn't run its body, and a skipped one stops at its `Requires`): they
-are taken from the solution, so the report still lists every test.
+Tests inside a skipped or disabled sequence take the sequence's result and reason, and so do the tests of a sequence
+whose body raises an error: they `fail` with it. That includes the tests its body never declared (a disabled sequence
+doesn't run its body, a skipped one stops at its `Requires`, and one that raises stops there): they are taken from
+the solution, so the report still lists every test.
 
 A sequence combines the results of its tests by precedence: `fail` > `incomplete` > `pass`.
 A `disabled` test makes the sequence `incomplete`; a `skipped` test doesn't change it, since a skip

@@ -255,6 +255,36 @@ TEST_F(ReportTest, ListedTest_ValuesAndRequirementsWork)
     EXPECT_EQ(result("B"), "skipped");
 }
 
+TEST_F(ReportTest, SequenceBodyRaises_ListedTestsFailWithIt)
+{
+    lua.script(R"(Define({
+        { name = 'A', tests = { { name = 'T1' } } },
+        { name = 'Broken', func = function() error('fixture not found') end,
+          tests = { { name = 'Declared' }, { name = 'Never' }, { name = 'Later', section = 2 } } },
+    }))");
+    // The body raises after declaring `Declared`, before `Never` and `Later`.
+    lua.script(
+      "Context.orchestrator.sequences.Broken.tests.Never = nil; "
+      "Context.orchestrator.sequences.Broken.tests.Later = nil");
+    EXPECT_FALSE(runSection());
+    compile();
+    EXPECT_EQ(lua.script("return saved.sequences.Broken.result").get<std::string>(), "fail");
+    // The traceback stays on the sequence; its tests get the first line.
+    EXPECT_NE(lua.script("return saved.sequences.Broken.reason").get<std::string>().find("stack traceback:"),
+              std::string::npos);
+    for (const auto* test : {"Declared", "Never", "Later"}) {
+        const auto path = std::string("saved.sequences.Broken.tests.") + test;
+        EXPECT_EQ(lua.script("return " + path + ".result").get<std::string>(), "fail") << test;
+        const auto testReason = lua.script("return " + path + ".reason").get<std::string>();
+        EXPECT_NE(testReason.find("fixture not found"), std::string::npos) << test;
+        EXPECT_EQ(testReason.find('\n'), std::string::npos) << test;
+        EXPECT_EQ(testReason.find('\r'), std::string::npos) << test;
+    }
+    // Other sequences are left alone.
+    EXPECT_EQ(lua.script("return saved.sequences.A.tests.T1.result").get<std::string>(), "pass");
+    EXPECT_EQ(info(), "fail");
+}
+
 TEST_F(ReportTest, SkippedSequence_DeclaredTestsKept)
 {
     lua.script(R"(Define({ { name = 'A', func = function() error(UnmetRequirement('no')) end,
@@ -466,4 +496,24 @@ TEST_F(ReportV1Test, ListedTests_Counted)
     EXPECT_EQ(counts.get(Frasy::Report::Result::Pass), 1U);
     EXPECT_EQ(counts.get(Frasy::Report::Result::Disabled), 1U);
     EXPECT_EQ(Frasy::Report::ResultReader(report).getInfo(), Frasy::Report::Result::Incomplete);
+}
+
+TEST_F(ReportV1Test, SequenceBodyRaises_ListedTestsRead)
+{
+    lua.script(R"(Define({
+        { name = 'A', tests = { { name = 'T1' } } },
+        { name = 'Broken', func = function() error('fixture not found') end, tests = { { name = 'Never' } } },
+    }))");
+    lua.script("Context.orchestrator.sequences.Broken.tests = {}");
+    EXPECT_FALSE(runSection());
+    compile();
+    const auto report =
+      nlohmann::json::parse(lua.script("return require('lua/core/vendor/json').encode(saved)").get<std::string>());
+    const Frasy::Report::ResultReader reader(report);
+    EXPECT_EQ(reader.getInfo(), Frasy::Report::Result::Fail);
+    EXPECT_EQ(reader.read(report.at("sequences").at("Broken")), Frasy::Report::Result::Fail);
+    EXPECT_TRUE(Frasy::Report::hasFailedScope(report));
+    const auto counts = Frasy::Report::countTests(report);
+    EXPECT_EQ(counts.get(Frasy::Report::Result::Pass), 1U);
+    EXPECT_EQ(counts.get(Frasy::Report::Result::Fail), 1U);
 }

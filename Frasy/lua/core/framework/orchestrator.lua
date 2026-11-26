@@ -119,7 +119,7 @@ local function HasFailedExpectation(test)
 end
 
 --- Declares the tests the solution lists for a sequence that its body didn't declare: a disabled sequence never runs
---- its body, and a skipped one stops at its `Requires`.
+--- its body, a skipped one stops at its `Requires`, and one whose body raises stops there.
 ---@param name string
 ---@param sequence Sequence
 local function DeclareListedTests(name, sequence)
@@ -143,16 +143,17 @@ local function DeclareListedTests(name, sequence)
     end
 end
 
---- A sequence that doesn't run takes its tests along with it, including those its body didn't get to declare.
+--- A sequence whose body doesn't complete takes its tests along with it, including those it didn't get to declare.
 ---@param name string
 ---@param sequence Sequence
 ---@param value ScopeResultValue
 ---@param reason string
-local function SetSequenceResult(name, sequence, value, reason)
+---@param testReason string? Reason of its tests, `reason` by default.
+local function SetSequenceResult(name, sequence, value, reason, testReason)
     DeclareListedTests(name, sequence)
     sequence.result:Set(value, reason)
     for _, test in pairs(sequence.tests) do
-        test.result:Set(value, reason)
+        test.result:Set(value, testReason or reason)
     end
 end
 
@@ -187,12 +188,11 @@ function Orchestrator.RunSequence(sIndex, scope)
         if IsScopeEnabled(scope) then
             local status, err = xpcall(sequence.func, ErrorHandler)
             if not status then
-                if type(err) == "string" then
-                    sequence.result:Set(ScopeResult.Value.Fail, err)
-                    stop(GenericError(err))
-                end
                 if err.code ~= UnmetRequirement().code then
-                    sequence.result:Set(ScopeResult.Value.Fail, err.what)
+                    -- Its tests never run: they fail with it, even those its body didn't get to declare. The
+                    -- traceback stays on the sequence.
+                    local what = tostring(err.what)
+                    SetSequenceResult(scope.sequence, sequence, ScopeResult.Value.Fail, what, string.match(what, "^[^\r\n]*"))
                     stop(err)
                 end
                 SetSequenceResult(scope.sequence, sequence, ScopeResult.Value.Skipped, err.what)
