@@ -85,15 +85,15 @@ end
 ---@param tests ScopeResultValue[] Results of every test of every sequence.
 ---@return ScopeResultValue
 function ScopeResult.AggregateBoard(sequences, tests)
+    local board = Value.Pass
     for _, results in ipairs({ sequences, tests }) do
         for _, result in ipairs(results) do
             if result == Value.Disabled or result == Value.Incomplete then return Value.Incomplete end
+            -- A sequence can fail without a failed test, e.g. its body raised before declaring them.
+            if result == Value.Fail then board = Value.Fail end
         end
     end
-    for _, result in ipairs(tests) do
-        if result == Value.Fail then return Value.Fail end
-    end
-    return ScopeResult.Aggregate(sequences)
+    return board
 end
 
 return ScopeResult

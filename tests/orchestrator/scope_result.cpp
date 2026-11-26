@@ -155,6 +155,10 @@ TEST_F(ScopeResultTest, AggregateBoard_IncompleteWinsOverFail)
     EXPECT_EQ(board("{ 'fail', 'pass', 'skipped' }", "{ 'fail', 'pass', 'skipped' }"), "fail");
     EXPECT_EQ(board("{ 'pass', 'skipped' }", "{ 'pass', 'skipped' }"), "pass");
     EXPECT_EQ(board("{}", "{}"), "pass");
+    // A sequence can fail without a failed test, e.g. its body raised before declaring them.
+    EXPECT_EQ(board("{ 'pass', 'fail' }", "{ 'pass' }"), "fail");
+    // Incomplete wins over a failure seen earlier, in either list.
+    EXPECT_EQ(board("{ 'fail' }", "{ 'pass', 'disabled' }"), "incomplete");
 }
 
 TEST_F(ScopeResultTest, Aggregate_FailWinsInAnyOrder)
