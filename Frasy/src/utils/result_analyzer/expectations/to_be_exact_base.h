@@ -35,17 +35,17 @@ private:
 public:
     ~ToBeExactBase() override = default;
 
-    void AddValue(const nlohmann::json& value) override
+    void AddValue(const nlohmann::json& value, bool passed) override
     {
         Total++;
-        if (value.at("pass").get<bool>()) { Passed++; }
+        if (passed) { Passed++; }
 
         std::string valueStr = value.at("value").dump(2, ' ', true);
         if (!Values.contains(valueStr)) {
             // First time seen, add to the list.
             Values[valueStr] = {
-              .Type   = value["expected"].type_name(),
-              .Passed = value.at("pass").get<bool>(),
+              .Type   = value.contains("expected") ? value.at("expected").type_name() : "null",
+              .Passed = passed,
             };
         }
         Values[valueStr].Seen++;

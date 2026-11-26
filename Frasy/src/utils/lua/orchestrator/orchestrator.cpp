@@ -22,9 +22,9 @@
 #include "../args_checker.h"
 #include "../dummy_table_deserializer.h"
 #include "../ib_info.h"
+#include "../object_dictionary_binding.h"
 #include "../ode_deserializer.h"
 #include "../ode_serializer.h"
-#include "../object_dictionary_binding.h"
 #include "../team.h"
 #include "utils/lua/save_as_json.h"
 
@@ -123,8 +123,7 @@ bool Orchestrator::loadUserFiles(const std::string& environment, const std::stri
     return true;
 }
 
-bool Orchestrator::verifyHash(const std::filesystem::path&        folder,
-                              const std::filesystem::path&        hashfile)
+bool Orchestrator::verifyHash(const std::filesystem::path& folder, const std::filesystem::path& hashfile)
 {
 #ifndef BR_DEBUG
     if (!exists(hashfile)) {
@@ -188,7 +187,9 @@ void Orchestrator::runSolution(const std::string&              operatorName,
 }
 
 const Models::Solution& Orchestrator::getSolution()
-{ return m_solution; }
+{
+    return m_solution;
+}
 
 bool Orchestrator::createOutputDirs()
 {
@@ -199,6 +200,7 @@ bool Orchestrator::createOutputDirs()
         fs::create_directory(std::format("{}/{}", m_outputDirectory, m_title));
         fs::create_directory(std::format("{}/{}/{}", m_outputDirectory, m_title, passSubdirectory));
         fs::create_directory(std::format("{}/{}/{}", m_outputDirectory, m_title, failSubdirectory));
+        fs::create_directory(std::format("{}/{}/{}", m_outputDirectory, m_title, debugSubdirectory));
         const auto last = std::format("{}/{}", m_outputDirectory, lastSubdirectory);
         fs::remove_all(last);
         fs::create_directory(last);
@@ -342,9 +344,7 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
         };
         lua.require_file("Json", "lua/core/vendor/json.lua");
         importLog(lua, uut, stage);
-        if (m_popupImport) {
-            m_popupImport(lua, uut, stage);
-        }
+        if (m_popupImport) { m_popupImport(lua, uut, stage); }
         else {
             importPopup(lua, uut, stage);
         }
@@ -353,18 +353,24 @@ bool Orchestrator::initLua(sol::state_view lua, std::size_t uut, Stage stage)
 
         // Progress callback binding
         if (m_progressCallback && stage == Stage::execution) {
-            lua["__progress"] = lua.create_table();
-            lua["__progress"]["report"] = [this](const std::string& type, std::size_t uut,
-                                                  const std::string& name, const std::string& parentA,
-                                                  const std::string& parentB, bool pass) {
-                m_progressCallback(type, uut, name, parentA, parentB, pass);
+            lua["__progress"]           = lua.create_table();
+            lua["__progress"]["report"] = [this](const std::string& type,
+                                                 std::size_t        uut,
+                                                 const std::string& name,
+                                                 const std::string& parentA,
+                                                 const std::string& parentB,
+                                                 const sol::object& result) {
+                m_progressCallback(type, uut, name, parentA, parentB, toProgressResult(name, result));
             };
         }
         else {
-            lua["__progress"] = lua.create_table();
-            lua["__progress"]["report"] = [](const std::string&, std::size_t,
-                                              const std::string&, const std::string&,
-                                              const std::string&, bool) {};
+            lua["__progress"]           = lua.create_table();
+            lua["__progress"]["report"] = [](const std::string&,
+                                             std::size_t,
+                                             const std::string&,
+                                             const std::string&,
+                                             const std::string&,
+                                             const sol::object&) {};
         }
         lua.script_file("lua/core/framework/exception.lua");
 
@@ -919,30 +925,62 @@ void Orchestrator::runStageExecute(sol::state_view team, const std::vector<std::
     }
 }
 
+Orchestrator::ReportOutcome Orchestrator::getReportOutcome(Report::Result result, bool hasFailedScope) noexcept
+{
+    switch (result) {
+        case Report::Result::Pass: return {.state = UutState::Passed, .subdirectory = passSubdirectory};
+        case Report::Result::Fail: return {.state = UutState::Failed, .subdirectory = failSubdirectory};
+        case Report::Result::Incomplete:
+        case Report::Result::Skipped:
+        case Report::Result::Disabled: break;
+    }
+    return {.state        = hasFailedScope ? UutState::IncompleteFailed : UutState::IncompletePassed,
+            .subdirectory = debugSubdirectory};
+}
+
+UutState Orchestrator::fileReport(const std::filesystem::path& reportFile,
+                                  const std::filesystem::path& archiveRoot,
+                                  std::size_t                  uut)
+{
+    ReportOutcome outcome;
+    std::string   serial;
+    try {
+        std::ifstream              ifs {reportFile};
+        const nlohmann::json       data = nlohmann::json::parse(ifs);
+        const Report::ResultReader reader(data);
+        outcome = getReportOutcome(reader.getInfo(), Report::hasFailedScope(data));
+        serial  = data.at("info").value("serial", std::string {});
+    }
+    catch (const std::exception& e) {
+        BR_LUA_ERROR("Unreadable report for UUT {} in '{}': {}", uut, reportFile.string(), e.what());
+        return UutState::Error;
+    }
+
+    const auto archive = archiveRoot / outcome.subdirectory /
+                         std::format("{}_{}.json", std::chrono::system_clock::now().time_since_epoch().count(), serial);
+    try {
+        std::filesystem::copy(reportFile, archive);
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // The board's result stands; only its copy is missing.
+        BR_LUA_ERROR("Couldn't archive the report of UUT {} to '{}': {}", uut, archive.string(), e.what());
+    }
+    return outcome.state;
+}
+
 void Orchestrator::checkResults(const std::vector<std::size_t>& devices)
 {
     FRASY_PROFILE_FUNCTION();
-    using nlohmann::json;
+    const auto archiveRoot = std::filesystem::path(m_outputDirectory) / m_title;
     for (const auto& uut : devices) {
-        if (std::string resultFile = std::format("{}/{}/{}.json", m_outputDirectory, lastSubdirectory, uut);
+        if (const auto resultFile =
+              std::filesystem::path(m_outputDirectory) / lastSubdirectory / std::format("{}.json", uut);
             std::filesystem::exists(resultFile)) {
-            std::ifstream ifs {resultFile};
-            std::string   content = std::string(std::istreambuf_iterator {ifs}, {});
-            json          data    = json::parse(content);
-            bool          passed  = data["info"]["pass"];
-            std::string   serial  = data["info"]["serial"];
-            m_uutStates[uut]      = passed ? UutState::Passed : UutState::Failed;
-            std::filesystem::copy(resultFile,
-                                  std::format("{}/{}/{}/{}_{}.json",
-                                              m_outputDirectory,
-                                              m_title,
-                                              passed ? passSubdirectory : failSubdirectory,
-                                              std::chrono::system_clock::now().time_since_epoch().count(),
-                                              serial));
+            m_uutStates[uut] = fileReport(resultFile, archiveRoot, uut);
         }
         else if (m_uutStates[uut] != UutState::Disabled) {
             m_uutStates[uut] = UutState::Error;
-            BR_LUA_ERROR("Missing report for UUT {}, files '{}' does not exist.", uut, resultFile);
+            BR_LUA_ERROR("Missing report for UUT {}, files '{}' does not exist.", uut, resultFile.string());
         }
     }
 }
@@ -978,16 +1016,22 @@ void Orchestrator::generate()
 
     m_running = std::async(std::launch::async, [this] {
         BR_BEGIN_GUARDED_SCOPE
-        { runStageGenerate(true); }
+        {
+            runStageGenerate(true);
+        }
         BR_END_GUARDED_SCOPE
     });
 }
 
 void Orchestrator::setTestEnable(const std::string& sequence, const std::string& test, bool enable)
-{ m_solution.SetTestEnable(sequence, test, enable); }
+{
+    m_solution.SetTestEnable(sequence, test, enable);
+}
 
 void Orchestrator::setSequenceEnable(const std::string& sequence, bool enable)
-{ m_solution.SetSequenceEnable(sequence, enable); }
+{
+    m_solution.SetSequenceEnable(sequence, enable);
+}
 
 bool Orchestrator::isRunning() const
 {
@@ -996,22 +1040,44 @@ bool Orchestrator::isRunning() const
 }
 
 [[nodiscard]] UutState Orchestrator::getUutState(std::size_t uut) const
-{ return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle; }
+{
+    return uut < m_uutStates.size() ? m_uutStates[uut] : UutState::Idle;
+}
 
 void Orchestrator::setLoadUserFunctions(const std::function<void(sol::state_view)>& callback)
-{ m_loadUserFunctions = callback; }
+{
+    m_loadUserFunctions = callback;
+}
 
 void Orchestrator::setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback)
-{ m_loadUserBoards = callback; }
+{
+    m_loadUserBoards = callback;
+}
 
 void Orchestrator::setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback)
-{ m_loadUserValues = callback; }
+{
+    m_loadUserValues = callback;
+}
 
 void Orchestrator::setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback)
-{ m_popupImport = std::move(callback); }
+{
+    m_popupImport = std::move(callback);
+}
 
-void Orchestrator::setProgressCallback(std::function<void(const std::string& type, std::size_t uut, const std::string& name, const std::string& parentA, const std::string& parentB, bool pass)> callback)
-{ m_progressCallback = std::move(callback); }
+Report::Result Orchestrator::toProgressResult(std::string_view name, const sol::object& result)
+{
+    if (const auto text = result.as<std::optional<std::string>>()) {
+        if (const auto value = Report::resultFromString(*text)) { return *value; }
+    }
+    // Never report an unknown result as a pass.
+    BR_LOG_ERROR(s_tag, "Progress of '{}' has an unknown result", name);
+    return Report::Result::Fail;
+}
+
+void Orchestrator::setProgressCallback(ProgressCallback callback)
+{
+    m_progressCallback = std::move(callback);
+}
 #pragma endregion
 
 #pragma region Exclusive

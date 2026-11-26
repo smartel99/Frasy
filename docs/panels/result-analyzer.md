@@ -1,7 +1,7 @@
 # Result Analyzer
 
 The Result Analyzer performs **statistical analysis** across multiple test runs. It aggregates
-expectation values from all reports in `logs/pass/` and `logs/fail/`, computes statistics
+expectation values from all reports in `logs/pass/`, `logs/fail/` and `logs/debug/`, computes statistics
 (mean, standard deviation, Pp, Ppk), and renders histograms — helping you identify measurement
 drift, process capability issues, and intermittent failures.
 
@@ -53,16 +53,23 @@ tolerances).
 
 ## Statistics Computed
 
-### Per Test / Per Sequence
+### Per Location / Per Sequence / Per Test
 
 | Statistic | Description |
 |---|---|
-| Total | Number of times this scope was executed |
-| Passed | Number of times it passed |
-| Pass % | Pass rate as a percentage |
-| Enabled | How often it was enabled |
-| Skipped | How often it was skipped (requirement unmet) |
+| Total | Number of reports holding this scope |
+| Passed, failed, incomplete, skipped, disabled | How many times it ended with each result |
+| Pass rate | passed / (passed + failed): incomplete, skipped and disabled runs are left out |
 | Average Duration | Mean execution time |
+
+Reports of both format versions are read: `info.format_version` picks how results are read, so
+reports written before the `result` field existed still count. Reports that can't be read are
+logged and left out. Entries of a report without a result, e.g. added by a product's `onReport`,
+are ignored.
+
+!!! note "Incomplete boards"
+    Boards with something disabled are stored in `logs/debug/` and count as incomplete. Their
+    expectation values are still added to the statistics.
 
 ### Per Expectation (Numeric Values)
 
@@ -135,6 +142,12 @@ This preserves the statistical summary for archival or sharing.
 
 Click **"Load Reports"** to open previously saved analysis files. Multiple files can be loaded
 simultaneously for comparison.
+
+Analyses saved before per-result counts existed only kept passed, skipped and enabled counts. When
+loaded, scopes that weren't enabled count as disabled, and the rest that neither passed nor were
+skipped count as failed.
+
+Analyses saved by this version can't be loaded by older versions of Frasy.
 
 ---
 

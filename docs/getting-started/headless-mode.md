@@ -52,8 +52,14 @@ frasy.exe --headless --product MyProduct --operator "John" --serial SN001 --seri
 | Code | Meaning |
 |---|---|
 | `0` | All UUTs passed |
-| `1` | One or more UUTs failed (expectation failures) |
+| `1` | One or more UUTs failed (expectation failures), including incomplete runs where something failed |
 | `2` | Error (setup failure, invalid arguments, missing product, etc.) |
+| `3` | Nothing failed, but one or more UUTs are incomplete (a sequence or test was disabled) |
+
+A UUT's `state` is `PASS`, `FAIL`, `ERROR`, `INCOMPLETE_PASS` (something disabled, the rest passed) or
+`INCOMPLETE_FAIL` (something disabled, something failed).
+
+When several apply, the most severe wins: `2`, then `1`, then `3`.
 
 ### Output Formats
 
@@ -79,7 +85,18 @@ Progress is displayed as a colored indented tree:
 ==================================================
 ```
 
-Colors: green for PASS, red for FAIL, white for start events.
+Progress tree tags are `[PASS]`, `[FAIL]`, `[SKIPPED]`, `[DISABLED]` and `[INCOMPLETE]` (a sequence with disabled
+tests). Colors: green for PASS, red for FAIL, yellow for the others, white for start events. The `[x/y tests]` of the
+summary counts the tests that passed out of all tests, disabled and skipped ones included.
+
+In the summary, each UUT and the `Overall:` line show a verdict, the most severe one for `Overall:`:
+
+| Verdict | Color | UUT states |
+|---|---|---|
+| `PASS` | green | `PASS` |
+| `INCOMPLETE` | yellow | `INCOMPLETE_PASS` |
+| `FAIL` | red | `FAIL`, `INCOMPLETE_FAIL` |
+| `ERROR` | red | `ERROR`, or a UUT left without a result or report |
 
 #### JSON Lines (`--output-format json`)
 
@@ -89,11 +106,23 @@ Each event is a newline-delimited JSON object:
 {"type":"run_start","product":"MyProduct","serials":["SN001"],"uuts":1,"timestamp":"10:34:56.001"}
 {"type":"sequence_start","uut":1,"serial":"SN001","sequence":"Power On","timestamp":"..."}
 {"type":"test_start","uut":1,"serial":"SN001","sequence":"Power On","test":"Check Voltage","timestamp":"..."}
-{"type":"expectation","uut":1,"serial":"SN001","sequence":"Power On","test":"Check Voltage","name":"Supply Voltage","pass":true,"timestamp":"..."}
-{"type":"test_end","uut":1,"serial":"SN001","sequence":"Power On","test":"Check Voltage","pass":true,"timestamp":"..."}
-{"type":"sequence_end","uut":1,"serial":"SN001","sequence":"Power On","pass":true,"timestamp":"..."}
-{"type":"run_end","overall_pass":true,"product":"MyProduct","uuts":[{"uut":1,"serial":"SN001","pass":true,"state":"PASS","tests_passed":5,"tests_total":5,"duration":0.01,"report":"logs/last/1.json"}]}
+{"type":"expectation","uut":1,"serial":"SN001","sequence":"Power On","test":"Check Voltage","name":"Supply Voltage","pass":true,"result":"pass","timestamp":"..."}
+{"type":"test_end","uut":1,"serial":"SN001","sequence":"Power On","test":"Check Voltage","pass":true,"result":"pass","timestamp":"..."}
+{"type":"sequence_end","uut":1,"serial":"SN001","sequence":"Power On","pass":true,"result":"pass","timestamp":"..."}
+{"type":"run_end","overall_pass":true,"product":"MyProduct","uuts":[{"uut":1,"serial":"SN001","pass":true,"result":"pass","state":"PASS","tests_passed":5,"tests_total":5,"test_results":{"pass":5,"fail":0,"skipped":0,"disabled":0,"incomplete":0},"duration":0.01,"report":"logs/last/1.json"}]}
 ```
+
+`result` is the same string as in the reports: `pass`, `fail`, `skipped`, `disabled` or `incomplete`. `pass` is
+`true` only for `pass`: skipped and disabled tests are no longer `true`. Skipped and disabled sequences also end with
+a `sequence_end`. A test that stops the run (an error, an `ErrorPolicy.stopAll` failure or a teammate's critical
+failure) ends with a `fail` `test_end`, and its sequence with a `fail` `sequence_end`; so does a sequence whose own
+body raises an error. That `sequence_end` is `fail` even when the report keeps the result of the sequence's earlier
+sections. In `run_end`:
+
+- a UUT's `result` is its report's result (`pass`, `fail` or `incomplete`), or `disabled` for a UUT that was turned
+  off and never ran. It is missing for a UUT that ended in error;
+- `test_results` counts the tests of the UUT's report per result. `tests_passed` is its `pass` count, `tests_total` the
+  sum.
 
 ---
 
@@ -192,9 +221,13 @@ With `--mcp-server`, Frasy runs as a [Model Context Protocol](https://modelconte
 
 1. Call `list_products` to see available products
 2. Call `run_tests` with product, operator, and serials
-3. Poll `get_status` until state is `"passed"`, `"failed"`, or `"error"`
+3. Poll `get_status` until state is `"passed"`, `"failed"`, `"incomplete"`, or `"error"`. The overall state is `"failed"` as
+   soon as a UUT failed, even if it was also incomplete; per-UUT states also include `"incomplete_passed"` and
+   `"incomplete_failed"`
 4. If `get_pending_popup` returns a popup, read it and call `respond_to_popup`
-5. Call `get_results` for the full summary
+5. Call `get_results` for the full summary: `overall_pass` is `true` when every UUT passed, and each UUT has
+   `pass`, `result`, `state`, `tests_passed`, `tests_total` and `test_results`, as in the `run_end` event above. Test counts are zero when the
+   UUT's report can't be read
 
 ### Example: run_tests
 

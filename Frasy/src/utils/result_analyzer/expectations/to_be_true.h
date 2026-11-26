@@ -19,16 +19,14 @@
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TRUE_H
 #include "to_be_exact_base.h"
 
-namespace Frasy::Analyzers
-{
-struct ToBeTrueExpectation : public ToBeExactBase
-{
+namespace Frasy::Analyzers {
+struct ToBeTrueExpectation : public ToBeExactBase {
     ~ToBeTrueExpectation() override = default;
-    void AddValue(const nlohmann::json& value) override
+    void AddValue(const nlohmann::json& value, bool passed) override
     {
         nlohmann::json fakeValue = value;    // Add a value field for the base class.
-        fakeValue["value"]       = value.at("pass").get<bool>();
-        ToBeExactBase::AddValue(fakeValue);
+        fakeValue["value"]       = passed;
+        ToBeExactBase::AddValue(fakeValue, passed);
     }
 
     void Render() override

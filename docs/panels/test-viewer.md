@@ -35,8 +35,9 @@ with color coding matching the UUT status icons.
 ### Enable/Disable Sequences and Tests
 
 Before starting a run, operators will be able to toggle individual sequences and tests on or
-off by clicking checkboxes in the tree. Disabled items are skipped during execution with the
-reason "Disabled".
+off by clicking checkboxes in the tree. Disabled items don't run: their result is `disabled`, and
+a sequence with a disabled test is `incomplete` rather than passed (see
+[Scope Results](../architecture/test-lifecycle.md#scope-results)).
 
 This is useful for:
 

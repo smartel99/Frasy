@@ -19,10 +19,8 @@
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_TYPE_H
 #include "to_be_exact_base.h"
 
-namespace Frasy::Analyzers
-{
-struct ToBeTypeExpectation : public ToBeExactBase
-{
+namespace Frasy::Analyzers {
+struct ToBeTypeExpectation : public ToBeExactBase {
     ToBeTypeExpectation(const std::string& expected) : Expected(expected) {}
     ~ToBeTypeExpectation() override = default;
 

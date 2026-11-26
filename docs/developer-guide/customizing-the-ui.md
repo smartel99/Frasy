@@ -194,6 +194,8 @@ The framework provides pre-loaded textures for UUT status indicators:
 | `m_testing` | UUT is actively running tests |
 | `m_pass` | UUT passed all tests |
 | `m_fail` | UUT failed one or more tests |
+| `m_incompletePass` | Something was disabled; everything that ran passed |
+| `m_incompleteFail` | Something was disabled, and something that ran failed |
 | `m_error` | UUT encountered an unrecoverable error |
 | `m_run` | Run button normal state |
 | `m_runWarn` | Run button when verification is skipped |
@@ -204,15 +206,18 @@ Render them with `ImGui::Image` or `ImGui::ImageButton`:
 ```cpp
 void MyMainApplicationLayer::renderUutIcon(std::size_t uut) const
 {
-    uint64_t texture;
+    uint64_t texture {};
     switch (m_orchestrator.getUutState(uut)) {
         case Frasy::UutState::Idle:     texture = m_idle->getRenderId(); break;
         case Frasy::UutState::Running:  texture = m_testing->getRenderId(); break;
         case Frasy::UutState::Passed:   texture = m_pass->getRenderId(); break;
         case Frasy::UutState::Failed:   texture = m_fail->getRenderId(); break;
         case Frasy::UutState::Error:    texture = m_error->getRenderId(); break;
+        case Frasy::UutState::IncompletePassed: texture = m_incompletePass->getRenderId(); break;
+        case Frasy::UutState::IncompleteFailed: texture = m_incompleteFail->getRenderId(); break;
         case Frasy::UutState::Disabled: texture = m_disabled->getRenderId(); break;
         case Frasy::UutState::Waiting:  texture = m_waiting->getRenderId(); break;
+        default:                        texture = m_error->getRenderId(); break;    // A state added later.
     }
     ImGui::Image(reinterpret_cast<void*>(texture), ImVec2{100.0f, 100.0f});
 }
@@ -234,19 +239,25 @@ makeTestViewerVisible();        // Test Viewer (F6)
 makeCanOpenViewerVisible();     // CANopen Viewer (F7)
 ```
 
-A common pattern is to auto-open the result viewer when a test run fails:
+A common pattern is to auto-open the result viewer when a test run fails or is incomplete:
 
 ```cpp
 void MyMainApplicationLayer::onDone()
 {
     for (const auto& uut : m_orchestrator.getMap().uuts) {
-        if (m_orchestrator.getUutState(uut) == Frasy::UutState::Failed) {
+        const auto verdict = Frasy::getVerdict(m_orchestrator.getUutState(uut));
+        if (verdict == Frasy::RunVerdict::Failed || verdict == Frasy::RunVerdict::Incomplete) {
             makeResultViewerVisible();
             break;
         }
     }
 }
 ```
+
+!!! warning "Failed and incomplete boards"
+    A board where something failed **and** something was disabled is `IncompleteFailed`, not `Failed`.
+    Code that tests `== Frasy::UutState::Failed` misses it: use `Frasy::getVerdict()`, which reports
+    both as `RunVerdict::Failed`, or `Frasy::getRunVerdict()` for a whole run.
 
 ---
 

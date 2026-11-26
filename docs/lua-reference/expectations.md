@@ -71,7 +71,9 @@ Expect(connected, "Device Connected", { policy =  ErrorPolicy.stopCurrent }):ToB
 
 Each matcher asserts the value against a specific criterion.
 
-They all returns an `ExpectationResult`
+They all return an `ExpectationResult`. Its `result` is `"pass"` or `"fail"`, with `inverted`
+already applied. The `pass` boolean holds the same information. Reports carry one or the other, depending on
+`Environment.SetReportFormat`.
 
 ### `:ToBeTrue()`
 
@@ -380,6 +382,7 @@ Each expectation produces a result entry in the test report:
     "deviation": 0.165,
     "min": 3.135,
     "max": 3.465,
+    "result": "pass",
     "pass": true,
     "inverted": false
 }

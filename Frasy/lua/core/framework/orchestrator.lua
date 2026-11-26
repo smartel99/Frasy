@@ -13,6 +13,8 @@
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
 local Scope = require("lua/core/framework/scope")
+local ScopeResult = require("lua/core/framework/scope_result")
+local ReportFormat = require("lua/core/framework/report_format")
 local Sequence = require("lua/core/framework/sequence")
 local Test = require("lua/core/framework/test")
 local ScopeRequirement = require("lua/core/framework/scope_requirement/module")
@@ -31,7 +33,7 @@ if Context.orchestrator == nil then
         solution = {},
         values = {},
         order_requirements = {},
-        sync_requirements = {}
+        sync_requirements = {},
     }
 end
 
@@ -39,8 +41,24 @@ local function ErrorHandler(err)
     if type(err) ~= "table" then
         err = GenericError(tostring(err))
     end
-    err.what = tostring(err.what) .. "\r\n" .. debug.traceback(nil, 2)
+    -- An unmet requirement is a skip, not a bug: its reason is enough.
+    if err.code ~= UnmetRequirement().code then
+        err.what = tostring(err.what) .. "\r\n" .. debug.traceback(nil, 2)
+    end
     return err
+end
+
+--- Adds where @p err was raised, unless it already says so, before it is raised again elsewhere.
+local function KeepTraceback(err)
+    local traceback = debug.traceback(nil, 2)
+    if type(err) == "table" then
+        if not string.find(tostring(err.what), "stack traceback:", 1, true) then
+            err.what = tostring(err.what) .. "\r\n" .. traceback
+        end
+        return err
+    end
+    if string.find(tostring(err), "stack traceback:", 1, true) then return err end
+    return tostring(err) .. "\r\n" .. traceback
 end
 
 local function IsScopeEnabled(scope)
@@ -62,6 +80,83 @@ local function IsScopeEnabled(scope)
     end
 end
 
+--- Copy of a scope or expectation result holding only the fields of @p format.
+---@param entry table
+---@param format ReportFormatValue
+---@return table
+local function ToReportLayout(entry, format)
+    local copy = {}
+    for k, v in pairs(entry) do copy[k] = v end
+    if type(entry.time) == "table" then
+        copy.time = {}
+        for k, v in pairs(entry.time) do copy.time[k] = v end
+    end
+    if format == ReportFormat.v2 then
+        copy.pass, copy.skipped, copy.enabled = nil, nil, nil
+    else
+        if copy.pass == nil then copy.pass = copy.result == ScopeResult.Value.Pass end
+        copy.result = nil
+    end
+    return copy
+end
+
+--- Log wording of each result.
+local Verdict = {
+    [ScopeResult.Value.Pass] = "PASSED",
+    [ScopeResult.Value.Fail] = "FAILED",
+    [ScopeResult.Value.Skipped] = "SKIPPED",
+    [ScopeResult.Value.Disabled] = "DISABLED",
+    [ScopeResult.Value.Incomplete] = "INCOMPLETE",
+}
+
+---@param test Test
+---@return boolean
+local function HasFailedExpectation(test)
+    for _, expectation in ipairs(test.expectations) do
+        if expectation.result ~= ScopeResult.Value.Pass then return true end
+    end
+    return false
+end
+
+--- Declares the tests the solution lists for a sequence that its body didn't declare: a disabled sequence never runs
+--- its body, a skipped one stops at its `Requires`, and one whose body raises stops there.
+---@param name string
+---@param sequence Sequence
+local function DeclareListedTests(name, sequence)
+    local values = Context.orchestrator.values
+    values[name] = values[name] or {}
+    for _, section in pairs(Context.orchestrator.solution or {}) do
+        for _, sqStage in ipairs(section) do
+            for _, sq in ipairs(sqStage) do
+                if sq.name == name then
+                    for _, tStage in ipairs(sq.tests) do
+                        for _, test in ipairs(tStage) do
+                            if sequence.tests[test] == nil then
+                                sequence.tests[test] = Test:New(nil, test)
+                                values[name][test] = values[name][test] or {}
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+--- A sequence whose body doesn't complete takes its tests along with it, including those it didn't get to declare.
+---@param name string
+---@param sequence Sequence
+---@param value ScopeResultValue
+---@param reason string
+---@param testReason string? Reason of its tests, `reason` by default.
+local function SetSequenceResult(name, sequence, value, reason, testReason)
+    DeclareListedTests(name, sequence)
+    sequence.result:Set(value, reason)
+    for _, test in pairs(sequence.tests) do
+        test.result:Set(value, testReason or reason)
+    end
+end
+
 function Orchestrator.RunSequence(sIndex, scope)
     local sequence = Context.orchestrator.sequences[scope.sequence]
     Context.orchestrator.scope = scope
@@ -77,69 +172,79 @@ function Orchestrator.RunSequence(sIndex, scope)
         end
     end
 
+    -- Ends the sequence as failed and raises @p err: the run stops.
+    local stop = function(err)
+        reportEnd()
+        __profileEndEvent(scope.sequence, sequence.source, sequence.line)
+        Log.E(string.format("Sequence %s %s", scope.sequence, Verdict[ScopeResult.Value.Fail]))
+        __progress.report("sequence_end", Context.info.uut, scope.sequence, "", "", ScopeResult.Value.Fail)
+        error(err, 0)
+    end
+
     if sequence.time == nil then
         Context.orchestrator.values[scope.sequence] = {}
         Log.I("Start sequence: " .. scope.sequence)
-        __progress.report("sequence_start", Context.info.uut, scope.sequence, "", "", true)
-        sequence.result.enabled = IsScopeEnabled(scope)
-        if sequence.result.enabled then
+        __progress.report("sequence_start", Context.info.uut, scope.sequence, "", "", ScopeResult.Value.Pass)
+        if IsScopeEnabled(scope) then
             local status, err = xpcall(sequence.func, ErrorHandler)
             if not status then
-                if type(err) == "string" then
-                    sequence.result.pass = false
-                    sequence.result.reason = err
-                    reportEnd()
-                    error(GenericError(err))
-                end
                 if err.code ~= UnmetRequirement().code then
-                    sequence.result.pass = false
-                    sequence.result.reason = err.what
-                    reportEnd()
-                    error(err)
+                    -- Its tests never run: they fail with it, even those its body didn't get to declare. The
+                    -- traceback stays on the sequence.
+                    local what = tostring(err.what)
+                    SetSequenceResult(scope.sequence, sequence, ScopeResult.Value.Fail, what, string.match(what, "^[^\r\n]*"))
+                    stop(err)
                 end
-                sequence.result.skipped = true
-                sequence.result.reason = err.what
+                SetSequenceResult(scope.sequence, sequence, ScopeResult.Value.Skipped, err.what)
             end
         else
-            sequence.result.skipped = true
-            sequence.result.reason = "Disabled"
+            SetSequenceResult(scope.sequence, sequence, ScopeResult.Value.Disabled, "Disabled")
         end
     end
 
-    if not sequence.result.skipped then
-        for _, sqStage in ipairs(Context.orchestrator.solution[sIndex]) do
-            for _, sq in ipairs(sqStage) do
-                if (sq.name == scope.sequence) then
-                    for _, tStage in ipairs(sq.tests) do
-                        for _, test in ipairs(tStage) do
-                            Orchestrator.RunTest(Scope:New(scope.sequence, test))
+    if not sequence.result:IsSkipped() then
+        -- A test that stops the run stops its sequence too. Its result keeps what earlier sections gave.
+        local status, err = xpcall(function()
+            for _, sqStage in ipairs(Context.orchestrator.solution[sIndex]) do
+                for _, sq in ipairs(sqStage) do
+                    if sq.name == scope.sequence then
+                        for _, tStage in ipairs(sq.tests) do
+                            for _, test in ipairs(tStage) do
+                                Orchestrator.RunTest(Scope:New(scope.sequence, test))
+                            end
                         end
                     end
                 end
             end
-        end
+        end, KeepTraceback)
+        if not status then stop(err) end
 
-        sequence.result.pass = true
-        local incomplete = false
+        -- Tests of later sections have not run yet and don't count until they do.
+        local hasPendingTests = false
+        local testResults = {}
         for _, test in pairs(sequence.tests) do
             if test.result.time.stop == 0 then
-                incomplete = true
-            elseif not test.result.pass then
-                sequence.result.pass = false
+                hasPendingTests = true
+            else
+                table.insert(testResults, test.result.result)
             end
         end
-        if not incomplete then
-            if sequence.result.pass then
-                Log.I(string.format("Sequence %s PASSED", scope.sequence))
-                __progress.report("sequence_end", Context.info.uut, scope.sequence, "", "", true)
+        sequence.result:Set(ScopeResult.Aggregate(testResults))
+        if not hasPendingTests then
+            local verdict = string.format("Sequence %s %s", scope.sequence, Verdict[sequence.result.result])
+            if sequence.result:HasPassed() then
+                Log.I(verdict)
+            elseif sequence.result.result == ScopeResult.Value.Incomplete then
+                Log.W(verdict)
             else
-                Log.E(string.format("Sequence %s FAILED", scope.sequence))
-                __progress.report("sequence_end", Context.info.uut, scope.sequence, "", "", false)
+                Log.E(verdict)
             end
+            __progress.report("sequence_end", Context.info.uut, scope.sequence, "", "", sequence.result.result)
         end
     elseif sequence.time == nil then
-        Log.W(string.format("Sequence %s SKIPPED. Reason: %s", scope.sequence,
+        Log.W(string.format("Sequence %s %s. Reason: %s", scope.sequence, Verdict[sequence.result.result],
             sequence.result.reason))
+        __progress.report("sequence_end", Context.info.uut, scope.sequence, "", "", sequence.result.result)
     else
         -- Nothing, we already warned that this sequence was skipped or disabled
     end
@@ -151,78 +256,71 @@ end
 
 function Orchestrator.RunTest(scope)
     local test = Context.orchestrator.sequences[scope.sequence].tests[scope.test]
-    test.result.enabled = IsScopeEnabled(scope)
+    local isEnabled = IsScopeEnabled(scope)
     Context.orchestrator.values[scope.sequence][scope.test] = {}
     Context.orchestrator.scope = scope
     Log.I("Start test: " .. scope.test)
-    __progress.report("test_start", Context.info.uut, scope.test, scope.sequence, "", true)
+    __progress.report("test_start", Context.info.uut, scope.test, scope.sequence, "", ScopeResult.Value.Pass)
     test.expectations = {}
     test.result.time = {}
     test.result.time.start = os.clock()
 
-    local reportEnd = function()
+    -- Also called before raising, so a test that stops the run still ends.
+    local finish = function()
+        __profileEndEvent(scope.test, test.source, test.line)
         test.result.time.stop = os.clock()
         test.result.time.elapsed = test.result.time.stop - test.result.time.start -- Might change in the future
         test.result.time.process = test.result.time.stop - test.result.time.start
+        -- A teammate's critical failure raises; the test still ends first.
+        local synced, syncErr = xpcall(Team.Sync, KeepTraceback, test.result)
+        local verdict = Verdict[test.result.result]
+        if test.result:IsSkipped() then
+            Log.W(string.format("Test %s %s\r\nReason: %s", scope.test, verdict, test.result.reason))
+        elseif not test.result:HasPassed() then
+            Log.E(string.format("Test %s %s\r\nReason: %s", scope.test, verdict, test.result.reason))
+        else
+            Log.I(string.format("Test %s %s", scope.test, verdict))
+        end
+        __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", test.result.result)
+        if not synced then error(syncErr, 0) end
     end
 
     __profileStartEvent(scope.test, test.source, test.line)
-    if test.result.enabled then
+    if isEnabled then
         local status, err = xpcall(test.func, ErrorHandler)
         if not status then
             Team.Fail()
             if type(err) == "string" then
-                test.result.pass = false
-                test.result.reason = err
-                reportEnd()
-                Team.Sync(test.result)
+                test.result:Set(ScopeResult.Value.Fail, err)
+                finish()
                 error(GenericError(err))
             elseif err.code == UnmetExpectation().code then
-                test.result.pass = false
-                test.result.reason = err.what
+                test.result:Set(ScopeResult.Value.Fail, err.what)
                 if err.policy == ErrorPolicy.stopAll then
-                    reportEnd()
-                    Team.Sync(test.result)
+                    finish()
                     error(err)
                 end
             elseif err.code == UnmetRequirement().code then
-                test.result.skipped = true
-                test.result.reason = err.what
+                -- A failure recorded before the requirement still counts.
+                if HasFailedExpectation(test) then
+                    test.result:Set(ScopeResult.Value.Fail, "Unmet expectation")
+                else
+                    test.result:Set(ScopeResult.Value.Skipped, err.what)
+                end
             else
-                test.result.pass = false
-                test.result.reason = err
-                reportEnd()
-                Team.Sync(test.result)
+                test.result:Set(ScopeResult.Value.Fail, tostring(err.what))
+                finish()
                 error(err)
             end
+        elseif HasFailedExpectation(test) then
+            test.result:Set(ScopeResult.Value.Fail, "Unmet expectation")
         else
-            test.result.pass = true
-            for _, expectation in ipairs(test.expectations) do
-                if not expectation.pass then
-                    test.result.pass = false
-                    test.result.reason = "Unmet expectation"
-                end
-            end
+            test.result:Set(ScopeResult.Value.Pass)
         end
     else
-        test.result.skipped = true
-        test.result.reason = "Disabled"
+        test.result:Set(ScopeResult.Value.Disabled, "Disabled")
     end
-    __profileEndEvent(scope.test, test.source, test.line)
-    reportEnd()
-    Team.Sync(test.result)
-    if test.result.skipped then
-        Log.W(string.format("Test %s SKIPPED\r\nReason: %s", scope.test,
-            test.result.reason))
-        __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", true)
-    elseif not test.result.pass then
-        Log.E(string.format("Test %s FAILED\r\nReason: %s", scope.test,
-            test.result.reason))
-        __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", false)
-    else
-        Log.I(string.format("Test %s PASSED", scope.test))
-        __progress.report("test_end", Context.info.uut, scope.test, scope.sequence, "", true)
-    end
+    finish()
 end
 
 function Orchestrator.Generate()
@@ -264,12 +362,10 @@ function Orchestrator.Generate()
                         local hasProgressOnTests = false
                         for tName, test in pairs(sequence.tests) do
                             if completedTests[tName] ~= nil then
-                                Log.D("Test " .. tName ..
-                                    " already generated, skipping")
+                                Log.D("Test " .. tName .. " already generated, skipping")
                             else
                                 Log.D("Generating test " .. tName)
-                                Context.orchestrator.scope = Scope:New(sName,
-                                    tName)
+                                Context.orchestrator.scope = Scope:New(sName, tName)
                                 local _, err = xpcall(test.func, ErrorHandler)
                                 if err == nil then
                                     td[sName][tName] = {}
@@ -303,8 +399,7 @@ function Orchestrator.Generate()
                     hasProgressOnSequences = true
                     completedSequences[sName] = 0
                 else
-                    if type(err) == "string" or err.code ~=
-                        GenerationError().code then
+                    if type(err) == "string" or err.code ~= GenerationError().code then
                         error(err)
                     else
                         Log.D(err.what)
@@ -321,22 +416,27 @@ function Orchestrator.Generate()
     local edges = { first = { sequence = nil, tests = {} }, last = { sequence = nil, tests = {} } }
 
     for _, requirement in ipairs(Context.orchestrator.order_requirements) do
-        if not Orchestrator.HasScope(requirement.scope) then error(InvalidRequirement("scope not found", requirement)) end
+        if not Orchestrator.HasScope(requirement.scope) then
+            error(InvalidRequirement("scope not found", requirement))
+        end
         if requirement.kind == OrderRequirement.Kind.first then
             Sort.AddEdgeRequirement(edges.first, requirement)
         elseif requirement.kind == OrderRequirement.Kind.last then
             Sort.AddEdgeRequirement(edges.last, requirement)
         elseif requirement.kind == OrderRequirement.Kind.after then
             if requirement.reference == nil then error(InvalidRequirement("no reference", requirement)) end
-            if requirement.reference.sequence == nil then error(InvalidRequirement("no reference sequence", requirement)) end
+            if requirement.reference.sequence == nil then
+                error(InvalidRequirement("no reference sequence", requirement))
+            end
             if requirement.scope.sequence == nil then error(InvalidRequirement("no scope sequence", requirement)) end
             if not Orchestrator.HasScope(requirement.reference) then
-                error(InvalidRequirement(
-                    "Requested scope not found", requirement))
+                error(InvalidRequirement("Requested scope not found", requirement))
             end
             if requirement.scope.sequence == requirement.reference.sequence then
                 if requirement.scope.test == nil then error(InvalidRequirement("scope test not found", requirement)) end
-                if requirement.reference.test == nil then error(InvalidRequirement("reference test no found", requirement)) end
+                if requirement.reference.test == nil then
+                    error(InvalidRequirement("reference test no found", requirement))
+                end
                 td[requirement.scope.sequence][requirement.scope.test][requirement.reference.test] = 0
             else
                 sd[requirement.scope.sequence][requirement.reference.sequence] = 0
@@ -348,7 +448,9 @@ function Orchestrator.Generate()
 
     for _, requirement in pairs(Context.orchestrator.sync_requirements) do
         if requirement.scope.sequence == nil then error(InvalidRequirement("no scope sequence", requirement)) end
-        if not Orchestrator.HasScope(requirement.scope) then error(InvalidRequirement("scope not found", requirement)) end
+        if not Orchestrator.HasScope(requirement.scope) then
+            error(InvalidRequirement("scope not found", requirement))
+        end
         if requirement.scope.test ~= nil then
             ss[requirement.scope.sequence] = 0
             ts[requirement.scope.sequence][requirement.scope.test] = 0
@@ -358,13 +460,10 @@ function Orchestrator.Generate()
     end
 
     local ordered = {}
-    ordered.sequences = Sort.SortScopes(sn, edges.first.sequence,
-        edges.last.sequence, sd)
+    ordered.sequences = Sort.SortScopes(sn, edges.first.sequence, edges.last.sequence, sd)
     ordered.tests = {}
     for sequence, tests in pairs(tn) do
-        ordered.tests[sequence] = Sort.SortScopes(tests,
-            edges.first.tests[sequence],
-            edges.last.tests[sequence],
+        ordered.tests[sequence] = Sort.SortScopes(tests, edges.first.tests[sequence], edges.last.tests[sequence],
             td[sequence])
     end
 
@@ -375,8 +474,7 @@ function Orchestrator.Generate()
         sectionized.tests[sequence] = Sort.Sectionize(tests, ts[sequence])
     end
 
-    Context.orchestrator.solution = Sort.CombineSectionized(
-        sectionized.sequences, sectionized.tests)
+    Context.orchestrator.solution = Sort.CombineSectionized(sectionized.sequences, sectionized.tests)
     return Context.orchestrator.solution
 end
 
@@ -419,20 +517,19 @@ function Orchestrator.CompileExecutionResults(outputDir)
             frasy = Context.info.version.frasy,
             orchestrator = Context.info.version.orchestrator,
             scripts = Context.info.version.scripts,
-            application = Context.info.version.application
+            application = Context.info.version.application,
         },
         title = Context.info.title,
         operator = Context.info.operator,
         serial = Context.info.serial,
         uut = Context.info.uut,
         date = os.date(),
-        pass = true,
         time = {
             start = Context.info.time.start,
             stop = os.clock(),
             elapsed = os.clock() - Context.info.time.start,
-            process = 0
-        }
+            process = 0,
+        },
     }
     report.ib = {}
     for k, ib in pairs(Context.map.ibs) do
@@ -446,19 +543,20 @@ function Orchestrator.CompileExecutionResults(outputDir)
         }
     end
 
+    local format = Context.map.reportFormat or ReportFormat.default
     report.sequences = {}
+    local sequenceResults = {}
+    local testResults = {}
     for sName, sequence in pairs(Context.orchestrator.sequences) do
-        if not sequence.result.pass then
-            report.info.pass = false
-        end
-        report.sequences[sName] = sequence.result
+        table.insert(sequenceResults, sequence.result.result)
+        report.sequences[sName] = ToReportLayout(sequence.result, format)
         report.sequences[sName].tests = {}
         for tName, test in pairs(sequence.tests) do
-            report.sequences[sName].tests[tName] = test.result
+            table.insert(testResults, test.result.result)
+            report.sequences[sName].tests[tName] = ToReportLayout(test.result, format)
             report.sequences[sName].tests[tName].expectations = {}
             for _, expectation in pairs(test.expectations) do
-                table.insert(report.sequences[sName].tests[tName].expectations,
-                    expectation)
+                table.insert(report.sequences[sName].tests[tName].expectations, ToReportLayout(expectation, format))
             end
         end
         report.sequences[sName].time = { start = 0, stop = 0, elapsed = 0, process = 0 }
@@ -470,9 +568,16 @@ function Orchestrator.CompileExecutionResults(outputDir)
             end
             report.sequences[sName].time.elapsed = report.sequences[sName].time.stop -
                 report.sequences[sName].time.start
-            report.info.time.process = report.info.time.process +
-                report.sequences[sName].time.process
+            report.info.time.process = report.info.time.process + report.sequences[sName].time.process
         end
+    end
+    local result = ScopeResult.AggregateBoard(sequenceResults, testResults)
+    if format == ReportFormat.v2 then
+        report.info.format_version = ReportFormat.v2
+        report.info.result = result
+    else
+        -- An incomplete board reads as a failure; readers find it from its disabled scopes.
+        report.info.pass = result == ScopeResult.Value.Pass
     end
     xpcall(function() Context.map.onReport(report) end, function(error)
         Log.E("On Report failed")
@@ -533,8 +638,7 @@ function Orchestrator.GetTestScopeRequirement(name)
         end
         name = Context.orchestrator.scope.test
     end
-    return ScopeRequirement:New(Orchestrator, Scope:New(
-        Context.orchestrator.scope.sequence, name))
+    return ScopeRequirement:New(Orchestrator, Scope:New(Context.orchestrator.scope.sequence, name))
 end
 
 function Orchestrator.GetSyncRequirement()
@@ -549,9 +653,7 @@ function Orchestrator.IsInSequence()
 end
 
 function Orchestrator.IsInTest()
-    return
-        Context.orchestrator.scope ~= nil and Context.orchestrator.scope.test ~=
-        nil
+    return Context.orchestrator.scope ~= nil and Context.orchestrator.scope.test ~= nil
 end
 
 function Orchestrator.HasSequence(scope)
@@ -559,14 +661,11 @@ function Orchestrator.HasSequence(scope)
 end
 
 function Orchestrator.HasTest(scope)
-    return Orchestrator.HasSequence(scope) and
-        Context.orchestrator.sequences[scope.sequence].tests[scope.test] ~=
-        nil
+    return Orchestrator.HasSequence(scope) and Context.orchestrator.sequences[scope.sequence].tests[scope.test] ~= nil
 end
 
 function Orchestrator.HasScope(scope)
-    return scope.test == nil and Orchestrator.HasSequence(scope) or
-        Orchestrator.HasTest(scope)
+    return scope.test == nil and Orchestrator.HasSequence(scope) or Orchestrator.HasTest(scope)
 end
 
 function Orchestrator.HasValue(scope, name)
@@ -577,8 +676,7 @@ function Orchestrator.HasValue(scope, name)
 end
 
 function Orchestrator.SetValue(scope, name, value)
-    if Orchestrator.HasValue(scope, name) and Context.info.stage ~=
-        Stage.generation then
+    if Orchestrator.HasValue(scope, name) and Context.info.stage ~= Stage.generation then
         error(AlreadyDefined())
     end
     Context.orchestrator.values[scope.sequence][scope.test][name] = value
@@ -611,23 +709,27 @@ function Orchestrator.AddExpectationResult(result)
         error(BadScope())
     end
     local scope = Context.orchestrator.scope
-    table.insert(
-        Context.orchestrator.sequences[scope.sequence].tests[scope.test]
-        .expectations, result)
+    -- Entries built by hand may only carry the deprecated `pass`.
+    if result.result == nil then
+        result.result = result.pass and ScopeResult.Value.Pass or ScopeResult.Value.Fail
+    end
+    table.insert(Context.orchestrator.sequences[scope.sequence].tests[scope.test].expectations, result)
 
     local function getName()
-        if (result.note ~= nil and result.note ~= result.name) then
+        if result.note ~= nil and result.note ~= result.name then
             return string.format("%s - %s", result.name, result.note)
         else
             return result.name
         end
     end
-    if (result.pass) then
-        Log.I(string.format("%s - PASSED", getName()))
+    local hasPassed = result.result == ScopeResult.Value.Pass
+    if hasPassed then
+        Log.I(string.format("%s - %s", getName(), Verdict[ScopeResult.Value.Pass]))
     else
-        Log.E(string.format("%s - FAILED", getName()))
+        Log.E(string.format("%s - %s", getName(), Verdict[ScopeResult.Value.Fail]))
     end
-    __progress.report("expectation", Context.info.uut, getName(), scope.sequence, scope.test, result.pass)
+    local result = hasPassed and ScopeResult.Value.Pass or ScopeResult.Value.Fail
+    __progress.report("expectation", Context.info.uut, getName(), scope.sequence, scope.test, result)
 end
 
 function Orchestrator.GetScope()
@@ -642,7 +744,7 @@ function Orchestrator.HasPassed(scope)
     if scope.test ~= nil then
         s = s.tests[scope.test]
     end
-    return (not s.result.skipped) and s.result.pass
+    return s.result:HasPassed()
 end
 
 function Orchestrator.HasBeenSkipped(scope)
@@ -653,7 +755,7 @@ function Orchestrator.HasBeenSkipped(scope)
     if scope.test ~= nil then
         s = s.tests[scope.test]
     end
-    return s.result.skipped
+    return s.result:IsSkipped()
 end
 
 function Orchestrator.Enable(sequence, test)

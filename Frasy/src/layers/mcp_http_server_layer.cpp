@@ -15,6 +15,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 #include "mcp_http_server_layer.h"
+#include "utils/mcp/uut_results.h"
 
 #include "utils/misc/deserializer.h"
 
@@ -26,6 +27,7 @@
 #include <filesystem>
 #include <fstream>
 #include <random>
+#include <vector>
 
 namespace Frasy {
 
@@ -35,10 +37,10 @@ constexpr auto s_mcpEndpoint     = "/mcp";
 
 std::string generateSessionId()
 {
-    static std::mt19937_64            rng(std::random_device {}());
+    static std::mt19937_64                         rng(std::random_device {}());
     static std::uniform_int_distribution<uint64_t> dist;
-    auto a = dist(rng);
-    auto b = dist(rng);
+    auto                                           a = dist(rng);
+    auto                                           b = dist(rng);
     return std::format("{:016x}{:016x}", a, b);
 }
 }    // namespace
@@ -68,19 +70,16 @@ void McpHttpServerLayer::onAttach()
     m_httpServer = std::make_unique<httplib::Server>();
 
     // POST /mcp — JSON-RPC tool calls
-    m_httpServer->Post(s_mcpEndpoint, [this](const httplib::Request& req, httplib::Response& res) {
-        handlePost(req, res);
-    });
+    m_httpServer->Post(s_mcpEndpoint,
+                       [this](const httplib::Request& req, httplib::Response& res) { handlePost(req, res); });
 
     // GET /mcp — SSE stream
-    m_httpServer->Get(s_mcpEndpoint, [this](const httplib::Request& req, httplib::Response& res) {
-        handleGet(req, res);
-    });
+    m_httpServer->Get(s_mcpEndpoint,
+                      [this](const httplib::Request& req, httplib::Response& res) { handleGet(req, res); });
 
     // DELETE /mcp — session termination
-    m_httpServer->Delete(s_mcpEndpoint, [this](const httplib::Request& req, httplib::Response& res) {
-        handleDelete(req, res);
-    });
+    m_httpServer->Delete(s_mcpEndpoint,
+                         [this](const httplib::Request& req, httplib::Response& res) { handleDelete(req, res); });
 
     // Prevent MCP clients from triggering OAuth discovery.
     // Return 404 (not 401) for well-known endpoints so clients know auth is not required.
@@ -95,9 +94,7 @@ void McpHttpServerLayer::onAttach()
 
     // Catch-all error handler — never return 401 (which triggers OAuth in MCP clients)
     m_httpServer->set_error_handler([](const httplib::Request&, httplib::Response& res) {
-        if (res.status == 404) {
-            res.set_content("Not found", "text/plain");
-        }
+        if (res.status == 404) { res.set_content("Not found", "text/plain"); }
     });
 
     // Start the server on a background thread
@@ -141,12 +138,8 @@ void McpHttpServerLayer::onDetach()
         m_sseConnections.clear();
     }
 
-    if (m_httpServer) {
-        m_httpServer->stop();
-    }
-    if (m_serverThread.joinable()) {
-        m_serverThread.join();
-    }
+    if (m_httpServer) { m_httpServer->stop(); }
+    if (m_serverThread.joinable()) { m_serverThread.join(); }
     BR_LOG_INFO(s_tag, "MCP HTTP server layer detached");
 }
 
@@ -191,9 +184,9 @@ void McpHttpServerLayer::onUpdate(Brigerad::Timestep /*ts*/)
 
     for (const auto& id : m_popupHandler.consumeRemovedPopups()) {
         nlohmann::json event;
-        event["jsonrpc"]       = "2.0";
-        event["method"]        = "notifications/popup_consumed";
-        event["params"]["id"]  = id;
+        event["jsonrpc"]      = "2.0";
+        event["method"]       = "notifications/popup_consumed";
+        event["params"]["id"] = id;
         pushSseEvent(event);
     }
 
@@ -205,7 +198,7 @@ void McpHttpServerLayer::onUpdate(Brigerad::Timestep /*ts*/)
 
 void McpHttpServerLayer::pushSseEvent(const nlohmann::json& event)
 {
-    std::string serialized = event.dump();
+    std::string     serialized = event.dump();
     std::lock_guard lock(m_sseMutex);
     for (auto& conn : m_sseConnections) {
         if (!conn->closed) {
@@ -243,8 +236,7 @@ void McpHttpServerLayer::handlePost(const httplib::Request& req, httplib::Respon
     // Validate Origin header for DNS rebinding protection
     if (req.has_header("Origin")) {
         auto origin = req.get_header_value("Origin");
-        if (origin.find("localhost") == std::string::npos &&
-            origin.find("127.0.0.1") == std::string::npos) {
+        if (origin.find("localhost") == std::string::npos && origin.find("127.0.0.1") == std::string::npos) {
             res.status = 403;
             res.set_content("Forbidden: invalid origin", "text/plain");
             return;
@@ -298,30 +290,29 @@ void McpHttpServerLayer::handleGet(const httplib::Request& /*req*/, httplib::Res
     res.set_header("Cache-Control", "no-cache");
     res.set_header("Connection", "keep-alive");
 
-    res.set_chunked_content_provider("text/event-stream",
-        [conn](size_t /*offset*/, httplib::DataSink& sink) {
-            // Wait for events or closure
-            std::unique_lock lock(conn->mutex);
-            conn->cv.wait(lock, [&conn] {
-                return !conn->events.empty() || conn->closed;
-            });
+    res.set_chunked_content_provider(
+      "text/event-stream",
+      [conn](size_t /*offset*/, httplib::DataSink& sink) {
+          // Wait for events or closure
+          std::unique_lock lock(conn->mutex);
+          conn->cv.wait(lock, [&conn] { return !conn->events.empty() || conn->closed; });
 
-            if (conn->closed) { return false; }
+          if (conn->closed) { return false; }
 
-            // Drain event queue
-            while (!conn->events.empty()) {
-                auto event = std::move(conn->events.front());
-                conn->events.pop();
-                std::string sseData = "data: " + event + "\n\n";
-                sink.write(sseData.c_str(), sseData.size());
-            }
-            return true;
-        },
-        [conn](bool /*success*/) {
-            // On close
-            conn->closed = true;
-            conn->cv.notify_all();
-        });
+          // Drain event queue
+          while (!conn->events.empty()) {
+              auto event = std::move(conn->events.front());
+              conn->events.pop();
+              std::string sseData = "data: " + event + "\n\n";
+              sink.write(sseData.c_str(), sseData.size());
+          }
+          return true;
+      },
+      [conn](bool /*success*/) {
+          // On close
+          conn->closed = true;
+          conn->cv.notify_all();
+      });
 }
 
 void McpHttpServerLayer::handleDelete(const httplib::Request& req, httplib::Response& res)
@@ -384,17 +375,15 @@ nlohmann::json McpHttpServerLayer::dispatch(const nlohmann::json& message)
         auto result = handleToolsCall(params);
         return makeJsonRpcResponse(id, result);
     }
-    if (method == "ping") {
-        return makeJsonRpcResponse(id, nlohmann::json::object());
-    }
+    if (method == "ping") { return makeJsonRpcResponse(id, nlohmann::json::object()); }
 
     return makeJsonRpcError(id, -32601, "Method not found: " + method);
 }
 
 nlohmann::json McpHttpServerLayer::handleInitialize(const nlohmann::json& params)
 {
-    BR_LOG_INFO(s_tag, "Client connecting: {}",
-                params.value("clientInfo", nlohmann::json::object()).value("name", "unknown"));
+    BR_LOG_INFO(
+      s_tag, "Client connecting: {}", params.value("clientInfo", nlohmann::json::object()).value("name", "unknown"));
 
     m_initialized = true;
     m_sessionId   = generateSessionId();
@@ -428,9 +417,7 @@ nlohmann::json McpHttpServerLayer::handleToolsCall(const nlohmann::json& params)
     auto        args = params.value("arguments", nlohmann::json::object());
 
     auto it = m_tools.find(name);
-    if (it == m_tools.end()) {
-        return makeToolResult("Unknown tool: " + name, true);
-    }
+    if (it == m_tools.end()) { return makeToolResult("Unknown tool: " + name, true); }
 
     try {
         return it->second.handler(args);
@@ -527,8 +514,7 @@ void McpHttpServerLayer::registerTools()
               {"operator", {{"type", "string"}, {"description", "Operator name"}}},
               {"serials",
                {{"type", "array"}, {"items", {{"type", "string"}}}, {"description", "Serial numbers, one per UUT"}}},
-              {"skip_verification",
-               {{"type", "boolean"}, {"description", "Skip hash verification (default false)"}}}}},
+              {"skip_verification", {{"type", "boolean"}, {"description", "Skip hash verification (default false)"}}}}},
             {"required", json::array({"product", "operator", "serials"})}}),
       [this](const json& args) { return handleRunTests(args); },
     };
@@ -557,13 +543,13 @@ void McpHttpServerLayer::registerTools()
     m_tools["respond_to_popup"] = {
       "respond_to_popup",
       "Respond to a pending popup by providing inputs and pressing a button",
-      json({{"type", "object"},
-            {"properties",
-             {{"id", {{"type", "string"}, {"description", "Popup ID from get_pending_popup"}}},
-              {"inputs",
-               {{"type", "object"}, {"description", "Input values keyed by index (e.g. {\"1\": \"value\"})"}}},
-              {"button", {{"type", "string"}, {"description", "Button label to press"}}}}},
-            {"required", json::array({"id", "button"})}}),
+      json(
+        {{"type", "object"},
+         {"properties",
+          {{"id", {{"type", "string"}, {"description", "Popup ID from get_pending_popup"}}},
+           {"inputs", {{"type", "object"}, {"description", "Input values keyed by index (e.g. {\"1\": \"value\"})"}}},
+           {"button", {{"type", "string"}, {"description", "Button label to press"}}}}},
+         {"required", json::array({"id", "button"})}}),
       [this](const json& args) { return handleRespondToPopup(args); },
     };
 
@@ -596,8 +582,7 @@ void McpHttpServerLayer::registerTools()
              {{"nodeId", {{"type", "number"}, {"description", "Node ID"}}},
               {"index", {{"type", "number"}, {"description", "SDO index"}}},
               {"sub-index", {{"type", "number"}, {"description", "SDO sub-index"}}},
-              {"type",
-               {{"type", "string"}, {"description", "CANOpen type (e.g. unsigned8, signed32, string)"}}}}},
+              {"type", {{"type", "string"}, {"description", "CANOpen type (e.g. unsigned8, signed32, string)"}}}}},
             {"required", json::array({"nodeId", "index", "sub-index", "type"})}}),
       [this](const json& args) { return handleUploadSdo(args); },
     };
@@ -641,9 +626,11 @@ nlohmann::json McpHttpServerLayer::handleLoadProduct(const nlohmann::json& args)
         auto it = std::ranges::find_if(products, [&](const Headless::ProductInfo& p) { return p.name == product; });
         if (it == products.end()) {
             nlohmann::json available = nlohmann::json::array();
-            for (const auto& p : products) { available.push_back(p.name); }
-            return makeToolResult(
-              nlohmann::json({{"error", "Product not found"}, {"available", available}}).dump(), true);
+            for (const auto& p : products) {
+                available.push_back(p.name);
+            }
+            return makeToolResult(nlohmann::json({{"error", "Product not found"}, {"available", available}}).dump(),
+                                  true);
         }
 
         if (!m_provider.setup(m_orchestrator, m_canOpen, it->name, it->environmentPath, it->testPath)) {
@@ -669,8 +656,8 @@ nlohmann::json McpHttpServerLayer::handleRunTests(const nlohmann::json& args)
     // Validate serials
     for (const auto& sn : serials) {
         if (!m_provider.validateSerialNumber(sn)) {
-            return makeToolResult(
-              nlohmann::json({{"error", std::format("Invalid serial number: {}", sn)}}).dump(), true);
+            return makeToolResult(nlohmann::json({{"error", std::format("Invalid serial number: {}", sn)}}).dump(),
+                                  true);
         }
     }
 
@@ -686,9 +673,11 @@ nlohmann::json McpHttpServerLayer::handleRunTests(const nlohmann::json& args)
         auto it = std::ranges::find_if(products, [&](const Headless::ProductInfo& p) { return p.name == product; });
         if (it == products.end()) {
             nlohmann::json available = nlohmann::json::array();
-            for (const auto& p : products) { available.push_back(p.name); }
-            return makeToolResult(
-              nlohmann::json({{"error", "Product not found"}, {"available", available}}).dump(), true);
+            for (const auto& p : products) {
+                available.push_back(p.name);
+            }
+            return makeToolResult(nlohmann::json({{"error", "Product not found"}, {"available", available}}).dump(),
+                                  true);
         }
 
         if (!m_provider.setup(m_orchestrator, m_canOpen, it->name, it->environmentPath, it->testPath)) {
@@ -709,7 +698,9 @@ nlohmann::json McpHttpServerLayer::handleRunTests(const nlohmann::json& args)
         m_serials.clear();
         m_serials.reserve(serials.size() + 1);
         m_serials.push_back(serials.front());
-        for (const auto& sn : serials) { m_serials.push_back(sn); }
+        for (const auto& sn : serials) {
+            m_serials.push_back(sn);
+        }
 
         m_activeProduct = it->name;
         m_running       = true;
@@ -730,19 +721,15 @@ nlohmann::json McpHttpServerLayer::handleGetStatus(const nlohmann::json& /*args*
     nlohmann::json status;
 
     if (m_running) { status["state"] = "running"; }
-    else if (m_activeProduct.empty()) { status["state"] = "idle"; }
+    else if (m_activeProduct.empty()) {
+        status["state"] = "idle";
+    }
     else {
-        const auto& map     = m_orchestrator.getMap();
-        bool        anyFail = false;
-        bool        anyErr  = false;
-        for (const auto& uut : map.uuts) {
-            auto s = m_orchestrator.getUutState(uut);
-            if (s == UutState::Failed) { anyFail = true; }
-            if (s == UutState::Error) { anyErr = true; }
+        std::vector<UutState> states;
+        for (const auto& uut : m_orchestrator.getMap().uuts) {
+            states.push_back(m_orchestrator.getUutState(uut));
         }
-        if (anyErr) { status["state"] = "error"; }
-        else if (anyFail) { status["state"] = "failed"; }
-        else { status["state"] = "passed"; }
+        status["state"] = toString(getRunVerdict(states));
     }
 
     // Run owner
@@ -756,21 +743,11 @@ nlohmann::json McpHttpServerLayer::handleGetStatus(const nlohmann::json& /*args*
     const auto&    map  = m_orchestrator.getMap();
     nlohmann::json uuts = nlohmann::json::array();
     for (const auto& uut : map.uuts) {
-        auto        state = m_orchestrator.getUutState(uut);
-        std::string stateStr;
-        switch (state) {
-            case UutState::Disabled: stateStr = "disabled"; break;
-            case UutState::Idle: stateStr = "idle"; break;
-            case UutState::Waiting: stateStr = "waiting"; break;
-            case UutState::Running: stateStr = "running"; break;
-            case UutState::Passed: stateStr = "passed"; break;
-            case UutState::Failed: stateStr = "failed"; break;
-            case UutState::Error: stateStr = "error"; break;
-        }
+        auto           state = m_orchestrator.getUutState(uut);
         nlohmann::json uutInfo;
         uutInfo["uut"]    = uut;
         uutInfo["serial"] = (uut < m_serials.size()) ? m_serials[uut] : "";
-        uutInfo["state"]  = stateStr;
+        uutInfo["state"]  = toString(state);
         uuts.push_back(uutInfo);
     }
     status["uuts"]    = uuts;
@@ -786,62 +763,16 @@ nlohmann::json McpHttpServerLayer::handleGetResults(const nlohmann::json& /*args
         return makeToolResult("{\"error\":\"No test results available (no tests have been run)\"}", true);
     }
 
-    const auto&    map = m_orchestrator.getMap();
-    nlohmann::json results;
-    results["product"]      = m_activeProduct;
-    results["overall_pass"] = true;
-
-    nlohmann::json uutResults = nlohmann::json::array();
+    const auto&           map = m_orchestrator.getMap();
+    std::vector<UutState> states;
+    nlohmann::json        uutResults = nlohmann::json::array();
     for (const auto& uut : map.uuts) {
-        auto state = m_orchestrator.getUutState(uut);
-        bool pass  = (state == UutState::Passed);
-        if (!pass) { results["overall_pass"] = false; }
-
-        nlohmann::json uutResult;
-        uutResult["uut"]    = uut;
-        uutResult["serial"] = (uut < m_serials.size()) ? m_serials[uut] : "";
-        uutResult["pass"]   = pass;
-
-        std::string stateStr;
-        switch (state) {
-            case UutState::Passed: stateStr = "passed"; break;
-            case UutState::Failed: stateStr = "failed"; break;
-            case UutState::Error: stateStr = "error"; break;
-            default: stateStr = "unknown"; break;
-        }
-        uutResult["state"] = stateStr;
-
-        std::string reportPath = std::format("logs/last/{}.json", uut);
-        if (std::filesystem::exists(reportPath)) {
-            uutResult["report_path"] = reportPath;
-            try {
-                std::ifstream ifs(reportPath);
-                auto          report = nlohmann::json::parse(ifs);
-                if (report.contains("info")) {
-                    uutResult["duration"] =
-                      report["info"].value("time", nlohmann::json::object()).value("elapsed", 0.0);
-                }
-                int totalTests  = 0;
-                int passedTests = 0;
-                if (report.contains("sequences")) {
-                    for (auto& [seqName, seq] : report["sequences"].items()) {
-                        if (seq.contains("tests")) {
-                            for (auto& [testName, test] : seq["tests"].items()) {
-                                totalTests++;
-                                if (test.value("pass", false)) { passedTests++; }
-                            }
-                        }
-                    }
-                }
-                uutResult["tests_passed"] = passedTests;
-                uutResult["tests_total"]  = totalTests;
-            }
-            catch (...) {}
-        }
-        uutResults.push_back(uutResult);
+        const auto state = m_orchestrator.getUutState(uut);
+        states.push_back(state);
+        uutResults.push_back(Mcp::makeUutResult(
+          uut, (uut < m_serials.size()) ? m_serials[uut] : "", state, std::format("logs/last/{}.json", uut)));
     }
-    results["uuts"] = uutResults;
-    return makeToolResult(results.dump());
+    return makeToolResult(Mcp::makeRunResults(m_activeProduct, states, std::move(uutResults)).dump());
 }
 
 nlohmann::json McpHttpServerLayer::handleGetPendingPopup(const nlohmann::json& /*args*/)
@@ -856,9 +787,7 @@ nlohmann::json McpHttpServerLayer::handleRespondToPopup(const nlohmann::json& ar
     std::string id     = args.value("id", "");
     std::string button = args.value("button", "");
 
-    if (id.empty() || button.empty()) {
-        return makeToolResult(R"({"error":"id and button are required"})", true);
-    }
+    if (id.empty() || button.empty()) { return makeToolResult(R"({"error":"id and button are required"})", true); }
 
     // Parse inputs
     std::map<std::size_t, std::string> inputValues;
@@ -867,7 +796,8 @@ nlohmann::json McpHttpServerLayer::handleRespondToPopup(const nlohmann::json& ar
             try {
                 inputValues[std::stoull(key)] = value.get<std::string>();
             }
-            catch (...) {}
+            catch (...) {
+            }
         }
     }
 
@@ -928,17 +858,39 @@ nlohmann::json McpHttpServerLayer::handleUploadSdo(const nlohmann::json& args)
 
     CanOpen::VarType varType = CanOpen::VarType::Undefined;
     if (type == "bool") { varType = CanOpen::VarType::Boolean; }
-    else if (type == "signed8") { varType = CanOpen::VarType::Signed8; }
-    else if (type == "signed16") { varType = CanOpen::VarType::Signed16; }
-    else if (type == "signed32") { varType = CanOpen::VarType::Signed32; }
-    else if (type == "signed64") { varType = CanOpen::VarType::Signed64; }
-    else if (type == "unsigned8") { varType = CanOpen::VarType::Unsigned8; }
-    else if (type == "unsigned16") { varType = CanOpen::VarType::Unsigned16; }
-    else if (type == "unsigned32") { varType = CanOpen::VarType::Unsigned32; }
-    else if (type == "unsigned64") { varType = CanOpen::VarType::Unsigned64; }
-    else if (type == "real32") { varType = CanOpen::VarType::Real32; }
-    else if (type == "real64") { varType = CanOpen::VarType::Real64; }
-    else if (type == "string") { varType = CanOpen::VarType::String; }
+    else if (type == "signed8") {
+        varType = CanOpen::VarType::Signed8;
+    }
+    else if (type == "signed16") {
+        varType = CanOpen::VarType::Signed16;
+    }
+    else if (type == "signed32") {
+        varType = CanOpen::VarType::Signed32;
+    }
+    else if (type == "signed64") {
+        varType = CanOpen::VarType::Signed64;
+    }
+    else if (type == "unsigned8") {
+        varType = CanOpen::VarType::Unsigned8;
+    }
+    else if (type == "unsigned16") {
+        varType = CanOpen::VarType::Unsigned16;
+    }
+    else if (type == "unsigned32") {
+        varType = CanOpen::VarType::Unsigned32;
+    }
+    else if (type == "unsigned64") {
+        varType = CanOpen::VarType::Unsigned64;
+    }
+    else if (type == "real32") {
+        varType = CanOpen::VarType::Real32;
+    }
+    else if (type == "real64") {
+        varType = CanOpen::VarType::Real64;
+    }
+    else if (type == "string") {
+        varType = CanOpen::VarType::String;
+    }
 
     if (varType == CanOpen::VarType::Undefined) {
         return makeToolResult(nlohmann::json({{"error", "Invalid type"}, {"type", type}}).dump(), true);
@@ -958,12 +910,11 @@ nlohmann::json McpHttpServerLayer::handleUploadSdo(const nlohmann::json& args)
     }
 
     if (!result.has_value()) {
-        return makeToolResult(
-          nlohmann::json({{"error", "SDO upload failed"},
-                          {"status", std::format("{}", result.error())},
-                          {"extra", std::format("{}", request.abortCode())}})
-            .dump(),
-          true);
+        return makeToolResult(nlohmann::json({{"error", "SDO upload failed"},
+                                              {"status", std::format("{}", result.error())},
+                                              {"extra", std::format("{}", request.abortCode())}})
+                                .dump(),
+                              true);
     }
 
     auto& v = result.value();
@@ -993,8 +944,7 @@ nlohmann::json McpHttpServerLayer::handleUploadSdo(const nlohmann::json& args)
         case CanOpen::VarType::String:
             return makeToolResult(
               nlohmann::json({{"value", std::string(reinterpret_cast<const char*>(v.data()), v.size())}}).dump());
-        default:
-            return makeToolResult(R"({"error":"Invalid type"})", true);
+        default: return makeToolResult(R"({"error":"Invalid type"})", true);
     }
 }
 

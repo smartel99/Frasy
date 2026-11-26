@@ -17,9 +17,9 @@
 /* Includes */
 #    include "can_open_viewer.h"
 #    include "device_viewer.h"
+#    include "impedance_analyzer.h"
 #    include "log_window.h"
 #    include "mcp_http_server_layer.h"
-#    include "impedance_analyzer.h"
 #    include "result_analyzer.h"
 #    include "result_viewer.h"
 #    include "test_viewer.h"
@@ -101,18 +101,20 @@ protected:
     bool m_renderProfiler = false;
     bool m_noMove         = true;
 
-    std::unique_ptr<LogWindow>            m_logWindow      = nullptr;
-    std::unique_ptr<DeviceViewer>         m_deviceViewer   = nullptr;
-    std::unique_ptr<CanOpenViewer::Layer> m_canOpenViewer  = nullptr;
-    std::unique_ptr<ResultViewer>         m_resultViewer   = nullptr;
-    std::unique_ptr<ResultAnalyzer>       m_resultAnalyzer = nullptr;
-    std::unique_ptr<TestViewer>           m_testViewer     = nullptr;
-    std::unique_ptr<ImpedanceAnalyzer>      m_impedanceAnalyzer = nullptr;
+    std::unique_ptr<LogWindow>            m_logWindow         = nullptr;
+    std::unique_ptr<DeviceViewer>         m_deviceViewer      = nullptr;
+    std::unique_ptr<CanOpenViewer::Layer> m_canOpenViewer     = nullptr;
+    std::unique_ptr<ResultViewer>         m_resultViewer      = nullptr;
+    std::unique_ptr<ResultAnalyzer>       m_resultAnalyzer    = nullptr;
+    std::unique_ptr<TestViewer>           m_testViewer        = nullptr;
+    std::unique_ptr<ImpedanceAnalyzer>    m_impedanceAnalyzer = nullptr;
 
     Brigerad::Ref<Brigerad::Texture2D> m_run;
     Brigerad::Ref<Brigerad::Texture2D> m_runWarn;
     Brigerad::Ref<Brigerad::Texture2D> m_pass;
     Brigerad::Ref<Brigerad::Texture2D> m_fail;
+    Brigerad::Ref<Brigerad::Texture2D> m_incompletePass;
+    Brigerad::Ref<Brigerad::Texture2D> m_incompleteFail;
     Brigerad::Ref<Brigerad::Texture2D> m_error;
     Brigerad::Ref<Brigerad::Texture2D> m_testing;
     Brigerad::Ref<Brigerad::Texture2D> m_waiting;

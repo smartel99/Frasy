@@ -25,14 +25,13 @@
  * - Helper to reset orchestrator state between tests
  * - Helper to change stage
  */
-class OrchestratorTestFixture : public LuaTestFixture
-{
+class OrchestratorTestFixture : public LuaTestFixture {
 protected:
     // Track Team mock calls
     int              teamFailCount = 0;
     int              teamSyncCount = 0;
     std::vector<int> teamSyncStatuses;
-    int              teamSyncReturnStatus = 0; // What __sync returns (Team.Status.pass by default)
+    int              teamSyncReturnStatus = 0;    // What __sync returns (Team.Status.pass by default)
 
     void SetUp() override
     {
@@ -74,7 +73,7 @@ protected:
             }
         )");
 
-        lua.set_function("Team.Fail", [this]() { teamFailCount++; });
+        lua["Team"]["Fail"] = [this]() { teamFailCount++; };
 
         // Team.Sync needs to be a Lua function that accesses result
         // We'll override it as a no-op that does nothing when HasTeam is false
@@ -87,7 +86,7 @@ protected:
         // Progress reporting mock
         lua.script(R"(
             __progress = {
-                report = function(type, uut, name, parentA, parentB, pass) end
+                report = function(type, uut, name, parentA, parentB, result) end
             }
         )");
 
@@ -124,10 +123,7 @@ protected:
     /**
      * Set the current stage.
      */
-    void setStage(const std::string& stage)
-    {
-        lua.script("Context.info.stage = Stage." + stage);
-    }
+    void setStage(const std::string& stage) { lua.script("Context.info.stage = Stage." + stage); }
 
     /**
      * Helper: create a sequence and optionally set the scope to be inside it.
@@ -135,12 +131,9 @@ protected:
      */
     void createSequence(const std::string& name, bool enterScope = false)
     {
-        lua.script(
-            "Orchestrator.CreateSequence('" + name + "', function() end, 'test', 0)");
-        if (enterScope)
-        {
-            lua.script(
-                "Context.orchestrator.scope = require('lua/core/framework/scope'):New('" + name + "')");
+        lua.script("Orchestrator.CreateSequence('" + name + "', function() end, 'test', 0)");
+        if (enterScope) {
+            lua.script("Context.orchestrator.scope = require('lua/core/framework/scope'):New('" + name + "')");
         }
     }
 
@@ -153,22 +146,19 @@ protected:
         // Clear scope to avoid NestedScope error when creating sequence
         lua.script("Context.orchestrator.scope = nil");
         // Ensure the sequence exists
-        lua.script(
-            "if not Orchestrator.HasSequence(require('lua/core/framework/scope'):New('" + sequenceName + "')) then "
-            "Orchestrator.CreateSequence('" + sequenceName + "', function() end, 'test', 0) end");
+        lua.script("if not Orchestrator.HasSequence(require('lua/core/framework/scope'):New('" + sequenceName +
+                   "')) then "
+                   "Orchestrator.CreateSequence('" +
+                   sequenceName + "', function() end, 'test', 0) end");
         // Set scope to the sequence
-        lua.script(
-            "Context.orchestrator.scope = require('lua/core/framework/scope'):New('" + sequenceName + "')");
+        lua.script("Context.orchestrator.scope = require('lua/core/framework/scope'):New('" + sequenceName + "')");
         // Create the test
-        lua.script(
-            "Orchestrator.CreateTest('" + testName + "', function() end, 'test', 0)");
-        if (enterScope)
-        {
-            lua.script(
-                "Context.orchestrator.scope = require('lua/core/framework/scope'):New('" +
-                sequenceName + "', '" + testName + "')");
+        lua.script("Orchestrator.CreateTest('" + testName + "', function() end, 'test', 0)");
+        if (enterScope) {
+            lua.script("Context.orchestrator.scope = require('lua/core/framework/scope'):New('" + sequenceName +
+                       "', '" + testName + "')");
         }
     }
 };
 
-#endif // FRASY_TESTS_ORCHESTRATOR_TEST_FIXTURE_H
+#endif    // FRASY_TESTS_ORCHESTRATOR_TEST_FIXTURE_H

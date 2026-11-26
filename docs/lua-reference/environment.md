@@ -227,6 +227,41 @@ Environment.Worker.Limit(Ib):To(2, Team)
 
 ---
 
+## `Environment.SetReportFormat(format)`
+
+Picks the layout of the report given to `onReport` and saved to disk.
+
+```lua
+Environment.SetReportFormat(ReportFormat.v2)
+```
+
+**Parameters:**
+
+| Name | Type | Description |
+|---|---|---|
+| `format` | `ReportFormatValue` | `ReportFormat.v1` (default) or `ReportFormat.v2` |
+
+**Notes:**
+
+- `v1` — `pass`, `skipped` and `enabled` booleans on `info`, sequences, tests and expectations. No `result` and no
+  `format_version`. An incomplete board (anything disabled) has `info.pass = false`.
+- `v2` — `info.format_version = 2` and a `result` string on `info`, sequences, tests and expectations, without the
+  booleans. See [Report Structure](../architecture/test-lifecycle.md#report-structure-json).
+- Either way, incomplete boards go to `debug/`, skip the other report writers and end in `IncompletePassed` or
+  `IncompleteFailed`. Headless, MCP and progress outputs don't change: they carry both `result` and `pass`.
+- Any other value raises an error.
+
+### `ReportFormat` Enum
+
+```lua
+ReportFormat = {
+    v1 = 1,
+    v2 = 2,
+}
+```
+
+---
+
 ## `Environment.SetOnReport(fn)`
 
 Registers a hook called after the report table is assembled but before it is serialized to
@@ -245,6 +280,8 @@ Environment.SetOnReport(function(report)
     report.info.yield = string.format("%.1f%%", (passed / total) * 100)
 end)
 ```
+
+This example reads the default v1 layout. With `ReportFormat.v2`, read `test.result == "pass"` instead.
 
 **Parameters:**
 

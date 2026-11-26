@@ -111,6 +111,38 @@ In debug mode (or when `skipVerification` is passed to `runSolution()`), hash ch
 | Any other Lua error | Test **fails** with the error message |
 | Uncaught sequence-level error | Sequence **fails**; remaining tests in it are not run |
 
+### Scope Results
+
+Every sequence and test ends with a `result`:
+
+| Result | Meaning |
+|---|---|
+| `pass` | Ran, and every expectation passed |
+| `fail` | An expectation failed or an error was raised. A scope that never ran also reads `fail` |
+| `skipped` | A requirement was unmet. The scope did not run |
+| `disabled` | The scope was disabled. It did not run |
+| `incomplete` | Sequences only: at least one test was disabled, and none failed |
+
+Tests inside a skipped or disabled sequence take the sequence's result and reason, and so do the tests of a sequence
+whose body raises an error: they `fail` with it. That includes the tests its body never declared (a disabled sequence
+doesn't run its body, a skipped one stops at its `Requires`, and one that raises stops there): they are taken from
+the solution, so the report still lists every test.
+
+A sequence combines the results of its tests by precedence: `fail` > `incomplete` > `pass`.
+A `disabled` test makes the sequence `incomplete`; a `skipped` test doesn't change it, since a skip
+means the test did not apply to this run.
+
+A test that records a failed expectation and then hits an unmet requirement is `fail`, not `skipped`.
+
+!!! note "Teams"
+    Team synchronization still sends anything other than `pass` as a failure. A test that is
+    `skipped` on one UUT therefore fails the same test on its teammates ("Teammate failure").
+
+!!! note "Report layout"
+    Results are kept as `result` internally. The report only carries them as `result` with
+    `ReportFormat.v2`; the default v1 layout writes the `pass`, `skipped` and `enabled` booleans instead.
+    See [Report Structure](#report-structure-json).
+
 ---
 
 ## UUT States
@@ -128,9 +160,13 @@ stateDiagram-v2
     Waiting --> Running : first section begins
     Running --> Passed : all expectations pass
     Running --> Failed : one or more expectations fail
+    Running --> IncompletePassed : something disabled, rest passed
+    Running --> IncompleteFailed : something disabled, something failed
     Running --> Error : uncaught exception
     Passed --> Idle : next run
     Failed --> Idle : next run
+    IncompletePassed --> Idle : next run
+    IncompleteFailed --> Idle : next run
     Error --> Idle : next run
 ```
 
@@ -142,7 +178,9 @@ stateDiagram-v2
 | **Running** | Actively executing tests |
 | **Passed** | All sequences and tests passed |
 | **Failed** | One or more expectations did not pass |
-| **Error** | An unrecoverable error occurred (Lua crash, hardware timeout, etc.) |
+| **IncompletePassed** | A sequence or test was disabled; everything that ran passed. The board is not passed |
+| **IncompleteFailed** | A sequence or test was disabled, and something that ran failed |
+| **Error** | An unrecoverable error occurred (Lua crash, hardware timeout, etc.), or its report couldn't be read |
 
 The state is queryable via:
 
@@ -220,7 +258,8 @@ m_orchestrator.setSequenceEnable("Power On", false);
 m_orchestrator.setTestEnable("Power On", "Check Voltage", false);
 ```
 
-Disabled items are skipped during execution with reason "Disabled".
+Disabled items don't run. Their result is `disabled` with reason "Disabled", and the sequence holding
+a disabled test is `incomplete` (see [Scope Results](#scope-results)).
 
 ---
 
@@ -229,7 +268,7 @@ Disabled items are skipped during execution with reason "Disabled".
 After execution completes for each UUT, the orchestrator:
 
 1. Compiles a **report** containing:
-    - Metadata: versions, operator, serial, date, overall pass/fail, timing.
+    - Metadata: versions, operator, serial, date, overall result, timing, and `format_version` in v2.
     - IB info: each board's software/hardware version and serial.
     - Per-sequence results with timing.
     - Per-test results with timing and all expectation details.
@@ -238,11 +277,14 @@ After execution completes for each UUT, the orchestrator:
 
 3. Saves the report as JSON to:
     - `logs/last/` — always overwritten.
-    - `logs/pass/` or `logs/fail/` — organized by outcome.
+    - `logs/<title>/pass/` (Passed), `logs/<title>/fail/` (Failed) or `logs/<title>/debug/` (IncompletePassed and
+      IncompleteFailed: anything was disabled, so the run is kept apart from production results).
 
 4. Invokes the C++ `onDoneCallback` to signal the UI.
 
 ### Report Structure (JSON)
+
+The layout is picked with `Environment.SetReportFormat`. With `ReportFormat.v2`:
 
 ```json
 {
@@ -253,7 +295,8 @@ After execution completes for each UUT, the orchestrator:
     "serial": "SN123456789",
     "uut": 1,
     "date": "2024-05-15 14:30:00",
-    "pass": true,
+    "format_version": 2,
+    "result": "pass",
     "time": { "start": 0.0, "stop": 2.5, "elapsed": 2.5, "process": 2.1 }
   },
   "ib": {
@@ -261,14 +304,14 @@ After execution completes for each UUT, the orchestrator:
   },
   "sequences": {
     "Power On": {
-      "pass": true,
+      "result": "pass",
       "time": { "start": 0.0, "stop": 1.2, "elapsed": 1.2, "process": 1.1 },
       "tests": {
         "Check Voltage": {
-          "pass": true,
+          "result": "pass",
           "time": { "start": 0.0, "stop": 0.5, "elapsed": 0.5, "process": 0.5 },
           "expectations": [
-            { "name": "Supply Voltage", "method": "ToBeInRange", "value": 5.02, "min": 4.9, "max": 5.1, "pass": true }
+            { "name": "Supply Voltage", "method": "ToBeInRange", "value": 5.02, "min": 4.9, "max": 5.1, "result": "pass" }
           ]
         }
       }
@@ -276,6 +319,19 @@ After execution completes for each UUT, the orchestrator:
   }
 }
 ```
+
+`info.result` combines the sequence results with a different precedence than sequences use (see
+[Scope Results](#scope-results)): `incomplete` if any sequence or test is `disabled` (or a sequence `incomplete`), **even if
+something failed**, otherwise `fail` if any sequence or test failed, otherwise `pass`. Anything disabled makes the
+board a debug run; the sequences still show which ones failed.
+
+The default `ReportFormat.v1` writes no `result` nor `format_version`: `info` has `pass`, and sequences, tests and
+expectations have `pass`, `skipped` and `enabled` (`enabled = false` for a disabled scope, which is also
+`skipped`). An incomplete board has `info.pass = false`, and an incomplete sequence `pass = false`.
+
+Readers select their parser from `info.format_version`; a report without it is v1. In v1, a board is incomplete when
+any sequence or test is disabled, and a sequence that isn't a pass is incomplete when it holds a disabled test and no
+failed one.
 
 ---
 

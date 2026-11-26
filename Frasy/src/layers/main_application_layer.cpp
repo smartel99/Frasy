@@ -37,6 +37,8 @@ void MainApplicationLayer::onAttach()
     CREATE_TEXTURE(m_runWarn, "runWarn", "assets/textures/run_warn.png");
     CREATE_TEXTURE(m_pass, "pass", "assets/textures/pass.png");
     CREATE_TEXTURE(m_fail, "fail", "assets/textures/fail.png");
+    CREATE_TEXTURE(m_incompletePass, "incompletePass", "assets/textures/incomplete_pass.png");
+    CREATE_TEXTURE(m_incompleteFail, "incompleteFail", "assets/textures/incomplete_fail.png");
     CREATE_TEXTURE(m_error, "error", "assets/textures/error.png");
     CREATE_TEXTURE(m_testing, "testing", "assets/textures/testing.png");
     CREATE_TEXTURE(m_waiting, "waiting", "assets/textures/waiting.png");
@@ -77,11 +79,10 @@ void MainApplicationLayer::onAttach()
     if (cliArgs.mcpPort >= 0) {
         auto* provider = Interpreter::Get().getProductProvider();
         if (provider) {
-            m_mcpHttpServer = std::make_unique<McpHttpServerLayer>(
-              cliArgs.mcpPort, m_orchestrator, m_canOpen, *provider);
-            m_mcpHttpServer->setProductCallbacks(
-              [this]() { return getActiveProduct(); },
-              [this](const std::string& name) { return loadProduct(name); });
+            m_mcpHttpServer =
+              std::make_unique<McpHttpServerLayer>(cliArgs.mcpPort, m_orchestrator, m_canOpen, *provider);
+            m_mcpHttpServer->setProductCallbacks([this]() { return getActiveProduct(); },
+                                                 [this](const std::string& name) { return loadProduct(name); });
             m_mcpHttpServer->onAttach();
             BR_LOG_INFO("APP", "MCP HTTP server started on port {}", m_mcpHttpServer->getListeningPort());
         }
@@ -312,14 +313,14 @@ void MainApplicationLayer::renderProfilerTable(const std::thread::id& id, const 
     if (!isTabActive) { return; }
 
     if (!ImGui::BeginTabBar(details.label().c_str())) {
-        ImGui::EndTabItem(); // details.label tab item.
+        ImGui::EndTabItem();    // details.label tab item.
         return;
     }
     isTabActive = ImGui::BeginTabItem(threadId.c_str());
     if (ImGui::IsItemHovered() && !events.empty()) { onHoverTooltip(); }
     if (!isTabActive) {
-        ImGui::EndTabItem(); // details.label tab item.
-        ImGui::EndTabBar();  // Threads tab bar.
+        ImGui::EndTabItem();    // details.label tab item.
+        ImGui::EndTabBar();     // Threads tab bar.
         return;
     }
     if (ImGui::Button(std::format("Reset##{}", id).c_str())) {
@@ -333,20 +334,19 @@ void MainApplicationLayer::renderProfilerTable(const std::thread::id& id, const 
 
     float indent = 0.0f;
     Widget::Table(std::format("profile events##{}", id), 8)
-        .ColumnHeader("Name")
-        .ColumnHeader("Hit Count")
-        .ColumnHeader("Total Time")
-        .ColumnHeader("Average Time")
-        .ColumnHeader("Source", ImGuiTableColumnFlags_DefaultHide)
-        .ColumnHeader("Min Time")
-        .ColumnHeader("Max Time")
-        .ColumnHeader("Graph")
-        .ScrollFreeze()
-        .FinishHeader()
-        .Content(events,
-                 [this, &indent, &totalTime](Widget::Table&, const ProfileEvent& event) -> void {
-                     renderProfilerTableRow(event, totalTime, indent);
-                 });
+      .ColumnHeader("Name")
+      .ColumnHeader("Hit Count")
+      .ColumnHeader("Total Time")
+      .ColumnHeader("Average Time")
+      .ColumnHeader("Source", ImGuiTableColumnFlags_DefaultHide)
+      .ColumnHeader("Min Time")
+      .ColumnHeader("Max Time")
+      .ColumnHeader("Graph")
+      .ScrollFreeze()
+      .FinishHeader()
+      .Content(events, [this, &indent, &totalTime](Widget::Table&, const ProfileEvent& event) -> void {
+          renderProfilerTableRow(event, totalTime, indent);
+      });
     ImGui::EndTabItem();
     ImGui::EndTabBar();
     ImGui::EndTabItem();
@@ -356,57 +356,49 @@ void MainApplicationLayer::renderProfilerTableRow(const ProfileEvent& event, flo
 {
     bool renderChilds = false;
     Widget::Table::CellContent(
-        [&renderChilds, &indent](const std::string& name, bool hasChilds) -> void {
-            if (indent != 0.0f) { ImGui::Indent(indent); }
-            if (!hasChilds) { ImGui::Text(name.c_str()); }
-            else {
-                const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-                ImGui::PushStyleColor(ImGuiCol_Header, bg);
-                ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
-                ImGui::PushID(static_cast<const void*>(name.c_str()));
-                if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
-                ImGui::PopID();
-                ImGui::PopStyleColor(3);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(800.0f);
-                ImGui::Text(name.c_str());
-                ImGui::PopTextWrapPos();
-                ImGui::EndTooltip();
-            }
-            if (indent != 0.0f) { ImGui::Unindent(indent); }
-        },
-        event.header.name,
-        !event.childs.empty());
+      [&renderChilds, &indent](const std::string& name, bool hasChilds) -> void {
+          if (indent != 0.0f) { ImGui::Indent(indent); }
+          if (!hasChilds) { ImGui::Text(name.c_str()); }
+          else {
+              const auto& bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+              ImGui::PushStyleColor(ImGuiCol_Header, bg);
+              ImGui::PushStyleColor(ImGuiCol_HeaderActive, bg);
+              ImGui::PushStyleColor(ImGuiCol_HeaderHovered, bg);
+              ImGui::PushID(static_cast<const void*>(name.c_str()));
+              if (ImGui::CollapsingHeader(name.c_str())) { renderChilds = true; }
+              ImGui::PopID();
+              ImGui::PopStyleColor(3);
+          }
+          if (ImGui::IsItemHovered()) {
+              ImGui::BeginTooltip();
+              ImGui::PushTextWrapPos(800.0f);
+              ImGui::Text(name.c_str());
+              ImGui::PopTextWrapPos();
+              ImGui::EndTooltip();
+          }
+          if (indent != 0.0f) { ImGui::Unindent(indent); }
+      },
+      event.header.name,
+      !event.childs.empty());
     Widget::Table::CellContentTextTooltip("{}", event.hitCount);
     Widget::Table::CellContentTextWrapped(
-        "{:0.2}% ({})",
-        (static_cast<float>(event.totalTime.count()) / totalTime) * 100.0f,
-        event.totalTime);
+      "{:0.2}% ({})", (static_cast<float>(event.totalTime.count()) / totalTime) * 100.0f, event.totalTime);
     Widget::Table::CellContentTextWrapped(
-        "{:0.2}% ({})",
-        (static_cast<float>(event.avgTime.count()) / totalTime) * 100.0f,
-        event.avgTime);
+      "{:0.2}% ({})", (static_cast<float>(event.avgTime.count()) / totalTime) * 100.0f, event.avgTime);
     Widget::Table::CellContentTextTooltip("{}:{}", event.header.source, event.header.currentLine);
     Widget::Table::CellContentTextWrapped(
-        "{:0.2}% ({})",
-        (static_cast<float>(event.minTime.count()) / totalTime) * 100.0f,
-        event.minTime);
+      "{:0.2}% ({})", (static_cast<float>(event.minTime.count()) / totalTime) * 100.0f, event.minTime);
     Widget::Table::CellContentTextWrapped(
-        "{:0.2}% ({})",
-        (static_cast<float>(event.maxTime.count()) / totalTime) * 100.0f,
-        event.maxTime);
+      "{:0.2}% ({})", (static_cast<float>(event.maxTime.count()) / totalTime) * 100.0f, event.maxTime);
 
     Widget::Table::CellContent(
-        [this](const ProfileEvent* event) {
-            std::string graphWindowLabel = std::format("Graph##{}", reinterpret_cast<std::uintptr_t>(event));
-            if (ImGui::Button(graphWindowLabel.c_str())) {
-                m_profileGraphPopups.emplace_back(std::move(graphWindowLabel), event, true);
-            }
-        },
-        &event);
+      [this](const ProfileEvent* event) {
+          std::string graphWindowLabel = std::format("Graph##{}", reinterpret_cast<std::uintptr_t>(event));
+          if (ImGui::Button(graphWindowLabel.c_str())) {
+              m_profileGraphPopups.emplace_back(std::move(graphWindowLabel), event, true);
+          }
+      },
+      &event);
 
     if (renderChilds) {
         indent += ImGui::GetStyle().IndentSpacing;
@@ -441,26 +433,25 @@ void MainApplicationLayer::renderProfilerGraphs()
                                   ImPlotAxisFlags_AutoFit);
 
                 ImPlot::PlotScatterG(
-                    "History",
-                    [](int idx, void* data) -> ImPlotPoint {
-                        auto& event = *static_cast<ProfileEventInfo*>(data);
-                        try {
-                            const auto& [start, end, delta] = event.event->history.at(idx);
-                            return {event.displayAsSamples
-                                        ? static_cast<double>(idx)
-                                        : static_cast<double>(
-                                              std::chrono::duration_cast<std::chrono::milliseconds>(
-                                                  start.time_since_epoch())
-                                              .count()) /
-                                          1'000,
-                                    static_cast<double>(delta.count())};
-                        }
-                        catch (std::exception&) {
-                            return {0, 0};
-                        }
-                    },
-                    &event,
-                    static_cast<int>(event.event->history.size()));
+                  "History",
+                  [](int idx, void* data) -> ImPlotPoint {
+                      auto& event = *static_cast<ProfileEventInfo*>(data);
+                      try {
+                          const auto& [start, end, delta] = event.event->history.at(idx);
+                          return {event.displayAsSamples
+                                    ? static_cast<double>(idx)
+                                    : static_cast<double>(
+                                        std::chrono::duration_cast<std::chrono::milliseconds>(start.time_since_epoch())
+                                          .count()) /
+                                        1'000,
+                                  static_cast<double>(delta.count())};
+                      }
+                      catch (std::exception&) {
+                          return {0, 0};
+                      }
+                  },
+                  &event,
+                  static_cast<int>(event.event->history.size()));
 
                 double average = static_cast<double>(event.event->avgTime.count());
                 ImPlot::PlotInfLines("Average", &average, 1, ImPlotInfLinesFlags_Horizontal);
@@ -478,10 +469,10 @@ void MainApplicationLayer::PresetControlRoomOptions()
 {
     if (m_noMove) { ImGui::SetNextWindowDockID(ImGui::GetWindowDockID()); }
 
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | //
-                             ImGuiWindowFlags_NoResize |   //
-                             ImGuiWindowFlags_NoMove |     //
-                             ImGuiWindowFlags_NoNavFocus | //
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |    //
+                             ImGuiWindowFlags_NoResize |      //
+                             ImGuiWindowFlags_NoMove |        //
+                             ImGuiWindowFlags_NoNavFocus |    //
                              ImGuiWindowFlags_NoCollapse;
 
     // Put in front of main window for first initialization
@@ -517,7 +508,10 @@ void MainApplicationLayer::handleResultAnalyserPopup()
 
     // else
     for (const auto map = m_orchestrator.getMap(); const auto& uut : map.uuts) {
-        if (m_orchestrator.getUutState(uut) != UutState::Failed) { continue; }
+        if (const auto verdict = getVerdict(m_orchestrator.getUutState(uut));
+            verdict != RunVerdict::Failed && verdict != RunVerdict::Incomplete) {
+            continue;
+        }
         m_resultViewer->setVisibility(true);
         break;
     }
@@ -528,7 +522,7 @@ namespace {
 
 nlohmann::json eventStackTrace(const ProfileEvent& event)
 {
-    auto j = nlohmann::json{{"name", event.header.name}};
+    auto j = nlohmann::json {{"name", event.header.name}};
     if (event.parent != nullptr) { j["parent"] = std::format("{}", reinterpret_cast<std::uintptr_t>(event.parent)); }
     return j;
 }
@@ -538,14 +532,14 @@ void addEventToJson(nlohmann::json& j, const ProfileEvent& event, const std::thr
     auto frameId              = std::format("{}", reinterpret_cast<std::uintptr_t>(&event));
     j["stackFrames"][frameId] = eventStackTrace(event);
     for (auto&& marker : event.history) {
-        j["traceEvents"] += nlohmann::json{
-            {"name", event.header.name},
-            {"ph", "X"},
-            {"pid", 0},
-            {"tid", std::hash<std::thread::id>{}(threadId)},
-            {"sf", frameId},
-            {"ts", std::chrono::duration_cast<std::chrono::microseconds>(marker.start.time_since_epoch()).count()},
-            {"dur", marker.delta.count()},
+        j["traceEvents"] += nlohmann::json {
+          {"name", event.header.name},
+          {"ph", "X"},
+          {"pid", 0},
+          {"tid", std::hash<std::thread::id> {}(threadId)},
+          {"sf", frameId},
+          {"ts", std::chrono::duration_cast<std::chrono::microseconds>(marker.start.time_since_epoch()).count()},
+          {"dur", marker.delta.count()},
         };
     }
 
@@ -557,22 +551,22 @@ void addEventToJson(nlohmann::json& j, const ProfileEvent& event, const std::thr
 nlohmann::json profilerMetadata(const ProfilerDetails& details)
 {
     // Metadata for this thread.
-    return nlohmann::json{
-        {"name", "thread_name"},
-        {"ph", "M"},
-        {"pid", 0},
-        {"tid", std::hash<std::thread::id>{}(details.threadId())},
-        {"args", nlohmann::json{"name", details.label()}},
+    return nlohmann::json {
+      {"name", "thread_name"},
+      {"ph", "M"},
+      {"pid", 0},
+      {"tid", std::hash<std::thread::id> {}(details.threadId())},
+      {"args", nlohmann::json {"name", details.label()}},
     };
 }
-} // namespace
+}    // namespace
 
 void MainApplicationLayer::DumpProfileEvents()
 {
-    nlohmann::json j = nlohmann::json{
-        {"otherData", nlohmann::json{}},
-        {"traceEvents", nlohmann::json::array()},
-        {"stackFrames", nlohmann::json{}},
+    nlohmann::json j = nlohmann::json {
+      {"otherData", nlohmann::json {}},
+      {"traceEvents", nlohmann::json::array()},
+      {"stackFrames", nlohmann::json {}},
     };
     for (auto&& [id, profiler] : Profiler::get().getEvents()) {
         j["traceEvents"] += profilerMetadata(profiler);
@@ -599,4 +593,4 @@ void MainApplicationLayer::setSequenceEnable(const std::string& sequence, bool e
     m_orchestrator.setSequenceEnable(sequence, enable);
 }
 
-} // namespace Frasy
+}    // namespace Frasy

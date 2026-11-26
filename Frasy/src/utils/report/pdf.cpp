@@ -33,12 +33,14 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
     static constexpr auto    s_tag   = "Table Report";
     const auto               lua     = sol::state_view(results.lua_state());
     std::vector<std::string> reports = {};
+
+
     try {
         using namespace Frasy::Report::SolutionLoader;
         Solution solution = loadSolution();
 
-        auto title = results["info"]["title"].get<std::string>();
-        auto pass  = results["info"]["pass"].get<bool>();
+        auto       title = results["info"]["title"].get<std::string>();
+        const auto pass  = getResult(results["info"]) == Result::Pass;
 
         namespace fs = std::filesystem;
         // Create log directory if needed.
@@ -59,6 +61,14 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
         auto clientFileDir = pass ? clientPassDir : clientFailDir;
         auto lastReportFilepath =
           clientDirectory / std::format("last_uut{}.pdf", results.get<sol::table>("info").get_or("uut", 0));
+        if (Formatter::isIncomplete(results)) {
+            // Debug run: client outputs are only made for complete boards, and the previous board's report
+            // mustn't pass for this one's.
+            std::error_code ec;
+            fs::remove(lastReportFilepath, ec);
+            BR_LOG_INFO(s_tag, "Incomplete board, no report written");
+            return {};
+        }
         auto formatter = Formatter::PDF(lastReportFilepath.string(), "Frasy Report", results);
 
         formatter.reportInfo();

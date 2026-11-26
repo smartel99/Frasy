@@ -19,10 +19,8 @@
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_GREATER_OR_EQUAL_H
 #include "to_be_value_base.h"
 
-namespace Frasy::Analyzers
-{
-struct ToBeGreaterOrEqualExpectation : public ToBeValueBase
-{
+namespace Frasy::Analyzers {
+struct ToBeGreaterOrEqualExpectation : public ToBeValueBase {
     ToBeGreaterOrEqualExpectation(float min) : ToBeValueBase(min, min, min) {}
     ~ToBeGreaterOrEqualExpectation() override = default;
 

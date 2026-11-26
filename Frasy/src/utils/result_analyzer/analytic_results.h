@@ -18,61 +18,48 @@
 #ifndef FRASY_SRC_UTILS_RESULT_ANALYZER_ANALYTIC_RESULTS_H
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_ANALYTIC_RESULTS_H
 
+#include "utils/report/result.h"
+
 #include <json.hpp>
+
+#include <array>
 #include <map>
 #include <memory>
 #include <string>
 #include <variant>
 #include <vector>
 
-namespace Frasy::Analyzers
-{
-struct ResultAnalysisResults
-{
-    struct Expectation
-    {
-        virtual ~Expectation()                                       = default;
-        std::string            Name;
-        virtual void           AddValue(const nlohmann::json& value) = 0;
-        virtual void           MakeStats()                           = 0;
-        virtual void           Render()                              = 0;
-        virtual nlohmann::json serialize()                           = 0;
+namespace Frasy::Analyzers {
+using Report::ResultCounts;
+
+struct ResultAnalysisResults {
+    struct Expectation {
+        virtual ~Expectation() = default;
+        std::string Name;
+        /** @param passed Whether this run of the expectation passed, read from the report's layout. */
+        virtual void           AddValue(const nlohmann::json& value, bool passed) = 0;
+        virtual void           MakeStats()                                        = 0;
+        virtual void           Render()                                           = 0;
+        virtual nlohmann::json serialize()                                        = 0;
     };
-    struct Test
-    {
+    struct Test {
         std::string                                         Name;
-        size_t                                              Passed          = 0;
-        float                                               PassedPercent   = 0.0f;
-        size_t                                              Enabled         = 0;
-        float                                               EnabledPercent  = 0.0f;
-        size_t                                              Skipped         = 0;
-        float                                               SkippedPercent  = 0.0f;
-        size_t                                              Total           = 0;
+        ResultCounts                                        Results         = {};
         std::vector<double>                                 Durations       = {};
         double                                              AverageDuration = 0.0;
         std::map<std::string, std::shared_ptr<Expectation>> Expectations    = {};
     };
-    struct Sequence
-    {
+    struct Sequence {
         std::string                 Name;
-        size_t                      Passed          = 0;
-        float                       PassedPercent   = 0.0f;
-        size_t                      Enabled         = 0;
-        float                       EnabledPercent  = 0.0f;
-        size_t                      Skipped         = 0;
-        float                       SkippedPercent  = 0.0f;
-        size_t                      Total           = 0;
+        ResultCounts                Results         = {};
         std::vector<double>         Durations       = {};
         double                      AverageDuration = 0.0;
         std::map<std::string, Test> Tests           = {};
     };
-    struct Location
-    {
+    struct Location {
         std::string                     Name;
         std::string                     Version;
-        size_t                          Passed          = 0;
-        float                           PassedPercent   = 0.0f;
-        size_t                          Total           = 0;
+        ResultCounts                    Results         = {};
         std::vector<double>             Durations       = {};
         double                          AverageDuration = 0.0;
         std::map<std::string, Sequence> Sequences       = {};

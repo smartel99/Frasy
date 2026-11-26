@@ -24,6 +24,7 @@
 #include "../map.h"
 #include "utils/lua/popup.h"
 #include "utils/models/solution.h"
+#include "utils/report/result.h"
 
 #include "../expectation.h"
 #include <functional>
@@ -37,6 +38,14 @@
 #include <vector>
 
 namespace Frasy::Lua {
+/** Progress of an execution: event type, UUT, name, parent sequence, parent test, result. */
+using ProgressCallback = std::function<void(const std::string& type,
+                                            std::size_t        uut,
+                                            const std::string& name,
+                                            const std::string& parentA,
+                                            const std::string& parentB,
+                                            Report::Result     result)>;
+
 class Orchestrator {
 public:
     class Interface;
@@ -52,8 +61,38 @@ public:
 
     static constexpr std::string_view passSubdirectory = "pass";
     static constexpr std::string_view failSubdirectory = "fail";
-    static constexpr std::string_view lastSubdirectory = "last";
-    static constexpr std::string_view solutionFile     = "lua/solution.json";
+    //! Incomplete boards: neither passed nor failed, kept apart for debugging.
+    static constexpr std::string_view debugSubdirectory = "debug";
+    static constexpr std::string_view lastSubdirectory  = "last";
+    static constexpr std::string_view solutionFile      = "lua/solution.json";
+
+    /** Where a finished board ends up, given its report. */
+    struct ReportOutcome {
+        UutState         state        = UutState::Error;
+        std::string_view subdirectory = failSubdirectory;
+    };
+
+    /**
+     * @brief State and output folder of a board.
+     * @param result         The report's `info` result. `incomplete` means something was disabled: the board is a
+     *                       debug run, filed apart from production results whether what ran passed or failed.
+     * @param hasFailedScope Whether any sequence or test failed, which tells IncompleteFailed from IncompletePassed.
+     * Anything that isn't a clear pass or fail is filed as incomplete, never as passed.
+     * @return The board's state and the folder its report is archived to.
+     */
+    [[nodiscard]] static ReportOutcome getReportOutcome(Report::Result result, bool hasFailedScope) noexcept;
+
+    /**
+     * @brief Read a finished board's report, decide its state and archive the report.
+     * @param reportFile  The report, in the last folder. It stays there whatever happens.
+     * @param archiveRoot Folder holding the pass, fail and debug folders.
+     * @param uut         The board, for logging.
+     * @return The board's state, or Error if the report can't be read. Failing to archive it is logged and doesn't
+     *         change the state.
+     */
+    [[nodiscard]] static UutState fileReport(const std::filesystem::path& reportFile,
+                                             const std::filesystem::path& archiveRoot,
+                                             std::size_t                  uut);
 
     Orchestrator() = default;
 
@@ -138,14 +177,25 @@ public:
 
     [[nodiscard]] const Map& getMap() const { return m_map; }
 
-    [[nodiscard]] bool        isRunning() const;
-    [[nodiscard]] UutState    getUutState(std::size_t uut) const;
-    void                      setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
-    void                      setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
-    void                      setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
-    void                      setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback);
-    void                      setProgressCallback(std::function<void(const std::string& type, std::size_t uut, const std::string& name, const std::string& parentA, const std::string& parentB, bool pass)> callback);
-    [[nodiscard]] std::string getTitle() const { return m_title; }
+    [[nodiscard]] bool     isRunning() const;
+    [[nodiscard]] UutState getUutState(std::size_t uut) const;
+    void                   setLoadUserFunctions(const std::function<void(sol::state_view)>& callback);
+    void                   setLoadUserBoards(const std::function<sol::table(sol::state_view)>& callback);
+    void                   setLoadUserValues(const std::function<sol::table(sol::state_view)>& callback);
+    void                   setPopupImport(std::function<void(sol::state_view, std::size_t, Stage)> callback);
+    /**
+     * @brief Receive the progress of the execution stage: sequences and tests starting and ending, expectations.
+     * The result is Pass for start events.
+     */
+    void setProgressCallback(ProgressCallback callback);
+
+    /**
+     * @brief Result of a progress event sent by Lua.
+     * @param result A result name ("pass", "fail", ...).
+     * @return The result, or Fail (logged) for anything else, so an unknown result never reads as a pass.
+     */
+    [[nodiscard]] static Report::Result toProgressResult(std::string_view name, const sol::object& result);
+    [[nodiscard]] std::string           getTitle() const { return m_title; }
     void setGetApplicationVersion(const char* (*callback)()) { m_getApplicationVersion = callback; }
 
     [[nodiscard]] std::mutex* getExpectationsMutex(std::size_t uut)
@@ -218,10 +268,10 @@ private:
         return lua.create_table();
     };
     std::function<void(sol::state_view, std::size_t, Stage)> m_popupImport;
-    std::function<void(const std::string& type, std::size_t uut, const std::string& name, const std::string& parentA, const std::string& parentB, bool pass)> m_progressCallback;
-    Models::Solution                         m_solution = {};
-    std::vector<std::vector<Expectation>>    m_expectationsVectors;
-    std::vector<std::unique_ptr<std::mutex>> m_expectationsMutexes;
+    ProgressCallback                                         m_progressCallback;
+    Models::Solution                                         m_solution = {};
+    std::vector<std::vector<Expectation>>                    m_expectationsVectors;
+    std::vector<std::unique_ptr<std::mutex>>                 m_expectationsMutexes;
 
     CanOpen::CanOpen* m_canOpen = nullptr;
 

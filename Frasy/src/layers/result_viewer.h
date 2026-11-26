@@ -19,37 +19,41 @@
 #define FRASY_SRC_LAYERS_RESULT_VIEWER_H
 #include "utils/communication/serial/device_map.h"
 #include "utils/communication/serial/enumerator.h"
+#include "utils/report/result.h"
 
 #include <Brigerad.h>
 #include <filesystem>
 #include <json.hpp>
 #include <map>
+#include <optional>
 #include <vector>
 
 namespace Frasy {
 class ResultViewer : public Brigerad::Layer {
+public:
     using ExpectationDetails = std::map<std::string, nlohmann::json>;
+    struct ExpectationResult {
+        std::optional<Report::Result> Result;    //!< Nothing for an entry without a result.
+        ExpectationDetails            Details;
+    };
     struct TestResult {
-        std::string                     Name;
-        double                          Duration = 0.0;
-        bool                            Enabled  = true;
-        bool                            Skipped  = true;
-        bool                            Passed   = true;
-        std::vector<ExpectationDetails> Expectations;
+        std::string                    Name;
+        double                         Duration = 0.0;
+        Report::Result                 Result   = Report::Result::Fail;
+        std::vector<ExpectationResult> Expectations;
     };
     struct SequenceResult {
         std::string                       Name;
         double                            Duration = 0.0;
-        bool                              Enabled  = true;
-        bool                              Skipped  = true;
-        bool                              Passed   = true;
+        Report::Result                    Result   = Report::Result::Fail;
         std::map<std::string, TestResult> Tests;
     };
     struct OverallTestResult {
         std::string                           SerialNumber = "<N/A>";
         double                                Duration     = 0.0;
         std::string                           Date         = "<N/A>";
-        bool                                  Passed       = true;
+        Report::Result                        Result       = Report::Result::Fail;
+        bool                                  HasFailure   = false;    //!< A sequence or test failed.
         std::string                           Version      = "<N/A>";
         int                                   Uut          = 0;
         std::map<std::string, SequenceResult> Sequences;
@@ -62,13 +66,31 @@ class ResultViewer : public Brigerad::Layer {
         bool                            IsGood  = true;
     };
 
-public:
     ResultViewer() noexcept;
     ~ResultViewer() override = default;
 
     void onImGuiRender() override;
 
     void setVisibility(bool visibility);
+
+    /**
+     * @brief Load a saved report, whatever its layout version.
+     * @throws Report::ReportFormatError or nlohmann::json::exception if the report can't be read.
+     */
+    static OverallTestResult LoadResults(const std::string& path);
+
+    /** @return Whether a scope's node starts expanded: failed and incomplete ones do. */
+    static bool isOpenByDefault(std::optional<Report::Result> result);
+
+    /**
+     * @brief Text colour of a report's tab.
+     * @param hasFailure Whether a sequence or test failed, for an incomplete board.
+     * @return Red for a failure, orange for an incomplete board without one, nothing to keep the default.
+     */
+    static std::optional<uint32_t> getTabColor(Report::Result result, bool hasFailure);
+
+    static constexpr uint32_t s_failColor       = 0xFF0000FF;
+    static constexpr uint32_t s_incompleteColor = 0xFF008CFF;
 
 private:
     void        RenderLog(const OverallTestResult& log, std::size_t index);
@@ -78,10 +100,13 @@ private:
 
     bool                                         AreLogsNew();
     static std::vector<LogInfo>                  LoadLogs(bool loadFiles);
-    static OverallTestResult                     LoadResults(const std::string& path);
-    static std::map<std::string, SequenceResult> LoadSequences(const nlohmann::json& sequences);
-    static std::map<std::string, TestResult>     LoadTests(const nlohmann::json& tests);
-    static std::vector<ExpectationDetails>       LoadExpectations(const nlohmann::json& expectations);
+    static std::map<std::string, SequenceResult> LoadSequences(const Report::ResultReader& reader,
+                                                               const nlohmann::json&       sequences);
+    static std::map<std::string, TestResult>     LoadTests(const Report::ResultReader& reader,
+                                                           const nlohmann::json&       tests,
+                                                           Report::Result              sequenceResult);
+    static std::vector<ExpectationResult>        LoadExpectations(const Report::ResultReader& reader,
+                                                                  const nlohmann::json&       expectations);
     static nlohmann::json                        SanitizeExpectation(const nlohmann::json& expectation);
 
     static std::string MakeStringFromJson(const std::string& key, const nlohmann::json& value);

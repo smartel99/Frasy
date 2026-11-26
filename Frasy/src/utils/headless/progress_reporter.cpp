@@ -22,6 +22,36 @@
 #include <json.hpp>
 
 namespace Frasy::Headless {
+namespace {
+using Frasy::Report::Result;
+
+/** @return The tag of a result in human output, e.g. "[PASS]". */
+constexpr std::string_view getTag(Result result)
+{
+    switch (result) {
+        case Result::Pass: return "[PASS]";
+        case Result::Fail: return "[FAIL]";
+        case Result::Skipped: return "[SKIPPED]";
+        case Result::Disabled: return "[DISABLED]";
+        case Result::Incomplete: return "[INCOMPLETE]";
+    }
+    return "[UNKNOWN]";
+}
+
+/** @return The ANSI colour of a result: green for pass, red for fail, yellow for anything else. */
+constexpr const char* getColor(Result result)
+{
+    switch (result) {
+        case Result::Pass: return "\033[32m";
+        case Result::Fail: return "\033[31m";
+        case Result::Skipped:
+        case Result::Disabled:
+        case Result::Incomplete: break;
+    }
+    return "\033[33m";
+}
+}    // namespace
+
 
 ProgressReporter::ProgressReporter(const std::string&              outputFormat,
                                    const std::string&              product,
@@ -44,8 +74,7 @@ void ProgressReporter::reportStart()
         std::cout << j.dump() << "\n" << std::flush;
     }
     else {
-        std::cout << std::format("[{}] Starting: product=\"{}\" uuts={}\n",
-                                 timestamp(), m_product, m_serials.size())
+        std::cout << std::format("[{}] Starting: product=\"{}\" uuts={}\n", timestamp(), m_product, m_serials.size())
                   << std::flush;
     }
 }
@@ -70,7 +99,8 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
             case ProgressEvent::SequenceEnd:
                 j["type"]     = "sequence_end";
                 j["sequence"] = event.name;
-                j["pass"]     = event.pass;
+                j["pass"]     = event.result == Frasy::Report::Result::Pass;
+                j["result"]   = Frasy::Report::toString(event.result);
                 break;
             case ProgressEvent::TestStart:
                 j["type"]     = "test_start";
@@ -81,59 +111,74 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
                 j["type"]     = "test_end";
                 j["sequence"] = event.sequence;
                 j["test"]     = event.name;
-                j["pass"]     = event.pass;
+                j["pass"]     = event.result == Frasy::Report::Result::Pass;
+                j["result"]   = Frasy::Report::toString(event.result);
                 break;
             case ProgressEvent::Expectation:
                 j["type"]     = "expectation";
                 j["sequence"] = event.sequence;
                 j["test"]     = event.test;
                 j["name"]     = event.name;
-                j["pass"]     = event.pass;
+                j["pass"]     = event.result == Frasy::Report::Result::Pass;
+                j["result"]   = Frasy::Report::toString(event.result);
                 break;
         }
         std::cout << j.dump() << "\n" << std::flush;
     }
     else {
-        // ANSI color codes
         constexpr auto colorReset = "\033[0m";
-        constexpr auto colorGreen = "\033[32m";
-        constexpr auto colorRed   = "\033[31m";
 
-        // White (no color) for start events, green for pass, red for fail
+        // No colour for start events.
         const char* color = colorReset;
         if (event.type != ProgressEvent::SequenceStart && event.type != ProgressEvent::TestStart) {
-            color = event.pass ? colorGreen : colorRed;
+            color = getColor(event.result);
         }
 
         switch (event.type) {
             case ProgressEvent::SequenceStart:
-                std::cout << std::format("{}[{}] [UUT{}] >> {}{}\n",
-                                         color, timestamp(), event.uut, event.name, colorReset)
+                std::cout << std::format(
+                               "{}[{}] [UUT{}] >> {}{}\n", color, timestamp(), event.uut, event.name, colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::SequenceEnd:
                 std::cout << std::format("{}[{}] [UUT{}] {} << {}{}\n",
-                                         color, timestamp(), event.uut,
-                                         event.pass ? "[PASS]" : "[FAIL]", event.name, colorReset)
+                                         color,
+                                         timestamp(),
+                                         event.uut,
+                                         getTag(event.result),
+                                         event.name,
+                                         colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::TestStart:
                 std::cout << std::format("{}[{}] [UUT{}]   > {} > {}{}\n",
-                                         color, timestamp(), event.uut, event.sequence, event.name, colorReset)
+                                         color,
+                                         timestamp(),
+                                         event.uut,
+                                         event.sequence,
+                                         event.name,
+                                         colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::TestEnd:
                 std::cout << std::format("{}[{}] [UUT{}]   {} {} > {}{}\n",
-                                         color, timestamp(), event.uut,
-                                         event.pass ? "[PASS]" : "[FAIL]",
-                                         event.sequence, event.name, colorReset)
+                                         color,
+                                         timestamp(),
+                                         event.uut,
+                                         getTag(event.result),
+                                         event.sequence,
+                                         event.name,
+                                         colorReset)
                           << std::flush;
                 break;
             case ProgressEvent::Expectation:
                 std::cout << std::format("{}[{}] [UUT{}]     {} {}{}\n",
-                                         color, timestamp(), event.uut,
-                                         event.pass ? "[PASS]" : "[FAIL]",
-                                         event.name, colorReset)
+                                         color,
+                                         timestamp(),
+                                         event.uut,
+                                         getTag(event.result),
+                                         event.name,
+                                         colorReset)
                           << std::flush;
                 break;
         }
@@ -142,10 +187,10 @@ void ProgressReporter::onEvent(const ProgressEvent& event)
 
 std::string ProgressReporter::timestamp()
 {
-    auto        now  = std::chrono::system_clock::now();
-    auto        time = std::chrono::system_clock::to_time_t(now);
-    auto        ms   = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-    std::tm     tm   = {};
+    auto    now  = std::chrono::system_clock::now();
+    auto    time = std::chrono::system_clock::to_time_t(now);
+    auto    ms   = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    std::tm tm   = {};
     localtime_s(&tm, &time);
     return std::format("{:02}:{:02}:{:02}.{:03}", tm.tm_hour, tm.tm_min, tm.tm_sec, ms.count());
 }

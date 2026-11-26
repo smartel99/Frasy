@@ -65,9 +65,9 @@ void MyMainApplicationLayer::renderControlRoom()
 
     if (m_activeProduct == "expectation") {
         ImGui::BeginChild("Expectations", ImVec2(800.0f, 300.0f));
-        auto* mutex = m_orchestrator.getExpectationsMutex(1);
+        auto*           mutex = m_orchestrator.getExpectationsMutex(1);
         std::lock_guard lock(*mutex);
-        const auto& expectations = m_orchestrator.getExpectationsVector(1);
+        const auto&     expectations = m_orchestrator.getExpectationsVector(1);
         renderExpectations(expectations);
         ImGui::EndChild();
     }
@@ -211,6 +211,8 @@ void MyMainApplicationLayer::renderUutIcon(std::size_t uut)
         case Frasy::UutState::Passed: texture = m_pass->getRenderId(); break;
         case Frasy::UutState::Failed: texture = m_fail->getRenderId(); break;
         case Frasy::UutState::Error: texture = m_error->getRenderId(); break;
+        case Frasy::UutState::IncompletePassed: texture = m_incompletePass->getRenderId(); break;
+        case Frasy::UutState::IncompleteFailed: texture = m_incompleteFail->getRenderId(); break;
     }
     if (m_orchestrator.getMap().uuts.size() > 1) {
         if (ImGui::ImageButton(reinterpret_cast<void*>(texture), m_buttonSize)) { m_orchestrator.toggleUut(uut); }

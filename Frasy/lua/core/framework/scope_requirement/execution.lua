@@ -21,6 +21,14 @@ local RuntimeRequirement = require("lua/core/framework/runtime_requirement")
 local ScopeRequirement   = {}
 ScopeRequirement.__index = ScopeRequirement
 
+--- The scope as written in skip reasons: `Sequence "S"` or `Test "T" of sequence "S"`.
+---@param scope Scope
+---@return string
+local function Describe(scope)
+    if scope.test == nil then return string.format('Sequence "%s"', tostring(scope.sequence)) end
+    return string.format('Test "%s" of sequence "%s"', tostring(scope.test), tostring(scope.sequence))
+end
+
 function ScopeRequirement:New(orchestrator, scope)
     return setmetatable({ orchestrator = orchestrator, scope = scope }, ScopeRequirement)
 end
@@ -71,7 +79,7 @@ end
 
 function ScopeRequirement:ToPass()
     return RuntimeRequirement:New(function() return self.orchestrator.HasPassed(self.scope) end,
-        string.format("Scope %s has not passed", self.scope:ToString()))
+        string.format("%s has not passed", Describe(self.scope)))
 end
 
 function ScopeRequirement:HasFailed()
@@ -80,14 +88,14 @@ end
 
 function ScopeRequirement:ToFail()
     return RuntimeRequirement:New(function() return not self.orchestrator.HasPassed(self.scope) end,
-        string.format("Scope %s has passed", self.scope:ToString()))
+        string.format("%s has passed", Describe(self.scope)))
 end
 
 function ScopeRequirement:ToBeComplete()
     -- Cannot perform multiple tests for same board for now
     -- Thus, this scope must always be done after its target
     return RuntimeRequirement:New(function() return not self.orchestrator.HasBeenSkipped(self.scope) end,
-        string.format("Scope %s has been skipped", self.scope:ToString()))
+        string.format("%s has been skipped", Describe(self.scope)))
 end
 
 return ScopeRequirement

@@ -39,9 +39,6 @@
 
 namespace Frasy::Analyzers {
 namespace {
-float Percent(size_t v, size_t tot)
-{ return (static_cast<float>(v) / static_cast<float>(tot)) * 100.0f; }
-
 nlohmann::json LoadJson(const std::string& path)
 {
     BR_PROFILE_FUNCTION();
@@ -103,10 +100,35 @@ std::vector<std::string> LoadMatchingFiles(const std::string&                   
 std::vector<std::string> LoadAllMatchingFiles(const std::string&                       title,
                                               const std::vector<std::array<char, 32>>& serialNumbers)
 {
-    auto r   = LoadMatchingFiles(std::format("logs/{}/fail", title), serialNumbers);
-    auto tmp = LoadMatchingFiles(std::format("logs/{}/pass", title), serialNumbers);
-    r.insert(r.end(), tmp.begin(), tmp.end());
-    return r;
+    std::vector<std::string> files;
+    // Incomplete boards are in debug.
+    for (const auto* folder : {"fail", "pass", "debug"}) {
+        auto found = LoadMatchingFiles(std::format("logs/{}/{}", title, folder), serialNumbers);
+        files.insert(files.end(), found.begin(), found.end());
+    }
+    return files;
+}
+/**
+ * @brief Read every scope's result, duration and children of a report.
+ * Done before anything is counted, so a report with a bad scope isn't partly counted.
+ * @throws Report::ReportFormatError or nlohmann::json::exception on the first unreadable scope.
+ */
+void validateReport(const Report::ResultReader& reader, const nlohmann::json& report)
+{
+    (void)report.at("info").at("time").at("process").get<double>();
+    for (const auto& sequence : report.at("sequences")) {
+        if (!reader.isScope(sequence)) { continue; }
+        const auto result = reader.read(sequence);
+        (void)sequence.at("time").at("process").get<double>();
+        for (const auto& test : sequence.at("tests")) {
+            if (!reader.isScope(test)) { continue; }
+            (void)reader.read(test, result);
+            (void)test.at("time").at("process").get<double>();
+            if (!test.at("expectations").is_structured()) {
+                throw Report::ReportFormatError("Test expectations aren't a list");
+            }
+        }
+    }
 }
 }    // namespace
 
@@ -123,7 +145,7 @@ ResultAnalysisResults ResultAnalyzer::Analyze(const std::string& title)
             BR_LOG_DEBUG("Analyzer", "Analyzing log '{}'...", log);
             AnalyzeFile(log);
         }
-        catch (nlohmann::json::exception& e) {
+        catch (const std::exception& e) {
             BR_LOG_ERROR("Analyzer", "An error occurred while analyzing '{}': {}", log, e.what());
         }
         Analyzed++;
@@ -158,11 +180,11 @@ void ResultAnalyzer::AnalyzeFile(const std::string& path)
         else {
             location = std::format("Location {}", info.at("uut").get<int>());
         }
+        const Report::ResultReader reader(file);
+        validateReport(reader, file);
         auto& locationResults = m_results.Locations[location];
         locationResults.Name  = location;
-        locationResults.Total++;
-        if (info.at("pass").get<bool>()) { locationResults.Passed++; }
-        locationResults.PassedPercent = Percent(locationResults.Passed, locationResults.Total);
+        locationResults.Results.add(reader.getInfo());
 
         locationResults.Durations.push_back(info.at("time").at("process").get<double>());
         locationResults.AverageDuration =
@@ -171,12 +193,13 @@ void ResultAnalyzer::AnalyzeFile(const std::string& path)
 
         auto sequences = file.at("sequences");
         for (auto [name, sequence] : sequences.items()) {
+            if (!reader.isScope(sequence)) { continue; }
             if (m_options.Sequences.empty() ||
                 std::ranges::any_of(m_options.Sequences, [&name](const auto& sequenceName) {
                     return std::string_view(sequenceName.data()) == name;
                 })) {
                 BR_LOG_DEBUG("Analyzer", "Analyzing sequence '{}'...", name);
-                AnalyzeSequence(sequence, locationResults.Sequences[name]);
+                AnalyzeSequence(reader, sequence, locationResults.Sequences[name]);
                 locationResults.Sequences[name].Name = name;
             }
             else {
@@ -186,15 +209,12 @@ void ResultAnalyzer::AnalyzeFile(const std::string& path)
     }
 }
 
-void ResultAnalyzer::AnalyzeSequence(const nlohmann::json& sequence, ResultAnalysisResults::Sequence& results)
+void ResultAnalyzer::AnalyzeSequence(const Report::ResultReader&      reader,
+                                     const nlohmann::json&            sequence,
+                                     ResultAnalysisResults::Sequence& results)
 {
-    results.Total++;
-    if (sequence.at("enabled").get<bool>()) { results.Enabled++; }
-    results.EnabledPercent = Percent(results.Enabled, results.Total);
-    if (sequence.at("skipped").get<bool>()) { results.Skipped++; }
-    results.SkippedPercent = Percent(results.Skipped, results.Total);
-    if (sequence.at("pass").get<bool>()) { results.Passed++; }
-    results.PassedPercent = Percent(results.Passed, results.Total - results.Skipped);
+    const auto sequenceResult = reader.read(sequence);
+    results.Results.add(sequenceResult);
 
     results.Durations.push_back(sequence.at("time").at("process").get<double>());
     results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
@@ -202,11 +222,12 @@ void ResultAnalyzer::AnalyzeSequence(const nlohmann::json& sequence, ResultAnaly
 
     auto tests = sequence.at("tests");
     for (auto [name, test] : tests.items()) {
+        if (!reader.isScope(test)) { continue; }
         if (m_options.Tests.empty() || std::ranges::any_of(m_options.Tests, [&name](const auto& testName) {
                 return std::string_view(testName.data()) == name;
             })) {
             BR_LOG_DEBUG("Analyzer", "Analyzing test '{}'...", name);
-            AnalyzeTest(test, results.Tests[name]);
+            AnalyzeTest(reader, test, sequenceResult, results.Tests[name]);
             results.Tests[name].Name = name;
         }
         else {
@@ -215,39 +236,42 @@ void ResultAnalyzer::AnalyzeSequence(const nlohmann::json& sequence, ResultAnaly
     }
 }
 
-void ResultAnalyzer::AnalyzeTest(const nlohmann::json& test, ResultAnalysisResults::Test& results)
+void ResultAnalyzer::AnalyzeTest(const Report::ResultReader&  reader,
+                                 const nlohmann::json&        test,
+                                 Report::Result               sequenceResult,
+                                 ResultAnalysisResults::Test& results)
 {
-    results.Total++;
-    if (test.at("enabled").get<bool>()) { results.Enabled++; }
-    results.EnabledPercent = Percent(results.Enabled, results.Total);
-    if (test.at("skipped").get<bool>()) { results.Skipped++; }
-    results.SkippedPercent = Percent(results.Skipped, results.Total);
-    if (test.at("pass").get<bool>()) { results.Passed++; }
-    results.PassedPercent = Percent(results.Passed, results.Total - results.Skipped);
+    const auto result = reader.read(test, sequenceResult);
+    results.Results.add(result);
 
-    results.Durations.push_back(test.at("time").at("process").get<double>());
-    results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
-    results.AverageDuration /= static_cast<double>(results.Durations.size());
+    // Tests that didn't run have no duration to average. A test that never started has `time.stop == 0`, e.g. one of
+    // a sequence whose body raised.
+    const auto& time     = test.at("time");
+    const auto  stop     = time.find("stop");
+    const bool  neverRan = stop != time.end() && stop->is_number() && stop->get<double>() == 0.0;
+    if (result != Report::Result::Skipped && result != Report::Result::Disabled && !neverRan) {
+        results.Durations.push_back(time.at("process").get<double>());
+        results.AverageDuration = std::accumulate(results.Durations.begin(), results.Durations.end(), 0.0);
+        results.AverageDuration /= static_cast<double>(results.Durations.size());
+    }
 
     auto expectations = test.at("expectations");
     for (auto expectation : expectations) {
         std::string name = std::format("Expectation {}", results.Expectations.size() + 1);
         if (expectation.contains("name")) { name = expectation.at("name").get<std::string>(); }
         try {
+            // Read first: an expectation created without a value has no stats to make.
+            const bool passed = reader.read(expectation) == Report::Result::Pass;
             if (!results.Expectations.contains(name)) {
                 results.Expectations[name] = std::move(MakeExpectationFromDetails(expectation));
             }
-            AnalyzeExpectation(expectation, results.Expectations[name]);
+            results.Expectations[name]->AddValue(expectation, passed);
         }
         catch (std::exception& e) {
             BR_LOG_ERROR("Analyzer", "Error while analyzing expectation '{}': {}", name, e.what());
         }
     }
 }
-
-void ResultAnalyzer::AnalyzeExpectation(const nlohmann::json&                                expectation,
-                                        std::shared_ptr<ResultAnalysisResults::Expectation>& results)
-{ results->AddValue(expectation); }
 
 std::shared_ptr<ResultAnalysisResults::Expectation> ResultAnalyzer::MakeExpectationFromDetails(
   const nlohmann::json& expectation)

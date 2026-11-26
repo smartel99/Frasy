@@ -15,6 +15,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 #include "mcp_runner.h"
+#include "utils/mcp/uut_results.h"
 
 #include "utils/misc/deserializer.h"
 
@@ -24,6 +25,7 @@
 #include <filesystem>
 #include <fstream>
 #include <thread>
+#include <vector>
 
 namespace Frasy::Mcp {
 
@@ -323,42 +325,22 @@ nlohmann::json McpRunner::handleGetStatus(const nlohmann::json& /*args*/)
     }
     else {
         // Determine overall state from UUT states
-        const auto& map     = m_orchestrator.getMap();
-        bool        anyFail = false;
-        bool        anyErr  = false;
-        for (const auto& uut : map.uuts) {
-            auto s = m_orchestrator.getUutState(uut);
-            if (s == UutState::Failed) { anyFail = true; }
-            if (s == UutState::Error) { anyErr = true; }
+        std::vector<UutState> states;
+        for (const auto& uut : m_orchestrator.getMap().uuts) {
+            states.push_back(m_orchestrator.getUutState(uut));
         }
-        if (anyErr) { status["state"] = "error"; }
-        else if (anyFail) {
-            status["state"] = "failed";
-        }
-        else {
-            status["state"] = "passed";
-        }
+        status["state"] = toString(getRunVerdict(states));
     }
 
     // Per-UUT states
     const auto&    map  = m_orchestrator.getMap();
     nlohmann::json uuts = nlohmann::json::array();
     for (const auto& uut : map.uuts) {
-        auto        state = m_orchestrator.getUutState(uut);
-        std::string stateStr;
-        switch (state) {
-            case UutState::Disabled: stateStr = "disabled"; break;
-            case UutState::Idle: stateStr = "idle"; break;
-            case UutState::Waiting: stateStr = "waiting"; break;
-            case UutState::Running: stateStr = "running"; break;
-            case UutState::Passed: stateStr = "passed"; break;
-            case UutState::Failed: stateStr = "failed"; break;
-            case UutState::Error: stateStr = "error"; break;
-        }
+        auto           state = m_orchestrator.getUutState(uut);
         nlohmann::json uutInfo;
         uutInfo["uut"]    = uut;
         uutInfo["serial"] = (uut < m_serials.size()) ? m_serials[uut] : "";
-        uutInfo["state"]  = stateStr;
+        uutInfo["state"]  = toString(state);
         uuts.push_back(uutInfo);
     }
     status["uuts"]    = uuts;
@@ -374,68 +356,16 @@ nlohmann::json McpRunner::handleGetResults(const nlohmann::json& /*args*/)
         return makeToolResult("{\"error\":\"No test results available (no tests have been run)\"}", true);
     }
 
-    const auto&    map = m_orchestrator.getMap();
-    nlohmann::json results;
-    results["product"]      = m_activeProduct;
-    results["overall_pass"] = true;
-
-    nlohmann::json uutResults = nlohmann::json::array();
+    const auto&           map = m_orchestrator.getMap();
+    std::vector<UutState> states;
+    nlohmann::json        uutResults = nlohmann::json::array();
     for (const auto& uut : map.uuts) {
-        auto state = m_orchestrator.getUutState(uut);
-        bool pass  = (state == UutState::Passed);
-        if (!pass) { results["overall_pass"] = false; }
-
-        nlohmann::json uutResult;
-        uutResult["uut"]    = uut;
-        uutResult["serial"] = (uut < m_serials.size()) ? m_serials[uut] : "";
-        uutResult["pass"]   = pass;
-
-        std::string stateStr;
-        switch (state) {
-            case UutState::Passed: stateStr = "passed"; break;
-            case UutState::Failed: stateStr = "failed"; break;
-            case UutState::Error: stateStr = "error"; break;
-            default: stateStr = "unknown"; break;
-        }
-        uutResult["state"] = stateStr;
-
-        // Try to read the report file for detailed info
-        std::string reportPath = std::format("logs/last/{}.json", uut);
-        if (std::filesystem::exists(reportPath)) {
-            uutResult["report_path"] = reportPath;
-            try {
-                std::ifstream ifs(reportPath);
-                auto          report = nlohmann::json::parse(ifs);
-                if (report.contains("info")) {
-                    uutResult["duration"] =
-                      report["info"].value("time", nlohmann::json::object()).value("elapsed", 0.0);
-                }
-                // Count tests
-                int totalTests  = 0;
-                int passedTests = 0;
-                if (report.contains("sequences")) {
-                    for (auto& [seqName, seq] : report["sequences"].items()) {
-                        if (seq.contains("tests")) {
-                            for (auto& [testName, test] : seq["tests"].items()) {
-                                totalTests++;
-                                if (test.value("pass", false)) { passedTests++; }
-                            }
-                        }
-                    }
-                }
-                uutResult["tests_passed"] = passedTests;
-                uutResult["tests_total"]  = totalTests;
-            }
-            catch (...) {
-                // Report parsing failed — just include the path
-            }
-        }
-
-        uutResults.push_back(uutResult);
+        const auto state = m_orchestrator.getUutState(uut);
+        states.push_back(state);
+        uutResults.push_back(Mcp::makeUutResult(
+          uut, (uut < m_serials.size()) ? m_serials[uut] : "", state, std::format("logs/last/{}.json", uut)));
     }
-    results["uuts"] = uutResults;
-
-    return makeToolResult(results.dump());
+    return makeToolResult(Mcp::makeRunResults(m_activeProduct, states, std::move(uutResults)).dump());
 }
 
 nlohmann::json McpRunner::handleGetPendingPopup(const nlohmann::json& /*args*/)
@@ -606,6 +536,8 @@ nlohmann::json McpRunner::handleUploadSdo(const nlohmann::json& args)
 }
 
 nlohmann::json McpRunner::handleDownloadSdo([[maybe_unused]] const nlohmann::json& args)
-{ return makeToolResult("{\"error\":\"Not implemented\"}", true); }
+{
+    return makeToolResult("{\"error\":\"Not implemented\"}", true);
+}
 
 }    // namespace Frasy::Mcp

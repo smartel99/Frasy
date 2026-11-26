@@ -18,13 +18,19 @@ Requires(Sequence("Setup"):ToPass())
     - If met → execution continues normally.
     - If unmet → the current scope is **skipped** (not failed).
 
+The skip reason, in logs and reports, says which requirement was unmet: `UnmetRequirement: Sequence "Setup" has not
+passed`. It carries no stack traceback. A custom requirement without a reason gives where it was required instead:
+`UnmetRequirement: requirement at MyProduct/test.lua:12`. That is the line of the `Requires()` call: a helper
+function that calls `Requires()` gives its own line. `return Requires(...)` and `pcall(Requires, ...)` leave no line to
+give, and the reason is `UnmetRequirement: requirement (no reason given)`.
+
 ### Stage Behavior
 
-| Stage | Order Requirements | Runtime Requirements |
-|---|---|---|
-| **Generation** | Collected and fed to the sort algorithm | Always return `true` |
-| **Validation** | Ignored (sort already done) | Always return `true` |
-| **Execution** | Ignored (sort already done) | Evaluated for real |
+| Stage | Order Requirements | `ToPass()`, `ToFail()`, `ToBeComplete()` | Custom (`RequirementSpecifier`) |
+|---|---|---|---|
+| **Generation** | Collected and fed to the sort algorithm | Always return `true` | Evaluated: unmet fails generation |
+| **Validation** | Ignored (sort already done) | Always return `true` | Evaluated: unmet skips the scope |
+| **Execution** | Ignored (sort already done) | Evaluated for real | Evaluated for real |
 
 This means ordering is determined at generation time, and conditional execution is enforced at
 runtime.
@@ -159,7 +165,8 @@ actually runs based on the results of previously-executed scopes.
 
 ### `:ToPass()`
 
-The scope runs only if the referenced scope **passed** (all expectations met).
+The scope runs only if the referenced scope's result is `pass`. A `skipped`, `disabled` or
+`incomplete` scope doesn't count as passed.
 
 ```lua
 Sequence("Functional", function()
@@ -178,7 +185,8 @@ This is the most common runtime requirement. It also implicitly creates an order
 
 ### `:ToFail()`
 
-The scope runs only if the referenced scope **failed**.
+The scope runs only if the referenced scope did **not pass**: its result is `fail`, `skipped`,
+`disabled` or `incomplete`.
 
 ```lua
 Sequence("Error Recovery", function()
@@ -190,7 +198,8 @@ end)
 ### `:ToBeComplete()`
 
 The scope runs only if the referenced scope was **not skipped** (it ran to completion,
-regardless of pass/fail).
+regardless of pass/fail). A `disabled` scope counts as skipped. An `incomplete` sequence counts as
+complete: only `skipped` and `disabled` scopes fail this requirement.
 
 ```lua
 Test("Cleanup", function()
@@ -222,7 +231,7 @@ For requirements that don't fit the scope-based model, create a custom runtime r
 ```lua
 Requires(RequirementSpecifier(function()
     return os.clock() < 300  -- Only run within first 5 minutes
-end))
+end, "Within the first 5 minutes"))
 ```
 
 **Parameters:**
@@ -230,12 +239,14 @@ end))
 | Name | Type | Description |
 |---|---|---|
 | `fn` | `function() → boolean` | Must return `true` (met) or `false` (unmet) |
+| `reason` | `string?` | What is required. The skip reason is `UnmetRequirement: <reason>`; without it, the file and line of the `Requires()` call |
 
 **Returns:** A `RuntimeRequirement` object compatible with `Requires()`.
 
 !!! warning
-    Custom requirement functions are evaluated during **execution only**. During generation and
-    validation they are not called (scope requirements always return `true` in those stages).
+    `Requires()` calls custom requirement functions in **every stage**, unlike scope requirements, which are always
+    met during generation and validation. A function that is unmet during generation makes generation fail: return
+    `true` outside `Stage.execution` when the condition only makes sense at run time.
 
 ---
 

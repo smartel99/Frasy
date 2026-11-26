@@ -21,16 +21,14 @@
 #include <array>
 #include <vector>
 
-namespace Frasy::Analyzers
-{
-struct ResultOptions
-{
+namespace Frasy::Analyzers {
+struct ResultOptions {
     std::vector<std::array<char, 32>> SerialNumbers = {};    //!< Serial numbers to analyze.
     std::vector<std::array<char, 32>> Uuts          = {};    //!< Uuts to analyze.
     std::vector<std::array<char, 32>> Sequences     = {};    //!< Sequences to analyze.
     std::vector<std::array<char, 32>> Tests         = {};    //!< Tests to analyze.
 
-    bool Ganged = true;                                      //!< Combine the results of all UUT locations together.
+    bool Ganged = true;    //!< Combine the results of all UUT locations together.
 };
 }    // namespace Frasy::Analyzers
 #endif    // FRASY_SRC_UTILS_RESULT_ANALYZER_OPTIONS_H

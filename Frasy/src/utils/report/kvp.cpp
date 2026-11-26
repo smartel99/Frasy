@@ -23,9 +23,9 @@
 
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <string>
-#include <format>
 #include <vector>
 
 
@@ -39,16 +39,18 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
     std::vector<std::string> reports = {};
     // Load the solution up, building a list of the sections-solutions-tests-expectations
     // Format them from the results into a kvp format, where keys are <solution>#<test>#<expectation>
+
+
     try {
         using namespace Frasy::Report::SolutionLoader;
         Solution solution = loadSolution();
 
-        auto title = results["info"]["title"].get<std::string>();
-        auto pass  = results["info"]["pass"].get<bool>();
+        auto       title = results["info"]["title"].get<std::string>();
+        const auto pass  = getResult(results["info"]) == Result::Pass;
 
         namespace fs = std::filesystem;
         // Create log directory if needed.
-        static auto frasyLogDirectory = fs::current_path() / ".."/ "logs";
+        static auto frasyLogDirectory = fs::current_path() / ".." / "logs";
         create_directories(frasyLogDirectory);
         auto logDirectory = frasyLogDirectory / title;
         create_directories(logDirectory);
@@ -62,8 +64,17 @@ std::vector<std::string> makeReport(const sol::table& results, const std::vector
         create_directories(smtFailDir);
 
         // Create the log file.
-        auto smtFileDir         = pass ? smtPassDir : smtFailDir;
-        auto lastReportFilepath = smtDirectory / std::format("last_uut{}.txt", results.get<sol::table>("info").get_or("uut", 0));
+        auto smtFileDir = pass ? smtPassDir : smtFailDir;
+        auto lastReportFilepath =
+          smtDirectory / std::format("last_uut{}.txt", results.get<sol::table>("info").get_or("uut", 0));
+        if (Formatter::isIncomplete(results)) {
+            // Debug run: client outputs are only made for complete boards, and the previous board's report
+            // mustn't pass for this one's.
+            std::error_code ec;
+            fs::remove(lastReportFilepath, ec);
+            BR_LOG_INFO(s_tag, "Incomplete board, no report written");
+            return {};
+        }
 
         std::ofstream report(lastReportFilepath, std::ios::out | std::ios::trunc | std::ios::binary);
         if (!report.is_open()) {

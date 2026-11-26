@@ -25,6 +25,27 @@
 #include <filesystem>
 
 namespace Frasy {
+namespace {
+/**
+ * @brief Render how many times a scope ended with each result, and its pass rate.
+ * @param what Label of the total, e.g. "Analyzed".
+ */
+void renderResultCounts(const char* what, const Analyzers::ResultCounts& counts)
+{
+    using Report::Result;
+    ImGui::BulletText("%s: %zu, pass rate: %0.2f%% (incomplete, skipped and disabled runs left out)",
+                      what,
+                      counts.getTotal(),
+                      counts.getPassRate());
+    ImGui::BulletText("Passed: %zu, failed: %zu, incomplete: %zu, skipped: %zu, disabled: %zu",
+                      counts.get(Result::Pass),
+                      counts.get(Result::Fail),
+                      counts.get(Result::Incomplete),
+                      counts.get(Result::Skipped),
+                      counts.get(Result::Disabled));
+}
+}    // namespace
+
 ResultAnalyzer::ResultAnalyzer() noexcept
 {
 }
@@ -114,7 +135,9 @@ void ResultAnalyzer::onImGuiRender()
 }
 
 void ResultAnalyzer::setVisibility(bool visibility)
-{ m_isVisible = visibility; }
+{
+    m_isVisible = visibility;
+}
 
 void ResultAnalyzer::renderStringList(std::string_view                   name,
                                       std::string_view                   tooltip,
@@ -197,8 +220,7 @@ void ResultAnalyzer::renderAnalysisResultsFile(const Analyzers::ResultAnalysisRe
 void ResultAnalyzer::renderLocationAnalysisResults(const Analyzers::ResultAnalysisResults::Location& location)
 {
     ImGui::BulletText("Version: %s", location.Version.c_str());
-    ImGui::BulletText(
-      "Logs Analyzed: %zu, Passed:%zu (%0.2f%%)", location.Total, location.Passed, location.PassedPercent);
+    renderResultCounts("Logs analyzed", location.Results);
 
     const auto [min, max] = std::minmax_element(location.Durations.begin(), location.Durations.end());
     ImGui::BulletText(
@@ -252,14 +274,7 @@ void ResultAnalyzer::renderLocationAnalysisResults(const Analyzers::ResultAnalys
 
 void ResultAnalyzer::renderSequenceAnalysisResults(const Analyzers::ResultAnalysisResults::Sequence& sequence)
 {
-    ImGui::BulletText("Analyzed %zu times", sequence.Total);
-    ImGui::BulletText("enabled %zu times (%0.2f%%), Passed %zu times (%0.2f%%), Skipped %zu times (%0.2f%%)",
-                      sequence.Enabled,
-                      sequence.EnabledPercent,
-                      sequence.Passed,
-                      sequence.PassedPercent,
-                      sequence.Skipped,
-                      sequence.SkippedPercent);
+    renderResultCounts("Analyzed", sequence.Results);
 
     const auto [min, max] = std::minmax_element(sequence.Durations.begin(), sequence.Durations.end());
     ImGui::BulletText(
@@ -310,19 +325,18 @@ void ResultAnalyzer::renderSequenceAnalysisResults(const Analyzers::ResultAnalys
 
 void ResultAnalyzer::renderTestAnalysisResults(const Analyzers::ResultAnalysisResults::Test& test)
 {
-    ImGui::BulletText("Analyzed %zu times", test.Total);
-    ImGui::BulletText("enabled %zu times (%0.2f%%), Passed %zu times (%0.2f%%), Skipped %zu times (%0.2f%%)",
-                      test.Enabled,
-                      test.EnabledPercent,
-                      test.Passed,
-                      test.PassedPercent,
-                      test.Skipped,
-                      test.SkippedPercent);
+    renderResultCounts("Analyzed", test.Results);
 
 
-    const auto [min, max] = std::minmax_element(test.Durations.begin(), test.Durations.end());
-    ImGui::BulletText(
-      "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)", test.AverageDuration, *min, *max);
+    if (test.Durations.empty()) {
+        // Skipped or disabled on every board.
+        ImGui::BulletText("Average Duration: never ran");
+    }
+    else {
+        const auto [min, max] = std::minmax_element(test.Durations.begin(), test.Durations.end());
+        ImGui::BulletText(
+          "Average Duration: %0.3f seconds (min: %0.3f seconds, max: %0.3f seconds)", test.AverageDuration, *min, *max);
+    }
 
     ImGui::Separator();
 

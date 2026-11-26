@@ -19,10 +19,8 @@
 #define FRASY_SRC_UTILS_RESULT_ANALYZER_EXPECTATIONS_TO_BE_IN_RANGE_H
 #include "to_be_value_base.h"
 
-namespace Frasy::Analyzers
-{
-struct ToBeInRangeExpectation : public ToBeValueBase
-{
+namespace Frasy::Analyzers {
+struct ToBeInRangeExpectation : public ToBeValueBase {
     ToBeInRangeExpectation(float min, float max) : ToBeValueBase((min + max) / 2.0f, min, max) {}
     ~ToBeInRangeExpectation() override = default;
 

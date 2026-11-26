@@ -31,11 +31,41 @@
 #include <fstream>
 #include <json.hpp>
 
-namespace Frasy::Analyzers
-{
+namespace Frasy::Analyzers {
 
-namespace
+namespace {
+/** @return a - b, or 0 if b is larger. */
+size_t saturatingSub(size_t a, size_t b)
 {
+    return a > b ? a - b : 0;
+}
+
+/**
+ * @brief Counts of a saved analysis.
+ * Analyses saved before `results` existed only kept passed, skipped and enabled counts. Disabled scopes were counted as
+ * skipped too; anything else is counted as a failure.
+ */
+ResultCounts loadResultCounts(const nlohmann::json& data)
+{
+    ResultCounts counts;
+    if (const auto it = data.find("results"); it != data.end()) {
+        for (const auto result : Report::s_allResults) {
+            counts.Counts.at(static_cast<size_t>(result)) = it->value(Report::toString(result), size_t {0});
+        }
+        return counts;
+    }
+
+    const auto total    = data.at("total").get<size_t>();
+    const auto passed   = data.at("passed").get<size_t>();
+    const auto disabled = saturatingSub(total, data.value("enabled", total));
+    const auto skipped  = saturatingSub(data.value("skipped", size_t {0}), disabled);
+    counts.Counts.at(static_cast<size_t>(Report::Result::Pass))     = passed;
+    counts.Counts.at(static_cast<size_t>(Report::Result::Disabled)) = disabled;
+    counts.Counts.at(static_cast<size_t>(Report::Result::Skipped))  = skipped;
+    counts.Counts.at(static_cast<size_t>(Report::Result::Fail))     = saturatingSub(total, passed + disabled + skipped);
+    return counts;
+}
+
 nlohmann::json LoadJson(const std::string& path)
 {
     BR_PROFILE_FUNCTION();
@@ -44,7 +74,9 @@ nlohmann::json LoadJson(const std::string& path)
     std::string fullFile;
     std::string line;
 
-    while (std::getline(j, line)) { fullFile += line; }
+    while (std::getline(j, line)) {
+        fullFile += line;
+    }
     j.close();
 
     return nlohmann::json::parse(fullFile);
@@ -102,8 +134,7 @@ void LoadToBeExactExpectation(std::shared_ptr<ResultAnalysisResults::Expectation
     ptr->Total         = data.at("total").get<size_t>();
     ptr->Passed        = data.at("passed").get<size_t>();
 
-    for (auto&& [name, value] : data.at("values").items())
-    {
+    for (auto&& [name, value] : data.at("values").items()) {
         ptr->Values[name] = {
           .Type   = value.at("type").get<std::string>(),
           .Passed = value.at("passed").get<bool>(),
@@ -164,26 +195,18 @@ ResultAnalysisResults::Test LoadTest(const nlohmann::json& data)
 {
     return ResultAnalysisResults::Test {
       .Name            = data.at("name").get<std::string>(),
-      .Passed          = data.at("passed").get<size_t>(),
-      .PassedPercent   = data.at("passed_percent").get<float>(),
-      .Enabled         = data.at("enabled").get<size_t>(),
-      .EnabledPercent  = data.at("enabled_percent").get<float>(),
-      .Skipped         = data.at("skipped").get<size_t>(),
-      .SkippedPercent  = data.at("skipped_percent").get<float>(),
-      .Total           = data.at("total").get<size_t>(),
+      .Results         = loadResultCounts(data),
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Expectations =
-        [&data]()
-      {
-          std::map<std::string, std::shared_ptr<ResultAnalysisResults::Expectation>> expectations;
+        [&data]() {
+            std::map<std::string, std::shared_ptr<ResultAnalysisResults::Expectation>> expectations;
 
-          for (auto&& [name, expectation] : data.at("expectations").items())
-          {
-              expectations[name] = LoadExpectation(expectation);
-          }
-          return expectations;
-      }(),
+            for (auto&& [name, expectation] : data.at("expectations").items()) {
+                expectations[name] = LoadExpectation(expectation);
+            }
+            return expectations;
+        }(),
     };
 }
 
@@ -191,23 +214,18 @@ ResultAnalysisResults::Sequence LoadSequence(const nlohmann::json& data)
 {
     return ResultAnalysisResults::Sequence {
       .Name            = data.at("name").get<std::string>(),
-      .Passed          = data.at("passed").get<size_t>(),
-      .PassedPercent   = data.at("passed_percent").get<float>(),
-      .Enabled         = data.at("enabled").get<size_t>(),
-      .EnabledPercent  = data.at("enabled_percent").get<float>(),
-      .Skipped         = data.at("skipped").get<size_t>(),
-      .SkippedPercent  = data.at("skipped_percent").get<float>(),
-      .Total           = data.at("total").get<size_t>(),
+      .Results         = loadResultCounts(data),
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Tests =
-        [&data]()
-      {
-          std::map<std::string, ResultAnalysisResults::Test> tests;
+        [&data]() {
+            std::map<std::string, ResultAnalysisResults::Test> tests;
 
-          for (auto&& [name, test] : data.at("tests").items()) { tests[name] = LoadTest(test); }
-          return tests;
-      }(),
+            for (auto&& [name, test] : data.at("tests").items()) {
+                tests[name] = LoadTest(test);
+            }
+            return tests;
+        }(),
     };
 }
 
@@ -216,19 +234,18 @@ ResultAnalysisResults::Location LoadLocation(const nlohmann::json& data)
     return ResultAnalysisResults::Location {
       .Name            = data.at("name").get<std::string>(),
       .Version         = data.at("version").get<std::string>(),
-      .Passed          = data.at("passed").get<size_t>(),
-      .PassedPercent   = data.at("passed_percent").get<float>(),
-      .Total           = data.at("total").get<size_t>(),
+      .Results         = loadResultCounts(data),
       .Durations       = data.at("durations").get<std::vector<double>>(),
       .AverageDuration = data.at("average_duration").get<double>(),
       .Sequences =
-        [&data]()
-      {
-          std::map<std::string, ResultAnalysisResults::Sequence> sequences = {};
-          for (auto&& [name, sequence] : data.at("sequences").items()) { sequences[name] = LoadSequence(sequence); }
+        [&data]() {
+            std::map<std::string, ResultAnalysisResults::Sequence> sequences = {};
+            for (auto&& [name, sequence] : data.at("sequences").items()) {
+                sequences[name] = LoadSequence(sequence);
+            }
 
-          return sequences;
-      }(),
+            return sequences;
+        }(),
     };
 }
 
@@ -239,29 +256,26 @@ ResultAnalysisResults Load(const std::string& path)
     auto                  j       = LoadJson(path);
     ResultAnalysisResults results = {};
 
-    for (auto&& [name, location] : j.items()) { results.Locations[name] = LoadLocation(location); }
+    for (auto&& [name, location] : j.items()) {
+        results.Locations[name] = LoadLocation(location);
+    }
 
     return results;
 }
 
-namespace
-{
+namespace {
 nlohmann::json SaveTest(const ResultAnalysisResults::Test& test)
 {
     BR_PROFILE_FUNCTION();
     nlohmann::json j      = {};
     j["name"]             = test.Name;
-    j["passed"]           = test.Passed;
-    j["passed_percent"]   = test.PassedPercent;
-    j["enabled"]          = test.Enabled;
-    j["enabled_percent"]  = test.EnabledPercent;
-    j["skipped"]          = test.Skipped;
-    j["skipped_percent"]  = test.SkippedPercent;
-    j["total"]            = test.Total;
+    j["results"]          = test.Results.toJson();
     j["durations"]        = test.Durations;
     j["average_duration"] = test.AverageDuration;
     j["expectations"]     = {};
-    for (auto&& [name, expectation] : test.Expectations) { j["expectations"][name] = expectation->serialize(); }
+    for (auto&& [name, expectation] : test.Expectations) {
+        j["expectations"][name] = expectation->serialize();
+    }
 
     return j;
 }
@@ -271,17 +285,13 @@ nlohmann::json SaveSequence(const ResultAnalysisResults::Sequence& sequence)
     BR_PROFILE_FUNCTION();
     nlohmann::json j      = {};
     j["name"]             = sequence.Name;
-    j["passed"]           = sequence.Passed;
-    j["passed_percent"]   = sequence.PassedPercent;
-    j["enabled"]          = sequence.Enabled;
-    j["enabled_percent"]  = sequence.EnabledPercent;
-    j["skipped"]          = sequence.Skipped;
-    j["skipped_percent"]  = sequence.SkippedPercent;
-    j["total"]            = sequence.Total;
+    j["results"]          = sequence.Results.toJson();
     j["durations"]        = sequence.Durations;
     j["average_duration"] = sequence.AverageDuration;
     j["tests"]            = {};
-    for (auto&& [name, test] : sequence.Tests) { j["tests"][name] = SaveTest(test); }
+    for (auto&& [name, test] : sequence.Tests) {
+        j["tests"][name] = SaveTest(test);
+    }
 
     return j;
 }
@@ -292,13 +302,13 @@ nlohmann::json SaveLocation(const ResultAnalysisResults::Location& location)
     nlohmann::json j      = {};
     j["name"]             = location.Name;
     j["version"]          = location.Version;
-    j["passed"]           = location.Passed;
-    j["passed_percent"]   = location.PassedPercent;
-    j["total"]            = location.Total;
+    j["results"]          = location.Results.toJson();
     j["durations"]        = location.Durations;
     j["average_duration"] = location.AverageDuration;
     j["sequences"]        = {};
-    for (auto&& [name, sequence] : location.Sequences) { j["sequences"][name] = SaveSequence(sequence); }
+    for (auto&& [name, sequence] : location.Sequences) {
+        j["sequences"][name] = SaveSequence(sequence);
+    }
 
     return j;
 }
@@ -309,7 +319,9 @@ void Save(const ResultAnalysisResults& results, const std::string& path)
     BR_PROFILE_FUNCTION();
     nlohmann::json j = {};
 
-    for (auto&& [name, location] : results.Locations) { j[name] = SaveLocation(location); }
+    for (auto&& [name, location] : results.Locations) {
+        j[name] = SaveLocation(location);
+    }
 
     std::ofstream file = std::ofstream(path);
 

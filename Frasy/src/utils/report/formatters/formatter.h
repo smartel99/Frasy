@@ -19,15 +19,32 @@
 #ifndef FORMATTER_H
 #define FORMATTER_H
 
+#include "utils/report/result.h"
+
+#include <format>
+#include <optional>
 #include <sol/sol.hpp>
 #include <string>
-#include <format>
 #include <type_traits>
 
 namespace Frasy::Report::Formatter {
+
+/**
+ * @brief Label of a result in text reports.
+ * @return PASS, FAIL, SKIPPED, DISABLED or INCOMPLETE.
+ */
+[[nodiscard]] std::string toLabel(Result result);
+
+/**
+ * @brief Whether a report table is of an incomplete board (anything disabled).
+ * Incomplete boards are debug runs: the report writers don't produce client outputs for them.
+ * @return true if `info.result` is `incomplete`.
+ */
+[[nodiscard]] bool isIncomplete(const sol::table& results);
+
 template<typename T>
-    requires (!std::is_same_v<T, std::string>)
-             static std::string getFieldAsStr(const sol::object& field)
+    requires(!std::is_same_v<T, std::string>)
+static std::string getFieldAsStr(const sol::object& field)
 {
     if (field == sol::nil) { return "Not provided"; }
     return std::format("{}", field.as<T>());
@@ -64,11 +81,15 @@ protected:
     virtual void reportToBeNear(const sol::table& expectation)         = 0;
 
 
-    static std::string  resultToString(const sol::object& field);
-    virtual std::string sectionResultToString(const sol::table& section) const;
-    void                setSequence(const std::string& name);
-    void                setTest(const std::string& name);
-    virtual void        reportSectionBaseResult(const sol::table& section) const = 0;
+    /**
+     * @brief Label of a node's result in text reports.
+     * @return PASS, FAIL, SKIPPED, DISABLED or INCOMPLETE, or "Not provided" if the node has no result.
+     */
+    [[nodiscard]] static std::string  resultToString(const sol::table& node);
+    [[nodiscard]] virtual std::string sectionResultToString(const sol::table& section) const;
+    void                              setSequence(const std::string& name);
+    void                              setTest(const std::string& name);
+    virtual void                      reportSectionBaseResult(const sol::table& section) const = 0;
 
     sol::table  m_result;
     sol::table  m_emptyTable;

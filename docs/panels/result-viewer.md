@@ -1,6 +1,6 @@
 # Result Viewer
 
-The Result Viewer displays pass/fail results from the **last completed test run**. It presents
+The Result Viewer displays the results from the **last completed test run**. It presents
 a hierarchical view of sequences, tests, and individual expectations, automatically expanding
 failed items so you can quickly identify what went wrong.
 
@@ -14,18 +14,18 @@ After a test run completes, the Result Viewer loads the JSON report files from `
 presents them in a tree structure:
 
 ```
-UUT 1 — PASSED
-├── Power On — PASSED
-│   ├── Supply Voltage — PASSED
+UUT 1 — FAIL
+├── Power On — PASS
+│   ├── Supply Voltage — PASS
 │   │   └── Expectations (1)
-│   │       └── VCC: pass, value=3.31, method=ToBeInPercentage, ...
-│   └── Current Draw — PASSED
+│   │       └── VCC: result=pass, value=3.31, method=ToBeInPercentage, ...
+│   └── Current Draw — PASS
 │       └── Expectations (1)
-│           └── Idle Current: pass, value=0.042, method=ToBeLesser, ...
-└── Functional — FAILED
-    └── Communication — FAILED
+│           └── Idle Current: result=pass, value=0.042, method=ToBeLesser, ...
+└── Functional — FAIL
+    └── Communication — FAIL
         └── Expectations (1)
-            └── ACK: FAIL, value=nil, method=ToBeEqual, expected=6
+            └── ACK: result=fail, value=nil, method=ToBeEqual, expected=6
 ```
 
 ---
@@ -36,14 +36,15 @@ UUT 1 — PASSED
 
 When multiple UUTs are tested, each UUT gets its own tab. Tabs are labeled with the report
 file name (typically the serial number or UUT identifier). Failed tabs are highlighted in
-**red text**.
+**red text**, incomplete tabs in **orange**. An incomplete tab where something failed is red.
 
 ### Header
 
 Each tab shows a summary header:
 
 - **Serial Number** and **UUT number**
-- **Overall result** (PASSED or FAILED)
+- **Overall result**: PASS, FAIL or INCOMPLETE. An incomplete board where a sequence or test
+  failed reads "INCOMPLETE (a test failed)"
 - **Date** of the test run
 - **Duration** in seconds
 - **Script version**
@@ -62,11 +63,11 @@ Below the header, results are organized as a collapsible tree:
 
 When the Result Viewer first loads results, it automatically expands:
 
-- Failed sequences
+- Failed and incomplete sequences
 - Failed tests within those sequences
 - Failed expectations within those tests
 
-Passed items remain collapsed. This lets you immediately see the failure chain without
+Passed, skipped and disabled items remain collapsed. This lets you immediately see the failure chain without
 clicking through the tree.
 
 ---
@@ -78,9 +79,7 @@ clicking through the tree.
 | Field | Description |
 |---|---|
 | Name | Sequence name |
-| Result | PASSED / FAILED |
-| Skipped | Whether the sequence was skipped (requirement unmet) |
-| Enabled | Whether the sequence was enabled in the Test Viewer |
+| Result | PASS, FAIL, SKIPPED (requirement unmet), DISABLED (in the Test Viewer) or INCOMPLETE (some of its tests were disabled) |
 | Duration | Execution time in seconds |
 
 ### Per Test
@@ -88,9 +87,7 @@ clicking through the tree.
 | Field | Description |
 |---|---|
 | Name | Test name |
-| Result | PASSED / FAILED |
-| Skipped | Whether the test was skipped |
-| Enabled | Whether the test was enabled |
+| Result | PASS, FAIL, SKIPPED or DISABLED |
 | Duration | Execution time in seconds |
 
 ### Per Expectation
@@ -101,7 +98,7 @@ All fields from the expectation result are displayed as key-value pairs:
 |---|---|
 | `name` / `note` | The expectation label |
 | `value` | The measured value |
-| `pass` | Whether it passed |
+| `result` | `pass` or `fail` (`pass` in reports written before format version 2) |
 | `inverted` | Whether `:Not()` was applied |
 | `method` | The matcher used (e.g., `ToBeInPercentage`) |
 | `expected`, `min`, `max`, `deviation`, `percentage`, `pattern` | Matcher-specific parameters |
@@ -139,8 +136,12 @@ logs/last/
 ```
 
 These files are overwritten on every test run. Historical results are preserved in
-`logs/pass/` and `logs/fail/` directories (organized by outcome). The Result Viewer only
+`logs/pass/`, `logs/fail/` and `logs/debug/` (incomplete boards). The Result Viewer only
 shows the `logs/last/` files.
+
+The viewer reads `info.format_version` first, so reports written before the `result` field existed
+(format version 1, with `pass`, `skipped` and `enabled` booleans) still load. A report that can't be
+read, e.g. with an unknown `result` or a newer format version, shows "Log is not valid".
 
 ---
 

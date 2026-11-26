@@ -12,18 +12,20 @@
 --- General Public License for more details.
 --- You should have received a copy of the GNU General Public License along with this program. If
 --- not, see <a href=https://www.gnu.org/licenses/>https://www.gnu.org/licenses/</a>.
+local ScopeResult = require("lua/core/framework/scope_result")
+
 Team = {}
 if Context.team == nil then
     Context.team = {
         players = {},
-        teams   = {},
+        teams = {},
         hasTeam = false,
     }
 end
 
 Team.Status = {
-    pass             = 0,
-    fail             = 1,
+    pass = 0,
+    fail = 1,
     critical_failure = 2,
 }
 function Team.Wait(fun)
@@ -60,23 +62,21 @@ function Team.Get()
 end
 
 function Team.Sync(result)
-    if (Team.HasTeam()) then
+    if Team.HasTeam() then
         local status
         if result.time.stop == 0 then
             status = Team.Status.critical_failure
-        elseif result.skipped or not result.pass then
-            status = Team.Status.fail
-        else
+        elseif result:HasPassed() then
             status = Team.Status.pass
+        else
+            status = Team.Status.fail
         end
-        local team_status = Team.__sync(status)
-        if team_status ~= status then
-            if team_status == Team.Status.fail then
-                result.pass   = false
-                result.reason = "Teammate failure"
-            elseif team_status == Team.Status.critical_failure then
-                result.pass   = false
-                result.reason = "Teammate critical failure"
+        local teamStatus = Team.__sync(status)
+        if teamStatus ~= status then
+            if teamStatus == Team.Status.fail then
+                result:Set(ScopeResult.Value.Fail, "Teammate failure")
+            elseif teamStatus == Team.Status.critical_failure then
+                result:Set(ScopeResult.Value.Fail, "Teammate critical failure")
                 error(TeamError("Teammate critical failure"))
             else
                 error(TeamError("Invalid team status"))
@@ -86,7 +86,7 @@ function Team.Sync(result)
 end
 
 function Team.Fail()
-    if (Team.HasTeam()) then
+    if Team.HasTeam() then
         Team.__fail()
     end
 end

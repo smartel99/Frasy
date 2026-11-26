@@ -17,6 +17,9 @@
  */
 #include "formatter.h"
 
+#include <algorithm>
+#include <cctype>
+
 namespace Frasy::Report::Formatter {
 
 Formatter::Formatter(const sol::table& result)
@@ -83,17 +86,27 @@ sol::table Formatter::getNextExpectation()
     return expectation;
 }
 
-std::string Formatter::resultToString(const sol::object& field)
+std::string Formatter::resultToString(const sol::table& node)
 {
-    if (field == sol::nil) { return "Not provided"; }
-    return (field.as<bool>() ? "PASS" : "FAIL");
+    const auto result = getResult(node);
+    return result ? toLabel(*result) : "Not provided";
 }
 
 std::string Formatter::sectionResultToString(const sol::table& section) const
 {
-    if (section["skipped"] != sol::nil && section["skipped"].get<bool>()) { return "SKIPPED"; }
-    if (section["pass"] == sol::nil) { return "Not provided"; }
-    return section["pass"].get<bool>() ? "PASS" : "FAIL";
+    return resultToString(section);
+}
+
+std::string toLabel(Result result)
+{
+    std::string label(toString(result));
+    std::ranges::transform(label, label.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+    return label;
+}
+
+bool isIncomplete(const sol::table& results)
+{
+    return getBoardResult(results) == Result::Incomplete;
 }
 
 }    // namespace Frasy::Report::Formatter
